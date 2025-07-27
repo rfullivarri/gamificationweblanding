@@ -6,8 +6,17 @@ window.onload = async () => {
         return;
     }
 
-    const response = await fetch("https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=" + email);
-    const data = await response.json();
+    try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=" + email);
+        const data = await response.json();
+
+        document.getElementById("saludo").innerText = "Hola, " + data.nombre + " 👋";
+
+        // ... todo el código sigue igual
+    } catch (error) {
+        console.error("❌ Error al obtener los datos:", error);
+        document.getElementById("saludo").innerText = "❌ Error al cargar los datos. Revisá la consola.";
+    }
 
     document.getElementById("saludo").innerText = "Hola, " + data.nombre + " 👋";
 
