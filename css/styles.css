@@ -1,0 +1,28 @@
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #1c1c1c;
+    color: #e0e0e0;
+    padding: 2rem;
+}
+h1 {
+    color: #9bf6ff;
+}
+button {
+    margin-top: 1rem;
+    padding: 10px 20px;
+    background-color: #00b894;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+table {
+    width: 100%;
+    margin-top: 1rem;
+    border-collapse: collapse;
+}
+td, th {
+    border: 1px solid #555;
+    padding: 8px;
+    text-align: left;
+}
