@@ -30,7 +30,7 @@ window.onload = async () => {
     document.getElementById("contenedor-tabla").appendChild(tabla);
 
     document.getElementById("confirmar-btn").onclick = async () => {
-        await fetch("https://script.google.com/macros/s/WEBAPP_URL/exec", {
+        await fetch("https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec", {
             method: "POST",
             body: JSON.stringify({ email }),
             headers: { "Content-Type": "application/json" }
