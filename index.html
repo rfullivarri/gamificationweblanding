@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🧠 Self-Improvement Hub</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles.css"> <!-- Asegurate que exista -->
 </head>
 <body>
     <main>
         <h1>🎮 Ingresa tu correo para ver tus stats!</h1>
-        <p id="saludo">Cargando datos...</p>
+
+        <p id="saludo">⌛ Cargando datos...</p>
+
+        <!-- Tabla de BBDD -->
         <div id="contenedor-tabla"></div>
+
+        <!-- Botón para confirmar -->
         <button id="confirmar-btn">✅ Confirmar Base de Datos</button>
-        <div id="links-utiles"></div>
+
+        <!-- Links a dashboard, editor y formulario -->
+        <div id="links-utiles" style="margin-top: 20px;"></div>
     </main>
+
     <script src="js/main.js"></script>
 </body>
 </html>
