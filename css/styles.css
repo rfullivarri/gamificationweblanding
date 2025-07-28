@@ -1,28 +1,83 @@
-
 body {
-    font-family: 'Courier New', monospace;
-    background-color: #1c1c1c;
-    color: #e0e0e0;
-    padding: 2rem;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #0f0f0f;
+  color: #f2f2f2;
+  margin: 0;
+  padding: 0;
 }
-h1 {
-    color: #9bf6ff;
+
+.navbar {
+  background-color: #1a1a1a;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-button {
-    margin-top: 1rem;
-    padding: 10px 20px;
-    background-color: #00b894;
-    color: white;
-    border: none;
-    cursor: pointer;
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
 }
-table {
-    width: 100%;
-    margin-top: 1rem;
-    border-collapse: collapse;
+
+.nav-btn {
+  background: #373fff;
+  color: white;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  border-radius: 8px;
 }
-td, th {
-    border: 1px solid #555;
-    padding: 8px;
-    text-align: left;
+
+.landing {
+  padding: 3rem 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+.subtitulo {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.cta {
+  background: #00c897;
+  color: black;
+  font-weight: bold;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cta.grande {
+  font-size: 1.2rem;
+  margin-top: 2rem;
+}
+
+.explicacion ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.explicacion li {
+  margin-bottom: 1rem;
+}
+
+.inspirador {
+  font-size: 1.2rem;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+footer {
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 1rem;
+  background-color: #111;
+  color: #888;
 }
