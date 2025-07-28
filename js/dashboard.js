@@ -9,17 +9,26 @@ window.onload = async () => {
         return;
     }
 
-    const res = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${email}`);
-    data = await res.json();
+    try {
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${email}`);
+        data = await res.json();
 
-    document.getElementById("avatar").src = convertirDriveLink(data.avatar_url);
-    document.getElementById("nivel").innerText = data.nivel;
-    document.getElementById("xp").innerText = data.xp;
-    document.getElementById("xp-objetivo").innerText = data.exp_objetivo;
-    document.getElementById("dias").innerText = data.dias_journey;
+        // Convertir link si viene desde Drive
+        const avatarURL = convertirDriveLink(data.avatar_url);
 
-    const xpPorcentaje = Math.round((data.xp / data.exp_objetivo) * 100);
-    document.getElementById("xp-bar").style.width = `${xpPorcentaje}%`;
+        document.getElementById("avatar").src = avatarURL;
+        document.getElementById("nivel").innerText = data.nivel;
+        document.getElementById("xp").innerText = data.xp;
+        document.getElementById("xp-objetivo").innerText = data.exp_objetivo;
+        document.getElementById("dias").innerText = data.dias_journey;
+
+        const xpPorcentaje = Math.round((data.xp / data.exp_objetivo) * 100);
+        document.getElementById("xp-bar").style.width = `${xpPorcentaje}%`;
+
+    } catch (error) {
+        console.error("❌ Error al cargar datos:", error);
+        alert("❌ Hubo un problema al cargar tu información. Revisá que el email sea correcto.");
+    }
 };
 
 function convertirDriveLink(link) {
