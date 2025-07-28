@@ -2,26 +2,32 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 Self-Improvement Hub</title>
-    <link rel="stylesheet" href="css/styles.css"> <!-- Asegurate que exista -->
+    <title>🎮 Mi Journey Personal</title>
+    <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body>
-    <main>
-        <h1>🎮 Ingresa tu correo para ver tus stats!</h1>
-
-        <p id="saludo">⌛ Cargando datos...</p>
-
-        <!-- Tabla de BBDD -->
-        <div id="contenedor-tabla"></div>
-
-        <!-- Botón para confirmar -->
-        <button id="confirmar-btn">✅ Confirmar Base de Datos</button>
-
-        <!-- Links a dashboard, editor y formulario -->
-        <div id="links-utiles" style="margin-top: 20px;"></div>
-    </main>
-
-    <script src="js/main.js"></script>
+    <div class="container">
+        <div class="avatar-section" id="avatar-container">
+            <img id="avatar" src="" alt="Avatar del usuario">
+        </div>
+        <div class="info-section">
+            <h2>✨ Bienvenido a tu Journey</h2>
+            <div class="stats">
+                <p>🌟 Nivel: <span id="nivel"></span></p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="xp-bar"></div>
+                </div>
+                <p>⚔️ XP: <span id="xp"></span> / <span id="xp-objetivo"></span></p>
+                <p>🕰️ Días de Journey: <span id="dias" class="digital-clock"></span></p>
+            </div>
+            <div class="menu">
+                <button onclick="ir(data.bbdd_editor_url)">🛠️ Modificar BBDD</button>
+                <button onclick="ir(data.dashboard_url)">📊 Ver Dashboard</button>
+                <button onclick="ir(data.daily_form_url)">📝 Form Diario</button>
+                <button onclick="ir(data.daily_form_edit_url)">✏️ Editar Form</button>
+            </div>
+        </div>
+    </div>
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
