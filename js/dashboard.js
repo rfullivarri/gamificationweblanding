@@ -1,33 +1,41 @@
-let data = null;
-
-window.onload = async () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
 
     if (!email) {
-        alert("❌ Falta el email");
+        alert("No se proporcionó un correo electrónico.");
         return;
     }
 
-    const res = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${email}`);
-    data = await res.json();
+    try {
+        const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
+        const data = await response.json();
 
-    document.getElementById("avatar").src = convertirDriveLink(data.avatar_url);
-    document.getElementById("nivel").innerText = data.nivel;
-    document.getElementById("xp").innerText = data.xp;
-    document.getElementById("xp-objetivo").innerText = data.exp_objetivo;
-    document.getElementById("dias").innerText = data.dias_journey;
+        if (!data || !data.avatar_url) {
+            console.warn("No se encontró avatar para este usuario.");
+        }
 
-    const xpPorcentaje = Math.round((data.xp / data.exp_objetivo) * 100);
-    document.getElementById("xp-bar").style.width = `${xpPorcentaje}%`;
-};
+        // 👉 Agrega .jpg si el link es de imgur y no lo tiene
+        let avatarURL = data.avatar_url || "";
+        if (avatarURL.includes("imgur.com") && !avatarURL.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+            avatarURL += ".jpg";
+        }
 
-function convertirDriveLink(link) {
-    if (!link.includes("drive.google.com/file/d/")) return link;
-    const match = link.match(/\/d\/(.*?)\//);
-    return match ? `https://drive.google.com/uc?export=view&id=${match[1]}` : link;
-}
+        document.getElementById("avatar").src = avatarURL;
+        document.getElementById("xp").textContent = `${data.xp} / ${data.next_level_xp}`;
+        document.getElementById("level").textContent = data.level;
+        document.getElementById("journey-days").textContent = data.journey_days;
 
-function ir(url) {
-    if (url) window.open(url, "_blank");
-}
+        const xpPercent = (data.xp / data.next_level_xp) * 100;
+        document.getElementById("xp-bar").style.width = `${xpPercent}%`;
+
+        document.getElementById("edit-bbdd").href = data.link_bbdd;
+        document.getElementById("dashboard").href = data.link_dashboard;
+        document.getElementById("daily-form").href = data.link_formulario;
+        document.getElementById("edit-form").href = data.link_form_editable;
+
+    } catch (error) {
+        console.error("Error al obtener datos:", error);
+        alert("Ocurrió un error al cargar los datos del usuario.");
+    }
+});
