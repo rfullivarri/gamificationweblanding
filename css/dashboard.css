@@ -20,14 +20,12 @@ body {
 }
 
 .avatar-section img {
-    width: 180px;
-    height: 180px;
+    width: 240px;
+    height: 240px;
     border-radius: 50%;
     object-fit: cover;
     box-shadow: 0 0 20px #7f00ffaa;
-    border: 3px solid #a855f7;
-    display: block;
-    background-color: #222; /* fallback si no carga */
+    border: 3px solid #7f00ff;
 }
 
 .info-section {
