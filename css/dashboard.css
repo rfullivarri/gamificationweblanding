@@ -1,1 +1,76 @@
+body {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    background-color: #0f0f1a;
+    color: #eeeeff;
+}
 
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.avatar-section {
+    width: 40%;
+    background-color: #1a1a2e;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+}
+
+.avatar-section img {
+    width: 80%;
+    border-radius: 12px;
+    box-shadow: 0 0 20px #7f00ffaa;
+}
+
+.info-section {
+    width: 60%;
+    padding: 40px;
+    background-color: #191933;
+}
+
+.stats p {
+    font-size: 1.3em;
+    margin: 15px 0;
+}
+
+.digital-clock {
+    font-family: 'Courier New', monospace;
+    font-size: 1.8em;
+    color: #a0ff9f;
+}
+
+.progress-bar-container {
+    width: 100%;
+    background: #444;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 20px;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #8e2de2, #4a00e0);
+    width: 0%;
+    transition: width 0.7s ease-in-out;
+}
+
+.menu button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background-color: #4a00e0;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1.1em;
+    cursor: pointer;
+}
+
+.menu button:hover {
+    background-color: #7f00ff;
+}
