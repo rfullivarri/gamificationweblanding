@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ingresá tu correo</title>
+  <style>
+    body {
+      background-color: #0e0e25;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    input[type="email"] {
+      padding: 10px;
+      font-size: 16px;
+      width: 300px;
+      border-radius: 5px;
+      border: none;
+      outline: none;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #7300ff;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎮 Ingresá tu correo para ver tu Dashboard</h2>
+  <input type="email" id="emailInput" placeholder="tu@email.com" />
+  <br />
+  <button onclick="irAlDashboard()">Ingresar</button>
+
+  <script>
+    function irAlDashboard() {
+      const email = document.getElementById("emailInput").value.trim();
+      if (!email || !email.includes("@")) {
+        alert("Ingresá un correo válido.");
+        return;
+      }
+      const encodedEmail = encodeURIComponent(email);
+      window.location.href = `dashboard.html?email=${encodedEmail}`;
+    }
+  </script>
+</body>
+</html>
