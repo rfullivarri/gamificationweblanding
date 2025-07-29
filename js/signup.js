@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // 1. Enviar datos al WebApp como siempre
     const payload = {
       action: "registerUser",
       email,
@@ -70,23 +71,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.text();
 
-    if (result === "redirigir_a_formulario" || result === "redirigir_a_dashboard") {
-        // Mostrar popup de éxito
+      // 2. Enviar datos al Google Form ocultamente (la chapuza)
+      const formData = new FormData();
+      formData.append("entry.978262299", nombre);
+      formData.append("entry.1084572637", apellido);
+      formData.append("entry.2109129788", edad);
+      formData.append("entry.1142848287", avatar_url);
+      formData.append("entry.902095747", sexo);
+      formData.append("emailAddress", email);
+
+      await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcWW67K5Gv-dsvmdRDXVd78MRMjJZQ/formResponse", {
+        method: "POST",
+        mode: "no-cors",
+        body: formData
+      });
+
+      // 3. Mostrar popup si todo salió bien
+      if (result === "redirigir_a_formulario" || result === "redirigir_a_dashboard") {
         const popup = document.getElementById("popup");
         if (popup) {
-            popup.classList.remove("hidden");
-
-            // Ocultar el formulario si querés
-            const form = document.getElementById("signup-form");
-            if (form) {
-                form.style.display = "none";
-            }
+          popup.classList.remove("hidden");
+          const form = document.getElementById("signup-form");
+          if (form) {
+            form.style.display = "none";
+          }
         }
-    } else {
+      } else {
         alert("Respuesta inesperada del servidor: " + result);
-    }
+      }
     } catch (error) {
-  alert("Ocurrió un error al registrar: " + error);
+      alert("Ocurrió un error al registrar: " + error);
     }
   });
 });
