@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
+
     const email = document.getElementById("email").value.trim();
     const nombre = document.getElementById("nombre").value.trim();
     const apellido = document.getElementById("apellido").value.trim();
@@ -30,77 +31,121 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Imagen de avatar como base64 (solo para el Google Form, no se sube a Imgur)
     let avatar_url = "https://i.imgur.com/EELiQop.jpg";
+
     if (avatarFile) {
-      const formData = new FormData();
-      formData.append("image", avatarFile);
+      const reader = new FileReader();
+      reader.onload = async function (event) {
+        avatar_url = event.target.result;
+
+        // Enviar datos al WebApp
+        const payload = {
+          action: "registerUser",
+          email,
+          nombre,
+          apellido,
+          sexo,
+          edad,
+          avatar_url
+        };
+
+        try {
+          const response = await fetch(
+            "https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            }
+          );
+
+          const result = await response.text();
+
+          // También enviamos los datos al Google Form oculto (Forms trampolín)
+          const formData = new FormData();
+          formData.append("entry.978262299", nombre);
+          formData.append("entry.1084572637", apellido);
+          formData.append("entry.2109129788", edad);
+          formData.append("entry.1142848287", avatar_url); // ✅ Se guarda como base64
+          formData.append("entry.902095747", sexo);
+          formData.append("emailAddress", email);
+
+          await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcWW67K5Gv-dsvmdRDXVd78MRMjJZQ/formResponse", {
+            method: "POST",
+            mode: "no-cors",
+            body: formData
+          });
+
+          // Mostrar el popup de éxito
+          if (result === "redirigir_a_formulario" || result === "redirigir_a_dashboard") {
+            const popup = document.getElementById("popup");
+            if (popup) {
+              popup.classList.remove("hidden");
+              form.style.display = "none";
+            }
+          } else {
+            alert("Respuesta inesperada del servidor: " + result);
+          }
+
+        } catch (error) {
+          alert("Ocurrió un error al registrar: " + error);
+        }
+      };
+
+      reader.readAsDataURL(avatarFile); // Lee imagen en base64 y lanza todo
+
+    } else {
+      // Sin imagen → usar avatar por defecto
+      const payload = {
+        action: "registerUser",
+        email,
+        nombre,
+        apellido,
+        sexo,
+        edad,
+        avatar_url
+      };
+
       try {
-        const res = await fetch("https://api.imgur.com/3/image", {
+        const response = await fetch(
+          "https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        const result = await response.text();
+
+        const formData = new FormData();
+        formData.append("entry.978262299", nombre);
+        formData.append("entry.1084572637", apellido);
+        formData.append("entry.2109129788", edad);
+        formData.append("entry.1142848287", avatar_url);
+        formData.append("entry.902095747", sexo);
+        formData.append("emailAddress", email);
+
+        await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcWW67K5Gv-dsvmdRDXVd78MRMjJZQ/formResponse", {
           method: "POST",
-          headers: { Authorization: "Client-ID 546b2de8f7f69f1" },
+          mode: "no-cors",
           body: formData
         });
-        const data = await res.json();
-        if (!data.success) throw new Error("Imgur error");
-        avatar_url = data.data.link;
-      } catch (err) {
-        alert("Error subiendo imagen. Se usará un avatar por defecto.");
-      }
-    }
 
-    // 1. Enviar datos al WebApp como siempre
-    const payload = {
-      action: "registerUser",
-      email,
-      nombre,
-      apellido,
-      sexo,
-      edad,
-      avatar_url
-    };
-
-    try {
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
-
-      const result = await response.text();
-
-      // 2. Enviar datos al Google Form ocultamente (la chapuza)
-      const formData = new FormData();
-      formData.append("entry.978262299", nombre);
-      formData.append("entry.1084572637", apellido);
-      formData.append("entry.2109129788", edad);
-      formData.append("entry.1142848287", avatar_url);
-      formData.append("entry.902095747", sexo);
-      formData.append("emailAddress", email);
-
-      await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcWW67K5Gv-dsvmdRDXVd78MRMjJZQ/formResponse", {
-        method: "POST",
-        mode: "no-cors",
-        body: formData
-      });
-
-      // 3. Mostrar popup si todo salió bien
-      if (result === "redirigir_a_formulario" || result === "redirigir_a_dashboard") {
-        const popup = document.getElementById("popup");
-        if (popup) {
-          popup.classList.remove("hidden");
-          const form = document.getElementById("signup-form");
-          if (form) {
+        if (result === "redirigir_a_formulario" || result === "redirigir_a_dashboard") {
+          const popup = document.getElementById("popup");
+          if (popup) {
+            popup.classList.remove("hidden");
             form.style.display = "none";
           }
+        } else {
+          alert("Respuesta inesperada del servidor: " + result);
         }
-      } else {
-        alert("Respuesta inesperada del servidor: " + result);
+
+      } catch (error) {
+        alert("Ocurrió un error al registrar: " + error);
       }
-    } catch (error) {
-      alert("Ocurrió un error al registrar: " + error);
     }
   });
 });
