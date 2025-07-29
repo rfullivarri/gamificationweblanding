@@ -12,43 +12,35 @@
         <div class="menu-toggle" id="menu-toggle">☰</div>
         <nav id="dashboard-menu">
             <ul>
-                <li><a href="#">Cambiar tu avatar</a></li>
-                <li><a href="#">Programar Daily Form</a></li>
+                <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
+                <li><a href="#" id="edit-form">Programar Daily Form</a></li>
                 <li><a href="#">Cerrar sesión</a></li>
             </ul>
         </nav>
     </header>
+
     <main>
         <div class="dashboard-content">
-            <h1>Bienvenido a tu Dashboard</h1>
             <img id="avatar" src="" alt="Tu Avatar" class="dashboard-avatar">
-            <p id="welcome-msg">Cargando datos...</p>
+            <h1 id="welcome-msg">Cargando datos...</h1>
+
+            <div class="xp-section">
+                <p><strong>XP:</strong> <span id="xp">--</span></p>
+                <div class="xp-bar-container">
+                    <div id="xp-bar" class="xp-bar"></div>
+                </div>
+                <p><strong>Nivel:</strong> <span id="level">--</span></p>
+                <p><strong>Días en el Journey:</strong> <span id="journey-days">--</span></p>
+            </div>
+
+            <div class="dashboard-links">
+                <a href="#" id="edit-bbdd" class="btn">Editar Base</a>
+                <a href="#" id="dashboard" class="btn">Ver Dashboard</a>
+                <a href="#" id="daily-form" class="btn">Daily Form</a>
+            </div>
         </div>
     </main>
-    <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const params = new URLSearchParams(window.location.search);
-        const email = params.get("email");
-        if (!email) {
-            alert("No se proporcionó un correo electrónico.");
-            return;
-        }
-        try {
-            const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
-            const data = await response.json();
-            let avatarURL = data.avatar_url || "https://i.imgur.com/EELiQop.jpg";
-            if (avatarURL.includes("imgur.com") && !avatarURL.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-                avatarURL += ".jpg";
-            }
-            document.getElementById("avatar").src = avatarURL;
-            document.getElementById("welcome-msg").textContent = `Hola ${data.nombre || "usuario"} 👋`;
-        } catch (err) {
-            alert("Error cargando datos del dashboard.");
-        }
-    });
-    document.getElementById("menu-toggle").addEventListener("click", () => {
-        document.getElementById("dashboard-menu").classList.toggle("active");
-    });
-    </script>
+
+    <script src="js/dashboard.js"></script>
 </body>
 </html>
