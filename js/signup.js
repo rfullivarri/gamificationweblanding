@@ -70,15 +70,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const result = await response.text();
 
-      if (result === "redirigir_a_formulario") {
-        window.location.href = "completar_form.html?email=" + encodeURIComponent(email);
-      } else if (result === "redirigir_a_dashboard") {
-        window.location.href = "dashboard.html?email=" + encodeURIComponent(email);
-      } else {
+    if (result === "redirigir_a_formulario" || result === "redirigir_a_dashboard") {
+        // Mostrar popup de éxito
+        const popup = document.getElementById("popup");
+        if (popup) {
+            popup.classList.remove("hidden");
+
+            // Ocultar el formulario si querés
+            const form = document.getElementById("signup-form");
+            if (form) {
+                form.style.display = "none";
+            }
+        }
+    } else {
         alert("Respuesta inesperada del servidor: " + result);
-      }
+    }
     } catch (error) {
-      alert("Ocurrió un error al registrar: " + error);
+  alert("Ocurrió un error al registrar: " + error);
     }
   });
 });
