@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         let avatarURL = data.avatar_url || "";
         if (avatarURL.includes("imgur.com") && !avatarURL.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
             avatarURL = avatarURL.replace("imgur.com/", "i.imgur.com/") + "l.jpg";
-#           avatarURL += ".jpg";
         }
 
         document.getElementById("avatar").src = avatarURL;
