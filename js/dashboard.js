@@ -18,13 +18,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         document.getElementById("avatar").src = avatarURL;
-        document.getElementById("welcome-msg").textContent = Hola ${data.nombre} 👋;
+        document.getElementById("welcome-msg").textContent = 'Hola ${data.nombre} 👋';
         document.getElementById("xp").textContent = data.xp;
         document.getElementById("nivel").textContent = data.nivel;
         document.getElementById("journey-days").textContent = data.dias_journey;
 
         const xpPercent = (data.xp / data.exp_objetivo) * 100;
-        document.getElementById("xp-bar").style.width = ${xpPercent}%;
+        document.getElementById("xp-bar").style.width = '${xpPercent}%';
 
         document.getElementById("edit-bbdd").href = data.link_bbdd;
         document.getElementById("dashboard").href = data.link_dashboard;
