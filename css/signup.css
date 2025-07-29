@@ -22,3 +22,11 @@ body.form-landing {
   font-size: 16px;
   text-decoration: none;
 }
+img#avatar-preview {
+    width: 180px;
+    height: 320px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-bottom: 10px;
+}
+
