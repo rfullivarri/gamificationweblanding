@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const apellido = document.getElementById("apellido").value.trim();
     const sexo = document.getElementById("sexo").value;
     const edad = document.getElementById("edad").value;
-    const avatarFile = document.getElementById("avatar").files[0];
+    const avatarFile = avatarInput.files[0];
 
     if (!email || !nombre) {
       alert("Por favor, completá al menos tu email y nombre.");
@@ -34,12 +34,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const enviarFormulario = async (avatar_url_final) => {
       try {
         const formData = new FormData();
-        formData.append("entry.978262299", nombre);
-        formData.append("entry.1084572637", apellido);
-        formData.append("entry.2109129788", edad);
-        formData.append("entry.1142848287", avatar_url_final); // ✅ Se guarda como Base64 o default
-        formData.append("entry.902095747", sexo);
-        formData.append("emailAddress", email);
+        formData.append("entry.978262299", email);           // ✅ Email
+        formData.append("entry.268921631", nombre);          // ✅ Nombre
+        formData.append("entry.1084572637", apellido);       // ✅ Apellido
+        formData.append("entry.2109129788", edad);           // ✅ Edad
+        formData.append("entry.1142848827", avatar_url_final); // ✅ Avatar en base64
+        formData.append("entry.902095747", sexo);            // ✅ Sexo
 
         await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcwW67K5Gv-dsvmdRDXVd78MRMjNLA/formResponse", {
           method: "POST",
@@ -47,7 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
           body: formData
         });
 
-        // Mostrar el popup de éxito
         const popup = document.getElementById("popup");
         if (popup) {
           popup.classList.remove("hidden");
@@ -65,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const avatarBase64 = event.target.result;
         enviarFormulario(avatarBase64);
       };
-      reader.readAsDataURL(avatarFile); // ✅ Convierte a base64 y sigue el flujo
+      reader.readAsDataURL(avatarFile);
     } else {
       const defaultAvatar = "https://i.imgur.com/EELiQop.jpg";
       enviarFormulario(defaultAvatar);
