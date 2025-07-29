@@ -1,1 +1,17 @@
-...
+body.dashboard-body {
+  background: #f4f4f8;
+  font-family: 'Segoe UI', sans-serif;
+}
+.dashboard-content {
+  padding: 40px;
+  text-align: center;
+}
+.dashboard-avatar {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 20px auto;
+  display: block;
+  border: 3px solid #7d3cff;
+}
