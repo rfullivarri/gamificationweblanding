@@ -1,4 +1,4 @@
-ddocument.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
 
@@ -11,14 +11,17 @@ ddocument.addEventListener("DOMContentLoaded", async () => {
         const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
         const data = await response.json();
 
-        let avatarURL = data.avatar_url || "https://i.imgur.com/EELiQop.jpg";
+        if (!data || !data.avatar_url) {
+            console.warn("No se encontró avatar para este usuario.");
+        }
+
+        // 👉 Agrega .jpg si el link es de imgur y no lo tiene
+        let avatarURL = data.avatar_url || "";
         if (avatarURL.includes("imgur.com") && !avatarURL.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
             avatarURL += ".jpg";
         }
 
         document.getElementById("avatar").src = avatarURL;
-        document.getElementById("welcome-msg").textContent = `Hola ${data.nombre || "usuario"} 👋`;
-
         document.getElementById("xp").textContent = `${data.xp} / ${data.next_level_xp}`;
         document.getElementById("level").textContent = data.level;
         document.getElementById("journey-days").textContent = data.journey_days;
@@ -35,8 +38,4 @@ ddocument.addEventListener("DOMContentLoaded", async () => {
         console.error("Error al obtener datos:", error);
         alert("Ocurrió un error al cargar los datos del usuario.");
     }
-});
-
-document.getElementById("menu-toggle").addEventListener("click", () => {
-    document.getElementById("dashboard-menu").classList.toggle("active");
-});
+});    
