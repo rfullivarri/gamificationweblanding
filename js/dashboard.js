@@ -25,10 +25,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const xpPercent = (data.xp / data.exp_objetivo) * 100;
         document.getElementById("xp-bar").style.width = `${xpPercent}%`;
 
-        document.getElementById("edit-bbdd").href = data.link_bbdd;
-        document.getElementById("dashboard").href = data.link_dashboard;
-        document.getElementById("daily-form").href = data.link_formulario;
-        document.getElementById("edit-form").href = data.link_form_editable;
+        document.getElementById("edit-bbdd").href = data.bbdd_editor_url;
+        document.getElementById("dashboard").href = data.dashboard_url;
+        document.getElementById("daily-form").href = data.daily_form_url;
+        document.getElementById("edit-form").href = data.daily_form_edit_url;
     } catch (error) {
         console.error("Error al obtener datos:", error);
         alert("Ocurrió un error al cargar los datos del usuario.");
