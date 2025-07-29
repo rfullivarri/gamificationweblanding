@@ -14,30 +14,31 @@
             <ul>
                 <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
                 <li><a href="#" id="edit-form">Programar Daily Form</a></li>
-                <li><a href="#">Cerrar sesión</a></li>
+                <li><a href="index.html">Cerrar sesión</a></li>
             </ul>
         </nav>
     </header>
 
     <main>
-        <div class="dashboard-content">
-            <img id="avatar" src="" alt="Tu Avatar" class="dashboard-avatar">
-            <h1 id="welcome-msg">Cargando datos...</h1>
-
-            <div class="xp-section">
-                <p><strong>XP:</strong> <span id="xp">--</span></p>
+        <div class="dashboard-columns">
+            <div class="avatar-section">
+                <img id="avatar" src="" alt="Tu Avatar" class="dashboard-avatar-rect">
+            </div>
+            <div class="info-section">
+                <h2 id="welcome-msg">Cargando datos...</h2>
+                <p><strong>Nivel:</strong> <span id="level">--</span></p>
                 <div class="xp-bar-container">
                     <div id="xp-bar" class="xp-bar"></div>
                 </div>
-                <p><strong>Nivel:</strong> <span id="level">--</span></p>
+                <p><strong>XP actual:</strong> <span id="xp">--</span></p>
                 <p><strong>Días en el Journey:</strong> <span id="journey-days">--</span></p>
             </div>
+        </div>
 
-            <div class="dashboard-links">
-                <a href="#" id="edit-bbdd" class="btn">Editar Base</a>
-                <a href="#" id="dashboard" class="btn">Ver Dashboard</a>
-                <a href="#" id="daily-form" class="btn">Daily Form</a>
-            </div>
+        <div class="dashboard-links">
+            <a href="#" id="edit-bbdd" class="btn">Editar Base</a>
+            <a href="#" id="dashboard" class="btn">Ver Dashboard</a>
+            <a href="#" id="daily-form" class="btn">Daily Form</a>
         </div>
     </main>
 
