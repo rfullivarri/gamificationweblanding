@@ -1,3 +1,4 @@
+* ESTILO BASE DE LA LANDING ORIGINAL */
 body {
   font-family: 'Segoe UI', sans-serif;
   background-color: #0f0f0f;
@@ -5,7 +6,6 @@ body {
   margin: 0;
   padding: 0;
 }
-
 .navbar {
   background-color: #1a1a1a;
   padding: 1rem 2rem;
@@ -13,12 +13,10 @@ body {
   justify-content: space-between;
   align-items: center;
 }
-
 .logo {
   font-size: 1.2rem;
   font-weight: bold;
 }
-
 .nav-btn {
   background: #373fff;
   color: white;
@@ -26,24 +24,20 @@ body {
   text-decoration: none;
   border-radius: 8px;
 }
-
 .landing {
   padding: 3rem 2rem;
   max-width: 800px;
   margin: 0 auto;
 }
-
 .hero h1 {
   font-size: 2.2rem;
   margin-bottom: 1rem;
 }
-
 .subtitulo {
   font-size: 1.1rem;
   line-height: 1.6;
   margin-bottom: 2rem;
 }
-
 .cta {
   background: #00c897;
   color: black;
@@ -53,31 +47,142 @@ body {
   text-decoration: none;
   display: inline-block;
 }
-
 .cta.grande {
   font-size: 1.2rem;
   margin-top: 2rem;
 }
-
 .explicacion ul {
   list-style: none;
   padding-left: 0;
 }
-
 .explicacion li {
   margin-bottom: 1rem;
 }
-
 .inspirador {
   font-size: 1.2rem;
   margin-top: 2rem;
   text-align: center;
 }
-
 footer {
   text-align: center;
   font-size: 0.9rem;
   padding: 1rem;
   background-color: #111;
   color: #888;
+}
+
+/* ESTILOS UNIFICADOS DEL SIGNUP Y DASHBOARD */
+.container {
+    display: flex;
+    justify-content: center;
+    margin: 40px auto;
+    max-width: 900px;
+    background: white;
+    padding: 20px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+form {
+    display: flex;
+    width: 100%;
+}
+.left-column, .right-column {
+    flex: 1;
+    margin: 0 10px;
+}
+input, select, button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+}
+img#avatar-preview {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+body.form-landing {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #1e1e2f;
+    color: white;
+    height: 100vh;
+    margin: 0;
+}
+.form-landing-container {
+    text-align: center;
+    max-width: 600px;
+    padding: 30px;
+}
+.form-banner {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+.form-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 15px 30px;
+    background-color: #7d3cff;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 16px;
+}
+body.dashboard-body {
+    background: #f4f4f8;
+}
+header {
+    background: #1e1e2f;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+}
+.menu-toggle {
+    font-size: 26px;
+    cursor: pointer;
+}
+#dashboard-menu {
+    display: none;
+}
+#dashboard-menu.active {
+    display: block;
+    background: #1e1e2f;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    width: 200px;
+}
+#dashboard-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+#dashboard-menu li {
+    border-bottom: 1px solid #333;
+}
+#dashboard-menu a {
+    color: white;
+    display: block;
+    padding: 12px 20px;
+    text-decoration: none;
+}
+.dashboard-content {
+    padding: 40px;
+    text-align: center;
+}
+.dashboard-avatar {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin: 20px auto;
+    display: block;
+    border: 3px solid #7d3cff;
 }
