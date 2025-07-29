@@ -2,32 +2,53 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>🎮 Mi Journey Personal</title>
-    <link rel="stylesheet" href="css/dashboard.css">
+    <title>Tu Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <div class="container">
-        <div class="avatar-section">
-            <img id="avatar" src="" alt="Avatar del usuario">
+<body class="dashboard-body">
+    <header>
+        <div class="logo">🎮 Gamification</div>
+        <div class="menu-toggle" id="menu-toggle">☰</div>
+        <nav id="dashboard-menu">
+            <ul>
+                <li><a href="#">Cambiar tu avatar</a></li>
+                <li><a href="#">Programar Daily Form</a></li>
+                <li><a href="#">Cerrar sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <div class="dashboard-content">
+            <h1>Bienvenido a tu Dashboard</h1>
+            <img id="avatar" src="" alt="Tu Avatar" class="dashboard-avatar">
+            <p id="welcome-msg">Cargando datos...</p>
         </div>
-        <div class="info-section">
-            <h2>✨ Bienvenido a tu Journey</h2>
-            <div class="stats">
-                <p>🌟 Nivel: <span id="nivel"></span></p>
-                <div class="progress-bar-container">
-                    <div class="progress-bar" id="xp-bar"></div>
-                </div>
-                <p>⚔️ XP: <span id="xp"></span> / <span id="xp-objetivo"></span></p>
-                <p>🕰️ Días de Journey: <span id="dias" class="digital-clock"></span></p>
-            </div>
-            <div class="menu">
-                <button onclick="ir(data.bbdd_editor_url)">🛠️ Modificar BBDD</button>
-                <button onclick="ir(data.dashboard_url)">📊 Ver Dashboard</button>
-                <button onclick="ir(data.daily_form_url)">📝 Form Diario</button>
-                <button onclick="ir(data.daily_form_edit_url)">✏️ Editar Form</button>
-            </div>
-        </div>
-    </div>
-    <script src="js/dashboard.js"></script>
+    </main>
+    <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get("email");
+        if (!email) {
+            alert("No se proporcionó un correo electrónico.");
+            return;
+        }
+        try {
+            const response = await fetch(`YOUR_WEBAPP_URL?email=${encodeURIComponent(email)}`);
+            const data = await response.json();
+            let avatarURL = data.avatar_url || "https://i.imgur.com/DEFAULT.jpg";
+            if (avatarURL.includes("imgur.com") && !avatarURL.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+                avatarURL += ".jpg";
+            }
+            document.getElementById("avatar").src = avatarURL;
+            document.getElementById("welcome-msg").textContent = `Hola ${data.nombre || "usuario"} 👋`;
+        } catch (err) {
+            alert("Error cargando datos del dashboard.");
+        }
+    });
+    document.getElementById("menu-toggle").addEventListener("click", () => {
+        document.getElementById("dashboard-menu").classList.toggle("active");
+    });
+    </script>
 </body>
 </html>
