@@ -1,47 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Tu Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/dashboard.css">
+  <meta charset="UTF-8">
+  <title>Tu Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/dashboard.css">
 </head>
 <body class="dashboard-body">
-    <header>
-        <div class="logo">🎮 Gamification Life Journey</div>
-        <div class="menu-toggle" id="menu-toggle">☰</div>
-        <nav id="dashboard-menu">
-            <ul>
-                <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
-                <li><a href="#" id="edit-form">Programar Daily Form</a></li>
-                <li><a href="index.html">Cerrar sesión</a></li>
-            </ul>
-        </nav>
-    </header>
 
-    <main>
-        <div class="dashboard-columns">
-            <div class="avatar-section">
-                <img id="avatar" src="" alt="Tu Avatar" class="dashboard-avatar-rect" loading="lazy">
-            </div>
-            <div class="info-section">
-                <h2 id="welcome-msg">Cargando datos...</h2>
-                <p><strong>Nivel:</strong> <span id="nivel">--</span></p>
-                <div class="xp-bar-container">
-                    <div id="xp-bar" class="xp-bar"></div>
-                </div>
-                <p><strong>XP actual:</strong> <span id="xp">--</span></p>
-                <p><strong>Días en el Journey:</strong> <span id="journey-days">--</span></p>
-            </div>
-        </div>
+  <!-- HEADER SUPERIOR -->
+  <header>
+    <div class="logo">🎮 Gamification Life Journey</div>
+    <div class="menu-toggle" id="menu-toggle">☰</div>
+    <nav id="dashboard-menu">
+      <ul>
+        <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
+        <li><a href="#" id="edit-form">Programar Daily Form</a></li>
+        <li><a href="index.html">Cerrar sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+    
+<main>
+  <!-- CONTENEDOR DE DOS COLUMNAS -->
+  <div class="dashboard-columns">
+    
+    <!-- Columna izquierda: Avatar -->
+    <div class="avatar-section">
+      <img id="avatar" src="" alt="Tu Avatar" class="dashboard-avatar-rect" loading="lazy">
+    </div>
 
-        <div class="dashboard-links">
-            <a href="#" id="edit-bbdd" class="btn">Editar Base</a>
-            <a href="#" id="dashboard" class="btn">Ver Dashboard</a>
-            <a href="#" id="daily-form" class="btn">Daily Form</a>
-        </div>
-    </main>
+    <!-- Columna derecha: Info -->
+    <div class="info-section">
+      <h2 id="welcome-msg">Hola Ramiro 👋</h2>
 
-    <script src="js/dashboard.js"></script>
-</body>
-</html>
+      <p><strong>Nivel:</strong> <span id="nivel">1</span></p>
+
+      <div class="xp-bar-container">
+        <div id="xp-bar" class="xp-bar"></div>
+      </div>
+
+      <p><strong>XP actual:</strong> <span id="xp">334</span></p>
+      <p><strong>Días en el Journey:</strong> <span id="journey-days">16</span></p>
+    </div>
+
+  </div>
+
+  <!-- BOTONES CENTRADOS DEBAJO -->
+  <div class="dashboard-links">
+    <a href="#" id="edit-bbdd" class="btn">Editar Base</a>
+    <a href="#" id="dashboard" class="btn">Ver Dashboard</a>
+    <a href="#" id="daily-form" class="btn">Daily Form</a>
+  </div>
+</main>
