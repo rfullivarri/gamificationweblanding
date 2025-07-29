@@ -38,10 +38,18 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("entry.268921631", nombre);          // ✅ Nombre
         formData.append("entry.1084572637", apellido);       // ✅ Apellido
         formData.append("entry.2109129788", edad);           // ✅ Edad
-        formData.append("entry.1142848827", avatar_url_final); // ✅ Avatar en base64
+        formData.append("entry.1142848287", avatar_url_final); // ✅ Avatar en base64
         formData.append("entry.902095747", sexo);            // ✅ Sexo
 
-        await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcwW67K5Gv-dsvmdRDXVd78MRMjNLA/formResponse", {
+        console.log("👉 Enviando al formulario");
+        console.log("Nombre:", nombre);
+        console.log("Apellido:", apellido);
+        console.log("Edad:", edad);
+        console.log("Avatar (base64):", avatar_url_final.slice(0, 50)); // solo una parte
+        console.log("Sexo:", sexo);
+        console.log("Email:", email);
+
+        await fetch("https://docs.google.com/forms/u/0/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcwW67K5Gv-dsvmdRDXVd78MRMjNLA/formResponse", {
           method: "POST",
           mode: "no-cors",
           body: formData
