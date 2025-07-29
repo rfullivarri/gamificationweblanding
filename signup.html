@@ -1,47 +1,53 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Registro</title>
-  <link rel="stylesheet" href="css/signup.css" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <title>Gamification Life Journey - SignUp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/signup.css">
 </head>
-<body class="form-landing">
-  <div class="form-landing-container">
-    <h1>🎮 Gamification Life Journey - SignUp</h1>
-    <form id="signup-form" class="signup-columns">
-      <div class="left-column">
-        <img id="avatar-preview" src="https://i.imgur.com/EELiQop.jpg" alt="Avatar" />
-        <input type="file" id="avatar" name="avatar" accept="image/*" />
+<body class="signup-body">
+
+  <div class="signup-container">
+
+    <a href="index.html" class="back-arrow">←</a>
+
+    <h1 class="signup-title">🎮 Gamification Life Journey - SignUp</h1>
+
+    <div class="signup-columns">
+      <div class="signup-left">
+        <img id="avatar-preview" src="img/default-avatar.jpg" class="signup-avatar" alt="Avatar Preview">
+        <input type="file" id="avatar-input" accept="image/*">
       </div>
 
-      <div class="right-column">
-        <label for="email">Correo electrónico</label>
-        <input type="email" id="email" name="email" required />
+      <div class="signup-right">
+        <form id="signup-form">
+          <label for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" required>
 
-        <label for="nombre">Nombre</label>
-        <input type="text" id="nombre" name="nombre" required />
+          <label for="firstName">Nombre</label>
+          <input type="text" id="firstName" name="firstName" required>
 
-        <label for="apellido">Apellido</label>
-        <input type="text" id="apellido" name="apellido" />
+          <label for="lastName">Apellido</label>
+          <input type="text" id="lastName" name="lastName" required>
 
-        <label for="sexo">Sexo</label>
-        <select id="sexo" name="sexo">
-          <option value="">Seleccionar</option>
-          <option value="Masculino">Masculino</option>
-          <option value="Femenino">Femenino</option>
-          <option value="Otro">Otro</option>
-          <option value="Prefiero no decirlo">Prefiero no decirlo</option>
-        </select>
+          <label for="gender">Sexo</label>
+          <select id="gender" name="gender" required>
+            <option value="">Seleccionar</option>
+            <option value="Masculino">Masculino</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Otro">Otro</option>
+          </select>
 
-        <label for="edad">Edad</label>
-        <input type="number" id="edad" name="edad" min="10" max="120" />
+          <label for="age">Edad</label>
+          <input type="number" id="age" name="age" required>
 
-        <button type="submit" class="form-button">Registrarme</button>
+          <button type="submit" class="signup-button">Registrarme</button>
+        </form>
       </div>
-    </form>
-    <div id="message"></div>
+    </div>
   </div>
+
   <script src="js/signup.js"></script>
 </body>
 </html>
