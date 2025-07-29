@@ -21,14 +21,14 @@ document.getElementById("signup-form").addEventListener("submit", async function
         return;
     }
 
-    let avatar_url = "https://i.imgur.com/DEFAULT.jpg";
+    let avatar_url = "https://i.imgur.com/EELiQop.jpg";
     if (avatarFile) {
         const formData = new FormData();
         formData.append("image", avatarFile);
         try {
             const res = await fetch("https://api.imgur.com/3/image", {
                 method: "POST",
-                headers: { Authorization: "Client-ID YOUR_IMGUR_CLIENT_ID" },
+                headers: { Authorization: "Client-ID 546b2de8f7f69f1" },
                 body: formData
             });
             const data = await res.json();
@@ -50,7 +50,7 @@ document.getElementById("signup-form").addEventListener("submit", async function
     };
 
     try {
-        const response = await fetch("YOUR_WEBAPP_URL", {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
