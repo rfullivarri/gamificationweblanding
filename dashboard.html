@@ -8,7 +8,7 @@
 </head>
 <body class="dashboard-body">
     <header>
-        <div class="logo">🎮 Gamification</div>
+        <div class="logo">🎮 Gamification Life Journey</div>
         <div class="menu-toggle" id="menu-toggle">☰</div>
         <nav id="dashboard-menu">
             <ul>
@@ -34,9 +34,9 @@
             return;
         }
         try {
-            const response = await fetch(`YOUR_WEBAPP_URL?email=${encodeURIComponent(email)}`);
+            const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
             const data = await response.json();
-            let avatarURL = data.avatar_url || "https://i.imgur.com/DEFAULT.jpg";
+            let avatarURL = data.avatar_url || "https://i.imgur.com/EELiQop.jpg";
             if (avatarURL.includes("imgur.com") && !avatarURL.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                 avatarURL += ".jpg";
             }
