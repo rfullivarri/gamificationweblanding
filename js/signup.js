@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("entry.902095747", sexo);
         formData.append("emailAddress", email);
 
-        await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcWW67K5Gv-dsvmdRDXVd78MRMjJZQ/formResponse", {
+        await fetch("https://docs.google.com/forms/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcwW67K5Gv-dsvmdRDXVd78MRMjNLA/formResponse", {
           method: "POST",
           mode: "no-cors",
           body: formData
