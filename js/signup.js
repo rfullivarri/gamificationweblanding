@@ -39,28 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.onload = async function (event) {
         avatar_url = event.target.result;
 
-        // Enviar datos al WebApp
-        const payload = {
-          action: "registerUser",
-          email,
-          nombre,
-          apellido,
-          sexo,
-          edad,
-          avatar_url
-        };
-
-        try {
-          const response = await fetch(
-            "https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            }
-          );
-
-          const result = await response.text();
 
           // También enviamos los datos al Google Form oculto (Forms trampolín)
           const formData = new FormData();
