@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", async () => {
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
