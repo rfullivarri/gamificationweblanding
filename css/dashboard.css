@@ -1,18 +1,143 @@
 body.dashboard-body {
   background: #f4f4f8;
   font-family: 'Segoe UI', sans-serif;
-}
-.dashboard-content {
-  padding: 40px;
-  text-align: center;
-}
-.dashboard-avatar {
-    width: 180px;
-    height: 320px;
-    object-fit: cover;
-    border-radius: 16px;
-    margin: 20px auto;
-    display: block;
-    border: 3px solid #7d3cff;
+  margin: 0;
+  padding: 0;
 }
 
+header {
+  background-color: #2e0854;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.menu-toggle {
+  font-size: 1.5em;
+  cursor: pointer;
+}
+
+#dashboard-menu {
+  display: none;
+  flex-direction: column;
+  background-color: #2e0854;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  z-index: 10;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#dashboard-menu.active {
+  display: flex;
+}
+
+#dashboard-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#dashboard-menu li {
+  border-bottom: 1px solid #4c1c7a;
+}
+
+#dashboard-menu a {
+  display: block;
+  padding: 12px 20px;
+  color: white;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+#dashboard-menu a:hover {
+  background-color: #501c88;
+}
+
+/* --- Layout Principal --- */
+
+.dashboard-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px;
+  gap: 60px;
+  flex-wrap: wrap;
+}
+
+.dashboard-avatar {
+  width: 180px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid #7d3cff;
+}
+
+/* --- Sección de Datos --- */
+.xp-section {
+  max-width: 400px;
+  text-align: left;
+  font-size: 1.1em;
+}
+
+.xp-section p {
+  margin: 10px 0;
+}
+
+.xp-bar-container {
+  width: 100%;
+  height: 20px;
+  background-color: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.xp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #a66bff, #7d3cff);
+  width: 0%;
+  transition: width 0.5s ease-in-out;
+}
+
+/* --- Botones Inferiores --- */
+.dashboard-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn {
+  background-color: #7d3cff;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background-color: #5c28c2;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .dashboard-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .xp-section {
+    text-align: center;
+  }
+}
