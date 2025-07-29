@@ -74,10 +74,12 @@ header {
 }
 
 .dashboard-avatar {
-  width: 180px;
-  height: 320px;
+  width: 160px;
+  height: 280px;
   object-fit: cover;
   border-radius: 16px;
+  margin: 0 auto;
+  display: block;
   border: 3px solid #7d3cff;
 }
 
