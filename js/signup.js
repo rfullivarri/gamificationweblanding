@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  form.addEventListener("submit", function (e) {
+  form.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const email = document.getElementById("email").value.trim();
@@ -28,6 +28,23 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const subirA0x0 = async (file) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("https://0x0.st", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("No se pudo subir la imagen a 0x0.st");
+      }
+
+      const url = await response.text();
+      return url.trim();
+    };
+
     const enviarFormulario = async (avatar_url_final) => {
       try {
         const formData = new FormData();
@@ -35,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("entry.268921631", nombre);            // ✅ Nombre
         formData.append("entry.1084572637", apellido);         // ✅ Apellido
         formData.append("entry.2109129788", edad);             // ✅ Edad
-        formData.append("entry.1142848287", avatar_url_final); // ✅ Avatar URL temporal
+        formData.append("entry.1142848287", avatar_url_final); // ✅ Avatar URL
         formData.append("entry.902905747", sexo);              // ✅ Sexo
 
         console.log("👉 Enviando al formulario");
@@ -64,11 +81,15 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (avatarFile) {
-      const tempURL = URL.createObjectURL(avatarFile);
-      enviarFormulario(tempURL);
+      try {
+        const avatarUrl = await subirA0x0(avatarFile);
+        await enviarFormulario(avatarUrl);
+      } catch (err) {
+        alert("No se pudo subir el avatar: " + err.message);
+      }
     } else {
       const defaultAvatar = "https://i.imgur.com/EELiQop.jpg";
-      enviarFormulario(defaultAvatar);
+      await enviarFormulario(defaultAvatar);
     }
   });
 });
