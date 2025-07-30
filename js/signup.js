@@ -6,12 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   avatarInput.addEventListener("change", function () {
     const file = this.files[0];
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      avatarPreview.src = e.target.result;
-    };
     if (file) {
-      reader.readAsDataURL(file);
+      const imageUrl = URL.createObjectURL(file);
+      avatarPreview.src = imageUrl;
       filenamePreview.textContent = file.name;
     }
   });
@@ -34,18 +31,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const enviarFormulario = async (avatar_url_final) => {
       try {
         const formData = new FormData();
-        formData.append("entry.978262299", email);           // ✅ Email
-        formData.append("entry.268921631", nombre);          // ✅ Nombre
-        formData.append("entry.1084572637", apellido);       // ✅ Apellido
-        formData.append("entry.2109129788", edad);           // ✅ Edad
-        formData.append("entry.1142848287", avatar_url_final); // ✅ Avatar en base64
-        formData.append("entry.902095747", sexo);            // ✅ Sexo
+        formData.append("entry.978262299", email);             // ✅ Email
+        formData.append("entry.268921631", nombre);            // ✅ Nombre
+        formData.append("entry.1084572637", apellido);         // ✅ Apellido
+        formData.append("entry.2109129788", edad);             // ✅ Edad
+        formData.append("entry.1142848287", avatar_url_final); // ✅ Avatar URL temporal
+        formData.append("entry.902095747", sexo);              // ✅ Sexo
 
         console.log("👉 Enviando al formulario");
         console.log("Nombre:", nombre);
         console.log("Apellido:", apellido);
         console.log("Edad:", edad);
-        console.log("Avatar (base64):", avatar_url_final.slice(0, 50)); // solo una parte
+        console.log("Avatar (URL):", avatar_url_final);
         console.log("Sexo:", sexo);
         console.log("Email:", email);
 
@@ -67,12 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     if (avatarFile) {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const avatarBase64 = event.target.result;
-        enviarFormulario(avatarBase64);
-      };
-      reader.readAsDataURL(avatarFile);
+      const tempURL = URL.createObjectURL(avatarFile);
+      enviarFormulario(tempURL);
     } else {
       const defaultAvatar = "https://i.imgur.com/EELiQop.jpg";
       enviarFormulario(defaultAvatar);
