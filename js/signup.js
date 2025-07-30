@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
         formData.append("entry.1084572637", apellido);         // ✅ Apellido
         formData.append("entry.2109129788", edad);             // ✅ Edad
         formData.append("entry.1142848287", avatar_url_final); // ✅ Avatar URL temporal
-        formData.append("entry.902095747", sexo);              // ✅ Sexo
+        formData.append("entry.902905747", sexo);              // ✅ Sexo
 
         console.log("👉 Enviando al formulario");
         console.log("Nombre:", nombre);
