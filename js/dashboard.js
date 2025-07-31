@@ -24,10 +24,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("xp").textContent = data.xp || "—";
         document.getElementById("nivel").textContent = data.nivel || "—";
         document.getElementById("journey-days").textContent = data.dias_journey || "—";
-        // ⚠️ Mostrar advertencia si no completó su base
-        if (!data.nivel || !data.xp || !data.dias_journey) {
+
+        
+        // 🔶 Mostrar advertencia si NO completó su base
+        if ((data.estado !== "PROCESADO ✅")) {
             const warningContainer = document.getElementById("journey-warning");
             if (warningContainer) warningContainer.style.display = "block";
+        }
         }
 
         // 👉 XP Progress bar solo si hay datos
