@@ -21,9 +21,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         document.getElementById("welcome-msg").textContent = `Hola ${data.nombre || ""} 👋`;
-        document.getElementById("xp").textContent = data.xp || "—";
-        document.getElementById("nivel").textContent = data.nivel || "—";
-        document.getElementById("journey-days").textContent = data.dias_journey || "—";
+        document.getElementById("xp").textContent = data.xp ?? "—";
+        document.getElementById("nivel").textContent = data.nivel ?? "—";
+        document.getElementById("journey-days").textContent = data.dias_journey ?? "—";
+        
 
         // 🔶 Mostrar advertencia si NO completó su base
         if (data.estado !== "PROCESADO ✅") {
