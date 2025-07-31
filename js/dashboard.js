@@ -25,9 +25,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("nivel").textContent = data.nivel || "—";
         document.getElementById("journey-days").textContent = data.dias_journey || "—";
 
-        
         // 🔶 Mostrar advertencia si NO completó su base
-        if ((data.estado !== "PROCESADO ✅")) {
+        if (data.estado !== "PROCESADO ✅") {
             const warningContainer = document.getElementById("journey-warning");
             if (warningContainer) warningContainer.style.display = "block";
         }
@@ -45,15 +44,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById("xp-bar").parentElement.appendChild(mensaje);
         }
 
+        // 🔗 Enlaces
         document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
         document.getElementById("dashboard").href = data.dashboard_url || "#";
         document.getElementById("daily-form").href = data.daily_form_url || "#";
         document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
+
     } catch (error) {
         console.error("Error al obtener datos:", error);
         alert("Ocurrió un error al cargar los datos del usuario.");
     }
 
+    // ☰ Menú hamburguesa
     document.getElementById("menu-toggle").addEventListener("click", () => {
         document.getElementById("dashboard-menu").classList.toggle("active");
     });
