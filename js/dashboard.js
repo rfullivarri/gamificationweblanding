@@ -31,7 +31,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const warningContainer = document.getElementById("journey-warning");
             if (warningContainer) warningContainer.style.display = "block";
         }
-        }
 
         // 👉 XP Progress bar solo si hay datos
         if (data.xp && data.exp_objetivo) {
