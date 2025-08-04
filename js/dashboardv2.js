@@ -1,198 +1,119 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const params = new URLSearchParams(window.location.search);
   const email = params.get("email");
-  const dashboardRoot = document.getElementById("dashboard-root");
 
   if (!email) {
-    dashboardRoot.innerHTML = "<p>❌ No se proporcionó un correo electrónico válido.</p>";
+    alert("No se proporcionó un correo electrónico.");
     return;
   }
 
-  try {
-    const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
-    const data = await response.json();
+  const response = await fetch(
+    `https://script.google.com/macros/s/YOUR_WEBAPP_URL/exec?email=${encodeURIComponent(email)}`
+  );
 
-    // 👉 Datos principales del usuario
-    const avatarURL = data.avatar_url;
-    const xp_total = parseInt(data.xp) || 0;
-    const nivel_actual = parseInt(data.nivel) || 0;
-    const xp_objetivo = parseInt(data.exp_objetivo) || 1;
+  const data = await response.json();
 
-    // 🎯 XP faltante hasta el próximo nivel
-    const xp_faltante = parseInt(data.xp_faltante) || (xp_objetivo - xp_total);
-    const progreso_nivel = xp_total / xp_objetivo;
+  // AVATAR
+  const avatarURL = data.avatar_url || "";
+  document.getElementById("avatar").src = avatarURL;
 
-    const estado = {
-      HP: parseFloat(data.hp),
-      Mood: parseFloat(data.mood),
-      Focus: parseFloat(data.focus)
-    };
+  // ESTADO DIARIO: barras
+  const setProgress = (id, value) => {
+    const bar = document.getElementById(id);
+    bar.style.width = `${value}%`;
+    bar.textContent = `${value}%`;
+  };
 
-    const createProgressBar = (label, value) => {
-      const container = document.createElement("div");
-      container.className = "progress-bar";
-      const inner = document.createElement("div");
-      inner.className = "progress-bar-inner";
-      inner.style.width = (value * 100) + "%";
-      inner.textContent = `${label} – ${(value * 100).toFixed(0)}%`;
-      container.appendChild(inner);
-      return container;
-    };
+  setProgress("bar-hp", data.estado_diario.hp);
+  setProgress("bar-mood", data.estado_diario.mood);
+  setProgress("bar-focus", data.estado_diario.focus);
 
-    // 🎨 Columna 1 – Avatar + Estado
-    const col1 = document.createElement("div");
-    col1.className = "column";
+  // XP Y NIVEL
+  document.getElementById("xp-actual").textContent = data.xp_actual;
+  document.getElementById("nivel-actual").textContent = data.nivel;
+  document.getElementById("xp-faltante").textContent = data.xp_faltante;
+  document.getElementById("bar-nivel").style.width = `${data.progreso_nivel}%`;
+  document.getElementById("bar-nivel").textContent = `${data.progreso_nivel}%`;
 
-    const avatarImg = document.createElement("img");
-    avatarImg.id = "avatar";
-    avatarImg.src = avatarURL || "https://imgur.com/EELiQop.jpg";
-    avatarImg.alt = "Avatar";
-    avatarImg.style.width = "120px";
-    avatarImg.style.height = "180px";
-    avatarImg.style.objectFit = "cover";
-    avatarImg.style.borderRadius = "12px";
-    avatarImg.style.display = "block";
-    avatarImg.style.marginBottom = "1rem";
-
-    col1.appendChild(avatarImg);
-    col1.innerHTML += `<h2>💠 Estado diario</h2>`;
-    col1.appendChild(createProgressBar("🫀 HP", estado.HP));
-    col1.appendChild(createProgressBar("🏵️ Mood", estado.Mood));
-    col1.appendChild(createProgressBar("🧠 Focus", estado.Focus));
-
-    // 📊 Columna 2 – Radar y XP diaria
-    const col2 = document.createElement("div");
-    col2.className = "column";
-    col2.innerHTML = `
-      <h2>📊 Radar de Rasgos</h2>
-      <canvas id="radarChart" height="250"></canvas>
-      <h2>🪴 Daily Cultivation</h2>
-      <canvas id="xpChart" height="150"></canvas>
-    `;
-
-    // 🏆 Columna 3 – Nivel + Emoción + Recompensas
-    const col3 = document.createElement("div");
-    col3.className = "column";
-    col3.innerHTML = `
-      <h2>🏆 Total XP: ${xp_total}</h2>
-      <h2>🎯 Nivel actual: ${nivel_actual}</h2>
-      <p>✨ Te faltan <strong>${xp_faltante} XP</strong> para el próximo nivel.</p>
-    `;
-    col3.appendChild(createProgressBar("📈 Progreso al siguiente nivel", progreso_nivel));
-    col3.innerHTML += `
-      <h2>💠 Emotion Chart</h2>
-      <div id="emotionChartContainer" class="emotion-grid"></div>
-      <h2>🎁 Rewards</h2>
-      <div id="rewardsContainer"></div>
-    `;
-
-    // Agregar columnas al dashboard
-    dashboardRoot.appendChild(col1);
-    dashboardRoot.appendChild(col2);
-    dashboardRoot.appendChild(col3);
-
-    // 🔹 Radar Chart – XP por Rasgo
-    const rasgos = data.acumulados_subconjunto || [];
-    const radarLabels = rasgos.map(r => r.Rasgo);
-    const radarValores = rasgos.map(r => parseInt(r.TotalXP) || 0);
-    new Chart(document.getElementById("radarChart"), {
-      type: "radar",
-      data: {
-        labels: radarLabels,
-        datasets: [{
-          label: "XP por Rasgo",
-          data: radarValores,
-          fill: true,
-          borderColor: "rgba(153, 102, 255, 1)",
-          backgroundColor: "rgba(153, 102, 255, 0.2)"
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: { r: { ticks: { color: "#ccc" } } }
-      }
-    });
-
-    // 📈 Gráfico de XP diaria
-    const daily = data.daily_cultivation || [];
-    const fechas = daily.map(row => row.Fecha);
-    const valoresXP = daily.map(row => parseInt(row.XP) || 0);
-    new Chart(document.getElementById("xpChart"), {
-      type: "line",
-      data: {
-        labels: fechas,
-        datasets: [{
-          label: "XP diaria",
-          data: valoresXP,
-          fill: false,
-          borderColor: "#6C63FF",
-          tension: 0.3
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { color: "#aaa" } },
-          y: { ticks: { color: "#aaa" } }
+  // RADAR DE RASGOS
+  const radarCanvas = document.getElementById("radarChart");
+  new Chart(radarCanvas, {
+    type: "radar",
+    data: {
+      labels: data.radar.labels,
+      datasets: [{
+        label: "Stats",
+        data: data.radar.values,
+        fill: true,
+        borderColor: "rgba(102, 0, 204, 1)",
+        backgroundColor: "rgba(102, 0, 204, 0.2)",
+        pointBackgroundColor: "rgba(102, 0, 204, 1)",
+      }]
+    },
+    options: {
+      scales: {
+        r: {
+          suggestedMin: 0,
+          suggestedMax: 1
         }
       }
-    });
+    }
+  });
 
-    // 💠 Emotion Chart estilo GitHub
-    const emotionChart = document.getElementById("emotionChartContainer");
-    const emotionColors = {
-      "Motivación": "#CE93D8",
-      "Felicidad": "#FFEB3B",
-      "Calma": "#B2FF59",
-      "Frustración": "#EF5350",
-      "Tristeza": "#8D6E63",
-      "Neutro": "#424242"
-    };
+  // GRÁFICO DE XP POR DÍA
+  const xpCanvas = document.getElementById("xpChart");
+  new Chart(xpCanvas, {
+    type: "line",
+    data: {
+      labels: data.daily_cultivation.map(d => d.fecha),
+      datasets: [{
+        label: "XP",
+        data: data.daily_cultivation.map(d => d.xp),
+        borderColor: "rgba(102, 0, 204, 1)",
+        backgroundColor: "rgba(102, 0, 204, 0.2)",
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
 
-    const dailyEmotion = data.daily_emotion || [];
-    dailyEmotion.forEach(({ fecha, emocion }) => {
-      const cell = document.createElement("div");
-      cell.className = "emotion-cell";
-      cell.style.backgroundColor = emotionColors[emocion] || "#666";
-      cell.title = `${fecha}: ${emocion}`;
-      emotionChart.appendChild(cell);
-    });
+  // EMOTION CHART (estilo GitHub)
+  const emotions = data.daily_emotion; // { "2025-07-01": "🟨", ... }
+  const emotionContainer = document.getElementById("emotionChartContainer");
 
-    // 🎁 Recompensas
-    const rewardsDiv = document.getElementById("rewardsContainer");
-    (data.rewards || []).forEach(r => {
-      const div = document.createElement("div");
-      div.className = "reward-card";
-      div.innerHTML = `
-        <p><strong>${r.Nombre}</strong> (${r.Tier})</p>
-        <p>${r.Descripción}</p>
-        <p><small>🎯 Requiere: ${r.Semanas || 0} semanas</small></p>
-      `;
-      rewardsDiv.appendChild(div);
-    });
+  Object.entries(emotions).forEach(([date, emoji]) => {
+    const cell = document.createElement("div");
+    cell.className = "emotion-cell";
+    cell.title = `${date} - ${emoji}`;
+    cell.textContent = emoji;
+    emotionContainer.appendChild(cell);
+  });
 
-    // ✅ Misiones
-    const missions = document.createElement("div");
-    missions.className = "missions-wrapper";
-    (data.rewards || []).forEach(r => {
-      const card = document.createElement("div");
-      card.className = "mission-card";
-      card.innerHTML = `
-        <h3>${r.Nombre}</h3>
-        <p>🎯 Pilar: ${r.Pilar} — ${r.Rasgo}</p>
-        <p>✅ Task: ${r.Task}</p>
-        <p>🕒 Constancia: ${r.Semanas} semanas</p>
-        <p>⭐ XP: ${r.XP} | 🎁 ${r.Reward}</p>
-        <button>Activar</button>
-      `;
-      missions.appendChild(card);
-    });
-    document.body.appendChild(missions);
+  // REWARDS (placeholder)
+  document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
 
-  } catch (error) {
-    console.error("Error al cargar los datos del dashboard:", error);
-    dashboardRoot.innerHTML = "<p>❌ Error al conectar con los datos del usuario.</p>";
-  }
+  // MISIONES
+  const missionsWrapper = document.getElementById("missions-wrapper");
+  data.misiones.forEach((m) => {
+    const card = document.createElement("div");
+    card.className = "mission-card";
+    card.innerHTML = `
+      <h4>🎯 ${m.nombre}</h4>
+      <p><strong>Pilar:</strong> ${m.pilar}</p>
+      <p><strong>Rasgo:</strong> ${m.rasgo}</p>
+      <p><strong>Tasks:</strong> ${m.tasks.join(", ")}</p>
+      <p><strong>Semanas necesarias:</strong> ${m.constancia_semanas}</p>
+      <p><strong>XP:</strong> ${m.xp}</p>
+      <button>Activar</button>
+    `;
+    missionsWrapper.appendChild(card);
+  });
 });
