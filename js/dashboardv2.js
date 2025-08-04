@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const percent = Math.round(value * 100);
     bar.style.width = ${percent}%;
     bar.textContent = ${percent}%;
-  };
+    };
 
   setProgress("bar-hp", data.hp);
   setProgress("bar-mood", data.mood);
