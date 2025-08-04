@@ -143,7 +143,7 @@ canvas {
 }
 #radarChartContainer {
   width: 100%;
-  max-width: 220px;         /* 👈 tamaño balanceado */
+  max-width: 250px;         /* 👈 tamaño balanceado */
   aspect-ratio: 1 / 1;      /* 👈 asegura proporción cuadrada */
   height: auto;             /* 👈 explícito, aunque no obligatorio */
   margin: 0 auto;
