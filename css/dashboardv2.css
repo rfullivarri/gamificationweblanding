@@ -39,8 +39,8 @@ header {
 }
 
 .avatar-img {
-  width: 120px;
-  height: 180px;
+  width: 220px;
+  aspect-ratio: 9 / 16;
   border-radius: 12px;
   object-fit: cover;
   box-shadow: 0 0 10px rgba(255,255,255,0.2);
@@ -100,7 +100,7 @@ canvas {
   padding: 10px;
 }
 #radarChartContainer {
-  max-width: 300px;     /* 👈 Tamaño máximo visible */
+  max-width: 200px;     /* 👈 Tamaño máximo visible */
   height: auto;
   margin: 0 auto;        /* 👈 Centrado horizontal */
   padding: 10px;
