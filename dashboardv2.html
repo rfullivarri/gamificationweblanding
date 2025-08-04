@@ -12,65 +12,79 @@
 <header>
   <div class="logo">🎮 Gamification Life Journey</div>
   <div class="menu-toggle" id="menu-toggle">☰</div>
-  <nav id="dashboard-menu">
-    <ul>
-      <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
-      <li><a href="#" id="edit-form">Programar Daily Form</a></li>
-      <li><a href="index.html">Cerrar sesión</a></li>
-    </ul>
-  </nav>
 </header>
+
+<!-- MENÚ DESPLEGABLE -->
+<nav id="dashboard-menu">
+  <ul>
+    <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
+    <li><a href="#" id="edit-form">Programar Daily Form</a></li>
+    <li><a href="index.html">Cerrar sesión</a></li>
+  </ul>
+</nav>
   
-  <main class="dashboard-grid">
-    <!-- COLUMNA IZQUIERDA -->
-    <section class="left-column">
-      <div class="avatar-box">
-        <img id="avatar" class="avatar-img" src="" alt="Avatar">
-      </div>
+<main class="dashboard-grid">
+  <!-- COLUMNA IZQUIERDA -->
+  <section class="left-column">
+    <div class="avatar-box">
+      <img id="avatar" class="avatar-img" src="" alt="Avatar">
+    </div>
 
-      <div class="energy-box">
-        <h3>💠 Daily Energy</h3>
-        <p>HP</p>
-        <div class="progress-bar"><div id="bar-hp" class="bar-fill"></div></div>
-        <p>Mood</p>
-        <div class="progress-bar"><div id="bar-mood" class="bar-fill mood"></div></div>
-        <p>Focus</p>
-        <div class="progress-bar"><div id="bar-focus" class="bar-fill focus"></div></div>
-      </div>
-    </section>
-
-    <!-- COLUMNA CENTRAL -->
-    <section class="center-column">
-      <h3>📊 Radar de Rasgos</h3>
-      </div id="radarChartContainer‎">
-          <canvas id="radarChart"></canvas>
-      </div>
-      <h3>📈 Daily Cultivation</h3>
-      <canvas id="xpChart" width="300" height="200"></canvas>
-    </section>
-
-    <!-- COLUMNA DERECHA -->
-    <section class="right-column">
-      <div class="xp-box">
-        <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
-        <h4>🎯 Nivel actual: <span id="nivel-actual">0</span></h4>
-        <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
-        <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
-      </div>
-
-      <div class="emotion-box">
-        <h3>🧠 Emotion Chart</h3>
-        <div id="emotionChartContainer" class="emotion-grid"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- MISIONES -->
-  <section class="missions-section">
-    <h3>🗂️ Misiones</h3>
-    <div id="missions-wrapper" class="missions-grid"></div>
+    <div class="energy-box">
+      <h3>💠 Daily Energy</h3>
+      <p>HP</p>
+      <div class="progress-bar"><div id="bar-hp" class="bar-fill"></div></div>
+      <p>Mood</p>
+      <div class="progress-bar"><div id="bar-mood" class="bar-fill mood"></div></div>
+      <p>Focus</p>
+      <div class="progress-bar"><div id="bar-focus" class="bar-fill focus"></div></div>
+    </div>
   </section>
 
-  <script src="js/dashboardv2.js"></script>
+  <!-- COLUMNA CENTRAL -->
+  <section class="center-column">
+    <h3>📊 Radar de Rasgos</h3>
+    <div id="radarChartContainer">
+      <canvas id="radarChart"></canvas>
+    </div>
+    <h3>📈 Daily Cultivation</h3>
+    <canvas id="xpChart" width="300" height="200"></canvas>
+  </section>
+
+  <!-- COLUMNA DERECHA -->
+  <section class="right-column">
+    <div class="xp-box">
+      <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
+      <h4>🎯 Nivel actual: <span id="nivel-actual">0</span></h4>
+      <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
+      <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
+    </div>
+
+    <div class="emotion-box">
+      <h3>🧠 Emotion Chart</h3>
+      <div id="emotionChartContainer" class="emotion-grid"></div>
+    </div>
+  </section>
+</main>
+
+<!-- MISIONES -->
+<section class="missions-section">
+  <h3>🗂️ Misiones</h3>
+  <div id="missions-wrapper" class="missions-grid"></div>
+</section>
+
+<!-- JS -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("menu-toggle");
+    const menu = document.getElementById("dashboard-menu");
+
+    toggle.addEventListener("click", () => {
+      menu.classList.toggle("active");
+    });
+  });
+</script>
+
+<script src="js/dashboardv2.js"></script>
 </body>
 </html>
