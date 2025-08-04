@@ -68,6 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }]
     },
     options: {
+      maintainAspectRatio: false,
       scales: {
         r: {
           suggestedMin: 0,
