@@ -24,6 +24,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const estado = {
       HP: parseFloat(data.hp),
+      Mood: parseFloat(data.mood),document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const email = params.get("email");
+  const dashboardRoot = document.getElementById("dashboard-root");
+
+  if (!email) {
+    dashboardRoot.innerHTML = "<p>❌ No se proporcionó un correo electrónico válido.</p>";
+    return;
+  }
+
+  try {
+    const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+
+    // 👉 Datos del usuario
+    const avatarURL = data.avatar_url;
+    const xp_total = parseInt(data.xp) || 0;
+    const nivel_actual = parseInt(data.nivel) || 0;
+    const xp_objetivo = parseInt(data.xp_objetivo) || 1;
+    const xp_actual = xp_total;
+    const xp_faltante = Math.max(0, xp_objetivo - xp_actual); // ✨ Diferencia entre objetivo y actual
+    const progreso_nivel = Math.min(1, xp_actual / xp_objetivo); // % hacia el siguiente nivel
+
+    const estado = {
+      HP: parseFloat(data.hp),
       Mood: parseFloat(data.mood),
       Focus: parseFloat(data.focus)
     };
@@ -69,6 +94,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       <h2>🏆 Total XP: ${xp_total}</h2>
       <h2>🎯 Nivel actual: ${nivel_actual}</h2>
       <p>✨ Te faltan <strong>${xp_faltante} XP</strong> para el próximo nivel.</p>
+    `;
+
+    // 📈 Barra de progreso al siguiente nivel
+    col3.appendChild(createProgressBar("📈 Progreso al siguiente nivel", progreso_nivel));
+
+    col3.innerHTML += `
       <h2>💠 Emotion Chart</h2>
       <div id="emotionChartContainer"></div>
       <h2>🎁 Rewards</h2>
