@@ -28,15 +28,15 @@ body {
   margin: 1rem;
 }
 
-/* Avatar estilo vertical */
-.dashboard-avatar-rectv2 {
-  width: 220px;
+/* Avatar vertical tipo story (versión más pequeña) */
+.dashboard-avatar-rectv2-small {
+  width: 120px;
   aspect-ratio: 9 / 16;
   object-fit: cover;
-  border-radius: 16px;
-  border: 3px solid #7d3cff;
+  border-radius: 12px;
+  border: 2px solid #7d3cff;
   display: block;
-  margin: 0 auto;
+  margin: 0 auto 1rem;
 }
 
 /* Barras de estado */
@@ -73,18 +73,27 @@ canvas {
 #emotionChartContainer {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
-  gap: 2px;
+  gap: 3px;
   margin-top: 1rem;
   background-color: #222;
-  padding: 8px;
-  border-radius: 4px;
+  padding: 10px;
+  border-radius: 6px;
   max-width: 320px;
+  justify-content: center;
+  align-content: start;
 }
 
 .emotion-cell {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  background-color: #666;
+  box-shadow: 0 0 1px rgba(0,0,0,0.2);
+  transition: transform 0.1s ease;
+}
+
+.emotion-cell:hover {
+  transform: scale(1.4);
 }
 
 /* Cards de rewards */
