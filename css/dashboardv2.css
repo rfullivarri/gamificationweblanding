@@ -142,7 +142,7 @@ canvas {
   padding: 10px;
 }
 #radarChartContainer {
-  max-width: 200px;     /* 👈 Tamaño máximo visible */
+  max-width: 150px;     /* 👈 Tamaño máximo visible */
   height: auto;
   margin: 0 auto;        /* 👈 Centrado horizontal */
   padding: 10px;
