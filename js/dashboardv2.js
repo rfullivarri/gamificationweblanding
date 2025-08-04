@@ -14,14 +14,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 👉 Datos del usuario
     const avatarURL = data.avatar_url;
-    const xp_total = parseInt(data.xp_total) || 0;
-    const nivel_actual = parseInt(data.nivel_actual) || 0;
-    const xp_faltante = parseInt(data.xp_faltante) || 0;
+    const xp_total = parseInt(data.xp) || 0;
+    const nivel_actual = parseInt(data.nivel) || 0;
+    const xp_objetivo = parseInt(data.xp_objetivo) || 1;
+    const xp_faltante = Math.max(0, xp_objetivo - xp_actual);
+
+    // 👉 Progreso de nivel (porcentaje)
+    const progreso_nivel = Math.min(1, xp_actual / xp_objetivo);
 
     const estado = {
-      HP: parseFloat(data.xp_HP),
-      Mood: parseFloat(data.xp_Mood),
-      Focus: parseFloat(data.xp_Focus)
+      HP: parseFloat(data.hp),
+      Mood: parseFloat(data.mood),
+      Focus: parseFloat(data.focus)
     };
 
     const createProgressBar = (label, value) => {
@@ -41,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const col1 = document.createElement("div");
     col1.className = "column";
     col1.innerHTML = `
-      <img src="${avatarURL}" class="avatar" />
+      <img src="${avatarURL}" class="dashboard-avatar-rectv2" />
       <h2>💠 Estado diario</h2>
     `;
     col1.appendChild(createProgressBar("🫀 HP", estado.HP));
