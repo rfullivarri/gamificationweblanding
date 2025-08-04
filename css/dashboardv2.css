@@ -143,18 +143,20 @@ canvas {
 }
 #radarChartContainer {
   width: 100%;
-  max-width: 150px;         /* 👈 tamaño balanceado */
-  aspect-ratio: 1 / 1;      /* 👈 asegura proporción cuadrada */
-  height: auto;             /* 👈 explícito, aunque no obligatorio */
-  margin: 3 auto;
+  max-width: 260px;         /* Cambiá este valor para escalar */
+  aspect-ratio: 1 / 1;      /* Mantiene forma cuadrada */
+  margin: 0 auto;
   padding: 10px;
   background-color: #2c2c3f;
   border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #radarChart {
-  width: 150% !important;
-  height: 150% !important;  /* 👈 este sí es importante para canvas */
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* COLUMNA DERECHA */
