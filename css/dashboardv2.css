@@ -141,10 +141,10 @@ canvas {
   border-radius: 10px;
   padding: 10px;
 }
+
 #radarChartContainer {
   width: 100%;
-  max-width: 520px;         /* Cambiá este valor para escalar */
-  aspect-ratio: 1 / 1;      /* Mantiene forma cuadrada */
+  aspect-ratio: 1 / 1;
   margin: 0 auto;
   padding: 10px;
   background-color: #2c2c3f;
@@ -161,22 +161,19 @@ canvas {
 
 /* COLUMNA DERECHA */
 .right-column {
-  padding-right: 10px;
+  padding-right: 0;
 }
 
-.xp-box {
+.xp-box,
+.emotion-box {
+  width: 100%;
   margin-bottom: 1.5em;
   background-color: #2e2e48;
   padding: 1em;
   border-radius: 10px;
 }
 
-.emotion-box {
-  background-color: #2e2e48;
-  padding: 1em;
-  border-radius: 10px;
-}
-
+/* EMOTION CHART */
 .emotion-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
