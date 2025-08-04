@@ -133,4 +133,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
     missionsWrapper.appendChild(card);
   });
+  // 🔗 Enlaces
+  document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
+  document.getElementById("dashboard").href = data.dashboard_url || "#";
+  document.getElementById("daily-form").href = data.daily_form_url || "#";
+  document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
+
+  
+  // ☰ Menú hamburguesa
+  document.getElementById("menu-toggle").addEventListener("click", () => {
+      document.getElementById("dashboard-menu").classList.toggle("active");
+    });
 });
