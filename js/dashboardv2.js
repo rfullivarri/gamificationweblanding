@@ -16,10 +16,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const avatarURL = data.avatar_url;
     const xp_total = parseInt(data.xp) || 0;
     const nivel_actual = parseInt(data.nivel) || 0;
-    const xp_objetivo = parseInt(data.xp_objetivo) || 1;
-    const xp_actual = xp_total;
-    const xp_faltante =  parseInt(data.xp_faltante) || 0;
-
+    const xp_objetivo = parseInt(data.exp_objetivo) || 1;
+    const xp_faltante = parseInt(data.xp_faltante) || (xp_objetivo - xp_total);
+    const progreso_nivel = xp_total / xp_objetivo; // 🎯 Cálculo de progreso
     const estado = {
       HP: parseFloat(data.hp),
       Mood: parseFloat(data.mood),
@@ -29,35 +28,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     const createProgressBar = (label, value) => {
       const container = document.createElement("div");
       container.className = "progress-bar";
-
       const inner = document.createElement("div");
       inner.className = "progress-bar-inner";
       inner.style.width = (value * 100) + "%";
       inner.textContent = `${label} – ${(value * 100).toFixed(0)}%`;
-
       container.appendChild(inner);
       return container;
     };
 
-    // 🎨 Columna izquierda
+    // 🎨 Columna izquierda: Avatar + Estado
     const col1 = document.createElement("div");
     col1.className = "column";
-    col1.innerHTML = `
-      // 👉 Avatar directo desde ImgBB
-      if (avatarURL) {
-          document.getElementById("avatar").src = avatarURL;
-      } else {
-         // Opción: mostrar imagen por defecto si no hay avatar
-          document.getElementById("avatar").src = "https://imgur.com/EELiQop";
-      }
-      
-      <h2>💠 Estado diario</h2>
-    `;
+
+    const avatarImg = document.createElement("img");
+    avatarImg.id = "avatar";
+    avatarImg.src = avatarURL || "https://imgur.com/EELiQop.jpg";
+    avatarImg.alt = "Avatar";
+    avatarImg.style.width = "120px";
+    avatarImg.style.height = "180px";
+    avatarImg.style.objectFit = "cover";
+    avatarImg.style.borderRadius = "12px";
+    avatarImg.style.display = "block";
+    avatarImg.style.marginBottom = "1rem";
+
+    col1.appendChild(avatarImg);
+    col1.innerHTML += `<h2>💠 Estado diario</h2>`;
     col1.appendChild(createProgressBar("🫀 HP", estado.HP));
     col1.appendChild(createProgressBar("🏵️ Mood", estado.Mood));
     col1.appendChild(createProgressBar("🧠 Focus", estado.Focus));
 
-    // 📊 Columna central
+    // 📊 Columna central: Radar + XP
     const col2 = document.createElement("div");
     col2.className = "column";
     col2.innerHTML = `
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <canvas id="xpChart" height="150"></canvas>
     `;
 
-    // 🏆 Columna derecha
+    // 🏆 Columna derecha: Nivel + Progreso + Emoción + Recompensas
     const col3 = document.createElement("div");
     col3.className = "column";
     col3.innerHTML = `
@@ -75,22 +75,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       <h2>🎯 Nivel actual: ${nivel_actual}</h2>
       <p>✨ Te faltan <strong>${xp_faltante} XP</strong> para el próximo nivel.</p>
     `;
-
-    // 📈 Barra de progreso al siguiente nivel
     col3.appendChild(createProgressBar("📈 Progreso al siguiente nivel", progreso_nivel));
-
     col3.innerHTML += `
       <h2>💠 Emotion Chart</h2>
-      <div id="emotionChartContainer"></div>
+      <div id="emotionChartContainer" class="emotion-grid"></div>
       <h2>🎁 Rewards</h2>
       <div id="rewardsContainer"></div>
     `;
 
+    // Agregar columnas al root
     dashboardRoot.appendChild(col1);
     dashboardRoot.appendChild(col2);
     dashboardRoot.appendChild(col3);
 
-    // 🔹 Radar Chart de rasgos
+    // 🔹 Radar Chart
     const rasgos = data.acumulados_subconjunto || [];
     const labels = rasgos.map(r => r.Rasgo);
     const valores = rasgos.map(r => parseInt(r.TotalXP) || 0);
@@ -113,7 +111,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // 📈 Línea de XP por día
+    // 📈 Línea de XP
     const daily = data.daily_cultivation || [];
     const fechas = daily.map(row => row.Fecha);
     const valoresXP = daily.map(row => parseInt(row.XP) || 0);
@@ -139,34 +137,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // 🟩 Emotion Chart estilo GitHub
+    // 💠 Emotion Chart estilo GitHub
     const emotionChart = document.getElementById("emotionChartContainer");
-    const daily_log = data.daily_log || [];
     const emotionColors = {
-      "🟩": "#B2FF59",
-      "🟨": "#FFEB3B",
-      "🟪": "#CE93D8",
-      "🟥": "#EF5350",
-      "🟫": "#8D6E63",
-      "⬛": "#424242"
+      "Motivación": "#CE93D8",
+      "Felicidad": "#FFEB3B",
+      "Calma": "#B2FF59",
+      "Frustración": "#EF5350",
+      "Tristeza": "#8D6E63",
+      "Neutro": "#424242"
     };
 
-    const emotionData = {};
-    daily_log.forEach(row => {
-      const fecha = row["Marca temporal"].split(" ")[0];
-      const emo = row.Emociones?.trim()?.substring(0, 2) || "⬛";
-      emotionData[fecha] = emo;
+    const dailyEmotion = data.daily_emotion || [];
+    dailyEmotion.forEach(({ fecha, emocion }) => {
+      const cell = document.createElement("div");
+      cell.className = "emotion-cell";
+      cell.style.backgroundColor = emotionColors[emocion] || "#666";
+      cell.title = `${fecha}: ${emocion}`;
+      emotionChart.appendChild(cell);
     });
 
-    Object.entries(emotionData).forEach(([fecha, emo]) => {
-      const div = document.createElement("div");
-      div.className = "emotion-cell";
-      div.style.backgroundColor = emotionColors[emo] || "#555";
-      div.title = `${fecha}: ${emo}`;
-      emotionChart.appendChild(div);
-    });
-
-    // 🧩 Recompensas
+    // 🎁 Recompensas
     const rewardsDiv = document.getElementById("rewardsContainer");
     (data.rewards || []).forEach(r => {
       const div = document.createElement("div");
@@ -179,12 +170,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       rewardsDiv.appendChild(div);
     });
 
-    // ✅ Misiones en la parte inferior
+    // ✅ Misiones
     const missions = document.createElement("div");
     missions.className = "missions-wrapper";
-
-    const rewards = data.rewards || [];
-    rewards.forEach(r => {
+    (data.rewards || []).forEach(r => {
       const card = document.createElement("div");
       card.className = "mission-card";
       card.innerHTML = `
@@ -197,7 +186,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
       missions.appendChild(card);
     });
-
     document.body.appendChild(missions);
 
   } catch (error) {
