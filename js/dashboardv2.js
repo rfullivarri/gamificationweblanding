@@ -24,9 +24,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     bar.textContent = `${value}%`;
   };
 
-  setProgress("bar-hp", data.estado_diario.hp);
-  setProgress("bar-mood", data.estado_diario.mood);
-  setProgress("bar-focus", data.estado_diario.focus);
+  setProgress("bar-hp", data.hp);
+  setProgress("bar-mood", data.mood);
+  setProgress("bar-focus", data.focus);
 
   // XP Y NIVEL
   document.getElementById("xp-actual").textContent = data.xp;
@@ -39,8 +39,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   function calcularXPporRasgoDesdeBBDD(bbdd) {
     const xpPorRasgo = {};
     bbdd.forEach(row => {
-      const rasgo = row["Rasgo"];
-      const exp = Number(row["EXP"]) || 0;
+      const rasgo = row["rasgo"];
+      const exp = Number(row["exp"]) || 0;
       if (!xpPorRasgo[rasgo]) xpPorRasgo[rasgo] = 0;
       xpPorRasgo[rasgo] += exp;
     });
