@@ -1,72 +1,67 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gamification Dashboard v2</title>
-  <link rel="stylesheet" href="dashboardv2.css" />
+  <meta charset="UTF-8">
+  <title>Self-Improvement Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="css/dashboardv2.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <header>
+    <h1>🎮 Self-Improvement Dashboard</h1>
+    <p>📧 Ingresá tu correo electrónico para ver tu progreso</p>
+  </header>
 
-  <!-- CONTENEDOR PRINCIPAL EN 3 COLUMNAS -->
-  <div id="dashboard-root" class="dashboard-container">
-
+  <main class="dashboard-grid">
     <!-- COLUMNA IZQUIERDA -->
-    <div class="column left-column">
-      <img id="avatar" class="avatar-img" src="" alt="Avatar" />
-      <h2>🔷 Estado diario</h2>
-
-      <!-- Barras de estado -->
-      <div>
-        <div class="progress-container">
-          <div id="bar-hp" class="progress-bar">❤️ HP</div>
-        </div>
-        <div class="progress-container">
-          <div id="bar-mood" class="progress-bar">🍊 Mood</div>
-        </div>
-        <div class="progress-container">
-          <div id="bar-focus" class="progress-bar">🧠 Focus</div>
-        </div>
+    <section class="left-column">
+      <div class="avatar-box">
+        <img id="avatar" class="avatar-img" src="" alt="Avatar">
       </div>
-    </div>
+
+      <div class="energy-box">
+        <h3>💠 Daily Energy</h3>
+        <p>HP</p>
+        <div class="progress-bar"><div id="bar-hp" class="bar-fill"></div></div>
+        <p>Mood</p>
+        <div class="progress-bar"><div id="bar-mood" class="bar-fill mood"></div></div>
+        <p>Focus</p>
+        <div class="progress-bar"><div id="bar-focus" class="bar-fill focus"></div></div>
+      </div>
+    </section>
 
     <!-- COLUMNA CENTRAL -->
-    <div class="column center-column">
-      <h2>📊 Radar de Rasgos</h2>
-      <canvas id="radarChart"></canvas>
+    <section class="center-column">
+      <h3>📊 Radar de Rasgos</h3>
+      <canvas id="radarChart" width="300" height="300"></canvas>
 
-      <h2>🌱 Daily Cultivation</h2>
-      <canvas id="xpChart"></canvas>
-    </div>
+      <h3>📈 Daily Cultivation</h3>
+      <canvas id="xpChart" width="300" height="200"></canvas>
+    </section>
 
     <!-- COLUMNA DERECHA -->
-    <div class="column right-column">
-      <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
-      <h3>🎯 Nivel actual: <span id="nivel-actual">0</span></h3>
-      <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel.</p>
-
-      <!-- Progreso al siguiente nivel -->
-      <div class="progress-container">
-        <div id="bar-nivel" class="progress-bar">📈 Progreso nivel</div>
+    <section class="right-column">
+      <div class="xp-box">
+        <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
+        <h4>🎯 Nivel actual: <span id="nivel-actual">0</span></h4>
+        <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
+        <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
       </div>
 
-      <h2>🔷 Emotion Chart</h2>
-      <div id="emotionChartContainer"></div>
+      <div class="emotion-box">
+        <h3>🧠 Emotion Chart</h3>
+        <div id="emotionChartContainer" class="emotion-grid"></div>
+      </div>
+    </section>
+  </main>
 
-      <h2>🎁 Rewards</h2>
-      <div id="rewardsContainer"></div>
-    </div>
-  </div>
+  <!-- MISIONES -->
+  <section class="missions-section">
+    <h3>🗂️ Misiones</h3>
+    <div id="missions-wrapper" class="missions-grid"></div>
+  </section>
 
-  <!-- ZONA DE MISIONES -->
-  <div class="missions-wrapper" id="missions-wrapper">
-    <!-- Se insertan dinámicamente -->
-  </div>
-
-  <!-- LIBRERÍA CHART.JS -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- DASHBOARD SCRIPT -->
   <script src="js/dashboardv2.js"></script>
 </body>
 </html>
