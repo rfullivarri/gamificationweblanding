@@ -9,11 +9,58 @@
 <body>
 
   <!-- CONTENEDOR PRINCIPAL -->
-  <div id="dashboard-root"></div>
+  <div id="dashboard-root">
 
-  <!-- CONTENEDOR DE MISIONES -->
+    <!-- COLUMNA IZQUIERDA -->
+    <div class="column" id="left-column">
+      <img id="avatar" class="dashboard-avatar-rectv2" src="" alt="Avatar" />
+      <h2>🔷 Estado diario</h2>
+
+      <!-- Barras de estado -->
+      <div>
+        <div class="progress-bar">
+          <div id="bar-hp" class="progress-bar-inner">❤️ HP</div>
+        </div>
+        <div class="progress-bar">
+          <div id="bar-mood" class="progress-bar-inner">🍊 Mood</div>
+        </div>
+        <div class="progress-bar">
+          <div id="bar-focus" class="progress-bar-inner">🧠 Focus</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUMNA CENTRAL -->
+    <div class="column" id="center-column">
+      <h2>📊 Radar de Rasgos</h2>
+      <canvas id="radarChart"></canvas>
+
+      <h2>🌱 Daily Cultivation</h2>
+      <canvas id="xpChart"></canvas>
+    </div>
+
+    <!-- COLUMNA DERECHA -->
+    <div class="column" id="right-column">
+      <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
+      <h3>🎯 Nivel actual: <span id="nivel-actual">0</span></h3>
+      <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel.</p>
+
+      <!-- Progreso al siguiente nivel -->
+      <div class="progress-bar">
+        <div id="bar-nivel" class="progress-bar-inner">📈 Progreso nivel</div>
+      </div>
+
+      <h2>🔷 Emotion Chart</h2>
+      <div id="emotionChartContainer"></div>
+
+      <h2>🎁 Rewards</h2>
+      <div id="rewardsContainer"></div>
+    </div>
+  </div>
+
+  <!-- ZONA DE MISIONES -->
   <div class="missions-wrapper" id="missions-wrapper">
-    <!-- Las misiones se insertan dinámicamente aquí -->
+    <!-- Se insertan dinámicamente -->
   </div>
 
   <!-- LIBRERÍA CHART.JS -->
