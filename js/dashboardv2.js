@@ -18,8 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const nivel_actual = parseInt(data.nivel) || 0;
     const xp_objetivo = parseInt(data.xp_objetivo) || 1;
     const xp_actual = xp_total;
-    const xp_faltante = Math.max(0, xp_objetivo - xp_actual); // ✨ Diferencia entre objetivo y actual
-    const progreso_nivel = Math.min(1, xp_actual / xp_objetivo); // % hacia el siguiente nivel
+    const xp_faltante =  parseInt(data.xp_faltante) || 0;
 
     const estado = {
       HP: parseFloat(data.hp),
