@@ -4,31 +4,34 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Gamification Dashboard v2</title>
-  <link rel="stylesheet" href="css/dashboardv2.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="dashboardv2.css" />
 </head>
 <body>
 
-  <div id="dashboard-root">
+  <!-- CONTENEDOR PRINCIPAL EN 3 COLUMNAS -->
+  <div id="dashboard-root" class="dashboard-container">
+
     <!-- COLUMNA IZQUIERDA -->
-    <div class="column" id="left-column">
-      <img id="avatar" class="dashboard-avatar-rectv2" src="" alt="Avatar" />
+    <div class="column left-column">
+      <img id="avatar" class="avatar-img" src="" alt="Avatar" />
       <h2>🔷 Estado diario</h2>
 
-      <div class="progress-bar-container">
-        <div class="label-bar">❤️ HP</div>
-        <div class="progress-bar"><div id="bar-hp" class="progress-bar-inner"></div></div>
-
-        <div class="label-bar">🍊 Mood</div>
-        <div class="progress-bar"><div id="bar-mood" class="progress-bar-inner"></div></div>
-
-        <div class="label-bar">🧠 Focus</div>
-        <div class="progress-bar"><div id="bar-focus" class="progress-bar-inner"></div></div>
+      <!-- Barras de estado -->
+      <div>
+        <div class="progress-container">
+          <div id="bar-hp" class="progress-bar">❤️ HP</div>
+        </div>
+        <div class="progress-container">
+          <div id="bar-mood" class="progress-bar">🍊 Mood</div>
+        </div>
+        <div class="progress-container">
+          <div id="bar-focus" class="progress-bar">🧠 Focus</div>
+        </div>
       </div>
     </div>
 
     <!-- COLUMNA CENTRAL -->
-    <div class="column" id="center-column">
+    <div class="column center-column">
       <h2>📊 Radar de Rasgos</h2>
       <canvas id="radarChart"></canvas>
 
@@ -37,13 +40,15 @@
     </div>
 
     <!-- COLUMNA DERECHA -->
-    <div class="column" id="right-column">
+    <div class="column right-column">
       <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
       <h3>🎯 Nivel actual: <span id="nivel-actual">0</span></h3>
       <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel.</p>
 
-      <div class="label-bar">📈 Progreso al siguiente nivel</div>
-      <div class="progress-bar"><div id="bar-nivel" class="progress-bar-inner"></div></div>
+      <!-- Progreso al siguiente nivel -->
+      <div class="progress-container">
+        <div id="bar-nivel" class="progress-bar">📈 Progreso nivel</div>
+      </div>
 
       <h2>🔷 Emotion Chart</h2>
       <div id="emotionChartContainer"></div>
@@ -54,7 +59,12 @@
   </div>
 
   <!-- ZONA DE MISIONES -->
-  <div class="missions-wrapper" id="missions-wrapper"></div>
+  <div class="missions-wrapper" id="missions-wrapper">
+    <!-- Se insertan dinámicamente -->
+  </div>
+
+  <!-- LIBRERÍA CHART.JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- DASHBOARD SCRIPT -->
   <script src="js/dashboardv2.js"></script>
