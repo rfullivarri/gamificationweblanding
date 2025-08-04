@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("xp-actual").textContent = data.xp;
   document.getElementById("nivel-actual").textContent = data.nivel;
   document.getElementById("xp-faltante").textContent = data.xp_faltante;
-  const progresoNivel = Math.round((data.xp / data.xp_objetivo) * 100);
+  const progresoNivel = Math.round((data.xp / data.exp_objetivo) * 100);
   document.getElementById("bar-nivel").style.width = `${progresoNivel}%`;
   document.getElementById("bar-nivel").textContent = `${progresoNivel}%`;
 
