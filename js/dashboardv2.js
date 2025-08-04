@@ -21,8 +21,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const setProgress = (id, value) => {
     const bar = document.getElementById(id);
     const percent = Math.round(value * 100);
-    bar.style.width = ${percent}%;
-    bar.textContent = ${percent}%;
+    bar.style.width = `${percent}%`;
+    bar.textContent = `${percent}%`;
   };
 
   setProgress("bar-hp", data.hp);
@@ -34,8 +34,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("nivel-actual").textContent = data.nivel;
   document.getElementById("xp-faltante").textContent = data.xp_faltante;
   const progresoNivel = Math.round((data.xp / data.xp_objetivo) * 100);
-  document.getElementById("bar-nivel").style.width = ${progresoNivel}%;
-  document.getElementById("bar-nivel").textContent = ${progresoNivel}%;
+  document.getElementById("bar-nivel").style.width = `${progresoNivel}%`;
+  document.getElementById("bar-nivel").textContent = `${progresoNivel}%`;
 
   // RADAR DE RASGOS (XP por Rasgo desde BBDD)
   function calcularXPporRasgoDesdeBBDD(bbdd) {
