@@ -11,12 +11,54 @@ h1, h2, h3, h4, p {
   margin: 0.4em 0;
 }
 
+/* ----- HEADER ----- */
 header {
-  text-align: center;
-  padding: 1em 0;
-  background-color: #292947;
-  color: #f5f5f5;
-  border-bottom: 2px solid #444;
+  background-color: #2e0854;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+.menu-toggle {
+  font-size: 1.5em;
+  cursor: pointer;
+}
+#dashboard-menu {
+  display: none;
+  flex-direction: column;
+  background-color: #2e0854;
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  z-index: 10;
+  border-radius: 10px;
+  overflow: hidden;
+}
+#dashboard-menu.active {
+  display: flex;
+}
+#dashboard-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#dashboard-menu li {
+  border-bottom: 1px solid #4c1c7a;
+}
+#dashboard-menu a {
+  display: block;
+  padding: 12px 20px;
+  color: white;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+#dashboard-menu a:hover {
+  background-color: #501c88;
 }
 
 /* GRID PRINCIPAL */
