@@ -12,13 +12,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
     const data = await response.json();
 
-    // 👉 Datos del usuario
+    // 👉 Datos principales del usuario
     const avatarURL = data.avatar_url;
     const xp_total = parseInt(data.xp) || 0;
     const nivel_actual = parseInt(data.nivel) || 0;
     const xp_objetivo = parseInt(data.exp_objetivo) || 1;
+
+    // 🎯 XP faltante hasta el próximo nivel
     const xp_faltante = parseInt(data.xp_faltante) || (xp_objetivo - xp_total);
-    const progreso_nivel = xp_total / xp_objetivo; // 🎯 Cálculo de progreso
+    const progreso_nivel = xp_total / xp_objetivo;
+
     const estado = {
       HP: parseFloat(data.hp),
       Mood: parseFloat(data.mood),
@@ -36,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return container;
     };
 
-    // 🎨 Columna izquierda: Avatar + Estado
+    // 🎨 Columna 1 – Avatar + Estado
     const col1 = document.createElement("div");
     col1.className = "column";
 
@@ -57,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     col1.appendChild(createProgressBar("🏵️ Mood", estado.Mood));
     col1.appendChild(createProgressBar("🧠 Focus", estado.Focus));
 
-    // 📊 Columna central: Radar + XP
+    // 📊 Columna 2 – Radar y XP diaria
     const col2 = document.createElement("div");
     col2.className = "column";
     col2.innerHTML = `
@@ -67,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <canvas id="xpChart" height="150"></canvas>
     `;
 
-    // 🏆 Columna derecha: Nivel + Progreso + Emoción + Recompensas
+    // 🏆 Columna 3 – Nivel + Emoción + Recompensas
     const col3 = document.createElement("div");
     col3.className = "column";
     col3.innerHTML = `
@@ -83,22 +86,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div id="rewardsContainer"></div>
     `;
 
-    // Agregar columnas al root
+    // Agregar columnas al dashboard
     dashboardRoot.appendChild(col1);
     dashboardRoot.appendChild(col2);
     dashboardRoot.appendChild(col3);
 
-    // 🔹 Radar Chart
+    // 🔹 Radar Chart – XP por Rasgo
     const rasgos = data.acumulados_subconjunto || [];
-    const labels = rasgos.map(r => r.Rasgo);
-    const valores = rasgos.map(r => parseInt(r.TotalXP) || 0);
+    const radarLabels = rasgos.map(r => r.Rasgo);
+    const radarValores = rasgos.map(r => parseInt(r.TotalXP) || 0);
     new Chart(document.getElementById("radarChart"), {
       type: "radar",
       data: {
-        labels,
+        labels: radarLabels,
         datasets: [{
           label: "XP por Rasgo",
-          data: valores,
+          data: radarValores,
           fill: true,
           borderColor: "rgba(153, 102, 255, 1)",
           backgroundColor: "rgba(153, 102, 255, 0.2)"
@@ -111,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // 📈 Línea de XP
+    // 📈 Gráfico de XP diaria
     const daily = data.daily_cultivation || [];
     const fechas = daily.map(row => row.Fecha);
     const valoresXP = daily.map(row => parseInt(row.XP) || 0);
