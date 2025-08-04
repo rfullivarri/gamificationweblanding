@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const response = await fetch(
-    `https://script.google.com/macros/s/YOUR_WEBAPP_URL/exec?email=${encodeURIComponent(email)}`
+    `https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`
   );
 
   const data = await response.json();
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setProgress("bar-focus", data.estado_diario.focus);
 
   // XP Y NIVEL
-  document.getElementById("xp-actual").textContent = data.xp_actual;
+  document.getElementById("xp-actual").textContent = data.xp;
   document.getElementById("nivel-actual").textContent = data.nivel;
   document.getElementById("xp-faltante").textContent = data.xp_faltante;
   document.getElementById("bar-nivel").style.width = `${data.progreso_nivel}%`;
