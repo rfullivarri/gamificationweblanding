@@ -17,32 +17,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const xp_total = parseInt(data.xp) || 0;
     const nivel_actual = parseInt(data.nivel) || 0;
     const xp_objetivo = parseInt(data.xp_objetivo) || 1;
-    const xp_faltante = Math.max(0, xp_objetivo - xp_actual);
-
-    // 👉 Progreso de nivel (porcentaje)
-    const progreso_nivel = Math.min(1, xp_actual / xp_objetivo);
-
-    const estado = {
-      HP: parseFloat(data.hp),
-      Mood: parseFloat(data.mood),document.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
-  const email = params.get("email");
-  const dashboardRoot = document.getElementById("dashboard-root");
-
-  if (!email) {
-    dashboardRoot.innerHTML = "<p>❌ No se proporcionó un correo electrónico válido.</p>";
-    return;
-  }
-
-  try {
-    const response = await fetch(`https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`);
-    const data = await response.json();
-
-    // 👉 Datos del usuario
-    const avatarURL = data.avatar_url;
-    const xp_total = parseInt(data.xp) || 0;
-    const nivel_actual = parseInt(data.nivel) || 0;
-    const xp_objetivo = parseInt(data.xp_objetivo) || 1;
     const xp_actual = xp_total;
     const xp_faltante = Math.max(0, xp_objetivo - xp_actual); // ✨ Diferencia entre objetivo y actual
     const progreso_nivel = Math.min(1, xp_actual / xp_objetivo); // % hacia el siguiente nivel
