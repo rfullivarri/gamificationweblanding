@@ -99,6 +99,17 @@ canvas {
   border-radius: 10px;
   padding: 10px;
 }
+#radarChartContainer {
+  max-width: 300px;     /* 👈 Tamaño máximo visible */
+  height: auto;
+  margin: 0 auto;        /* 👈 Centrado horizontal */
+  padding: 10px;
+}
+
+#radarChart {
+  width: 100% !important;
+  height: auto !important;
+}
 
 /* COLUMNA DERECHA */
 .right-column {
