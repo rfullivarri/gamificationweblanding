@@ -44,7 +44,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const col1 = document.createElement("div");
     col1.className = "column";
     col1.innerHTML = `
-      <img src="${avatarURL}" class="dashboard-avatar-rectv2" />
+      // 👉 Avatar directo desde ImgBB
+      if (avatarURL) {
+          document.getElementById("avatar").src = avatarURL;
+      } else {
+         // Opción: mostrar imagen por defecto si no hay avatar
+          document.getElementById("avatar").src = "https://imgur.com/EELiQop";
+      }
+      
       <h2>💠 Estado diario</h2>
     `;
     col1.appendChild(createProgressBar("🫀 HP", estado.HP));
