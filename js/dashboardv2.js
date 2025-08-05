@@ -85,8 +85,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             color: "#ffffff", // blanco
             font: {
               family: "'Rubik', sans-serif",
-              size: 14,
-              weight: 'bold'
+              size: 13
             }
           },
           grid: {
@@ -121,6 +120,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     options: {
       responsive: true,
       scales: {
+        r: {
+          pointLabels: {
+            color: "#ffffff", // blanco
+            font: {
+              family: "'Rubik', sans-serif",
+              size: 13
+            }
+          },
         y: {
           beginAtZero: true
         }
