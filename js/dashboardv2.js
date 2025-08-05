@@ -200,6 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     console.warn("⚠️ No hay datos válidos para Daily Cultivation");
   }
+
   
   // ========================
   // 💖 EMOTION CHART
@@ -248,6 +249,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   
       emotionChart.appendChild(square);
     }
+  }
+  if (data.daily_emotion) {
+    console.log("💖 Emotions cargadas:", data.daily_emotion);
+    renderEmotionChart(data.daily_emotion);
+  } else {
+    console.warn("⚠️ No hay datos válidos para Emotion Chart");
   }
   
   // REWARDS
