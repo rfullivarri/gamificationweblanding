@@ -202,101 +202,101 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ========================
-// 💖 EMOTION CHART
-// ========================
-function renderEmotionChart(dailyEmotion) {
-  // 1. Diccionario de emociones → emoji
-  const emotionToEmoji = {
-    "Calma": "🟩",
-    "Felicidad": "🟨",
-    "Motivación": "🟪",
-    "Tristeza": "🟦",
-    "Ansiedad": "🟥",
-    "Neutral": "⬜",
-    "Frustración": "🟫"
-  };
-
-  const emojiNames = {
-    "🟩": "Calma",
-    "🟨": "Felicidad",
-    "🟪": "Motivación",
-    "🟦": "Tristeza",
-    "🟥": "Ansiedad",
-    "⬜": "Neutral",
-    "🟫": "Frustración"
-  };
-
-  // 2. Mapa de fecha ISO → emoji
-  const emotionMap = {};
-  dailyEmotion.forEach(entry => {
-    const fecha = entry.fecha;
-    const emocionTexto = entry.emocion.trim();
-    const emoji = emotionToEmoji[emocionTexto] || emocionTexto;
-    if (fecha && emoji) {
-      emotionMap[fecha] = emoji;
+  // 💖 EMOTION CHART
+  // ========================
+  function renderEmotionChart(dailyEmotion) {
+    // 1. Diccionario de emociones → emoji
+    const emotionToEmoji = {
+      "Calma": "🟩",
+      "Felicidad": "🟨",
+      "Motivación": "🟪",
+      "Tristeza": "🟦",
+      "Ansiedad": "🟥",
+      "Neutral": "⬜",
+      "Frustración": "🟫"
+    };
+  
+    const emojiNames = {
+      "🟩": "Calma",
+      "🟨": "Felicidad",
+      "🟪": "Motivación",
+      "🟦": "Tristeza",
+      "🟥": "Ansiedad",
+      "⬜": "Neutral",
+      "🟫": "Frustración"
+    };
+  
+    // 2. Mapa de fecha ISO → emoji
+    const emotionMap = {};
+    dailyEmotion.forEach(entry => {
+      const fecha = entry.fecha;
+      const emocionTexto = entry.emocion.trim();
+      const emoji = emotionToEmoji[emocionTexto] || emocionTexto;
+      if (fecha && emoji) {
+        emotionMap[fecha] = emoji;
+      }
+    });
+  
+    // 3. Limpiar contenedor
+    const emotionChart = document.getElementById("emotionChart");
+    emotionChart.innerHTML = "";
+  
+    const monthLabelsContainer = document.createElement("div");
+    monthLabelsContainer.className = "month-labels";
+  
+    const gridContainer = document.createElement("div");
+    gridContainer.className = "emotion-grid";
+  
+    // 4. Calcular fecha inicial = primer dato
+    const fechas = Object.keys(emotionMap).sort();
+    const primerFecha = new Date(fechas[0]);
+  
+    // 5. Fecha final = 3 meses después
+    const endDate = new Date(primerFecha);
+    endDate.setMonth(endDate.getMonth() + 3);
+  
+    // 6. Construcción de grilla
+    let currentMonth = "";
+    let date = new Date(primerFecha);
+  
+    while (date <= endDate) {
+      const isoDate = date.toISOString().split("T")[0];
+      const emoji = emotionMap[isoDate] || "";
+      const emotionName = emojiNames[emoji] || "Sin registro";
+  
+      const square = document.createElement("div");
+      square.className = emoji ? "emotion-cell" : "emotion-cell emotion-empty";
+      square.setAttribute("data-emotion", emoji || "none");
+      square.title = `${isoDate} – ${emotionName}`;
+      gridContainer.appendChild(square);
+  
+      // Labels de mes (solo cuando cambia el mes)
+      const thisMonth = date.toLocaleDateString("es-ES", { month: "long" });
+      const thisDay = date.getDate();
+  
+      if (thisMonth !== currentMonth && thisDay === 1) {
+        currentMonth = thisMonth;
+        const monthLabel = document.createElement("div");
+        monthLabel.className = "month-label";
+        monthLabel.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
+        monthLabelsContainer.appendChild(monthLabel);
+      }
+  
+      date.setDate(date.getDate() + 1);
     }
-  });
-
-  // 3. Limpiar contenedor
-  const emotionChart = document.getElementById("emotionChart");
-  emotionChart.innerHTML = "";
-
-  const monthLabelsContainer = document.createElement("div");
-  monthLabelsContainer.className = "month-labels";
-
-  const gridContainer = document.createElement("div");
-  gridContainer.className = "emotion-grid";
-
-  // 4. Calcular fecha inicial = primer dato
-  const fechas = Object.keys(emotionMap).sort();
-  const primerFecha = new Date(fechas[0]);
-
-  // 5. Fecha final = 3 meses después
-  const endDate = new Date(primerFecha);
-  endDate.setMonth(endDate.getMonth() + 3);
-
-  // 6. Construcción de grilla
-  let currentMonth = "";
-  let date = new Date(primerFecha);
-
-  while (date <= endDate) {
-    const isoDate = date.toISOString().split("T")[0];
-    const emoji = emotionMap[isoDate] || "";
-    const emotionName = emojiNames[emoji] || "Sin registro";
-
-    const square = document.createElement("div");
-    square.className = emoji ? "emotion-cell" : "emotion-cell emotion-empty";
-    square.setAttribute("data-emotion", emoji || "none");
-    square.title = `${isoDate} – ${emotionName}`;
-    gridContainer.appendChild(square);
-
-    // Labels de mes (solo cuando cambia el mes)
-    const thisMonth = date.toLocaleDateString("es-ES", { month: "long" });
-    const thisDay = date.getDate();
-
-    if (thisMonth !== currentMonth && thisDay === 1) {
-      currentMonth = thisMonth;
-      const monthLabel = document.createElement("div");
-      monthLabel.className = "month-label";
-      monthLabel.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
-      monthLabelsContainer.appendChild(monthLabel);
-    }
-
-    date.setDate(date.getDate() + 1);
+  
+    // 7. Render final
+    emotionChart.appendChild(monthLabelsContainer);
+    emotionChart.appendChild(gridContainer);
   }
-
-  // 7. Render final
-  emotionChart.appendChild(monthLabelsContainer);
-  emotionChart.appendChild(gridContainer);
-}
-
-// Ejecutar si hay datos
-if (data.daily_emotion) {
-  console.log("💖 Emotions cargadas:", data.daily_emotion);
-  renderEmotionChart(data.daily_emotion);
-} else {
-  console.warn("⚠️ No hay datos válidos para Emotion Chart");
-}
+  
+  // Ejecutar si hay datos
+  if (data.daily_emotion) {
+    console.log("💖 Emotions cargadas:", data.daily_emotion);
+    renderEmotionChart(data.daily_emotion);
+  } else {
+    console.warn("⚠️ No hay datos válidos para Emotion Chart");
+  }
 
 
   
