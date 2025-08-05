@@ -206,7 +206,7 @@ canvas {
   padding: 10px;
 }
 
-/* EMOTION CHART CONTAINER */
+/* CONTENEDOR PRINCIPAL DEL EMOTION CHART */
 .emotion-chart-container {
   margin-top: 30px;
   padding: 20px;
@@ -215,11 +215,35 @@ canvas {
   overflow-x: auto;
 }
 
-/* CUADRÍCULA DE EMOCIONES (53 semanas x 7 días) */
+/* GRID PRINCIPAL DE CUADRÍCULA EMOCIONAL (7 filas x N columnas) */
 #emotionChart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* FILA DE LABELS DE MESES (tipo GitHub) */
+.month-labels {
+  display: flex;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ccc;
+  padding-left: 2px;
+  padding-bottom: 4px;
+}
+
+/* Cada label ocupa 1 columna semanal */
+.month-label {
+  width: 12px;
+  text-align: center;
+}
+
+/* GRILLA DE EMOCIONES: 7 filas, scroll horizontal */
+.emotion-grid {
   display: grid;
   grid-auto-flow: column;
-  grid-template-rows: repeat(7, 1fr); /* 7 filas = días de semana */
+  grid-template-rows: repeat(7, 1fr);
   gap: 3px;
   width: max-content;
 }
@@ -233,16 +257,16 @@ canvas {
   transition: background-color 0.2s ease-in-out;
 }
 
-/* EMOCIONES POR COLOR */
+/* EMOCIONES POR COLOR (tu estilo original) */
 .emotion-cell[data-emotion="🟩"] { background-color: #2ecc71; } /* Calma */
 .emotion-cell[data-emotion="🟨"] { background-color: #f1c40f; } /* Felicidad */
 .emotion-cell[data-emotion="🟪"] { background-color: #9b59b6; } /* Motivación */
 .emotion-cell[data-emotion="🟦"] { background-color: #3498db; } /* Tristeza */
 .emotion-cell[data-emotion="🟥"] { background-color: #e74c3c; } /* Ansiedad */
-.emotion-cell[data-emotion="⬜"] { background-color: #bdc3c7; } /* Neutra */
+.emotion-cell[data-emotion="⬜"] { background-color: #bdc3c7; } /* Neutral */
 .emotion-cell[data-emotion="🟫"] { background-color: #8d6e63; } /* Frustración */
 
-/* CUANDO NO HAY EMOCIÓN (sin data) */
+/* SIN EMOCIÓN = gris oscuro */
 .emotion-cell[data-emotion=""] {
   background-color: #444;
 }
