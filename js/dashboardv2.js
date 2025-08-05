@@ -13,6 +13,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const data = await response.json();
 
+  // WARNING SIN PROCESAR
+  // 🔶 Mostrar advertencia si NO completó su base
+    if (data.estado !== "PROCESADO ✅") {
+        const warningContainer = document.getElementById("journey-warning");
+        if (warningContainer) warningContainer.style.display = "block";
+      }
+
   // AVATAR
   const avatarURL = data.avatar_url || "";
   document.getElementById("avatar").src = avatarURL;
@@ -205,7 +212,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 💖 EMOTION CHART
   // ========================
   function renderEmotionChart(dailyEmotion) {
-    // 1. Diccionario de emociones → emoji
     const emotionToEmoji = {
       "Calma": "🟩",
       "Felicidad": "🟨",
@@ -226,18 +232,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       "🟫": "Frustración"
     };
   
-    // 2. Mapa de fecha ISO → emoji
+    const parseDate = (str) => {
+      const [day, month, year] = str.split("/");
+      return new Date(`${year}-${month}-${day}`);
+    };
+  
+    const formatDate = (date) => {
+      return date.toISOString().split("T")[0];
+    };
+  
+    // Construir mapa fecha -> emoji
     const emotionMap = {};
     dailyEmotion.forEach(entry => {
-      const fecha = entry.fecha;
-      const emocionTexto = entry.emocion.trim();
-      const emoji = emotionToEmoji[emocionTexto] || emocionTexto;
-      if (fecha && emoji) {
-        emotionMap[fecha] = emoji;
-      }
+      const date = parseDate(entry.fecha);
+      const isoDate = formatDate(date);
+      const emoji = emotionToEmoji[entry.emocion.trim()] || entry.emocion.trim();
+      emotionMap[isoDate] = emoji;
     });
   
-    // 3. Limpiar contenedor
+    const sortedDates = Object.keys(emotionMap).sort();
+    if (sortedDates.length === 0) return;
+  
+    const startDate = new Date(sortedDates[0]);
+    startDate.setDate(startDate.getDate() - startDate.getDay()); // arranca en domingo
+  
+    const squareSize = 12;
+    const gap = 2;
+    const NUM_WEEKS = 26; // Cambiar a 13 para mostrar solo 3 meses
+    const DAYS_IN_WEEK = 7;
+  
+    const emotionColors = {
+      "🟩": "#81c784",
+      "🟨": "#fff176",
+      "🟪": "#ba68c8",
+      "🟦": "#64b5f6",
+      "🟥": "#e57373",
+      "🟫": "#a1887f",
+      "⬜": "#ccc"
+    };
+  
     const emotionChart = document.getElementById("emotionChart");
     emotionChart.innerHTML = "";
   
@@ -247,45 +280,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     const gridContainer = document.createElement("div");
     gridContainer.className = "emotion-grid";
   
-    // 4. Calcular fecha inicial = primer dato
-    const fechas = Object.keys(emotionMap).sort();
-    const primerFecha = new Date(fechas[0]);
+    // Crear 7 filas (una por día de la semana)
+    for (let row = 0; row < DAYS_IN_WEEK; row++) {
+      const rowDiv = document.createElement("div");
+      rowDiv.className = "emotion-row";
   
-    // 5. Fecha final = 3 meses después
-    const endDate = new Date(primerFecha);
-    endDate.setMonth(endDate.getMonth() + 6);
+      for (let col = 0; col < NUM_WEEKS; col++) {
+        const cellDate = new Date(startDate);
+        cellDate.setDate(startDate.getDate() + row + col * 7);
+        const iso = formatDate(cellDate);
+        const emoji = emotionMap[iso] || "⬜";
+        const emotionName = emojiNames[emoji] || "Sin registro";
   
-    // 6. Construcción de grilla
-    let currentMonth = "";
-    let date = new Date(primerFecha);
-  
-    while (date <= endDate) {
-      const isoDate = date.toISOString().split("T")[0];
-      const emoji = emotionMap[isoDate] || "";
-      const emotionName = emojiNames[emoji] || "Sin registro";
-  
-      const square = document.createElement("div");
-      square.className = emoji ? "emotion-cell" : "emotion-cell emotion-empty";
-      square.setAttribute("data-emotion", emoji || "none");
-      square.title = `${isoDate} – ${emotionName}`;
-      gridContainer.appendChild(square);
-  
-      // Labels de mes (solo cuando cambia el mes)
-      const thisMonth = date.toLocaleDateString("es-ES", { month: "long" });
-      const thisDay = date.getDate();
-  
-      if (thisMonth !== currentMonth && thisDay === 1) {
-        currentMonth = thisMonth;
-        const monthLabel = document.createElement("div");
-        monthLabel.className = "month-label";
-        monthLabel.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
-        monthLabelsContainer.appendChild(monthLabel);
+        const cell = document.createElement("div");
+        cell.className = "emotion-cell";
+        cell.style.backgroundColor = emotionColors[emoji] || "#ccc";
+        cell.title = `${iso} – ${emotionName}`;
+        rowDiv.appendChild(cell);
       }
   
-      date.setDate(date.getDate() + 1);
+      gridContainer.appendChild(rowDiv);
     }
   
-    // 7. Render final
+    // Etiquetas de los meses (una por columna)
+    let currentMonth = -1;
+    for (let col = 0; col < NUM_WEEKS; col++) {
+      const labelDate = new Date(startDate);
+      labelDate.setDate(startDate.getDate() + col * 7);
+      const month = labelDate.getMonth();
+      const year = labelDate.getFullYear();
+  
+      const label = document.createElement("div");
+      label.className = "month-label";
+      label.style.width = `${squareSize + gap}px`;
+  
+      if (month !== currentMonth) {
+        label.textContent = labelDate.toLocaleString("es-ES", { month: "long" });
+        currentMonth = month;
+      } else {
+        label.textContent = "";
+      }
+  
+      monthLabelsContainer.appendChild(label);
+    }
+  
     emotionChart.appendChild(monthLabelsContainer);
     emotionChart.appendChild(gridContainer);
   }
@@ -297,7 +335,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else {
     console.warn("⚠️ No hay datos válidos para Emotion Chart");
   }
-
 
   
   // REWARDS
