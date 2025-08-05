@@ -167,6 +167,38 @@ canvas {
   border-radius: 10px;
 }
 
+/* Contenedor de título + filtro inline */
+.daily-cultivation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.daily-cultivation-header h3 {
+  font-size: 1.1em;
+  margin: 0;
+  color: #ffffff;
+}
+
+.daily-cultivation-header label {
+  margin-right: 5px;
+  font-size: 0.9em;
+  color: #ffffff;
+}
+
+#month-select {
+  padding: 4px 8px;
+  font-size: 13px;
+  border-radius: 5px;
+  border: none;
+  background-color: #3c3c5a;
+  color: #fff;
+  outline: none;
+}
+
+/* Gráfico XP */
 .xp-box canvas,
 .emotion-box canvas {
   width: 100% !important;
