@@ -25,9 +25,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     bar.textContent = `${percent}%`;
   };
 
-  setProgress("bar-hp", data.hp);
-  setProgress("bar-mood", data.mood);
-  setProgress("bar-focus", data.focus);
+  setProgress("bar-hp", data.hp ?? 0);
+  setProgress("bar-mood", data.mood ?? 0);
+  setProgress("bar-focus", data.focus ?? 0);
 
   // XP Y NIVEL
   document.getElementById("xp-actual").textContent = data.xp;
@@ -206,17 +206,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   // 💖 EMOTION CHART
   // ========================
   function renderEmotionChart(dailyEmotion) {
-    // 1. Crear mapa de emociones por fecha
-    const emotionMap = {};
-    dailyEmotion.forEach(entry => {
-      const fecha = entry.fecha;
-      const emocion = entry.emocion;
-      if (fecha && emocion) {
-        emotionMap[fecha] = emocion;  // debería venir como emoji (🟨, 🟪, etc.)
-      }
-    });
+    // 1. Mapeo de emociones: texto → emoji
+    const emotionToEmoji = {
+      "Calma": "🟩",
+      "Felicidad": "🟨",
+      "Motivación": "🟪",
+      "Tristeza": "🟦",
+      "Ansiedad": "🟥",
+      "Neutral": "⬜",
+      "Frustración": "🟫"
+    };
   
-    // 2. Diccionario de nombres de emociones por emoji
     const emojiNames = {
       "🟩": "Calma",
       "🟨": "Felicidad",
@@ -227,36 +227,68 @@ document.addEventListener("DOMContentLoaded", async () => {
       "🟫": "Frustración"
     };
   
-    // 3. Seleccionar contenedor y limpiar contenido previo
+    // 2. Crear mapa: fecha → emoji
+    const emotionMap = {};
+    dailyEmotion.forEach(entry => {
+      const fecha = entry.fecha;
+      const emocionTexto = entry.emocion.trim();
+      const emoji = emotionToEmoji[emocionTexto] || emocionTexto; // si ya viene como emoji
+      if (fecha && emoji) {
+        emotionMap[fecha] = emoji;
+      }
+    });
+  
+    // 3. Limpiar contenedor
     const emotionChart = document.getElementById("emotionChart");
     emotionChart.innerHTML = "";
   
-    // 4. Generar cuadrícula de 371 días (último año)
-    for (let i = 370; i >= 0; i--) {
+    // 4. Generar cuadrícula de 90 días (últimos 3 meses)
+    let currentMonth = "";
+    const monthLabelsContainer = document.createElement("div");
+    monthLabelsContainer.className = "month-labels";
+    const gridContainer = document.createElement("div");
+    gridContainer.className = "emotion-grid";
+  
+    for (let i = 89; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const isoDate = date.toISOString().split("T")[0];
       const emoji = emotionMap[isoDate] || "";
+      const emotionName = emojiNames[emoji] || "Sin registro";
   
-      // 5. Crear cuadrado con atributo data-emotion
       const square = document.createElement("div");
       square.className = "emotion-cell";
       square.setAttribute("data-emotion", emoji);
-  
-      // Tooltip: fecha + nombre de emoción o “Sin registro”
-      const emotionName = emojiNames[emoji] || "Sin registro";
       square.title = `${isoDate} – ${emotionName}`;
   
-      emotionChart.appendChild(square);
+      const thisMonth = date.toLocaleDateString("es-ES", { month: "long" });
+      const day = date.getDate();
+  
+      // Agregar label si cambia el mes
+      if (day === 1 || i === 89 || thisMonth !== currentMonth) {
+        const label = document.createElement("div");
+        label.className = "month-label";
+        label.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
+        monthLabelsContainer.appendChild(label);
+        currentMonth = thisMonth;
+      }
+  
+      gridContainer.appendChild(square);
     }
+  
+    // 5. Combinar y renderizar
+    emotionChart.appendChild(monthLabelsContainer);
+    emotionChart.appendChild(gridContainer);
   }
+  
+  // 6. Llamar función si hay datos
   if (data.daily_emotion) {
     console.log("💖 Emotions cargadas:", data.daily_emotion);
     renderEmotionChart(data.daily_emotion);
   } else {
     console.warn("⚠️ No hay datos válidos para Emotion Chart");
   }
-  
+    
   // REWARDS
   document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
 
