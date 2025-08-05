@@ -298,7 +298,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
   
       // 👉 Alineamos con el ancho real de la columna (una semana)
-      label.style.width = `${squareSize}px`;
+      label.style.width = `18px`;
       monthLabelsContainer.appendChild(label);
     }
   
