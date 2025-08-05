@@ -145,7 +145,7 @@ canvas {
 
 /* RADAR CHART */
 #radarChartContainer {
-  width: clamp(300px, 90%, 420px); /* 🔥 el alma de esta solución */
+  width: clamp(340px, 100%, 440px); /* 🔥 el alma de esta solución */
   aspect-ratio: 1 / 1;
   background-color: #2c2c3f;
   border-radius: 10px;
