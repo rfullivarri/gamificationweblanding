@@ -102,39 +102,107 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // GRÁFICO DE XP POR DÍA
-  const xpCanvas = document.getElementById("xpChart");
-  new Chart(xpCanvas, {
-    type: "line",
-    data: {
-      labels: data.daily_cultivation.map(d => d.fecha),
-      datasets: [{
-        label: "XP",
-        data: data.daily_cultivation.map(d => d.xp),
-        borderColor: "rgba(102, 0, 204, 1)",
-        backgroundColor: "rgba(102, 0, 204, 0.2)",
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        r: {
-          pointLabels: {
-            color: "#ffffff", // blanco
-            font: {
-              family: "'Rubik', sans-serif",
-              size: 13
+
+// DAILY CULTIVATION (XP por dia desde BBDD)
+   function formatMonthName(monthStr) {
+    const [year, month] = monthStr.split("-");
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio",
+      "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    return `${meses[parseInt(month) - 1]} ${year}`;
+  }
+  
+  function renderMonthSelector(data) {
+    const monthSelector = document.getElementById("monthSelector");
+    monthSelector.innerHTML = ""; // limpia selector
+  
+    const uniqueMonths = [...new Set(data.map(item => item.fecha.slice(0, 7)))]; // yyyy-mm
+  
+    uniqueMonths.forEach(month => {
+      const option = document.createElement("option");
+      option.value = month;
+      option.textContent = formatMonthName(month);
+      monthSelector.appendChild(option);
+    });
+  
+    // Evento al cambiar mes
+    monthSelector.addEventListener("change", () => {
+      const selectedMonth = monthSelector.value;
+      const filteredData = data.filter(item => item.fecha.startsWith(selectedMonth));
+      renderXPChart(filteredData);
+    });
+  
+    // Por defecto mostrar mes actual
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    monthSelector.value = currentMonth;
+    const filteredData = data.filter(item => item.fecha.startsWith(currentMonth));
+    renderXPChart(filteredData);
+  }
+  
+  let xpChart; // global para poder destruirlo si ya existe
+  
+  function renderXPChart(data) {
+    const ctx = document.getElementById('xpChart').getContext('2d');
+    if (xpChart) {
+      xpChart.destroy(); // evita superposición
+    }
+  
+    const fechas = data.map(entry => entry.fecha);
+    const xp = data.map(entry => entry.xp);
+  
+    xpChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: fechas,
+        datasets: [{
+          label: 'XP',
+          data: xp,
+          borderColor: '#B17EFF',
+          backgroundColor: 'rgba(177,126,255,0.2)',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              color: 'white',
+              font: {
+                size: 13,
+                weight: 'normal'
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: {
+              color: 'white',
+              font: {
+                size: 13,
+                weight: 'normal'
+              }
             }
           },
-        y: {
-          beginAtZero: true
+          y: {
+            ticks: {
+              color: 'white',
+              font: {
+                size: 13,
+                weight: 'normal'
+              },
+              beginAtZero: true
+            }
+          }
         }
       }
-    }
-  });
+    });
+  }
 
+  
   // EMOTION CHART (estilo GitHub)
   const emotions = data.daily_emotion || {};
   const emotionContainer = document.getElementById("emotionChartContainer");
