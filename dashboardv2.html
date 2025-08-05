@@ -44,28 +44,31 @@
 
   <!-- COLUMNA CENTRAL -->
   <section class="center-column">
-    <h3>📊 Radar de Rasgos</h3>
+    <h3>🧿 Radar de Rasgos</h3>
     <div id="radarChartContainer">
       <canvas id="radarChart"></canvas>
-    </div>
-    <h3>📈 Daily Cultivation</h3>
-    <label for="monthSelector" class="filter-label">📆 Mes:</label>
-    <select id="monthSelector" class="month-selector"></select>
-    <canvas id="xpChart" class= "xp-box"></canvas>
+    <div class="daily-cultivation-header">
+    <h3>🪴 Daily Cultivation</h3>
+    <label for="month-select">Mes:</label>
+    <select id="month-select" onchange="filtrarPorMes()">
+      <!-- opciones se cargan por JS -->
+    </select>
+  </div>
+  <canvas id="xpChart"></canvas>
   </section>
 
   <!-- COLUMNA DERECHA -->
   <section class="right-column">
     <div class="xp-box">
       <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
-      <h4>🎯 Nivel actual: <span id="nivel-actual">0</span></h4>
-      <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
+      <h3>🎯 Nivel actual: <span id="nivel-actual">0</span></h3>
       <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
+      <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
     </div>
 
     <div class="emotion-box">
       <h3>💗 Emotion Chart</h3>
-      <div id="emotionChartGrid" class="emotion-grid"></div>
+      <div id="emotionChart" class="emotion-grid"></div>
     </div>
   </section>
 </main>
