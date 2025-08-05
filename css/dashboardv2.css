@@ -207,12 +207,13 @@ canvas {
 
 /* 📦 CONTENEDOR GENERAL DEL EMOTION CHART */
 .emotion-chart-container {
-  margin: 30px 40px 0 40px; /* margen arriba y laterales */
-  padding: 20px 40px;       /* padding interno, más fuerte a derecha */
+  margin: 30px auto 0 auto;
+  padding: 20px;
   background-color: #2c2141;
   border-radius: 12px;
   overflow-x: auto;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -230,6 +231,11 @@ canvas {
   color: #bbb;
   min-width: 80px;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  gap: 52px;
+  flex-wrap: wrap;
 }
 
 /* 🎯 GRID DE EMOCIONES (DÍAS) */
