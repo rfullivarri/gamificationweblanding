@@ -327,6 +327,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     emotionChart.appendChild(monthLabelsContainer);
     emotionChart.appendChild(gridContainer);
   }
+  // Ejecutar si hay datos
+  if (data.daily_emotion) {
+    console.log("💖 Emotions cargadas:", data.daily_emotion);
+    renderEmotionChart(data.daily_emotion);
+  } else {
+    console.warn("⚠️ No hay datos válidos para Emotion Chart");
+  }
   
   // REWARDS
   document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
