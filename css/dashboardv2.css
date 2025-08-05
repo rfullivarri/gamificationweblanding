@@ -171,6 +171,14 @@ canvas {
   height: auto !important;
 }
 
+#xpChart {
+  width: 100%;
+  max-width: 480px;
+  background-color: #2c2c3f;
+  border-radius: 10px;
+  padding: 10px;
+}
+
 /* EMOTION CHART CELLS */
 .emotion-grid {
   display: grid;
