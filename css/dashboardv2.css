@@ -255,6 +255,11 @@ canvas {
   padding-bottom: 5px;
 }
 
+.emotion-row {
+  display: flex;
+  gap: 2px;
+}
+
 /* 🟪 CUADRADOS INDIVIDUALES */
 .emotion-cell {
   width: 12px;
