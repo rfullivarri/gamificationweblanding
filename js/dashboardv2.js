@@ -201,12 +201,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("⚠️ No hay datos válidos para Daily Cultivation");
   }
 
-  
   // ========================
   // 💖 EMOTION CHART
   // ========================
-  function renderEmotionChart(dailyEmotion) {
-    // 1. Mapeo de emociones: texto → emoji
+    function renderEmotionChart(dailyEmotion) {
+    // 1. Mapeo de emociones
     const emotionToEmoji = {
       "Calma": "🟩",
       "Felicidad": "🟨",
@@ -227,12 +226,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       "🟫": "Frustración"
     };
   
-    // 2. Crear mapa: fecha → emoji
+    // 2. Mapa de fecha → emoji
     const emotionMap = {};
     dailyEmotion.forEach(entry => {
       const fecha = entry.fecha;
       const emocionTexto = entry.emocion.trim();
-      const emoji = emotionToEmoji[emocionTexto] || emocionTexto; // si ya viene como emoji
+      const emoji = emotionToEmoji[emocionTexto] || emocionTexto;
       if (fecha && emoji) {
         emotionMap[fecha] = emoji;
       }
@@ -242,16 +241,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     const emotionChart = document.getElementById("emotionChart");
     emotionChart.innerHTML = "";
   
-    // 4. Generar cuadrícula de 90 días (últimos 3 meses)
-    let currentMonth = "";
+    // 4. Calcular fecha de inicio (primer día del antepenúltimo mes)
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1); // ej: 1 de junio
+  
     const monthLabelsContainer = document.createElement("div");
     monthLabelsContainer.className = "month-labels";
+  
     const gridContainer = document.createElement("div");
     gridContainer.className = "emotion-grid";
   
-    for (let i = 89; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
+    let currentMonth = "";
+  
+    const days = [];
+  
+    // 5. Recorrer desde fecha inicio hasta hoy
+    let date = new Date(startDate);
+    while (date <= today) {
       const isoDate = date.toISOString().split("T")[0];
       const emoji = emotionMap[isoDate] || "";
       const emotionName = emojiNames[emoji] || "Sin registro";
@@ -260,28 +266,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       square.className = "emotion-cell";
       square.setAttribute("data-emotion", emoji);
       square.title = `${isoDate} – ${emotionName}`;
+      gridContainer.appendChild(square);
   
       const thisMonth = date.toLocaleDateString("es-ES", { month: "long" });
       const day = date.getDate();
   
-      // Agregar label si cambia el mes
-      if (day === 1 || i === 89 || thisMonth !== currentMonth) {
+      // Agregar label si es 1ro de mes o cambia mes
+      if (day === 1 || date.getTime() === startDate.getTime()) {
         const label = document.createElement("div");
         label.className = "month-label";
         label.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
         monthLabelsContainer.appendChild(label);
-        currentMonth = thisMonth;
       }
   
-      gridContainer.appendChild(square);
+      // Avanzar un día
+      date.setDate(date.getDate() + 1);
     }
   
-    // 5. Combinar y renderizar
+    // 6. Combinar y renderizar
     emotionChart.appendChild(monthLabelsContainer);
     emotionChart.appendChild(gridContainer);
   }
   
-  // 6. Llamar función si hay datos
   if (data.daily_emotion) {
     console.log("💖 Emotions cargadas:", data.daily_emotion);
     renderEmotionChart(data.daily_emotion);
