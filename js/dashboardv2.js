@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("bar-nivel").style.width = `${progresoNivel}%`;
   document.getElementById("bar-nivel").textContent = `${progresoNivel}%`;
 
-  // RADAR DE RASGOS (XP por Rasgo desde BBDD)
+  // 🧿RADAR DE RASGOS
   function calcularXPporRasgoDesdeBBDD(bbdd) {
     const xpPorRasgo = {};
     bbdd.forEach(row => {
@@ -70,85 +70,66 @@ document.addEventListener("DOMContentLoaded", async () => {
     options: {
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: false
-        },
-        title: {
-          display: false
-        }
+        legend: { display: false },
+        title: { display: false }
       },
       scales: {
         r: {
           suggestedMin: 0,
           suggestedMax: Math.max(...radarData.values, 10),
           pointLabels: {
-            color: "#ffffff", // blanco
-            font: {
-              family: "'Rubik', sans-serif",
-              size: 13
-            }
+            color: "#ffffff",
+            font: { family: "'Rubik', sans-serif", size: 13 }
           },
-          grid: {
-            color: "#444"
-          },
-          angleLines: {
-            color: "#555"
-          },
-          ticks: {
-            display: false
-          }
+          grid: { color: "#444" },
+          angleLines: { color: "#555" },
+          ticks: { display: false }
         }
       }
     }
   });
 
-
-// DAILY CULTIVATION (XP por dia desde BBDD)
-   function formatMonthName(monthStr) {
+  //🪴 DAILY CULTIVATION
+  function formatMonthName(monthStr) {
     const [year, month] = monthStr.split("-");
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio",
       "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     return `${meses[parseInt(month) - 1]} ${year}`;
   }
-  
+
   function renderMonthSelector(data) {
     const monthSelector = document.getElementById("monthSelector");
-    monthSelector.innerHTML = ""; // limpia selector
-  
-    const uniqueMonths = [...new Set(data.map(item => item.fecha.slice(0, 7)))]; // yyyy-mm
-  
+    monthSelector.innerHTML = "";
+
+    const uniqueMonths = [...new Set(data.map(item => item.fecha.slice(0, 7)))];
+
     uniqueMonths.forEach(month => {
       const option = document.createElement("option");
       option.value = month;
       option.textContent = formatMonthName(month);
       monthSelector.appendChild(option);
     });
-  
-    // Evento al cambiar mes
+
     monthSelector.addEventListener("change", () => {
       const selectedMonth = monthSelector.value;
       const filteredData = data.filter(item => item.fecha.startsWith(selectedMonth));
       renderXPChart(filteredData);
     });
-  
-    // Por defecto mostrar mes actual
+
     const currentMonth = new Date().toISOString().slice(0, 7);
     monthSelector.value = currentMonth;
     const filteredData = data.filter(item => item.fecha.startsWith(currentMonth));
     renderXPChart(filteredData);
   }
-  
-  let xpChart; // global para poder destruirlo si ya existe
-  
+
+  let xpChart;
   function renderXPChart(data) {
     const ctx = document.getElementById('xpChart').getContext('2d');
-    if (xpChart) {
-      xpChart.destroy(); // evita superposición
-    }
-  
+    if (xpChart) xpChart.destroy();
+
     const fechas = data.map(entry => entry.fecha);
     const xp = data.map(entry => entry.xp);
-  
+
     xpChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -170,10 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           legend: {
             labels: {
               color: 'white',
-              font: {
-                size: 13,
-                weight: 'normal'
-              }
+              font: { size: 13, weight: 'normal' }
             }
           }
         },
@@ -181,19 +159,13 @@ document.addEventListener("DOMContentLoaded", async () => {
           x: {
             ticks: {
               color: 'white',
-              font: {
-                size: 13,
-                weight: 'normal'
-              }
+              font: { size: 13, weight: 'normal' }
             }
           },
           y: {
             ticks: {
               color: 'white',
-              font: {
-                size: 13,
-                weight: 'normal'
-              },
+              font: { size: 13, weight: 'normal' },
               beginAtZero: true
             }
           }
@@ -202,20 +174,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  
-  // EMOTION CHART (estilo GitHub)
-  const emotions = data.daily_emotion || {};
-  const emotionContainer = document.getElementById("emotionChartContainer");
+  if (data.daily_cultivation) {
+    renderMonthSelector(data.daily_cultivation);
+  }
 
-  Object.entries(emotions).forEach(([date, emoji]) => {
-    const cell = document.createElement("div");
-    cell.className = "emotion-cell";
-    cell.title = `${date} - ${emoji}`;
-    cell.textContent = emoji;
-    emotionContainer.appendChild(cell);
+  // 💗EMOTION CHART
+  const emotionData = data.daily_emotion || {};
+  const grid = document.getElementById("emotionChartGrid");
+
+  function getDayOfWeek(dateStr) {
+    return new Date(dateStr).getDay();
+  }
+
+  function getWeekOfYear(dateStr) {
+    const date = new Date(dateStr);
+    const jan1 = new Date(date.getFullYear(), 0, 1);
+    const dayOfYear = Math.floor((date - jan1) / 86400000);
+    return Math.floor((dayOfYear + jan1.getDay()) / 7);
+  }
+
+  const matrix = Array.from({ length: 7 }, () => Array(53).fill(""));
+
+  Object.entries(emotionData).forEach(([date, emojiObj]) => {
+    const emoji = typeof emojiObj === "string" ? emojiObj : emojiObj?.emoji || "";
+    const day = getDayOfWeek(date);
+    const week = getWeekOfYear(date);
+    if (week < 53 && day < 7) {
+      matrix[day][week] = emoji;
+    }
   });
 
-  // REWARDS (placeholder)
+  for (let day = 0; day < 7; day++) {
+    for (let week = 0; week < 53; week++) {
+      const emoji = matrix[day][week];
+      const cell = document.createElement("div");
+      cell.className = "emotion-cell";
+      cell.dataset.emotion = emoji || "";
+      cell.title = emoji ? `Semana ${week}, Día ${day}: ${emoji}` : "Sin datos";
+      grid.appendChild(cell);
+    }
+  }
+
+  // REWARDS
   document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
 
   // MISIONES
@@ -235,13 +235,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     missionsWrapper.appendChild(card);
   });
 
-  // 🔗 Enlaces
+  // ENLACES
   document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
   document.getElementById("dashboard").href = data.dashboard_url || "#";
   document.getElementById("daily-form").href = data.daily_form_url || "#";
   document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
 
-  // ☰ Menú hamburguesa
+  // MENÚ HAMBURGUESA
   document.getElementById("menu-toggle").addEventListener("click", () => {
     document.getElementById("dashboard-menu").classList.toggle("active");
   });
