@@ -228,7 +228,7 @@ canvas {
   justify-content: start;
   margin-bottom: 10px;
   padding-left: 4px;
-  gap: 52px; /* Espacio entre nombres de mes */
+  gap: 26px; /* Espacio entre nombres de mes */
 }
 
 .month-label {
@@ -239,7 +239,6 @@ canvas {
   display: flex;
   justify-content: center;
   margin-bottom: 10px;
-  gap: 52px;
   flex-wrap: wrap;
 }
 
