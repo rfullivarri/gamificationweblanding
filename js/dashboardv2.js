@@ -253,7 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   
     // 5. Fecha final = 3 meses después
     const endDate = new Date(primerFecha);
-    endDate.setMonth(endDate.getMonth() + 3);
+    endDate.setMonth(endDate.getMonth() + 6);
   
     // 6. Construcción de grilla
     let currentMonth = "";
