@@ -82,6 +82,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         r: {
           suggestedMin: 0,
           suggestedMax: Math.max(...radarData.values, 10),
+          pointLabels: {
+            color: "#ffffff",
         }
       }
     }
