@@ -241,7 +241,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return date.toISOString().split("T")[0];
     };
   
-    // Construir mapa fecha -> emoji
     const emotionMap = {};
     dailyEmotion.forEach(entry => {
       const date = parseDate(entry.fecha);
@@ -254,7 +253,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (sortedDates.length === 0) return;
   
     const startDate = new Date(sortedDates[0]);
-    startDate.setDate(startDate.getDate() - startDate.getDay()); // arranca en domingo
+    startDate.setDate(startDate.getDate() - startDate.getDay());
   
     const squareSize = 12;
     const gap = 2;
@@ -280,6 +279,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     const gridContainer = document.createElement("div");
     gridContainer.className = "emotion-grid";
   
+    // Etiquetas de los meses alineadas con cada columna (una por semana)
+    let currentMonth = -1;
+    for (let col = 0; col < NUM_WEEKS; col++) {
+      const labelDate = new Date(startDate);
+      labelDate.setDate(startDate.getDate() + col * 7);
+      const month = labelDate.getMonth();
+      const year = labelDate.getFullYear();
+  
+      const label = document.createElement("div");
+      label.className = "month-label";
+  
+      if (month !== currentMonth) {
+        label.textContent = labelDate.toLocaleString("es-ES", { month: "long" });
+        currentMonth = month;
+      } else {
+        label.textContent = "";
+      }
+  
+      // 👉 Alineamos con el ancho real de la columna (una semana)
+      label.style.width = `${squareSize}px`;
+      monthLabelsContainer.appendChild(label);
+    }
+  
     // Crear 7 filas (una por día de la semana)
     for (let row = 0; row < DAYS_IN_WEEK; row++) {
       const rowDiv = document.createElement("div");
@@ -302,40 +324,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       gridContainer.appendChild(rowDiv);
     }
   
-    // Etiquetas de los meses (una por columna)
-    let currentMonth = -1;
-    for (let col = 0; col < NUM_WEEKS; col++) {
-      const labelDate = new Date(startDate);
-      labelDate.setDate(startDate.getDate() + col * 7);
-      const month = labelDate.getMonth();
-      const year = labelDate.getFullYear();
-  
-      const label = document.createElement("div");
-      label.className = "month-label";
-      label.style.width = `${squareSize + gap}px`;
-  
-      if (month !== currentMonth) {
-        label.textContent = labelDate.toLocaleString("es-ES", { month: "long" });
-        currentMonth = month;
-      } else {
-        label.textContent = "";
-      }
-  
-      monthLabelsContainer.appendChild(label);
-    }
-  
     emotionChart.appendChild(monthLabelsContainer);
     emotionChart.appendChild(gridContainer);
   }
-  
-  // Ejecutar si hay datos
-  if (data.daily_emotion) {
-    console.log("💖 Emotions cargadas:", data.daily_emotion);
-    renderEmotionChart(data.daily_emotion);
-  } else {
-    console.warn("⚠️ No hay datos válidos para Emotion Chart");
-  }
-
   
   // REWARDS
   document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
