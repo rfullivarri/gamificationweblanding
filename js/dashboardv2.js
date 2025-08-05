@@ -204,7 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // ========================
   // 💖 EMOTION CHART
   // ========================
-    function renderEmotionChart(dailyEmotion) {
+  function renderEmotionChart(dailyEmotion) {
     // 1. Mapeo de emociones
     const emotionToEmoji = {
       "Calma": "🟩",
@@ -241,23 +241,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     const emotionChart = document.getElementById("emotionChart");
     emotionChart.innerHTML = "";
   
-    // 4. Calcular fecha de inicio (primer día del antepenúltimo mes)
-    const today = new Date();
-    const startDate = new Date(today.getFullYear(), today.getMonth() - 2, 1); // ej: 1 de junio
+    // 4. Calcular fecha inicial = primer día con dato - 2 meses
+    const fechas = Object.keys(emotionMap).sort();
+    const primerFecha = new Date(fechas[0]);
+    const startDate = new Date(primerFecha.getFullYear(), primerFecha.getMonth() - 2, 1);
   
+    // 5. Calcular fecha final = fin del mes actual
+    const today = new Date();
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // último día del mes actual
+  
+    // 6. Contenedores visuales
     const monthLabelsContainer = document.createElement("div");
     monthLabelsContainer.className = "month-labels";
   
     const gridContainer = document.createElement("div");
     gridContainer.className = "emotion-grid";
   
+    // 7. Rellenar cuadrícula de izquierda a derecha
     let currentMonth = "";
+    let currentMonthLabel;
   
-    const days = [];
-  
-    // 5. Recorrer desde fecha inicio hasta hoy
     let date = new Date(startDate);
-    while (date <= today) {
+    while (date <= endDate) {
       const isoDate = date.toISOString().split("T")[0];
       const emoji = emotionMap[isoDate] || "";
       const emotionName = emojiNames[emoji] || "Sin registro";
@@ -269,32 +274,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       gridContainer.appendChild(square);
   
       const thisMonth = date.toLocaleDateString("es-ES", { month: "long" });
-      const day = date.getDate();
   
-      // Agregar label si es 1ro de mes o cambia mes
-      if (day === 1 || date.getTime() === startDate.getTime()) {
-        const label = document.createElement("div");
-        label.className = "month-label";
-        label.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
-        monthLabelsContainer.appendChild(label);
+      if (thisMonth !== currentMonth) {
+        currentMonth = thisMonth;
+        currentMonthLabel = document.createElement("div");
+        currentMonthLabel.className = "month-label";
+        currentMonthLabel.textContent = thisMonth.charAt(0).toUpperCase() + thisMonth.slice(1);
+        monthLabelsContainer.appendChild(currentMonthLabel);
       }
   
-      // Avanzar un día
       date.setDate(date.getDate() + 1);
     }
   
-    // 6. Combinar y renderizar
+    // 8. Combinar
     emotionChart.appendChild(monthLabelsContainer);
     emotionChart.appendChild(gridContainer);
   }
   
+  // Ejecutar si hay datos
   if (data.daily_emotion) {
     console.log("💖 Emotions cargadas:", data.daily_emotion);
     renderEmotionChart(data.daily_emotion);
   } else {
     console.warn("⚠️ No hay datos válidos para Emotion Chart");
   }
-    
+
+
+  
   // REWARDS
   document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
 
