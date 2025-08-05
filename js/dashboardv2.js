@@ -188,18 +188,19 @@ document.addEventListener("DOMContentLoaded", async () => {
       const fecha = entry.fecha;
       const emocion = entry.emocion;
       if (fecha && emocion) {
-        emotionMap[fecha] = emocion;
+        emotionMap[fecha] = emocion;  // debería venir como emoji (🟨, 🟪, etc.)
       }
     });
   
-    // 2. Definir colores por emoción (podés sumar más)
-    const emotionColors = {
-      "Felicidad": "#F8E473",
-      "Tristeza": "#96C5F7",
-      "Ansiedad": "#FFDAC1",
-      "Motivación": "#D5AAFF",
-      "Calma": "#A7FFEB",
-      "Frustración": "#FFABAB"
+    // 2. Diccionario de nombres de emociones por emoji
+    const emojiNames = {
+      "🟩": "Calma",
+      "🟨": "Felicidad",
+      "🟪": "Motivación",
+      "🟦": "Tristeza",
+      "🟥": "Ansiedad",
+      "⬜": "Neutral",
+      "🟫": "Frustración"
     };
   
     // 3. Seleccionar contenedor y limpiar contenido previo
@@ -211,13 +212,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const date = new Date();
       date.setDate(date.getDate() - i);
       const isoDate = date.toISOString().split("T")[0];
-      const emotion = emotionMap[isoDate];
-      const color = emotionColors[emotion] || "#2e2e2e"; // gris oscuro por defecto
+      const emoji = emotionMap[isoDate] || "";
   
+      // 5. Crear cuadrado con atributo data-emotion
       const square = document.createElement("div");
-      square.className = "emotion-square";
-      square.style.backgroundColor = color;
-      square.title = `${isoDate}${emotion ? " – " + emotion : " – Sin registro"}`;
+      square.className = "emotion-cell";
+      square.setAttribute("data-emotion", emoji);
+  
+      // Tooltip: fecha + nombre de emoción o “Sin registro”
+      const emotionName = emojiNames[emoji] || "Sin registro";
+      square.title = `${isoDate} – ${emotionName}`;
   
       emotionChart.appendChild(square);
     }
