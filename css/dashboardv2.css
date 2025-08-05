@@ -6,7 +6,7 @@ body {
   color: #ffffff;
 }
 .dashboard-content {
-  padding: 0 40px; /* 👈 Podés ajustar este valor a gusto */
+  padding: 0 20px 0 40px; /* 👈 Podés ajustar este valor a gusto */
   box-sizing: border-box;
   max-width: 100%;
 }
@@ -234,7 +234,7 @@ canvas {
 .month-label {
   font-size: 12px;
   color: #bbb;
-  min-width: 20px;
+  min-width: 5px;
   text-align: center;
   display: flex;
   justify-content: center;
