@@ -64,26 +64,40 @@ document.addEventListener("DOMContentLoaded", async () => {
         fill: true,
         borderColor: "rgba(102, 0, 204, 1)",
         backgroundColor: "rgba(102, 0, 204, 0.2)",
-        pointBackgroundColor: "rgba(102, 0, 204, 1)",
+        pointBackgroundColor: "rgba(102, 0, 204, 1)"
       }]
     },
     options: {
       maintainAspectRatio: false,
       plugins: {
-          legend: {
-              display: false // 👈 OCULTA el cuadrado "XP por Rasgo"
-            },
-            title: {
-              display: true,
-              text: 'Radar de Rasgos'
-            }
+        legend: {
+          display: false
+        },
+        title: {
+          display: false
+        }
       },
       scales: {
         r: {
           suggestedMin: 0,
           suggestedMax: Math.max(...radarData.values, 10),
           pointLabels: {
-            color: "#ffffff",
+            color: "#ffffff", // blanco
+            font: {
+              family: "'Rubik', sans-serif",
+              size: 14,
+              weight: 'bold'
+            }
+          },
+          grid: {
+            color: "#444"
+          },
+          angleLines: {
+            color: "#555"
+          },
+          ticks: {
+            display: false
+          }
         }
       }
     }
@@ -145,15 +159,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
     missionsWrapper.appendChild(card);
   });
+
   // 🔗 Enlaces
   document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
   document.getElementById("dashboard").href = data.dashboard_url || "#";
   document.getElementById("daily-form").href = data.daily_form_url || "#";
   document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
 
-  
   // ☰ Menú hamburguesa
   document.getElementById("menu-toggle").addEventListener("click", () => {
-      document.getElementById("dashboard-menu").classList.toggle("active");
-    });
+    document.getElementById("dashboard-menu").classList.toggle("active");
+  });
 });
