@@ -44,27 +44,23 @@
 
 <!-- COLUMNA CENTRAL -->
 <section class="center-column">
-
-  <!-- Radar de Rasgos -->
-  <h3>🧿 Radar de Rasgos</h3>
-  <div id="radarChartContainer">
-    <canvas id="radarChart"></canvas>
+  <div class="radar-section">
+    <h3>🧿 Radar de Rasgos</h3>
+    <div id="radarChartContainer">
+      <canvas id="radarChart"></canvas>
+    </div>
   </div>
 
-  <!-- Daily Cultivation -->
-  <div class="xp-box">
+  <div class="daily-cultivation-section">
     <div class="daily-cultivation-header">
       <h3>🪴 Daily Cultivation</h3>
-      <div>
-        <label for="month-select">Mes:</label>
-        <select id="month-select" onchange="filtrarPorMes()">
-          <!-- opciones se cargan por JS -->
-        </select>
-      </div>
+      <label for="month-select">Mes:</label>
+      <select id="month-select" onchange="filtrarPorMes()"></select>
     </div>
-    <canvas id="xpChart"></canvas>
+    <div class="chart-wrapper">
+      <canvas id="xpChart"></canvas>
+    </div>
   </div>
-
 </section>
 
   <!-- COLUMNA DERECHA -->
