@@ -178,43 +178,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderMonthSelector(data.daily_cultivation);
   }
 
-  // 💗EMOTION CHART
-  const emotionData = data.daily_emotion || {};
-  const grid = document.getElementById("emotionChartGrid");
-
-  function getDayOfWeek(dateStr) {
-    return new Date(dateStr).getDay();
-  }
-
-  function getWeekOfYear(dateStr) {
-    const date = new Date(dateStr);
-    const jan1 = new Date(date.getFullYear(), 0, 1);
-    const dayOfYear = Math.floor((date - jan1) / 86400000);
-    return Math.floor((dayOfYear + jan1.getDay()) / 7);
-  }
-
-  const matrix = Array.from({ length: 7 }, () => Array(53).fill(""));
-
-  Object.entries(emotionData).forEach(([date, emojiObj]) => {
-    const emoji = typeof emojiObj === "string" ? emojiObj : emojiObj?.emoji || "";
-    const day = getDayOfWeek(date);
-    const week = getWeekOfYear(date);
-    if (week < 53 && day < 7) {
-      matrix[day][week] = emoji;
+  // ========================
+  // 💖 EMOTION CHART
+  // ========================
+  function renderEmotionChart(dailyEmotion) {
+    // 1. Crear mapa de emociones por fecha
+    const emotionMap = {};
+    dailyEmotion.forEach(entry => {
+      const fecha = entry.fecha;
+      const emocion = entry.emocion;
+      if (fecha && emocion) {
+        emotionMap[fecha] = emocion;
+      }
+    });
+  
+    // 2. Definir colores por emoción (podés sumar más)
+    const emotionColors = {
+      "Felicidad": "#F8E473",
+      "Tristeza": "#96C5F7",
+      "Ansiedad": "#FFDAC1",
+      "Motivación": "#D5AAFF",
+      "Calma": "#A7FFEB",
+      "Frustración": "#FFABAB"
+    };
+  
+    // 3. Seleccionar contenedor y limpiar contenido previo
+    const emotionChart = document.getElementById("emotionChart");
+    emotionChart.innerHTML = "";
+  
+    // 4. Generar cuadrícula de 371 días (último año)
+    for (let i = 370; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const isoDate = date.toISOString().split("T")[0];
+      const emotion = emotionMap[isoDate];
+      const color = emotionColors[emotion] || "#2e2e2e"; // gris oscuro por defecto
+  
+      const square = document.createElement("div");
+      square.className = "emotion-square";
+      square.style.backgroundColor = color;
+      square.title = `${isoDate}${emotion ? " – " + emotion : " – Sin registro"}`;
+  
+      emotionChart.appendChild(square);
     }
-  });
-
-  for (let day = 0; day < 7; day++) {
-    for (let week = 0; week < 53; week++) {
-      const emoji = matrix[day][week];
-      const cell = document.createElement("div");
-      cell.className = "emotion-cell";
-      cell.dataset.emotion = emoji || "";
-      cell.title = emoji ? `Semana ${week}, Día ${day}: ${emoji}` : "Sin datos";
-      grid.appendChild(cell);
-    }
   }
-
+  
   // REWARDS
   document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
 
