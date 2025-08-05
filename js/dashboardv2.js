@@ -198,7 +198,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           }
         }
-    };
+      }
+    });
   }
 
   
