@@ -239,6 +239,8 @@ canvas {
   grid-template-rows: repeat(7, 1fr); /* 7 días por columna */
   gap: 3px;
   width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
   padding-bottom: 5px;
 }
 
