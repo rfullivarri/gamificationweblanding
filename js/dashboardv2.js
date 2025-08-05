@@ -69,6 +69,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     },
     options: {
       maintainAspectRatio: false,
+      plugins: {
+          legend: {
+              display: false // 👈 OCULTA el cuadrado "XP por Rasgo"
+            },
+            title: {
+              display: true,
+              text: 'Radar de Rasgos'
+            }
+      },
       scales: {
         r: {
           suggestedMin: 0,
