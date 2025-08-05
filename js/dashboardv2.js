@@ -96,11 +96,54 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
       "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
-    return `${meses[parseInt(month) - 1]} ${year}`;
+    return `${meses[parseInt(month, 10) - 1]} ${year}`;
+  }
+  
+  function renderMonthSelector(data) {
+    const monthSelector = document.getElementById("month-select");
+    if (!monthSelector) {
+      console.error("❌ No se encontró el elemento #month-select");
+      return;
+    }
+  
+    // Extraer meses únicos
+    const uniqueMonths = [...new Set(data.map(item => {
+      const date = new Date(item.fecha);
+      if (isNaN(date)) {
+        console.warn("⚠️ Fecha inválida:", item.fecha);
+        return null;
+      }
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    }))].filter(Boolean);
+  
+    // Limpiar y cargar las opciones
+    monthSelector.innerHTML = "";
+    uniqueMonths.forEach(month => {
+      const option = document.createElement("option");
+      option.value = month;
+      option.textContent = formatMonthName(month);
+      monthSelector.appendChild(option);
+    });
+  
+    // Seleccionar mes actual por defecto
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const isCurrentMonthAvailable = uniqueMonths.includes(currentMonth);
+    monthSelector.value = isCurrentMonthAvailable ? currentMonth : uniqueMonths[0];
+  
+    // Render inicial
+    const selected = monthSelector.value;
+    const filteredData = data.filter(item => item.fecha.startsWith(selected));
+    renderXPChart(filteredData);
+  
+    // Listener de cambios
+    monthSelector.addEventListener("change", () => {
+      const selectedMonth = monthSelector.value;
+      const filteredData = data.filter(item => item.fecha.startsWith(selectedMonth));
+      renderXPChart(filteredData);
+    });
   }
   
   let xpChart;
-  
   function renderXPChart(data) {
     const ctx = document.getElementById("xpChart").getContext("2d");
     if (xpChart) xpChart.destroy();
@@ -120,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           borderWidth: 2,
           tension: 0.3,
           fill: true,
-          pointRadius: 0
+          pointRadius: 2
         }]
       },
       options: {
@@ -131,27 +174,18 @@ document.addEventListener("DOMContentLoaded", async () => {
               color: "white",
               font: { size: 13, weight: "normal" }
             }
-          },
-          tooltip: {
-            enabled: true,
-            backgroundColor: "#333",
-            titleColor: "#fff",
-            bodyColor: "#fff",
-            titleFont: { size: 13, weight: "bold" },
-            bodyFont: { size: 13, weight: "normal" },
           }
         },
         scales: {
           x: {
             ticks: {
               color: "white",
-              font: { size: 13, weight: "normal" }
+              font: { size: 13 }
             }
           },
           y: {
             ticks: {
               color: "white",
-              font: { size: 13, weight: "normal" },
               beginAtZero: true
             }
           }
@@ -160,45 +194,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
   
-  function renderMonthSelector(data) {
-    const monthSelector = document.getElementById("month-select");
-    if (!monthSelector) {
-      console.error("❌ No se encontró el elemento #month-select en el DOM");
-      return;
-    }
-  
-    monthSelector.innerHTML = "";
-  
-    const uniqueMonths = [...new Set(data.map(item => item.fecha.slice(0, 7)))];
-    uniqueMonths.forEach(month => {
-      const option = document.createElement("option");
-      option.value = month;
-      option.textContent = formatMonthName(month);
-      monthSelector.appendChild(option);
-    });
-  
-    monthSelector.addEventListener("change", () => {
-      const selectedMonth = monthSelector.value;
-      const filteredData = data.filter(item => item.fecha.startsWith(selectedMonth));
-      renderXPChart(filteredData);
-    });
-  
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    monthSelector.value = currentMonth;
-  
-    const filteredData = data.filter(item => item.fecha.startsWith(currentMonth));
-    renderXPChart(filteredData);
+  // Lanzar desde data global
+  if (data.daily_cultivation && Array.isArray(data.daily_cultivation)) {
+    renderMonthSelector(data.daily_cultivation);
+  } else {
+    console.warn("⚠️ No hay datos válidos para Daily Cultivation");
   }
-  
-  // 👇 Solo se ejecuta cuando el DOM ya está listo
-  document.addEventListener("DOMContentLoaded", () => {
-    if (data.daily_cultivation) {
-      renderMonthSelector(data.daily_cultivation);
-    } else {
-      console.warn("⚠️ No hay datos de daily_cultivation disponibles");
-    }
-  });
-
   
   // ========================
   // 💖 EMOTION CHART
