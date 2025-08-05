@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderMonthSelector(data) {
-    const monthSelector = document.getElementById("monthSelector");
+    const monthSelector = document.getElementById("month-select");
     monthSelector.innerHTML = "";
 
     const uniqueMonths = [...new Set(data.map(item => item.fecha.slice(0, 7)))];
