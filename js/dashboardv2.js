@@ -355,63 +355,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("⚠️ No hay datos válidos para Emotion Chart");
   }
 
-  //EMOCION QUE MAS APARECION LOS ULTIMOS X DIAS
-  function mostrarEmocionPrevalente(datos, dias = 15) {
-    if (!Array.isArray(datos) || datos.length === 0) return;
-  
-    // Ordenar por fecha descendente
-    const ordenados = [...datos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  
-    // Tomar los últimos X registros
-    const recientes = ordenados.slice(0, dias);
-  
-    // Contar emociones
-    const contador = {};
-    recientes.forEach(entry => {
-      const emocion = entry.emocion?.split("–")[0]?.trim();
-        if (emocion && emocion !== "Neutral") {
-          contador[emocion] = (contador[emocion] || 0) + 1;
-        }
-    });
-  
-    // Detectar emoción con más apariciones
-    const emocionTop = Object.entries(contador).sort((a, b) => b[1] - a[1])[0];
-    if (!emocionTop) return;
-  
-    const [nombreEmocion, cantidad] = emocionTop;
-  
-    // Colores asociados (mismos del legend)
-    const colores = {
-      "Calma": "#2ECC71",
-      "Felicidad": "#F1C40F",
-      "Motivación": "#9B59B6",
-      "Tristeza": "#3498DB",
-      "Ansiedad": "#E74C3C",
-      "Frustración": "#8D6E63",
-      "Neutral": "#D9D9D9"
-    };
-  
-    const color = colores[nombreEmocion] || "#ccc";
-  
-    // Mostrar en DOM
-    const contenedor = document.getElementById("emotion-destacada");
-    if (contenedor) {
-      contenedor.innerHTML = `
-        <div class="emotion-highlight">
-          <span class="big-box" style="background-color: ${color};"></span>
-          <div>
-            <div class="emotion-name">${nombreEmocion}</div>
-            <div class="emotion-info">Emoción más frecuente en los últimos ${dias} días</div>
-          </div>
-        </div>
-      `;
+// EMOCIÓN QUE MÁS APARECIÓ EN LOS ÚLTIMOS X DÍAS
+function mostrarEmocionPrevalente(datos, dias = 15) {
+  if (!Array.isArray(datos) || datos.length === 0) return;
+
+  // Ordenar por fecha descendente
+  const ordenados = [...datos].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  // Tomar los últimos X registros
+  const recientes = ordenados.slice(0, dias);
+
+  // Contar emociones válidas (excluyendo "Neutral")
+  const contador = {};
+  recientes.forEach(entry => {
+    const emocion = entry.emocion?.split("–")[0]?.trim();
+    if (emocion && emocion !== "Neutral") {
+      contador[emocion] = (contador[emocion] || 0) + 1;
     }
+  });
+
+  // Detectar emoción con más apariciones
+  const emocionTop = Object.entries(contador).sort((a, b) => b[1] - a[1])[0];
+  if (!emocionTop) return;
+
+  const [nombreEmocion, cantidad] = emocionTop;
+
+  // Colores asociados (mismos que el legend)
+  const colores = {
+    "Calma": "#2ECC71",
+    "Felicidad": "#F1C40F",
+    "Motivación": "#9B59B6",
+    "Tristeza": "#3498DB",
+    "Ansiedad": "#E74C3C",
+    "Frustración": "#8D6E63",
+    "Neutral": "#D9D9D9"
+  };
+
+  const color = colores[nombreEmocion] || "#ccc";
+
+  // Mostrar en DOM
+  const contenedor = document.getElementById("emotion-destacada");
+  if (contenedor) {
+    contenedor.innerHTML = `
+      <div class="emotion-highlight">
+        <div class="big-box" style="background-color: ${color};"></div>
+        <div>
+          <div class="emotion-name">${nombreEmocion}</div>
+          <div class="emotion-info">Emoción más frecuente en los últimos ${dias} días</div>
+        </div>
+      </div>
+    `;
   }
-  
-  // Llamada principal (usa 15 días por defecto)
-  if (data.daily_emotion) {
-    mostrarEmocionPrevalente(data.daily_emotion, 15);
-  }
+}
+
+// Llamada principal (usa 15 días por defecto)
+if (data.daily_emotion) {
+  mostrarEmocionPrevalente(data.daily_emotion, 15);
+}
 
 
 
