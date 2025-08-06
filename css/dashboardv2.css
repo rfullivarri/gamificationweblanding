@@ -275,7 +275,7 @@ canvas {
 .emotion-cell[data-emotion="🟪"] { background-color: #9b59b6; } /* Motivación */
 .emotion-cell[data-emotion="🟦"] { background-color: #3498db; } /* Tristeza */
 .emotion-cell[data-emotion="🟥"] { background-color: #e74c3c; } /* Ansiedad */
-.emotion-cell[data-emotion="⬜"] { background-color: #bdc3c7; } /* Neutra */
+.emotion-cell[data-emotion="⬜"] { background-color: #bdc3c7; } /* Neutral */
 .emotion-cell[data-emotion="🟫"] { background-color: #8d6e63; } /* Frustración */
 .emotion-cell[data-emotion=""]     { background-color: #444; }     /* Sin dato */
 
@@ -285,6 +285,7 @@ canvas {
   cursor: pointer;
 }
 
+// DESCRIPCION DE COLOR POR EMOCION
 .emotion-legend {
   display: flex;
   flex-wrap: wrap;
