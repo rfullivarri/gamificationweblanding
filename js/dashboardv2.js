@@ -12,6 +12,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   );
 
   const data = await response.json();
+    // ENLACES
+    document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
+    document.getElementById("dashboard").href = data.dashboard_url || "#";
+    document.getElementById("daily-quest").href = data.daily_form_url || "#";
+    document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
 
   // WARNING SIN PROCESAR
   // 🔶 Mostrar advertencia si NO completó su base
@@ -354,12 +359,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
     missionsWrapper.appendChild(card);
   });
-
-  // ENLACES
-    document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
-    document.getElementById("dashboard").href = data.dashboard_url || "#";
-    document.getElementById("daily-form").href = data.daily_form_url || "#";
-    document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
 
   // MENÚ HAMBURGUESA
     document.getElementById("menu-toggle").addEventListener("click", () => {
