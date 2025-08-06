@@ -306,6 +306,37 @@ canvas {
   border: 1px solid #ccc;
 }
 
+//EMOCION QUE MAS APARECE LOS ULTIMOS X DIAS
+.emotion-highlight {
+  display: flex;
+  align-items: center;
+  margin-top: 18px;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 18px;
+  border-radius: 12px;
+  max-width: 400px;
+}
+
+.big-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid #fff;
+}
+
+.emotion-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: white;
+}
+
+.emotion-info {
+  font-size: 13px;
+  color: #ccc;
+}
+
+
 /* COLUMNA DERECHA */
 .right-column {
   padding-right: 0;
