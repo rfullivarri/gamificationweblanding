@@ -356,7 +356,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   
   // REWARDS
-  document.getElementById("rewardsContainer").innerHTML = "<p>(Recompensas por implementar...)</p>";
+  document.getElementById("rewardsContainer").innerHTML = "<p>(🪄Rewards WIP - Very Soon)</p>";
 
   // MISIONES
   const missionsWrapper = document.getElementById("missions-wrapper");
