@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const data = await response.json();
     // ENLACES
     document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
-    document.getElementById("dashboard").href = data.dashboard_url || "#";
     document.getElementById("daily-quest").href = data.daily_form_url || "#";
     document.getElementById("edit-form").href = data.daily_form_edit_url || "#";
 
