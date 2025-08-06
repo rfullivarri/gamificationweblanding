@@ -54,6 +54,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     bbdd.forEach(row => {
       const rasgo = row["rasgo"];
       const exp = Number(row["exp"]) || 0;
+      if (!rasgo) return;  // Evita entradas vacías
       if (!xpPorRasgo[rasgo]) xpPorRasgo[rasgo] = 0;
       xpPorRasgo[rasgo] += exp;
     });
@@ -61,16 +62,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const values = labels.map(r => xpPorRasgo[r]);
     return { labels, values };
   }
-
+  
   const radarCanvas = document.getElementById("radarChart");
   const radarData = data.bbdd ? calcularXPporRasgoDesdeBBDD(data.bbdd) : { labels: [], values: [] };
-
+  
   new Chart(radarCanvas, {
     type: "radar",
     data: {
       labels: radarData.labels,
       datasets: [{
-        label: "XP por Rasgo",
         data: radarData.values,
         fill: true,
         borderColor: "rgba(102, 0, 204, 1)",
@@ -82,7 +82,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        title: { display: false }
+        tooltip: { enabled: false },  // 🔕 Sin tooltips
+        datalabels: {
+          color: '#fff',
+          font: { size: 12, weight: 'bold' },
+          formatter: (value) => value
+        }
       },
       scales: {
         r: {
@@ -97,9 +102,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           ticks: { display: false }
         }
       }
-    }
+    },
+    plugins: [ChartDataLabels] // ⚠️ Asegurate de incluir esta librería
   });
 
+  
   // 🪴 DAILY CULTIVATION
   function formatMonthName(monthStr) {
     const [year, month] = monthStr.split("-");
@@ -174,17 +181,25 @@ document.addEventListener("DOMContentLoaded", async () => {
           borderWidth: 2,
           tension: 0.3,
           fill: true,
-          pointRadius: 2
+          pointRadius: 3,
+          pointBackgroundColor: "#B17EFF"
         }]
       },
       options: {
         responsive: true,
         plugins: {
+          tooltip: { enabled: false },  // 🔕 Sin tooltip
           legend: {
             labels: {
               color: "white",
               font: { size: 13, weight: "normal" }
             }
+          },
+          datalabels: {
+            color: "#fff",
+            font: { size: 11, weight: "bold" },
+            align: "top",
+            formatter: value => value
           }
         },
         scales: {
@@ -201,7 +216,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           }
         }
-      }
+      },
+      plugins: [ChartDataLabels]
     });
   }
   
