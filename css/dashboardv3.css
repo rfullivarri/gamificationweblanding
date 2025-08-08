@@ -1,0 +1,162 @@
+/* === Barra superior === */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1f1f2e;
+  padding: 12px 20px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.logo {
+  font-size: 1.2rem;
+}
+
+.menu-icon {
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 55px;
+  right: 20px;
+  background: #2b2b3d;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.dropdown-menu button {
+  display: block;
+  background: none;
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dropdown-menu button:hover {
+  background: #3e3e5a;
+}
+
+/* === Sección perfil === */
+.dashboard-container {
+  padding: 20px;
+  color: white;
+}
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #262636;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.avatar-rect {
+  width: 90px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.profile-info h2 {
+  margin: 0 0 5px;
+}
+
+.level-info {
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  background: #444;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  background: #7d3cff;
+  height: 100%;
+  width: 0%;
+}
+
+/* === Botones === */
+.dashboard-links {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.btn {
+  background: #7d3cff;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #5c28c2;
+}
+
+/* === Popup Avatar === */
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden { display: none; }
+
+.popup-content {
+  background: #2b2b3d;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  color: white;
+  width: 300px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.avatar-preview {
+  width: 80px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.btn.cancel {
+  background: #999;
+}
+
+.btn.confirm {
+  background: #4CAF50;
+}
