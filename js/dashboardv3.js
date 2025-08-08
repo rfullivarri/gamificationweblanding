@@ -1,48 +1,36 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const params = new URLSearchParams(window.location.search);
-  const email = params.get("email");
+  // Spinner helpers
+  const overlay = document.getElementById("spinner-overlay");
+  const showSpinner = () => { if (overlay) overlay.style.display = "flex"; };
+  const hideSpinner = () => { if (overlay) overlay.style.display = "none"; };
 
-  if (!email) {
-    alert("No se proporcionó un correo electrónico.");
-    return;
-  }
+  showSpinner(); // ✅ visible antes de cualquier fetch/pintado
 
-  const response = await fetch(
-    `https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec?email=${encodeURIComponent(email)}`
-  );
-
-  const data = await response.json();
-
-  // Mostrar Spinner
-  function showSpinner() {
-    document.getElementById("spinner-overlay").style.display = "flex";
-  }
-  
-  // Ocultar Spinner
-  function hideSpinner() {
-    document.getElementById("spinner-overlay").style.display = "none";
-  }
-  
-  // 📌 Mostrar spinner antes de comenzar la carga de datos
-  showSpinner();
-  
-  // Ejemplo: ocultar spinner cuando termina la carga de datos
-  async function cargarDatosDashboard() {
-    showSpinner();
-  
-    try {
-      // Aquí va toda la lógica de carga actual de tu dashboard
-      await cargarAvatar();
-      await cargarRadarChart();
-      await cargarDailyCultivation();
-      await cargarEmotionChart();
-      // y lo que tengas extra...
-    } catch (err) {
-      console.error("Error cargando datos del dashboard:", err);
-    } finally {
-      hideSpinner();
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get("email");
+    if (!email) {
+      alert("No se proporcionó un correo electrónico.");
+      return;
     }
+
+    const response = await fetch(
+      `https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec?email=${encodeURIComponent(email)}`
+    );
+    const data = await response.json();
+
+    // ⬇️ Llamá tus funciones de carga pasando 'data'
+    await cargarAvatar(data);
+    await cargarRadarChart(data);
+    await cargarDailyCultivation(data);
+    await cargarEmotionChart(data);
+    // ...lo que siga
+  } catch (err) {
+    console.error("Error cargando datos del dashboard:", err);
+  } finally {
+    hideSpinner(); // ✅ se oculta cuando todo terminó
   }
+});
 
 // Ejecutar la carga de datos al iniciar
 document.addEventListener("DOMContentLoaded", cargarDatosDashboard);
