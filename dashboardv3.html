@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard v2</title>
+  <link rel="stylesheet" href="dashboardv3.css">
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <header class="top-bar">
+    <div class="logo">Self-Improvement Journey</div>
+    <div class="menu-icon" id="menuToggle">&#9776;</div>
+    <nav class="dropdown-menu" id="dropdownMenu">
+      <button id="btnChangeAvatar">📷 Cambiar Avatar</button>
+      <button id="btnDailyQuest">🗓️ Programar DailyQuest</button>
+      <button id="btnLogout">🚪 Cerrar Sesión</button>
+    </nav>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="dashboard-container">
+    <section class="profile-section">
+      <img id="avatarImage" src="https://i.imgur.com/EELiQop.jpg" alt="Avatar" class="avatar-rect">
+      <div class="profile-info">
+        <h2 id="userName">Aventurero</h2>
+        <div class="level-info">
+          <p>Nivel: <span id="nivel"></span></p>
+          <div class="progress-bar">
+            <div class="progress-fill" id="nivelProgress"></div>
+          </div>
+        </div>
+        <p>XP: <span id="xpActual"></span> / <span id="xpObjetivo"></span></p>
+        <p>Días de Journey: <span id="diasJourney"></span></p>
+      </div>
+    </section>
+
+    <!-- Botones -->
+    <div class="dashboard-links">
+      <a href="#" class="btn">⚙️ Editar Base</a>
+      <a href="#" class="btn">🗓️ Daily Quest</a>
+    </div>
+
+    <!-- Gráficos -->
+    <section id="chartsSection">
+      <canvas id="radarChart"></canvas>
+      <canvas id="dailyChart"></canvas>
+      <div id="emotionChart"></div>
+      <canvas id="energyChart"></canvas>
+    </section>
+  </main>
+
+  <!-- Popup Cambiar Avatar -->
+  <div id="avatarPopup" class="popup-overlay hidden">
+    <div class="popup-content">
+      <span class="close-btn" id="closeAvatarPopup">&times;</span>
+      <h3>Cambiar tu imagen</h3>
+      <img id="currentAvatar" src="avatar.jpg" alt="Avatar actual" class="avatar-preview">
+      <input type="file" id="newAvatarInput" accept="image/*">
+      <div class="popup-buttons">
+        <button id="cancelAvatar" class="btn cancel">Cancelar</button>
+        <button id="confirmAvatar" class="btn confirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="dashboardv3.js"></script>
+</body>
+</html>
