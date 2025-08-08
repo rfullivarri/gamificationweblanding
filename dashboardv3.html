@@ -2,69 +2,121 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <title>Self-Improvement Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard v2</title>
-  <link rel="stylesheet" href="dashboardv3.css">
+  <!-- Fuente + CSS (en carpeta /css) -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/dashboardv3.css?v=3">
+  <!-- Libs de charts ANTES de tu JS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
 <body>
-
-  <!-- Barra superior -->
-  <header class="top-bar">
-    <div class="logo">Self-Improvement Journey</div>
-    <div class="menu-icon" id="menuToggle">&#9776;</div>
-    <nav class="dropdown-menu" id="dropdownMenu">
-      <button id="btnChangeAvatar">📷 Cambiar Avatar</button>
-      <button id="btnDailyQuest">🗓️ Programar DailyQuest</button>
-      <button id="btnLogout">🚪 Cerrar Sesión</button>
-    </nav>
+  <!-- HEADER -->
+  <header>
+    <div class="logo">🎮 Gamification Life Journey</div>
+    <div class="menu-toggle" id="menu-toggle">☰</div>
   </header>
 
-  <!-- Contenido principal -->
-  <main class="dashboard-container">
-    <section class="profile-section">
-      <img id="avatarImage" src="https://i.imgur.com/EELiQop.jpg" alt="Avatar" class="avatar-rect">
-      <div class="profile-info">
-        <h2 id="userName">Aventurero</h2>
-        <div class="level-info">
-          <p>Nivel: <span id="nivel"></span></p>
-          <div class="progress-bar">
-            <div class="progress-fill" id="nivelProgress"></div>
-          </div>
-        </div>
-        <p>XP: <span id="xpActual"></span> / <span id="xpObjetivo"></span></p>
-        <p>Días de Journey: <span id="diasJourney"></span></p>
-      </div>
-    </section>
+  <!-- MENÚ HAMBURGUESA -->
+  <nav id="dashboard-menu">
+    <ul>
+      <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
+      <li><a href="#" id="edit-form">Programar Daily Quest</a></li>
+      <li><a href="index-v2.html">Cerrar sesión</a></li>
+    </ul>
+  </nav>
 
-    <!-- Botones -->
-    <div class="dashboard-links">
-      <a href="#" class="btn">⚙️ Editar Base</a>
-      <a href="#" class="btn">🗓️ Daily Quest</a>
-    </div>
-
-    <!-- Gráficos -->
-    <section id="chartsSection">
-      <canvas id="radarChart"></canvas>
-      <canvas id="dailyChart"></canvas>
-      <div id="emotionChart"></div>
-      <canvas id="energyChart"></canvas>
-    </section>
-  </main>
-
-  <!-- Popup Cambiar Avatar -->
-  <div id="avatarPopup" class="popup-overlay hidden">
-    <div class="popup-content">
-      <span class="close-btn" id="closeAvatarPopup">&times;</span>
-      <h3>Cambiar tu imagen</h3>
-      <img id="currentAvatar" src="avatar.jpg" alt="Avatar actual" class="avatar-preview">
-      <input type="file" id="newAvatarInput" accept="image/*">
-      <div class="popup-buttons">
-        <button id="cancelAvatar" class="btn cancel">Cancelar</button>
-        <button id="confirmAvatar" class="btn confirm">Confirmar</button>
-      </div>
-    </div>
+  <!-- Botones centrales -->
+  <div class="dashboard-links">
+    <a href="#" id="edit-bbdd" class="btn">Editar Base</a>
+    <a href="#" id="daily-quest" class="btn">Daily Quest</a>
   </div>
 
-  <script src="dashboardv2.js"></script>
+  <!-- LAYOUT -->
+  <main>
+    <div class="dashboard-content">
+      <div class="dashboard-columns">
+        <!-- IZQUIERDA -->
+        <section class="left-column">
+          <div class="avatar-box">
+            <img id="avatar" class="avatar-img" src="" alt="Avatar">
+          </div>
+
+          <div class="energy-box">
+            <h3>💠 Daily Energy</h3>
+            <p>HP</p>
+            <div class="progress-bar"><div id="bar-hp" class="bar-fill"></div></div>
+            <p>Mood</p>
+            <div class="progress-bar"><div id="bar-mood" class="bar-fill mood"></div></div>
+            <p>Focus</p>
+            <div class="progress-bar"><div id="bar-focus" class="bar-fill focus"></div></div>
+          </div>
+        </section>
+
+        <!-- CENTRO -->
+        <section class="center-column">
+          <div id="journey-warning" class="warning-container" style="display:none;">
+            <p class="warning-text">⚠️ Te falta completar tu formulario inicial para comenzar tu Journey.</p>
+            <a href="https://forms.gle/rdnWG5f5KTZbc32s5" target="_blank" class="dashboard-button">Realizar formulario</a>
+          </div>
+
+          <div class="radar-section">
+            <h3>🧿 Radar Chart</h3>
+            <div id="radarChartContainer">
+              <canvas id="radarChart"></canvas>
+            </div>
+          </div>
+
+          <div class="daily-cultivation-section">
+            <div class="daily-cultivation-header">
+              <h3>🪴 Daily Cultivation</h3>
+              <label for="month-select">Mes:</label>
+              <select id="month-select"></select>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="xpChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- DERECHA -->
+        <section class="right-column">
+          <div class="xp-box">
+            <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
+            <h3>🎯 Level: <span id="nivel-actual">0</span></h3>
+            <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
+            <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
+          </div>
+
+          <div class="emotion-box">
+            <h3>💗 Emotion Chart</h3>
+            <div class="emotion-legend">
+              <span><span class="color-box" style="background-color:#2ECC71;"></span>Calma</span>
+              <span><span class="color-box" style="background-color:#F1C40F;"></span>Felicidad</span>
+              <span><span class="color-box" style="background-color:#9B59B6;"></span>Motivación</span>
+              <span><span class="color-box" style="background-color:#3498DB;"></span>Tristeza</span>
+              <span><span class="color-box" style="background-color:#E74C3C;"></span>Ansiedad</span>
+              <span><span class="color-box" style="background-color:#8D6E63;"></span>Frustración</span>
+              <span><span class="color-box" style="background-color:#A3E4D7;"></span>Neutral</span>
+            </div>
+            <div id="emotionChart" class="emotion-chart-container"></div>
+            <div id="emotion-destacada"></div>
+          </div>
+
+          <div id="rewardsContainer"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Misiones -->
+  <section class="missions-section">
+    <h3>🗂️ Misiones</h3>
+    <div id="missions-wrapper" class="missions-grid"></div>
+  </section>
+
+  <!-- Tu JS al final -->
+  <script src="js/dashboardv2.js?v=3"></script>
 </body>
 </html>
