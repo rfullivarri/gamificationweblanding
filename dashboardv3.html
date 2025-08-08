@@ -111,7 +111,24 @@
     <h3>🗂️ Misiones</h3>
     <div id="missions-wrapper" class="missions-grid"></div>
   </section>
-
+  
+  <!-- Popup Cambiar Avatar -->
+  <div id="avatarPopup" class="popup-overlay">
+    <div class="popup-content">
+      <button class="close-btn" id="closeAvatarPopup">✕</button>
+      <h3>📷 Cambiar tu imagen</h3>
+  
+      <img id="currentAvatar" src="" alt="Avatar actual" class="avatar-preview" />
+      <input type="file" id="newAvatarInput" accept="image/*" />
+  
+      <div class="popup-buttons">
+        <button id="cancelAvatar" class="btn cancel">Cancelar</button>
+        <button id="confirmAvatar" class="btn confirm">Confirmar</button>
+      </div>
+      <div id="avatarStatus" style="margin-top:10px;font-size:13px;opacity:.8"></div>
+    </div>
+  </div>
+  
   <!-- Tu JS al final -->
   <script src="js/dashboardv3.js?v=3"></script>
 </body>
