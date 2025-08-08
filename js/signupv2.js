@@ -128,7 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "Creando tu cuenta…",
       `<p>Guardamos tus datos. Estamos preparando tu base con IA <span class="spinner"></span></p>`,
       [
-        { tag:"a", className:"btn ghost", href:"index-v2.html", text:"Más tarde" },
+        { tag:"a", className:"btn ghost", href:"indexv2.html", text:"Más tarde" },
         { tag:"a", className:"btn", href:FORM_PUBLIC_URL, target:"_blank", text:"Completar formulario" }
       ]
     );
@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
           `<p>Tu cuenta está activa. Ya podés entrar al Dashboard.</p>`,
           [
             { tag:"a", className:"btn", href:`${LOGIN_URL}?email=${encodeURIComponent(lastEmail)}`, text:"Ir al Login" },
-            { tag:"a", className:"btn ghost", href:"index-v2.html", text:"Volver al inicio" }
+            { tag:"a", className:"btn ghost", href:"indexv2.html", text:"Volver al inicio" }
           ]
         );
         stopPolling();
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
           `<p>Completá el formulario para terminar la configuración. Apenas esté, te avisamos acá.</p>`,
           [
             { tag:"a", className:"btn", href:FORM_PUBLIC_URL, target:"_blank", text:"Completar formulario" },
-            { tag:"a", className:"btn ghost", href:"index-v2.html", text:"Más tarde" }
+            { tag:"a", className:"btn ghost", href:"indexv2.html", text:"Más tarde" }
           ]
         );
       }
