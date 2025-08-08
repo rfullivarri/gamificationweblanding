@@ -429,3 +429,100 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof xpChart !== 'undefined' && xpChart) xpChart.resize();
   });
 });
+
+
+
+// ===== Avatar: abrir/cerrar + subir a ImgBB + persistir en Sheet =====
+  // ===== Config del Form que actualiza el avatar =====
+  const AVATAR_FORM = {
+    ACTION: "https://docs.google.com/forms/u/0/d/e/1FAIpQLScFl3MFsLSos0OEnW9mTI2eZ3DpRBmfq8o29fgKLxEKpXX4Kg/formResponse", // <-- FORM_ACTION
+    ENTRY_EMAIL: "entry.158494973",        // <-- ENTRY para email
+    ENTRY_AVATAR: "entry.1736118796"        // <-- ENTRY para avatar URL
+  };
+  
+  // ===== Subida a ImgBB (igual que en tu SignUp) =====
+  async function uploadToImgBB(file){
+    const IMGBB_KEY = "b78f6fa1f849b2c8fcc41ba4b195864f"; // misma key
+    const reader = new FileReader();
+  
+    return new Promise((resolve, reject)=>{
+      reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
+      reader.onloadend = async () => {
+        try {
+          const base64 = String(reader.result).split(",")[1];
+          const resp = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+            method: "POST",
+            body: new URLSearchParams({ image: base64 })
+          });
+          const data = await resp.json();
+          const url = data?.data?.url;
+          url ? resolve(url) : reject(new Error("Respuesta inválida de ImgBB"));
+        } catch (err) { reject(err); }
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  
+  // ===== Enviar al Google Form (no-cors, como en SignUp) =====
+  async function sendAvatarToForm(email, avatarUrl){
+    const fd = new FormData();
+    fd.append(AVATAR_FORM.ENTRY_EMAIL, email);
+    fd.append(AVATAR_FORM.ENTRY_AVATAR, avatarUrl);
+  
+    await fetch(AVATAR_FORM.ACTION, {
+      method: "POST",
+      mode: "no-cors",
+      body: fd
+    });
+    // no-cors no permite leer respuesta → asumimos éxito como en SignUp
+  }
+  
+  // ===== Integración con el popup del Dashboard =====
+  (() => {
+    const openBtn   = document.getElementById('edit-avatar');
+    const modal     = document.getElementById('avatarPopup');
+    const closeBtn  = document.getElementById('closeAvatarPopup');
+    const cancelBtn = document.getElementById('cancelAvatar');
+    const confirmBtn= document.getElementById('confirmAvatar');
+    const inputFile = document.getElementById('newAvatarInput');
+    const statusEl  = document.getElementById('avatarStatus');
+    const avatarImg = document.getElementById('avatar');
+    const current   = document.getElementById('currentAvatar');
+  
+    function showModal(){ modal?.classList.add('visible'); }
+    function hideModal(){ modal?.classList.remove('visible'); statusEl.textContent=''; inputFile.value=''; }
+  
+    openBtn?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      if (current && avatarImg) current.src = avatarImg.src || "";
+      showModal();
+    });
+    closeBtn?.addEventListener('click', hideModal);
+    cancelBtn?.addEventListener('click', hideModal);
+  
+    confirmBtn?.addEventListener('click', async ()=>{
+      const file = inputFile?.files?.[0];
+      if (!file){ alert("Elegí una imagen primero."); return; }
+  
+      const email = new URLSearchParams(location.search).get('email') || "";
+      if (!email){ alert("Falta email en la URL."); return; }
+  
+      try {
+        statusEl.textContent = "Subiendo imagen…";
+        const url = await uploadToImgBB(file);
+  
+        statusEl.textContent = "Actualizando tu perfil…";
+        await sendAvatarToForm(email, url);
+  
+        // Refrescar avatar en el acto
+        if (avatarImg) avatarImg.src = url;
+        if (current) current.src = url;
+  
+        statusEl.textContent = "Listo ✅";
+        setTimeout(hideModal, 600);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "Error: " + err.message;
+      }
+    });
+  })();
