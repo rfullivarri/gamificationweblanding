@@ -13,6 +13,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const data = await response.json();
 
+  // Mostrar Spinner
+  function showSpinner() {
+    document.getElementById("spinner-overlay").style.display = "flex";
+  }
+  
+  // Ocultar Spinner
+  function hideSpinner() {
+    document.getElementById("spinner-overlay").style.display = "none";
+  }
+  
+  // 📌 Mostrar spinner antes de comenzar la carga de datos
+  showSpinner();
+  
+  // Ejemplo: ocultar spinner cuando termina la carga de datos
+  async function cargarDatosDashboard() {
+    showSpinner();
+  
+    try {
+      // Aquí va toda la lógica de carga actual de tu dashboard
+      await cargarAvatar();
+      await cargarRadarChart();
+      await cargarDailyCultivation();
+      await cargarEmotionChart();
+      // y lo que tengas extra...
+    } catch (err) {
+      console.error("Error cargando datos del dashboard:", err);
+    } finally {
+      hideSpinner();
+    }
+  }
+
+// Ejecutar la carga de datos al iniciar
+document.addEventListener("DOMContentLoaded", cargarDatosDashboard);
+
   // ENLACES
   document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
   document.getElementById("daily-quest").href = data.daily_form_url || "#";
