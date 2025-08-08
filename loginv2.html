@@ -98,7 +98,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Entrar al Dashboard</h1>
-      <p class="sub">Poné tu correo. Si tu archivo ya está listo te llevo directo al <strong>Dashboard</strong>. Si no, te muestro el plan y espero con vos 👀.</p>
+      <p class="sub">Poné tu correo. Si tu archivo ya está listo te llevo directo al <strong>Dashboard v2</strong>. Si no, te muestro el plan y espero con vos 👀.</p>
 
       <form id="loginForm" novalidate>
         <div class="field">
@@ -120,32 +120,32 @@
       <button id="closeModal" class="close" title="Volver al login">✕</button>
       <h2 id="modalTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
       <div class="modal-body">
-        <p>Te va a llegar un <span class="pill">pergamino digital</span> (un mail) con el link a tu archivo de Google Sheets.</p>
+        <p>
+          Estamos <strong>generando tu base de datos con IA</strong>. Apenas esté lista te llegará un
+          <span class="pill">pergamino digital</span> (un mail) con el link a tu Google Sheets. Seguí estos pasos:
+        </p>
         <ol class="steps">
-          <li>Abrilo desde una <strong>PC</strong> y aceptá permisos. Eso activa los <em>triggers</em>.</li>
-          <li>Buscá el botón <strong>⚙️ Gamification</strong> dentro del Sheet (o su menú) para iniciar la configuración.</li>
+          <li>Abrilo desde una <strong>PC</strong> y aceptá permisos (activa los <em>triggers</em>).</li>
+          <li>Buscá el botón <strong>⚙️ Gamification</strong> dentro del Sheet (o su menú) para iniciar.</li>
           <li>Volvé a este login y entrá con tu correo.</li>
-          <li>En el Dashboard, hacé <span class="kbd">Editar Base de Datos</span>:
-            agregá/quitá/ajustá tus <em>tareas</em> por Pilar (Cuerpo / Mente / Alma).</li>
-          <li>Presioná <span class="kbd">Confirmar BBDD</span>. Se genera y guarda tu <strong>Daily Form</strong>.</li>
+          <li>En el Dashboard, tocá <span class="kbd">Editar Base de Datos</span> para ajustar tus tareas por Pilar (Cuerpo / Mente / Alma).</li>
+          <li>Presioná <span class="kbd">Confirmar BBDD</span>. Así se genera y guarda tu <strong>Daily Form</strong>.</li>
         </ol>
         <div class="callout">
-          <strong>Estado:</strong> estamos esperando que tu URL figure en la <em>columna C</em> de <em>Registros de Usuarios</em>.
-          Este cuadro se cierra solo cuando la detectemos ✅.
+          Tip: revisá también **Spam/Promociones** si el mail no aparece enseguida. Este cuadro se cierra solo cuando tu base esté lista ✅.
         </div>
       </div>
       <div class="modal-actions">
         <a id="signupBtn" href="signup.html" class="btn secondary">Crear cuenta</a>
         <a href="index.html" class="btn secondary">Volver al inicio</a>
         <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
-        <button id="stayBtn" class="btn" type="button">Ok, espero acá</button>
       </div>
     </div>
   </section>
 
   <script>
     // 👉 CAMBIAR por tu WebApp que lee la columna C y responde { ok, has_url, url? }
-    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec";
+    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec";
     const POLL_MS = 10000;
 
     const $form = document.getElementById('loginForm');
@@ -156,7 +156,6 @@
     const $modal = document.getElementById('awaitModal');
     const $close = document.getElementById('closeModal');
     const $retry = document.getElementById('retryBtn');
-    const $stay  = document.getElementById('stayBtn');
 
     let lastEmail = "";
     let pollTimer = null;
@@ -166,10 +165,7 @@
     }
     function showModal(){ $modal.classList.add('visible'); $modal.setAttribute('aria-hidden','false'); }
     function hideModal(){ $modal.classList.remove('visible'); $modal.setAttribute('aria-hidden','true'); }
-    function disableGo(disabled){
-      $goBtn.disabled = disabled;
-      $goBtn.style.opacity = disabled ? .7 : 1;
-    }
+    function disable(el, v){ el.disabled=v; el.style.opacity = v ? .7 : 1; }
 
     async function checkStatus(email){
       const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`, {cache:'no-store'});
@@ -184,7 +180,6 @@
           const data = await checkStatus(lastEmail);
           if(data.ok && data.has_url){
             stopPolling(); hideModal();
-            // 🔒 POR REQUERIMIENTO: SI ESTÁ LISTO → SIEMPRE IR AL DASHBOARD V2
             window.location.href = `dashboardv2.html?email=${encodeURIComponent(lastEmail)}`;
           }
         }catch(_e){ /* seguimos esperando */ }
@@ -198,7 +193,7 @@
       if(!email || !email.includes('@')){ setStatus('Ingresá un correo válido.'); return; }
       lastEmail = email;
 
-      disableGo(true);
+      disable($goBtn,true);
       setStatus('Chequeando estado…', true);
       try{
         const data = await checkStatus(email);
@@ -206,32 +201,36 @@
           setStatus('Listo, entrando…', true);
           window.location.href = `dashboardv2.html?email=${encodeURIComponent(email)}`;
         }else{
-          setStatus('Tu archivo aún no está listo.');
+          setStatus('Tu base está en proceso. Te avisamos acá.', false);
           showModal(); startPolling();
         }
       }catch(err){
-        setStatus('No pudimos chequear ahora. Probemos de nuevo o esperemos un poco.');
+        setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
         showModal(); startPolling();
       }finally{
-        disableGo(false);
+        disable($goBtn,false);
       }
     });
 
     $close.addEventListener('click', ()=>{ stopPolling(); hideModal(); setStatus('Listo para intentar de nuevo.'); });
+
     $retry.addEventListener('click', async ()=>{
       if(!lastEmail) return;
-      setStatus('Reintentando…', true);
+      const original = $retry.textContent;
+      $retry.innerHTML = `Reintentando <span class="spinner"></span>`;
+      disable($retry,true);
       try{
         const data = await checkStatus(lastEmail);
         if(data.ok && data.has_url){
           stopPolling(); hideModal();
           window.location.href = `dashboardv2.html?email=${encodeURIComponent(lastEmail)}`;
-        }else{
-          setStatus('Aún no está, seguimos esperando.');
         }
-      }catch(_e){ setStatus('Sigue lento. Esperemos un poco más.'); }
+      }catch(_e){ /* noop */ }
+      finally{
+        $retry.textContent = original;
+        disable($retry,false);
+      }
     });
-    $stay.addEventListener('click', ()=>{/* seguimos con el polling */});
 
     // Enter para enviar
     document.addEventListener('keydown', (e)=>{
