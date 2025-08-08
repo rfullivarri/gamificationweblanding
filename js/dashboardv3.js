@@ -452,7 +452,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (rc) rc.resize();
     if (typeof xpChart !== 'undefined' && xpChart) xpChart.resize();
   });
-});
 
 
 
