@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login — Gamificación</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --text: #ffffff;
+      --muted: #a0a0a0;
+      --accent: #7d3cff;
+      --accent-hover: #5c28c2;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    p {
+      color: var(--muted);
+      text-align: center;
+      max-width: 350px;
+      margin-bottom: 20px;
+    }
+    input[type="email"] {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      width: 280px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    button {
+      padding: 12px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: var(--accent);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: var(--accent-hover);
+    }
+    /* Popup */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal.visible {
+      display: flex;
+    }
+    .modal-content {
+      background: #1c1f2e;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .steps {
+      text-align: left;
+      font-size: 14px;
+      margin: 15px 0;
+    }
+    .steps li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎮 Ingresá tu correo</h1>
+  <p>Te llevo al Dashboard si tu archivo ya está listo.<br>Si no, te muestro los pasos para activarlo.</p>
+  
+  <input type="email" id="emailInput" placeholder="tu@email.com">
+  <br>
+  <button onclick="irAlDashboard()">Ingresar</button>
+
+  <!-- Popup -->
+  <div class="modal" id="popup">
+    <div class="modal-content">
+      <button class="modal-close" onclick="cerrarPopup()">✕</button>
+      <h2>🕒 Preparando tu mundo...</h2>
+      <p>Te va a llegar un <strong>pergamino digital</strong> (un email) con el link a tu archivo. Tenés que:</p>
+      <ol class="steps">
+        <li>Esperar el mail con el link.</li>
+        <li>Abrirlo desde una PC y aceptar permisos (activar triggers).</li>
+        <li>Volver a este login e ingresar para ir al Dashboard.</li>
+      </ol>
+      <p><em>Este cuadro se cerrará solo cuando tu archivo esté listo.</em></p>
+    </div>
+  </div>
+
+  <script>
+    // PONÉ AQUÍ EL LINK DE TU WEBAPP DE LOGIN
+    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec";
+    const POLL_INTERVAL = 10000; // 10 segundos
+    let lastEmail = "";
+    let poller = null;
+
+    async function checkStatus(email) {
+      const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`);
+      if (!res.ok) throw new Error("Error en la consulta");
+      return res.json(); // {ok: true, has_url: boolean, url?: string}
+    }
+
+    function mostrarPopup() {
+      document.getElementById("popup").classList.add("visible");
+    }
+
+    function cerrarPopup() {
+      clearInterval(poller);
+      document.getElementById("popup").classList.remove("visible");
+      window.location.href = "index.html";
+    }
+
+    function startPolling() {
+      clearInterval(poller);
+      poller = setInterval(async () => {
+        try {
+          const data = await checkStatus(lastEmail);
+          if (data.ok && data.has_url) {
+            clearInterval(poller);
+            window.location.href = data.url || `dashboardv2.html?email=${encodeURIComponent(lastEmail)}`;
+          }
+        } catch (err) {
+          console.warn("Error polling:", err);
+        }
+      }, POLL_INTERVAL);
+    }
+
+    async function irAlDashboard() {
+      const email = document.getElementById("emailInput").value.trim();
+      if (!email || !email.includes("@")) {
+        alert("Ingresá un correo válido.");
+        return;
+      }
+      lastEmail = email;
+      try {
+        const data = await checkStatus(email);
+        if (data.ok && data.has_url) {
+          window.location.href = data.url || `dashboardv2.html?email=${encodeURIComponent(email)}`;
+        } else {
+          mostrarPopup();
+          startPolling();
+        }
+      } catch (err) {
+        console.error("Error verificando estado:", err);
+        mostrarPopup();
+        startPolling();
+      }
+    }
+  </script>
+
+</body>
+</html>
