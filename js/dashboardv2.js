@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const response = await fetch(
-    `https://script.google.com/macros/s/AKfycbzje0wco71mNea1v2WClcpQkvz0Ep3ZIJ8guBONQLvI3G3AXxfpdH0ECaCNMbHHcyJ3Gw/exec?email=${encodeURIComponent(email)}`
+    `https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec?email=${encodeURIComponent(email)}`
   );
 
   const data = await response.json();
