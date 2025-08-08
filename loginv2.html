@@ -98,7 +98,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Entrar al Dashboard</h1>
-      <p class="sub">Poné tu correo. Si tu archivo ya está listo te llevo directo al <strong>Dashboard v2</strong>. Si no, te muestro el plan y espero con vos 👀.</p>
+      <p class="sub">Ingresa tu correo. Si tu archivo ya está listo te llevo directo a tu <strong>Dashboard </strong>. Si no, te muestro el roadmap y espero con vos 👀.</p>
 
       <form id="loginForm" novalidate>
         <div class="field">
@@ -122,17 +122,17 @@
       <div class="modal-body">
         <p>
           Estamos <strong>generando tu base de datos con IA</strong>. Apenas esté lista te llegará un
-          <span class="pill">pergamino digital</span> (un mail) con el link a tu Google Sheets. Seguí estos pasos:
+          <span class="pill">pergamino digital</span> (un mail) con el link a tu Sheet. Seguí estos pasos:
         </p>
         <ol class="steps">
           <li>Abrilo desde una <strong>PC</strong> y aceptá permisos (activa los <em>triggers</em>).</li>
-          <li>Buscá el botón <strong>⚙️ Gamification</strong> dentro del Sheet (o su menú) para iniciar.</li>
+          <li>Buscá el botón <strong>⚙️ Gamification</strong> dentro del Sheet (arriba en la barra de menú) para aceptar los persmios.</li>
           <li>Volvé a este login y entrá con tu correo.</li>
-          <li>En el Dashboard, tocá <span class="kbd">Editar Base de Datos</span> para ajustar tus tareas por Pilar (Cuerpo / Mente / Alma).</li>
-          <li>Presioná <span class="kbd">Confirmar BBDD</span>. Así se genera y guarda tu <strong>Daily Form</strong>.</li>
+          <li>En el Dashboard, tocá <span class="kbd">Editar Base</span> para ajustar tus tareas por Pilar (Cuerpo / Mente / Alma).</li>
+          <li>Presioná <span class="kbd">Confirmar Edicion</span>. Así se genera y guarda tu <strong>Daily Quest</strong>.</li>
         </ol>
         <div class="callout">
-          Tip: revisá también **Spam/Promociones** si el mail no aparece enseguida. Este cuadro se cierra solo cuando tu base esté lista ✅.
+          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida. Este cuadro se cierra solo cuando tu base esté lista ✅.
         </div>
       </div>
       <div class="modal-actions">
@@ -144,67 +144,51 @@
   </section>
 
   <script>
-    // 👉 CAMBIAR por tu WebApp que lee la columna C y responde { ok, has_url, url? }
-    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec";
+    // ⚙️ Endpoints
+    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec"; // opcional si querés polling cuando el usuario escribe su email
     const POLL_MS = 10000;
 
-    const $form = document.getElementById('loginForm');
-    const $email = document.getElementById('email');
-    const $goBtn = document.getElementById('goBtn');
-    const $status = document.getElementById('status');
-
-    const $modal = document.getElementById('awaitModal');
-    const $close = document.getElementById('closeModal');
-    const $retry = document.getElementById('retryBtn');
-
-    let lastEmail = "";
-    let pollTimer = null;
-
+    // Utils
+    function qs(n){ const p=new URLSearchParams(location.search); return (p.get(n)||"").trim(); }
     function setStatus(msg, spinning=false){
+      const $status = document.getElementById('status');
       $status.innerHTML = spinning ? `${msg} <span class="spinner"></span>` : msg;
     }
-    function showModal(){ $modal.classList.add('visible'); $modal.setAttribute('aria-hidden','false'); }
-    function hideModal(){ $modal.classList.remove('visible'); $modal.setAttribute('aria-hidden','true'); }
-    function disable(el, v){ el.disabled=v; el.style.opacity = v ? .7 : 1; }
+    function showModal(){ const m=document.getElementById('awaitModal'); m.classList.add('visible'); m.setAttribute('aria-hidden','false'); }
+    function hideModal(){ const m=document.getElementById('awaitModal'); m.classList.remove('visible'); m.setAttribute('aria-hidden','true'); }
+    function disable(el,v){ el.disabled=v; el.style.opacity=v?.7:1; }
 
     async function checkStatus(email){
       const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`, {cache:'no-store'});
       if(!res.ok) throw new Error('Error consultando estado');
-      return res.json(); // { ok, has_url, url? }
+      return res.json();
     }
 
-    function startPolling(){
-      stopPolling();
-      pollTimer = setInterval(async ()=>{
-        try{
-          const data = await checkStatus(lastEmail);
-          if(data.ok && data.has_url){
-            stopPolling(); hideModal();
-            window.location.href = `dashboardv2.html?email=${encodeURIComponent(lastEmail)}`;
-          }
-        }catch(_e){ /* seguimos esperando */ }
-      }, POLL_MS);
-    }
-    function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
-
-    $form.addEventListener('submit', async (e)=>{
+    // Login normal con verificación (como antes)
+    let pollTimer=null, lastEmail="";
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
-      const email = $email.value.trim().toLowerCase();
+      const $goBtn = document.getElementById('goBtn');
+      const email = (document.getElementById('email').value||"").trim().toLowerCase();
       if(!email || !email.includes('@')){ setStatus('Ingresá un correo válido.'); return; }
-      lastEmail = email;
+      lastEmail=email;
 
-      disable($goBtn,true);
-      setStatus('Chequeando estado…', true);
+      if(!CHECK_ENDPOINT || CHECK_ENDPOINT.startsWith("PON_AQUI")) {
+        // Si no configuraste checker, solo mostramos popup
+        showModal(); return;
+      }
+
+      disable($goBtn,true); setStatus('Chequeando estado…', true);
       try{
         const data = await checkStatus(email);
         if(data.ok && data.has_url){
           setStatus('Listo, entrando…', true);
           window.location.href = `dashboardv2.html?email=${encodeURIComponent(email)}`;
         }else{
-          setStatus('Tu base está en proceso. Te avisamos acá.', false);
+          setStatus('Tu base está en proceso. Te avisamos acá.');
           showModal(); startPolling();
         }
-      }catch(err){
+      }catch(_){
         setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
         showModal(); startPolling();
       }finally{
@@ -212,30 +196,57 @@
       }
     });
 
-    $close.addEventListener('click', ()=>{ stopPolling(); hideModal(); setStatus('Listo para intentar de nuevo.'); });
+    function startPolling(){
+      stopPolling();
+      pollTimer=setInterval(async ()=>{
+        try{
+          const data = await checkStatus(lastEmail);
+          if(data.ok && data.has_url){
+            stopPolling(); hideModal();
+            window.location.href = `dashboardv2.html?email=${encodeURIComponent(lastEmail)}`;
+          }
+        }catch(_){/* noop */}
+      }, POLL_MS);
+    }
+    function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
 
-    $retry.addEventListener('click', async ()=>{
-      if(!lastEmail) return;
-      const original = $retry.textContent;
-      $retry.innerHTML = `Reintentando <span class="spinner"></span>`;
-      disable($retry,true);
+    // Botones del modal
+    document.getElementById('closeModal').addEventListener('click', ()=>{
+      stopPolling(); hideModal(); setStatus('Listo para intentar de nuevo.');
+    });
+    document.getElementById('retryBtn').addEventListener('click', async ()=>{
+      if(!lastEmail) return; // si vino desde el Form sin email, no hay reintento
+      const $btn = document.getElementById('retryBtn');
+      const original = $btn.textContent;
+      $btn.innerHTML = `Reintentando <span class="spinner"></span>`;
+      disable($btn,true);
       try{
         const data = await checkStatus(lastEmail);
-        if(data.ok && data.has_url){
-          stopPolling(); hideModal();
-          window.location.href = `dashboardv2.html?email=${encodeURIComponent(lastEmail)}`;
-        }
-      }catch(_e){ /* noop */ }
-      finally{
-        $retry.textContent = original;
-        disable($retry,false);
-      }
+        if(data.ok && data.has_url){ stopPolling(); hideModal(); window.location.href=`dashboardv2.html?email=${encodeURIComponent(lastEmail)}`; }
+      }catch(_){}
+      finally{ $btn.textContent = original; disable($btn,false); }
     });
 
-    // Enter para enviar
+    // 🚀 NUEVO: modo “forzar popup” desde el Google Form
+    // - Si la URL trae ?await=1 → mostramos el popup apenas carga, sin verificar nada.
+    // - Si también viene ?email=, lo prellenamos y habilitamos polling (opcional).
+    (function boot(){
+      const force = qs('await');
+      const pre = qs('email');
+      if (pre) document.getElementById('email').value = pre;
+      if (force === '1') {
+        showModal();
+        if (pre && CHECK_ENDPOINT && !CHECK_ENDPOINT.startsWith("PON_AQUI")){
+          lastEmail = pre.toLowerCase();
+          startPolling(); // si llegó con email, de una hacemos polling
+        }
+      }
+    })();
+
+    // Enter directo
     document.addEventListener('keydown', (e)=>{
-      if(e.key === 'Enter' && document.activeElement === $email){
-        e.preventDefault(); $goBtn.click();
+      if(e.key === 'Enter' && document.activeElement === document.getElementById('email')){
+        e.preventDefault(); document.getElementById('goBtn').click();
       }
     });
   </script>
