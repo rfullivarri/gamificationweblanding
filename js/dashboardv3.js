@@ -1,51 +1,53 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // Spinner helpers
+  // Spinner
   const overlay = document.getElementById("spinner-overlay");
-  const showSpinner = () => { if (overlay) overlay.style.display = "flex"; };
-  const hideSpinner = () => { if (overlay) overlay.style.display = "none"; };
+  const showSpinner = () => overlay && (overlay.style.display = "flex");
+  const hideSpinner = () => overlay && (overlay.style.display = "none");
 
-  showSpinner(); // ✅ visible antes de cualquier fetch/pintado
+  showSpinner(); // que se vea antes de cualquier fetch
 
   try {
+    // 1) email
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
-    if (!email) {
-      alert("No se proporcionó un correo electrónico.");
-      return;
+    if (!email) { 
+      alert("No se proporcionó un correo electrónico."); 
+      return; 
     }
 
+    // 2) fetch datos
     const response = await fetch(
       `https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec?email=${encodeURIComponent(email)}`
     );
     const data = await response.json();
 
-    // ⬇️ Llamá tus funciones de carga pasando 'data'
+    // 3) ENLACES
+    const editBbdd = document.getElementById("edit-bbdd");
+    const dailyQuest = document.getElementById("daily-quest");
+    const editFormEl = document.getElementById("edit-form");
+    if (editBbdd)   editBbdd.href   = data.bbdd_editor_url   || "#";
+    if (dailyQuest) dailyQuest.href = data.daily_form_url     || "#";
+    if (editFormEl) editFormEl.href = data.daily_form_edit_url|| "#";
+
+    // 4) WARNING
+    if (data.estado !== "PROCESADO ✅") {
+      const warningContainer = document.getElementById("journey-warning");
+      if (warningContainer) warningContainer.style.display = "block";
+    }
+
+    // 5) Tu carga visual (si tenés estas funciones, pásales data)
     await cargarAvatar(data);
     await cargarRadarChart(data);
     await cargarDailyCultivation(data);
     await cargarEmotionChart(data);
     // ...lo que siga
+
   } catch (err) {
     console.error("Error cargando datos del dashboard:", err);
   } finally {
-    hideSpinner(); // ✅ se oculta cuando todo terminó
+    hideSpinner(); // siempre se oculta al final
   }
 });
-
-// Ejecutar la carga de datos al iniciar
-document.addEventListener("DOMContentLoaded", cargarDatosDashboard);
-
-  // ENLACES
-  document.getElementById("edit-bbdd").href = data.bbdd_editor_url || "#";
-  document.getElementById("daily-quest").href = data.daily_form_url || "#";
-  const editFormEl = document.getElementById("edit-form");
-  if (editFormEl) editFormEl.href = data.daily_form_edit_url || "#";
-
-  // WARNING SIN PROCESAR
-  if (data.estado !== "PROCESADO ✅") {
-    const warningContainer = document.getElementById("journey-warning");
-    if (warningContainer) warningContainer.style.display = "block";
-  }
 
   // AVATAR
   const avatarURL = data.avatar_url || "";
