@@ -35,6 +35,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (warningContainer) warningContainer.style.display = "block";
     }
 
+    // 4.1) CONFIRMAR BBDD
+    if (data.confirmacionbbdd !== "SI") {
+      const bbddWarning = document.getElementById("bbdd-warning");
+      if (bbddWarning) bbddWarning.style.display = "block";
+    }
+
 
     // AVATAR
     const avatarURL = data.avatar_url || "";
