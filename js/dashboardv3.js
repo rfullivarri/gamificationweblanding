@@ -22,12 +22,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await response.json();
 
     // 3) ENLACES
+    //    a) Base que viene del WebApp (aceptamos dos nombres de campo)
+    const editorBase = data.bbdd_editor_url || data["bbdd editor url"] || "";
+    const editorURL  = editorBase ? new URL(editorBase) : null;
+    if (editorURL) editorURL.searchParams.set("email", email); // << agregamos ?email=
+
+    //    b) Setear el botón clásico por id (como ya tenías)
     const editBbdd = document.getElementById("edit-bbdd");
+    if (editBbdd) editBbdd.href = editorURL ? editorURL.toString() : "#";
+
+    //    c) Y además TODOS los links marcados con data-link="editar-base"
+    document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
+      const finalURL = editorURL ? editorURL.toString() : "#";
+      a.setAttribute("href", finalURL);
+      // Forzamos navegación en la misma pestaña (a prueba de handlers/caches)
+      a.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        window.location.href = finalURL;
+      });
+    });
+
+    //    d) Resto de enlaces como ya tenías
     const dailyQuest = document.getElementById("daily-quest");
     const editFormEl = document.getElementById("edit-form");
-    if (editBbdd)   editBbdd.href   = data.bbdd_editor_url   || "#";
-    if (dailyQuest) dailyQuest.href = data.daily_form_url     || "#";
-    if (editFormEl) editFormEl.href = data.daily_form_edit_url|| "#";
+    if (dailyQuest) dailyQuest.href = data.daily_form_url      || "#";
+    if (editFormEl) editFormEl.href = data.daily_form_edit_url || "#";
 
     // 4) WARNING
     if (data.estado !== "PROCESADO ✅") {
@@ -40,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       const bbddWarning = document.getElementById("bbdd-warning");
       if (bbddWarning) bbddWarning.style.display = "block";
     }
-
 
     // AVATAR
     const avatarURL = data.avatar_url || "";
