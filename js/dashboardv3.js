@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const fill = el('div','pc-progress-fill');
         fill.style.width = pct + '%';
     
-        const labelText = `${_now}/${_max} • ${tier}×/sem`;
+        const labelText = `${_now}/${_max}`;
         const label = el('div','pc-progress-label', esc(labelText));
     
         if (_now >= _max && _max > 0) {
@@ -166,7 +166,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Lista compacta
         const list = el('div','pc-list');
         list.dataset.list = name.toLowerCase();
-        list.appendChild(el('div','pc-row pc-label','<div>Tarea</div><div class="pc-xp">XP</div><div class="pc-right">Semanal</div>'));
+        list.appendChild(el(
+          'div',
+          'pc-row pc-label',
+          `<div>Tarea</div><div class="pc-xp">XP</div><div class="pc-right">Semanal (${tier}×/sem)</div>`
+        ));
     
         const rest = items
           .filter(x=>!top3.includes(x))
