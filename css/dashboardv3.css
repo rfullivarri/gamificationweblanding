@@ -164,3 +164,151 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ===============================
+   DOPAMINE PILLAR CARD (namespaced)
+   Pegar al final de css/dashboardv3.css
+   =============================== */
+
+:root{
+  /* Hereda tu dark theme; ajusto solo acentos */
+  --pc-panel: #14182a;
+  --pc-panel-2: #101326;
+  --pc-text:  #eaf0ff;
+  --pc-muted: #9aa4c7;
+  --pc-border: rgba(255,255,255,.08);
+  --pc-border-2: rgba(255,255,255,.06);
+  --pc-chip: #1b2140;
+
+  /* acentos alineados a tu radar/line chart */
+  --pc-accent: #B17EFF;     /* violeta */
+  --pc-amber:  #ffcf5a;     /* XP spark */
+  --pc-blue:   #4aa8ff;     /* “Max” */
+  --pc-pink:   #ff6ec7;     /* “Ahora” */
+  --pc-orange: #ffb86b;     /* fuego xN */
+}
+
+/* contenedor raíz en la columna derecha */
+.pc-card {
+  background: linear-gradient(180deg,var(--pc-panel),var(--pc-panel-2));
+  border: 1px solid var(--pc-border);
+  border-radius: 16px;
+  padding: 12px;
+  color: var(--pc-text);
+  font-family: 'Rubik', system-ui, -apple-system, Segoe UI, Roboto, Arial;
+  margin-top: 16px;
+}
+
+/* tipografía local y utilitarios */
+.pc { color: var(--pc-text); }
+.pc .pc-muted { color: var(--pc-muted); }
+
+/* topbar: tabs + info */
+.pc .pc-topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;
+}
+.pc .pc-tabs{ display:flex; gap:6px; }
+.pc .pc-tab{
+  appearance:none; border:none; cursor:pointer;
+  background:#1a2042; color:#dbe2ff;
+  padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px;
+  border:1px solid var(--pc-border);
+  transition:transform .08s ease, box-shadow .08s ease;
+}
+.pc .pc-tab:hover{ transform:translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.25); }
+.pc .pc-tab.pc-active{
+  background:linear-gradient(135deg,#232a57,#1a2042);
+  outline:2px solid rgba(255,255,255,.06);
+}
+
+/* tooltip */
+.pc .pc-info{ position:relative; }
+.pc .pc-info-btn{
+  width:26px;height:26px;display:grid;place-items:center;border-radius:8px;
+  background:#1a2042;border:1px solid rgba(255,255,255,.10); cursor:pointer;
+}
+.pc .pc-info-bubble{
+  position:absolute; right:0; top:30px; width:min(340px,80vw);
+  background:#121733; border:1px solid rgba(255,255,255,.12);
+  border-radius:10px; padding:10px 12px; font-size:12px; color:#dfe5ff; line-height:1.25;
+  box-shadow:0 10px 24px rgba(0,0,0,.35); opacity:0; transform:translateY(-6px);
+  pointer-events:none; transition:.18s;
+}
+.pc .pc-info:hover .pc-info-bubble{ opacity:1; transform:translateY(0); pointer-events:auto; }
+
+/* secciones (cambia con tabs) */
+.pc .pc-section{ display:none; }
+.pc .pc-section.pc-active{ display:block; }
+
+/* título “tareas con racha” */
+.pc .pc-h4{
+  margin:10px 4px 6px; font-size:13px; color:#ffd9a1;
+  font-weight:800; letter-spacing:.3px;
+}
+
+/* Top‑3 cards */
+.pc .pc-top3{ display:grid; grid-template-columns:1fr; gap:8px; }
+.pc .pc-tcard{
+  position:relative; padding:10px; border-radius:12px;
+  background:rgba(255,255,255,.03); border:1px solid var(--pc-border-2);
+}
+.pc .pc-thead{ position:absolute; right:8px; top:8px; display:flex; flex-direction:column; align-items:center; }
+.pc .pc-fire{ font-size:18px; filter:drop-shadow(0 0 6px rgba(255,150,80,.6)); }
+.pc .pc-streak{ margin-top:2px; font-weight:900; font-size:12px; color:var(--pc-orange); } /* xN */
+
+.pc .pc-tname{ font-weight:800; font-size:14px; margin:0 0 4px; padding-right:48px; }
+.pc .pc-row-mini{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.pc .pc-chips{ display:flex; gap:6px; flex-wrap:wrap; }
+.pc .pc-chip{
+  background:var(--pc-chip); color:#dbe2ff; border:1px solid var(--pc-border-2);
+  padding:4px 8px; border-radius:999px; font-weight:700; font-size:11px; display:inline-flex; gap:6px; align-items:center;
+}
+.pc .pc-chip.pc-xp{ background:linear-gradient(135deg,#1b2140,#1f2750); }
+.pc .pc-spark{ width:7px;height:7px;border-radius:50%;background:var(--pc-amber);box-shadow:0 0 8px var(--pc-amber); }
+
+/* badges “Max / Ahora” */
+.pc .pc-badges{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+.pc .pc-badge{
+  padding:4px 8px; border-radius:8px; font-size:11px; font-weight:900;
+  border:1px solid var(--pc-border); letter-spacing:.2px; white-space:nowrap;
+}
+.pc .pc-badge.pc-max{ background:rgba(74,168,255,.16);  color:#cfe6ff; }  /* azul */
+.pc .pc-badge.pc-now{ background:rgba(255,110,199,.20); color:#ffe2f3; }  /* rosa */
+
+/* filtro + lista */
+.pc .pc-filter{
+  width:100%; margin:10px 0 6px; padding:8px 10px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.10); background:#121733; color:#e8eeff; font-size:13px;
+}
+.pc .pc-list{
+  border:1px solid var(--pc-border-2); border-radius:12px; overflow:hidden;
+  background:linear-gradient(180deg,#11162b,#0f1430);
+}
+.pc .pc-row{
+  display:grid; grid-template-columns: 1fr 70px 120px; gap:6px; align-items:center;
+  padding:9px 10px; border-top:1px solid rgba(255,255,255,.05); font-size:13px;
+}
+.pc .pc-row.pc-label{ text-transform:uppercase; font-size:11px; letter-spacing:.4px; opacity:.7; }
+.pc .pc-row:first-child{ border-top:none; }
+.pc .pc-xp{ font-weight:800; text-align:right; width:100%; }
+.pc .pc-right{ display:flex; justify-content:flex-end; }
+
+/* bloque apilado Max/Ahora (en la lista) */
+.pc .pc-stack{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+.pc .pc-mini{
+  padding:3px 6px; border-radius:7px; font-size:10px; font-weight:900; border:1px solid var(--pc-border);
+}
+.pc .pc-mini.pc-max{ background:rgba(74,168,255,.16); color:#cfe6ff; }
+.pc .pc-mini.pc-now{ background:rgba(255,110,199,.20); color:#ffe2f3; }
+
+/* spacing respecto a otras cards de la columna derecha */
+.right-column .pc-card{ margin-top:16px; }
+
+/* Responsive en pantallas angostas (por si usás 1 columna en mobile) */
+@media (max-width: 860px){
+  .pc .pc-row{ grid-template-columns: 1fr 60px 110px; }
+}
+@media (max-width: 560px){
+  .pc .pc-row{ grid-template-columns: 1fr 56px 1fr; }
+  .pc .pc-right{ justify-content:flex-start; }
+}
