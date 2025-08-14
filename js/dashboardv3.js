@@ -60,11 +60,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (bbddWarning) bbddWarning.style.display = "block";
     }
 
-    // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE
-    // ===== Pillar Card (engine) – Paso 2: tier único por modo + barra de progreso =====
+    // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE (v2 con lógica actual/max)
     const PCARD = (() => {
-      // Un solo umbral/tier por modo
-      const MODE_TIER = { LOW:1, CHILL:2, FLOW:3, EVOL:4 };
+      const MODE_TIER = { LOW: 1, CHILL: 2, FLOW: 3, EVOL: 4 };
       const PILLAR_MAP = { 'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul' };
     
       const esc = (s='') => s.toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
@@ -83,11 +81,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
       }
     
-      // Componente: barra de progreso semanal (tier activo)
+      // Barra de progreso semanal (comparación actual vs máximo)
       function progressBar(now, max, tier){
         let _now = Math.max(0, Number(now) || 0);
-        let _max = Math.max(Number(max) || 0, _now, 1); // evita 0 y nunca menor que now
-        const pct = Math.max(0, Math.min(100, Math.round((_now/_max)*100)));
+        let _max = Math.max(Number(max) || 0, 1);
+    
+        // Si no hay máximo registrado, usar default del modo
+        if (_max <= 1 && _now > 0) _max = Math.max(_now, tier);
+    
+        // Evitar que la barra se rompa si actual supera máximo → actualizar
+        if (_now > _max) _max = _now;
+    
+        const pct = Math.round((_now/_max)*100);
     
         const wrap = el('div','pc-progress');
         const fill = el('div','pc-progress-fill');
@@ -96,7 +101,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const labelText = `${_now}/${_max} • ${tier}×/sem`;
         const label = el('div','pc-progress-label', esc(labelText));
     
-        // Trofeo si igualó/superó récord
         if (_now >= _max && _max > 0) {
           const trophy = el('span','pc-progress-trophy','🏆');
           label.appendChild(trophy);
@@ -115,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         sec.appendChild(el('div','pc-h4','🔥 Tareas con racha de constancia'));
     
-        // Top‑3 (streak > 0)
+        // Top-3 con fuego
         const top3Box = el('div','pc-top3');
         const withStreak = items.filter(t => t.streak > 0).sort((a,b)=>b.streak-a.streak);
         const top3 = withStreak.slice(0,3);
@@ -123,14 +127,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         top3.forEach(t=>{
           const c = el('div','pc-tcard');
           c.appendChild(el('div','pc-thead','<span class="pc-fire">🔥</span><span class="pc-streak">x'+t.streak+'</span>'));
+    
+          // Chips XP + Stat en línea
+          const chips = el('div','pc-chips-inline');
+          chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
+          if(t.stat) chips.appendChild(el('span','pc-chip','Stat: ' + esc(t.stat)));
+          c.appendChild(chips);
+    
+          // Nombre tarea
           c.appendChild(el('div','pc-tname',esc(t.task)));
     
-          const chips = el('div','pc-chips');
-          chips.appendChild(el('span','pc-chip pc-xp','<span class="pc-spark"></span> XP +' + t.xp));
-          if(t.stat) chips.appendChild(el('span','pc-chip','Stat: ' + esc(t.stat)));
-          c.appendChild(el('div','pc-row-mini')).appendChild(chips);
-    
-          // Barra por tier activo (reemplaza badges Max/Ahora)
+          // Barra abajo del fuego
           const now = t.weeklyNow[tier] || 0;
           const mx  = t.weeklyMax[tier] || 0;
           c.appendChild(progressBar(now, mx, tier));
@@ -139,7 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         if (top3.length) sec.appendChild(top3Box);
     
-        // Otras con racha que no entraron al top‑3 (chips compactos)
+        // Otras tareas en racha
         const leftovers = withStreak.slice(3);
         if (leftovers.length){
           const more = el('div','pc-morestreak');
@@ -156,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         input.dataset.filter = name.toLowerCase();
         sec.appendChild(input);
     
-        // Lista compacta (una sola tier: barra)
+        // Lista compacta
         const list = el('div','pc-list');
         list.dataset.list = name.toLowerCase();
         list.appendChild(el('div','pc-row pc-label','<div>Tarea</div><div class="pc-xp">XP</div><div class="pc-right">Semanal</div>'));
@@ -170,7 +177,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           const now = t.weeklyNow[tier] || 0;
           const mx  = t.weeklyMax[tier] || 0;
     
-          // columnas: nombre | XP | barra
           const col1 = el('div',null,esc(t.task));
           const col2 = el('div','pc-xp','+'+t.xp);
           const col3 = el('div','pc-right');
@@ -184,7 +190,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         sec.appendChild(list);
     
-        // handler filtro
         input.addEventListener('input', ()=>{
           const q = input.value.toLowerCase();
           list.querySelectorAll('.pc-row:not(.pc-label)').forEach(r=>{
@@ -199,7 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       function render(rootEl, bbddRaw, modeInput){
         const root = (typeof rootEl==='string') ? document.querySelector(rootEl) : rootEl;
         if(!root) return;
-        root.classList.add('pc'); // activa tipografía/colores namespaced
+        root.classList.add('pc');
         root.innerHTML = '';
     
         const mode = (modeInput || 'FLOW').toUpperCase();
@@ -207,7 +212,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const groups = { Body:[], Mind:[], Soul:[] };
         rows.forEach(x => groups[x.pillar]?.push(x));
     
-        // topbar
         const top = el('div','pc-topbar');
         const tabs = el('div','pc-tabs');
         ['Body','Mind','Soul'].forEach((p,i)=>{
@@ -225,9 +229,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="pc-info-btn">ℹ️</div>
           <div class="pc-info-bubble">
             <b>Cómo leer:</b><br/>
-            • 🔥 + <b>xN</b> = días de racha real (Col. I).<br/>
-            • <b>XP</b> = experiencia total de la tarea (Col. H).<br/>
-            • <b>Barra semanal</b>: progreso <i>Ahora / Máx histórico</i> para el modo activo (<u>${mode}</u>).<br/>
+            • 🔥 + <b>xN</b> = días de racha real.<br/>
+            • <b>XP</b> = experiencia total.<br/>
+            • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
+            • Si no hay máximo, usa valor por defecto del modo.<br/>
             • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
           </div>`;
         const info = el('div','pc-info', infoHTML);
