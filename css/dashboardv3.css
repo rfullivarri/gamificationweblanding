@@ -35,15 +35,20 @@ header{
 
 /* CONTENEDOR */
 .dashboard-content{padding:10px 18px}
+
+/* Layout anti-solapamiento:
+   - columnas en flex columna con gap vertical
+   - cada card empuja a la siguiente */
 .dashboard-columns{
   display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;
 }
 .left-column,.center-column,.right-column{
   flex:1 1 300px;min-width:300px;padding:10px;box-sizing:border-box;
+  display:flex;flex-direction:column;gap:20px;          /* 👈 evita que se pisen */
 }
 
 /* AVATAR */
-.avatar-box{margin-bottom:10px;display:flex;justify-content:center}
+.avatar-box{margin-bottom:0;display:flex;justify-content:center}
 .avatar-img{
   width:220px;aspect-ratio:9/16;object-fit:cover;border-radius:12px;
   border:1px solid rgba(255,255,255,.14);box-shadow:0 10px 30px rgba(0,0,0,.35);
@@ -55,6 +60,7 @@ header{
   background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
   border:1px solid rgba(255,255,255,.14);
   border-radius:12px;padding:14px;box-shadow:0 16px 48px rgba(0,0,0,.3);
+  position:relative;overflow:hidden;                      /* 👈 por si hay elementos internos absolutos */
 }
 
 /* BARRAS DE ENERGÍA */
@@ -66,8 +72,11 @@ header{
 
 /* RADAR */
 #radarChartContainer{
-  width:clamp(360px,100%,520px);aspect-ratio:1/1;margin:0 auto;
-  background:#2c2c3f;border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:center;
+  width:clamp(360px,100%,520px);
+  aspect-ratio:1/1;
+  margin:0 auto;
+  background:#2c2c3f;border-radius:10px;padding:10px;
+  display:flex;align-items:center;justify-content:center;
 }
 canvas{width:100% !important;height:auto !important;border-radius:10px}
 
@@ -137,7 +146,6 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   #radarChartContainer{width:100%}
 }
 
-
 #spinner-overlay {
   position: fixed;
   top: 0;
@@ -150,7 +158,6 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   align-items: center;
   z-index: 9999;
 }
-
 .spinner {
   border: 8px solid rgba(255, 255, 255, 0.2);
   border-top: 8px solid #7d3cff;
@@ -159,19 +166,14 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   height: 60px;
   animation: spin 1s linear infinite;
 }
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
 
 /* ===============================
    DOPAMINE PILLAR CARD (namespaced)
-   Pegar al final de css/dashboardv3.css
    =============================== */
 
 :root{
-  /* Hereda tu dark theme; ajusto solo acentos */
+  /* Acentos PCARD */
   --pc-panel: #14182a;
   --pc-panel-2: #101326;
   --pc-text:  #eaf0ff;
@@ -179,8 +181,6 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   --pc-border: rgba(255,255,255,.08);
   --pc-border-2: rgba(255,255,255,.06);
   --pc-chip: #1b2140;
-
-  /* acentos alineados a tu radar/line chart */
   --pc-accent: #B17EFF;     /* violeta */
   --pc-amber:  #ffcf5a;     /* XP spark */
   --pc-blue:   #4aa8ff;     /* “Max” */
@@ -188,15 +188,13 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   --pc-orange: #ffb86b;     /* fuego xN */
 }
 
-/* contenedor raíz en la columna derecha */
-.pc-card {
-  background: linear-gradient(180deg,var(--pc-panel),var(--pc-panel-2));
-  border: 1px solid var(--pc-border);
-  border-radius: 16px;
-  padding: 12px;
-  color: var(--pc-text);
-  font-family: 'Rubik', system-ui, -apple-system, Segoe UI, Roboto, Arial;
-  margin-top: 16px;
+/* Contenedor raíz de la card de constancias – igual que tus otras cards */
+.pc-card{
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02)); /* 👈 mismo fondo */
+  border:1px solid rgba(255,255,255,.14);                                         /* 👈 mismo borde */
+  border-radius:12px; padding:14px; box-shadow:0 16px 48px rgba(0,0,0,.3);        /* 👈 misma sombra */
+  color:var(--pc-text); font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  position:relative; overflow:hidden; margin-top:0;
 }
 
 /* tipografía local y utilitarios */
@@ -266,14 +264,14 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .pc .pc-chip.pc-xp{ background:linear-gradient(135deg,#1b2140,#1f2750); }
 .pc .pc-spark{ width:7px;height:7px;border-radius:50%;background:var(--pc-amber);box-shadow:0 0 8px var(--pc-amber); }
 
-/* badges “Max / Ahora” */
+/* badges (se mantienen por ahora; en el paso 2 los reemplazamos por barra) */
 .pc .pc-badges{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
 .pc .pc-badge{
   padding:4px 8px; border-radius:8px; font-size:11px; font-weight:900;
   border:1px solid var(--pc-border); letter-spacing:.2px; white-space:nowrap;
 }
-.pc .pc-badge.pc-max{ background:rgba(74,168,255,.16);  color:#cfe6ff; }  /* azul */
-.pc .pc-badge.pc-now{ background:rgba(255,110,199,.20); color:#ffe2f3; }  /* rosa */
+.pc .pc-badge.pc-max{ background:rgba(74,168,255,.16);  color:#cfe6ff; }
+.pc .pc-badge.pc-now{ background:rgba(255,110,199,.20); color:#ffe2f3; }
 
 /* filtro + lista */
 .pc .pc-filter{
@@ -293,7 +291,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .pc .pc-xp{ font-weight:800; text-align:right; width:100%; }
 .pc .pc-right{ display:flex; justify-content:flex-end; }
 
-/* bloque apilado Max/Ahora (en la lista) */
+/* bloque apilado Max/Ahora (temporal; paso 2 lo reemplazamos por barra) */
 .pc .pc-stack{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
 .pc .pc-mini{
   padding:3px 6px; border-radius:7px; font-size:10px; font-weight:900; border:1px solid var(--pc-border);
@@ -301,10 +299,10 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .pc .pc-mini.pc-max{ background:rgba(74,168,255,.16); color:#cfe6ff; }
 .pc .pc-mini.pc-now{ background:rgba(255,110,199,.20); color:#ffe2f3; }
 
-/* spacing respecto a otras cards de la columna derecha */
-.right-column .pc-card{ margin-top:16px; }
+/* spacing respecto a otras cards */
+.right-column .pc-card{ margin-top:0; }  /* la columna ya tiene gap */
 
-/* Responsive en pantallas angostas (por si usás 1 columna en mobile) */
+/* Responsive */
 @media (max-width: 860px){
   .pc .pc-row{ grid-template-columns: 1fr 60px 110px; }
 }
