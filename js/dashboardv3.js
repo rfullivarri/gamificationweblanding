@@ -201,9 +201,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // === Pillar Card render (columna 3) ===
     try {
-      const root = document.getElementById('pillar-card-root'); // <-- asegurate de tener este div en tu HTML
+      const root = document.getElementById('pillar-card-root') || document.getElementById('pillarCard'); // fallback por si quedó el id viejo
       const gameMode = (data.game_mode || window.gameMode || 'FLOW').toUpperCase();
-      if (root && Array.isArray(data.bbdd)) {
+    
+      console.log('[PCARD] root:', !!root,
+                  '| bbdd array?', Array.isArray(data.bbdd),
+                  '| len:', data.bbdd?.length,
+                  '| mode:', gameMode);
+    
+      if (root && Array.isArray(data.bbdd) && data.bbdd.length) {
         PCARD.render(root, data.bbdd, gameMode);
       } else {
         console.warn('PillarCard: faltan root o data.bbdd');
