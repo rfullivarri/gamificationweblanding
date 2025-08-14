@@ -16,13 +16,13 @@
   <div id="spinner-overlay">
     <div class="spinner"></div>
   </div>
+
   <!-- HEADER -->
   <header>
     <div class="logo">🎮 Gamification Life Journey</div>
     <div class="menu-toggle" id="menu-toggle">☰</div>
   </header>
  
-
   <!-- MENÚ HAMBURGUESA -->
   <nav id="dashboard-menu">
     <ul>
@@ -61,6 +61,7 @@
             <p class="warning-text">⚠️ Te falta completar tu formulario inicial para comenzar tu Journey.</p>
             <a href="https://forms.gle/kv8wzSE7sgKuPkgt6" target="_blank" class="dashboard-button">Realizar formulario</a>
           </div>
+
           <!-- AVISO: Falta confirmar BBDD -->
           <div id="bbdd-warning" class="warning-container" style="display:none;">
             <p class="warning-text">⚙️ Te falta confirmar tu base de datos. Abrí el menú (☰) → “Editar Base”, revisala y presioná “Confirmar Edicion”.</p>
@@ -94,6 +95,10 @@
             <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
             <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
           </div>
+
+          <!-- 🔥 DOPAMINE PILLAR CARD (columna 3) -->
+          <div id="pillar-card-root" class="pc-card"></div>
+          <!-- Fin bloque constancia -->
 
           <div class="emotion-box">
             <h3>💗 Emotion Chart</h3>
@@ -141,60 +146,21 @@
   
   <!-- Tu JS al final -->
   <script src="js/dashboardv3.js?v=3"></script>
+
+  <!-- (Opcional) helper para mantener email en links marcados -->
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // 1) Resolver email
-    const url = new URL(location.href);
-    let email = (url.searchParams.get('email') || '').trim().toLowerCase();
-  
-    if (!email) {
-      email = (localStorage.getItem('gj_email') || '').trim().toLowerCase();
-    }
-  
-    // Fallback solo para pruebas: pedí el mail 1 sola vez y guardalo
-    if (!email) {
-      const maybe = window.prompt("Ingresá tu email para continuar (se guarda una sola vez):", "");
-      if (maybe) {
-        email = maybe.trim().toLowerCase();
-        localStorage.setItem('gj_email', email);
-        // Refrescá la URL con ?email= para que quede persistente:
-        const u = new URL(location.href);
+    document.addEventListener('DOMContentLoaded', () => {
+      const url = new URL(location.href);
+      let email = (url.searchParams.get('email') || localStorage.getItem('gj_email') || '').trim().toLowerCase();
+      if (!email) return;
+
+      // Mantener email en navegaciones internas marcadas
+      document.querySelectorAll('a[data-keep-email]').forEach(a => {
+        const u = new URL(a.getAttribute('href'), location.origin);
         u.searchParams.set('email', email);
-        location.replace(u.toString());
-        return; // se recarga con el email
-      }
-    } else {
-      // Guardá el email resuelto
-      localStorage.setItem('gj_email', email);
-    }
-  
-    if (!email) {
-      console.warn("⚠️ No hay email (ni query, ni localStorage, ni prompt).");
-      return; // No seteamos links si no tenemos email
-    }
-  
-    // 2) Construir links con email
-    const streamlitBase = data["bbdd_editor_url"];
-    const qs = '?email=' + encodeURIComponent(email);
-  
-    // Editar Base → todos los que tengan data-link="editar-base"
-    document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
-      a.setAttribute('href', `${streamlitBase}${qs}`);
+        a.setAttribute('href', u.toString());
+      });
     });
-  
-    // (Opcional) Mantener email en navegaciones internas marcadas
-    document.querySelectorAll('a[data-keep-email]').forEach(a => {
-      const u = new URL(a.getAttribute('href'), location.origin);
-      u.searchParams.set('email', email);
-      a.setAttribute('href', u.toString());
-    });
-  
-    // 3) Logs de verificación
-    console.log("✅ Email resuelto:", email);
-    document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
-      console.log("➡️ Href Editar Base:", a.href);
-    });
-  });
-</script>
+  </script>
 </body>
 </html>
