@@ -60,6 +60,162 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (bbddWarning) bbddWarning.style.display = "block";
     }
 
+    // BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE
+    // ===== Pillar Card (engine) – NO TOCAR TUS COSAS =====
+    const PCARD = (() => {
+      const MODE_THRESH = { LOW:[1,2], CHILL:[2,3], FLOW:[2,3], EVOL:[3,4] };
+      const PILLAR_MAP = { 'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul' };
+    
+      function pcEsc(s=''){return s.toString().replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+      function pcEl(tag, cls, html){const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n;}
+    
+      function normalizeRow(r){
+        return {
+          pillar: PILLAR_MAP[(r.pilar||'').trim()] || 'Body',
+          rasgo: r.rasgo || '',
+          stat:  r.stat  || '',
+          task:  r.task  || '',
+          xp:    Number(r.exp || 0),
+          streak:Number(r.constancia || 0),
+          weeklyMax:{1:+(r.c1s_m||0),2:+(r.c2s_m||0),3:+(r.c3s_m||0),4:+(r.c4s_m||0)},
+          weeklyNow:{1:+(r.c1s_ac||0),2:+(r.c2s_ac||0),3:+(r.c3s_ac||0),4:+(r.c4s_ac||0)}
+        };
+      }
+    
+      function buildSection(name, items, mode){
+        const [u1,u2] = MODE_THRESH[mode] || MODE_THRESH.FLOW;
+        const sec = pcEl('section','pc-section'+(name==='Body'?' pc-active':'')); 
+        sec.dataset.section = name.toLowerCase();
+    
+        sec.appendChild(pcEl('div','pc-h4','🔥 Tareas con racha de constancia'));
+    
+        // Top‑3 (por racha real)
+        const top3Box = pcEl('div','pc-top3');
+        const top3 = [...items].sort((a,b)=>b.streak-a.streak).slice(0,3);
+        top3.forEach(t=>{
+          const c = pcEl('div','pc-tcard');
+          c.appendChild(pcEl('div','pc-thead','<span class="pc-fire">🔥</span><span class="pc-streak">x'+t.streak+'</span>'));
+          c.appendChild(pcEl('div','pc-tname',pcEsc(t.task)));
+          const row = pcEl('div','pc-row-mini');
+          const chips = pcEl('div','pc-chips');
+          chips.appendChild(pcEl('span','pc-chip pc-xp','<span class="pc-spark"></span> XP +' + t.xp));
+          if(t.stat) chips.appendChild(pcEl('span','pc-chip','Stat: ' + pcEsc(t.stat)));
+          row.appendChild(chips); 
+          c.appendChild(row);
+    
+          const b = pcEl('div','pc-badges');
+          b.appendChild(pcEl('span','pc-badge pc-max',`Max ${u1}×/sem = ${t.weeklyMax[u1]||0}`));
+          b.appendChild(pcEl('span','pc-badge pc-now',`Ahora ${u1}×/sem = ${t.weeklyNow[u1]||0}`));
+          b.appendChild(pcEl('span','pc-badge pc-max',`Max ${u2}×/sem = ${t.weeklyMax[u2]||0}`));
+          b.appendChild(pcEl('span','pc-badge pc-now',`Ahora ${u2}×/sem = ${t.weeklyNow[u2]||0}`));
+          c.appendChild(b);
+          top3Box.appendChild(c);
+        });
+        sec.appendChild(top3Box);
+    
+        // Filtro
+        const input = pcEl('input','pc-filter');
+        input.placeholder = "Filtrar tareas… (ej. 'ayuno')";
+        input.dataset.filter = name.toLowerCase();
+        sec.appendChild(input);
+    
+        // Lista (resto de tareas, orden alfabético)
+        const list = pcEl('div','pc-list');
+        list.dataset.list = name.toLowerCase();
+        list.appendChild(pcEl('div','pc-row pc-label','<div>Tarea</div><div class="pc-xp">XP</div><div class="pc-right">Semanal</div>'));
+    
+        const rest = items.filter(x=>!top3.includes(x)).sort((a,b)=>a.task.localeCompare(b.task,'es'));
+        rest.forEach(t=>{
+          const row = pcEl('div','pc-row');
+          row.innerHTML = `
+            <div>${pcEsc(t.task)}</div>
+            <div class="pc-xp">+${t.xp}</div>
+            <div class="pc-right">
+              <div class="pc-stack">
+                <span class="pc-mini pc-max">Max ${u1}×/sem = ${t.weeklyMax[u1]||0}</span>
+                <span class="pc-mini pc-now">Ahora ${u1}×/sem = ${t.weeklyNow[u1]||0}</span>
+              </div>
+            </div>`;
+          // agrego segundo umbral apilado debajo (misma columna)
+          const extra = pcEl('div','pc-stack');
+          extra.innerHTML = `
+            <span class="pc-mini pc-max">Max ${u2}×/sem = ${t.weeklyMax[u2]||0}</span>
+            <span class="pc-mini pc-now">Ahora ${u2}×/sem = ${t.weeklyNow[u2]||0}</span>`;
+          const firstStack = row.lastElementChild.querySelector('.pc-stack');
+          const wrap = pcEl('div'); 
+          wrap.style.display='flex'; wrap.style.flexDirection='column'; wrap.style.alignItems='flex-end'; wrap.style.gap='4px';
+          wrap.appendChild(firstStack); wrap.appendChild(extra);
+          row.lastElementChild.replaceChildren(wrap);
+    
+          list.appendChild(row);
+        });
+        sec.appendChild(list);
+    
+        // handler filtro
+        input.addEventListener('input', ()=>{
+          const q = input.value.toLowerCase();
+          list.querySelectorAll('.pc-row:not(.pc-label)').forEach(r=>{
+            const name = r.firstElementChild.textContent.toLowerCase();
+            r.style.display = name.includes(q) ? '' : 'none';
+          });
+        });
+    
+        return sec;
+      }
+    
+      function render(rootEl, bbddRaw, modeInput){
+        const root = (typeof rootEl==='string') ? document.querySelector(rootEl) : rootEl;
+        if(!root) return;
+        root.classList.add('pc'); // activa tipografía/colores namespaced
+        root.innerHTML = '';
+    
+        const mode = (modeInput || 'FLOW').toUpperCase();
+        const rows = (Array.isArray(bbddRaw) ? bbddRaw : []).map(normalizeRow);
+        const groups = { Body:[], Mind:[], Soul:[] };
+        rows.forEach(x => groups[x.pillar]?.push(x));
+    
+        // topbar
+        const top = pcEl('div','pc-topbar');
+        const tabs = pcEl('div','pc-tabs');
+        ['Body','Mind','Soul'].forEach((p,i)=>{
+          const b = pcEl('button','pc-tab'+(i===0?' pc-active':''),(p==='Body'?'🫀 ':p==='Mind'?'🧠 ':'🏵️ ')+p);
+          b.dataset.tab = p.toLowerCase();
+          b.addEventListener('click', ()=>{
+            root.querySelectorAll('.pc-tab').forEach(x=>x.classList.remove('pc-active'));
+            b.classList.add('pc-active');
+            root.querySelectorAll('.pc-section').forEach(s=>s.classList.toggle('pc-active', s.dataset.section===b.dataset.tab));
+          });
+          tabs.appendChild(b);
+        });
+        const infoHTML = '<div class="pc-info-btn">ℹ️</div><div class="pc-info-bubble"><b>Cómo leer:</b><br/>• 🔥 + <b>xN</b> = días de racha real (col I) en Top‑3.<br/>• <b>XP</b> = experiencia total (col H).<br/>• <b>Max/Ahora</b>: ecuación por umbral (p.ej. 2×/sem = 5).<br/>• Game Mode: LOW (1,2) · CHILL/FLOW (2,3) · EVOL (3,4).</div>';
+        const info = pcEl('div','pc-info', infoHTML);
+        top.appendChild(tabs); top.appendChild(info); root.appendChild(top);
+    
+        root.appendChild(buildSection('Body', groups.Body||[], mode));
+        root.appendChild(buildSection('Mind', groups.Mind||[], mode));
+        root.appendChild(buildSection('Soul', groups.Soul||[], mode));
+      }
+    
+      return { render };
+    })();
+
+    // === Pillar Card render (columna 3) ===
+    try {
+      const root = document.getElementById('pillar-card-root'); // <-- asegurate de tener este div en tu HTML
+      const gameMode = (data.game_mode || window.gameMode || 'FLOW').toUpperCase();
+      if (root && Array.isArray(data.bbdd)) {
+        PCARD.render(root, data.bbdd, gameMode);
+      } else {
+        console.warn('PillarCard: faltan root o data.bbdd');
+      }
+    } catch (e) {
+      console.error('PillarCard error:', e);
+    }
+
+    
+    // AVATAR
+    const avatarURL = data.avatar_url || "";
+
     // AVATAR
     const avatarURL = data.avatar_url || "";
     const avatarImg = document.getElementById("avatar");
