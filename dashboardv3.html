@@ -142,39 +142,59 @@
   <!-- Tu JS al final -->
   <script src="js/dashboardv3.js?v=3"></script>
   <script>
-  (() => {
-    // 1) Resolver email (querystring > localStorage)
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1) Resolver email
     const url = new URL(location.href);
     let email = (url.searchParams.get('email') || '').trim().toLowerCase();
-    if (email) localStorage.setItem('gj_email', email);
-    if (!email) email = (localStorage.getItem('gj_email') || '').trim().toLowerCase();
   
-    // 2) Si no hay email, mostrar tu popup / bloquear navegación
     if (!email) {
-      console.warn('No hay email. Mostrar popup de “esperá el mail / registrate”.');
-      // TODO: acá disparás tu modal si querés.
-      return;
+      email = (localStorage.getItem('gj_email') || '').trim().toLowerCase();
     }
   
-    // 3) Construir enlaces con el email
+    // Fallback solo para pruebas: pedí el mail 1 sola vez y guardalo
+    if (!email) {
+      const maybe = window.prompt("Ingresá tu email para continuar (se guarda una sola vez):", "");
+      if (maybe) {
+        email = maybe.trim().toLowerCase();
+        localStorage.setItem('gj_email', email);
+        // Refrescá la URL con ?email= para que quede persistente:
+        const u = new URL(location.href);
+        u.searchParams.set('email', email);
+        location.replace(u.toString());
+        return; // se recarga con el email
+      }
+    } else {
+      // Guardá el email resuelto
+      localStorage.setItem('gj_email', email);
+    }
+  
+    if (!email) {
+      console.warn("⚠️ No hay email (ni query, ni localStorage, ni prompt).");
+      return; // No seteamos links si no tenemos email
+    }
+  
+    // 2) Construir links con email
     const streamlitBase = 'https://gamificationapp.streamlit.app';
     const qs = '?email=' + encodeURIComponent(email);
   
-    // Editar Base → Streamlit
+    // Editar Base → todos los que tengan data-link="editar-base"
     document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
       a.setAttribute('href', `${streamlitBase}${qs}`);
     });
   
-    // Ejemplos si querés setear otros links:
-    // document.querySelectorAll('[data-link="daily-quest"]').forEach(a => { a.href = 'URL_DE_TU_DAILY' + qs; });
-  
-    // 4) Mantener el email en todas las navegaciones internas del dashboard
-    document.querySelectorAll('a[href^="dashboard"]').forEach(a => {
+    // (Opcional) Mantener email en navegaciones internas marcadas
+    document.querySelectorAll('a[data-keep-email]').forEach(a => {
       const u = new URL(a.getAttribute('href'), location.origin);
       u.searchParams.set('email', email);
       a.setAttribute('href', u.toString());
     });
-  })();
-  </script>
+  
+    // 3) Logs de verificación
+    console.log("✅ Email resuelto:", email);
+    document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
+      console.log("➡️ Href Editar Base:", a.href);
+    });
+  });
+</script>
 </body>
 </html>
