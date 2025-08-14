@@ -174,7 +174,7 @@
     }
   
     // 2) Construir links con email
-    const streamlitBase = 'https://gameficationapp.streamlit.app';
+    const streamlitBase = data["bbdd_editor_url"];
     const qs = '?email=' + encodeURIComponent(email);
   
     // Editar Base → todos los que tengan data-link="editar-base"
