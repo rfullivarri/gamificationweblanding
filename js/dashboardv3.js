@@ -218,9 +218,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error('PillarCard error:', e);
     }
 
-    
-    // AVATAR
-    const avatarURL = data.avatar_url || "";
 
     // AVATAR
     const avatarURL = data.avatar_url || "";
