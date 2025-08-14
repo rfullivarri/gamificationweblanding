@@ -40,6 +40,13 @@
       <div class="dashboard-columns">
         <!-- IZQUIERDA -->
         <section class="left-column">
+          <div class="xp-box">
+            <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
+            <h3>🎯 Level: <span id="nivel-actual">0</span></h3>
+            <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
+            <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
+          </div>
+          
           <div class="avatar-box">
             <img id="avatar" class="avatar-img" src="" alt="Avatar">
           </div>
@@ -52,6 +59,16 @@
             <div class="progress-bar"><div id="bar-mood" class="bar-fill mood"></div></div>
             <p>Focus</p>
             <div class="progress-bar"><div id="bar-focus" class="bar-fill focus"></div></div>
+          </div>
+          <div class="daily-cultivation-section">
+            <div class="daily-cultivation-header">
+              <h3>🪴 Daily Cultivation</h3>
+              <label for="month-select">Mes:</label>
+              <select id="month-select"></select>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="xpChart"></canvas>
+            </div>
           </div>
         </section>
 
@@ -74,32 +91,6 @@
               <canvas id="radarChart"></canvas>
             </div>
           </div>
-
-          <div class="daily-cultivation-section">
-            <div class="daily-cultivation-header">
-              <h3>🪴 Daily Cultivation</h3>
-              <label for="month-select">Mes:</label>
-              <select id="month-select"></select>
-            </div>
-            <div class="chart-wrapper">
-              <canvas id="xpChart"></canvas>
-            </div>
-          </div>
-        </section>
-
-        <!-- DERECHA -->
-        <section class="right-column">
-          <div class="xp-box">
-            <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
-            <h3>🎯 Level: <span id="nivel-actual">0</span></h3>
-            <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
-            <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
-          </div>
-
-          <!-- 🔥 DOPAMINE PILLAR CARD (columna 3) -->
-          <div id="pillar-card-root" class="pc-card"></div>
-          <!-- Fin bloque constancia -->
-
           <div class="emotion-box">
             <h3>💗 Emotion Chart</h3>
             <div class="emotion-legend">
@@ -114,6 +105,13 @@
             <div id="emotionChart" class="emotion-chart-container"></div>
             <div id="emotion-destacada"></div>
           </div>
+        </section>
+
+        <!-- DERECHA -->
+        <section class="right-column">
+          <!-- 🔥 DOPAMINE PILLAR CARD (columna 3) -->
+          <div id="pillar-card-root" class="pc-card"></div>
+          <!-- Fin bloque constancia -->
 
           <div id="rewardsContainer"></div>
         </section>
