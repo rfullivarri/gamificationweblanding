@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (bbddWarning) bbddWarning.style.display = "block";
     }
 
-    // BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE
+    // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE
     // ===== Pillar Card (engine) – Paso 2: tier único por modo + barra de progreso =====
     const PCARD = (() => {
       // Un solo umbral/tier por modo
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error('PillarCard error:', e);
     }
 
-
+    
     // AVATAR
     const avatarURL = data.avatar_url || "";
     const avatarImg = document.getElementById("avatar");
