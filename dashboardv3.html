@@ -27,7 +27,7 @@
   <nav id="dashboard-menu">
     <ul>
       <li><a href="#" id="edit-avatar">Cambiar tu avatar</a></li>
-      <li><a href="#" id="edit-bbdd">Editar Base</a></li>
+      <li><a href="#" id="edit-bbdd" data-link="editar-base">Editar Base</a></li>
       <li><a href="#" id="daily-quest">Daily Quest</a></li>
       <li><a href="#" id="edit-form">Programar Daily Quest</a></li>
       <li><a href="indexv2.html">Cerrar sesión</a></li>
@@ -141,5 +141,40 @@
   
   <!-- Tu JS al final -->
   <script src="js/dashboardv3.js?v=3"></script>
+  <script>
+  (() => {
+    // 1) Resolver email (querystring > localStorage)
+    const url = new URL(location.href);
+    let email = (url.searchParams.get('email') || '').trim().toLowerCase();
+    if (email) localStorage.setItem('gj_email', email);
+    if (!email) email = (localStorage.getItem('gj_email') || '').trim().toLowerCase();
+  
+    // 2) Si no hay email, mostrar tu popup / bloquear navegación
+    if (!email) {
+      console.warn('No hay email. Mostrar popup de “esperá el mail / registrate”.');
+      // TODO: acá disparás tu modal si querés.
+      return;
+    }
+  
+    // 3) Construir enlaces con el email
+    const streamlitBase = 'https://gamificationapp.streamlit.app';
+    const qs = '?email=' + encodeURIComponent(email);
+  
+    // Editar Base → Streamlit
+    document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
+      a.setAttribute('href', `${streamlitBase}${qs}`);
+    });
+  
+    // Ejemplos si querés setear otros links:
+    // document.querySelectorAll('[data-link="daily-quest"]').forEach(a => { a.href = 'URL_DE_TU_DAILY' + qs; });
+  
+    // 4) Mantener el email en todas las navegaciones internas del dashboard
+    document.querySelectorAll('a[href^="dashboard"]').forEach(a => {
+      const u = new URL(a.getAttribute('href'), location.origin);
+      u.searchParams.set('email', email);
+      a.setAttribute('href', u.toString());
+    });
+  })();
+  </script>
 </body>
 </html>
