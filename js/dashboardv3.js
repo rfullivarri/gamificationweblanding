@@ -121,7 +121,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         // Top-3 con fuego
         const top3Box = el('div','pc-top3');
-        const withStreak = items.filter(t => t.streak > 0).sort((a,b)=>b.streak-a.streak);
+        const withStreak = items.filter(t => t.streak > 1).sort((a,b)=>b.streak-a.streak);
         const top3 = withStreak.slice(0,3);
     
         top3.forEach(t=>{
