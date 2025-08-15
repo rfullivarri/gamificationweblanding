@@ -41,38 +41,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     
-    // 2) FETCH DATOS datos (usa Worker -> fallback WebApp)
+    // 2) FETCH DATOS (usa Worker -> fallback WebApp)
     const dataRaw = await loadDataFromCacheOrWebApp(email);
+    
     // ---- Normalizar data del Worker (metrics/links) al formato plano que usa el front ----
     const data = {
       // Métricas
-      xp:            data.xp ?? data.metrics?.xp_actual ?? 0,
-      nivel:         data.nivel ?? data.metrics?.nivel ?? 0,
-      xp_faltante:   data.xp_faltante ?? data.metrics?.xp_faltante ?? 0,
-      exp_objetivo:  data.exp_objetivo ?? data.metrics?.xp_objetivo ?? 100,
-      hp:            data.hp ?? data.metrics?.hp ?? 0,
-      mood:          data.mood ?? data.metrics?.mood ?? 0,
-      focus:         data.focus ?? data.metrics?.focus ?? 0,
-      dias_journey:  data.dias_journey ?? data.metrics?.dias_journey ?? 0,
-      game_mode:     data.game_mode ?? data.metrics?.game_mode ?? "",
+      xp:            dataRaw.xp ?? dataRaw.metrics?.xp_actual ?? 0,
+      nivel:         dataRaw.nivel ?? dataRaw.metrics?.nivel ?? 0,
+      xp_faltante:   dataRaw.xp_faltante ?? dataRaw.metrics?.xp_faltante ?? 0,
+      exp_objetivo:  dataRaw.exp_objetivo ?? dataRaw.metrics?.xp_objetivo ?? 100,
+      hp:            dataRaw.hp ?? dataRaw.metrics?.hp ?? 0,
+      mood:          dataRaw.mood ?? dataRaw.metrics?.mood ?? 0,
+      focus:         dataRaw.focus ?? dataRaw.metrics?.focus ?? 0,
+      dias_journey:  dataRaw.dias_journey ?? dataRaw.metrics?.dias_journey ?? 0,
+      game_mode:     dataRaw.game_mode ?? dataRaw.metrics?.game_mode ?? "",
     
       // Links
-      avatar_url:         data.avatar_url ?? data.links?.avatar_url ?? "",
-      daily_form_url:     data.daily_form_url ?? data.links?.daily_form ?? "",
-      daily_form_edit_url:data.daily_form_edit_url ?? data.links?.daily_form_edit ?? "",
-      dashboard_url:      data.dashboard_url ?? data.links?.user_dashboard ?? "",
-      bbdd_editor_url:    data.bbdd_editor_url ?? data.links?.bbdd_editor ?? "",
+      avatar_url:         dataRaw.avatar_url ?? dataRaw.links?.avatar_url ?? "",
+      daily_form_url:     dataRaw.daily_form_url ?? dataRaw.links?.daily_form ?? "",
+      daily_form_edit_url:dataRaw.daily_form_edit_url ?? dataRaw.links?.daily_form_edit ?? "",
+      dashboard_url:      dataRaw.dashboard_url ?? dataRaw.links?.user_dashboard ?? "",
+      bbdd_editor_url:    dataRaw.bbdd_editor_url ?? dataRaw.links?.bbdd_editor ?? "",
     
       // Otros que ya usás tal cual
-      estado:             data.estado ?? "",
-      confirmacionbbdd:   data.confirmacionbbdd ?? "",
-      nombre:             data.nombre ?? "",
-      apellido:           data.apellido ?? "",
-      sexo:               data.sexo ?? "",
-      edad:               data.edad ?? "",
-      daily_cultivation:  data.daily_cultivation ?? [],
-      daily_emotion:      data.daily_emotion ?? [],
-      bbdd:               data.bbdd ?? [],
+      estado:             dataRaw.estado ?? "",
+      confirmacionbbdd:   dataRaw.confirmacionbbdd ?? "",
+      nombre:             dataRaw.nombre ?? "",
+      apellido:           dataRaw.apellido ?? "",
+      sexo:               dataRaw.sexo ?? "",
+      edad:               dataRaw.edad ?? "",
+      daily_cultivation:  dataRaw.daily_cultivation ?? [],
+      daily_emotion:      dataRaw.daily_emotion ?? [],
+      bbdd:               dataRaw.bbdd ?? [],
     };
 
     
