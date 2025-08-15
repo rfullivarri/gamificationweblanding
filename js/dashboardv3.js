@@ -42,9 +42,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     
     // 2) FETCH DATOS datos (usa Worker -> fallback WebApp)
-    const data = await loadDataFromCacheOrWebApp(email);
+    const dataRaw = await loadDataFromCacheOrWebApp(email);
     // ---- Normalizar data del Worker (metrics/links) al formato plano que usa el front ----
-    const norm = {
+    const data = {
       // Métricas
       xp:            data.xp ?? data.metrics?.xp_actual ?? 0,
       nivel:         data.nivel ?? data.metrics?.nivel ?? 0,
@@ -74,7 +74,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       daily_emotion:      data.daily_emotion ?? [],
       bbdd:               data.bbdd ?? [],
     };
-    const data = norm;
 
     
 
