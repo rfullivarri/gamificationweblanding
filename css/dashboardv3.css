@@ -232,8 +232,8 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 :root{
   /* tunables rápidos */
   --pc-right-col-w: clamp(180px, 28vw, 240px); /* ancho bloque derecho (🔥 + barra)  */
-  --pc-progress-h-top: 15px;                   /* alto barra en top‑cards            */
-  --pc-progress-h-list: 13px;                  /* alto barra en lista                */
+  --pc-progress-h-top: 17px;                   /* alto barra en top‑cards            */
+  --pc-progress-h-list: 15px;                  /* alto barra en lista                */
   --pc-progress-w-list: clamp(140px, 22vw, 200px); /* ancho barra en lista (desktop) */
   --pc-xp-number-color: #DDE5FF;
   --pc-progress-grad: linear-gradient(90deg,#7d3cff,#B17EFF);
