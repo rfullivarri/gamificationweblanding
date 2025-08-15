@@ -43,7 +43,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // 2) FETCH DATOS datos (usa Worker -> fallback WebApp)
     const data = await loadDataFromCacheOrWebApp(email);
-    // opcional: console.log('updated_at:', data.updated_at);
+    // ---- Normalizar data del Worker (metrics/links) al formato plano que usa el front ----
+    const norm = {
+      // Métricas
+      xp:            data.xp ?? data.metrics?.xp_actual ?? 0,
+      nivel:         data.nivel ?? data.metrics?.nivel ?? 0,
+      xp_faltante:   data.xp_faltante ?? data.metrics?.xp_faltante ?? 0,
+      exp_objetivo:  data.exp_objetivo ?? data.metrics?.xp_objetivo ?? 100,
+      hp:            data.hp ?? data.metrics?.hp ?? 0,
+      mood:          data.mood ?? data.metrics?.mood ?? 0,
+      focus:         data.focus ?? data.metrics?.focus ?? 0,
+      dias_journey:  data.dias_journey ?? data.metrics?.dias_journey ?? 0,
+      game_mode:     data.game_mode ?? data.metrics?.game_mode ?? "",
+    
+      // Links
+      avatar_url:         data.avatar_url ?? data.links?.avatar_url ?? "",
+      daily_form_url:     data.daily_form_url ?? data.links?.daily_form ?? "",
+      daily_form_edit_url:data.daily_form_edit_url ?? data.links?.daily_form_edit ?? "",
+      dashboard_url:      data.dashboard_url ?? data.links?.user_dashboard ?? "",
+      bbdd_editor_url:    data.bbdd_editor_url ?? data.links?.bbdd_editor ?? "",
+    
+      // Otros que ya usás tal cual
+      estado:             data.estado ?? "",
+      confirmacionbbdd:   data.confirmacionbbdd ?? "",
+      nombre:             data.nombre ?? "",
+      apellido:           data.apellido ?? "",
+      sexo:               data.sexo ?? "",
+      edad:               data.edad ?? "",
+      daily_cultivation:  data.daily_cultivation ?? [],
+      daily_emotion:      data.daily_emotion ?? [],
+      bbdd:               data.bbdd ?? [],
+    };
+    const data = norm;
+
     
 
     // 3) ENLACES
@@ -301,31 +333,80 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     
-    // AVATAR
-    const avatarURL = data.avatar_url || "";
-    const avatarImg = document.getElementById("avatar");
-    if (avatarImg) avatarImg.src = avatarURL;
-  
-    // ESTADO DIARIO: barras
+    // ================= AVATAR =================
+    const avatarURL = (data.avatar_url || "").trim();
+    const avatarImg  = document.getElementById("avatar");
+    if (avatarImg) {
+      if ((avatarImg.tagName || "").toLowerCase() === "img") {
+        if (avatarURL) {
+          if (avatarImg.src !== avatarURL) avatarImg.src = avatarURL;
+          avatarImg.alt = (data.nombre ? `${data.nombre} — avatar` : "Avatar");
+          avatarImg.loading = "eager";
+          avatarImg.decoding = "async";
+        } else {
+          avatarImg.removeAttribute("src");
+        }
+      } else {
+        // #avatar no es <img>: uso background
+        avatarImg.style.backgroundImage  = avatarURL ? `url("${avatarURL}")` : "";
+        avatarImg.style.backgroundSize   = "cover";
+        avatarImg.style.backgroundRepeat = "no-repeat";
+        avatarImg.style.backgroundPosition = "center";
+      }
+    }
+    
+    // Helpers locales (no cambian API pública)
+    const clamp01 = v => Math.max(0, Math.min(1, v));
+    const num = (x, def = 0) => {
+      const n = Number(x);
+      return Number.isFinite(n) ? n : def;
+    };
+    const putText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(value);
+    };
+    
+    // ============= ESTADO DIARIO: barras =============
     const setProgress = (id, value) => {
       const bar = document.getElementById(id);
       if (!bar) return;
-      const percent = Math.round((Number(value) || 0) * 100);
-      bar.style.width = `${percent}%`;
-      bar.textContent = `${percent}%`;
+    
+      // Tus valores vienen 0–1 → convierto a %
+      const percent = Math.round(clamp01(num(value)) * 100);
+    
+      // Si hay un hijo .fill usarlo; si no, la propia barra
+      const target = bar.querySelector(".fill") || bar;
+      target.style.width = percent + "%";
+      if ("textContent" in target) target.textContent = percent + "%";
     };
-    setProgress("bar-hp", data.hp ?? 0);
-    setProgress("bar-mood", data.mood ?? 0);
-    setProgress("bar-focus", data.focus ?? 0);
-  
-    // XP Y NIVEL
-    document.getElementById("xp-actual").textContent = data.xp;
-    document.getElementById("nivel-actual").textContent = data.nivel;
-    document.getElementById("xp-faltante").textContent = data.xp_faltante;
-    const progresoNivel = Math.round((data.xp / data.exp_objetivo) * 100);
+    
+    setProgress("bar-hp",    data.hp);
+    setProgress("bar-mood",  data.mood);
+    setProgress("bar-focus", data.focus);
+    
+    // ============= XP Y NIVEL =============
+    const xpActual     = num(data.xp);
+    const nivelActual  = num(data.nivel);
+    const xpFaltante   = num(data.xp_faltante);
+    const expObjetivo  = num(data.exp_objetivo, 0);
+    
+    // Textos
+    putText("xp-actual",    xpActual);
+    putText("nivel-actual", nivelActual);
+    putText("xp-faltante",  xpFaltante);
+    
+    // Progreso de nivel (evita NaN y divide-by-0)
+    let progresoNivel = 0;
+    if (expObjetivo > 0) {
+      progresoNivel = Math.round(clamp01(xpActual / expObjetivo) * 100);
+    }
+    
     const barNivel = document.getElementById("bar-nivel");
-    barNivel.style.width = `${progresoNivel}%`;
-    barNivel.textContent = `${progresoNivel}%`;
+    if (barNivel) {
+      const target = barNivel.querySelector(".fill") || barNivel;
+      target.style.width = progresoNivel + "%";
+      if ("textContent" in target) target.textContent = progresoNivel + "%";
+    }
   
     // 🧿 RADAR DE RASGOS
     function calcularXPporRasgoDesdeBBDD(bbdd) {
