@@ -231,10 +231,10 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
    =============================== */
 :root{
   /* tunables rápidos */
-  --pc-right-col-w: 260px;      /* ancho bloque derecho (🔥 + barra)  */
-  --pc-progress-h-top: 12px;    /* alto barra en top‑cards */
-  --pc-progress-h-list: 12px;   /* alto barra en lista     */
-  --pc-progress-w-list: 220px;  /* ancho barra en lista    */
+  --pc-right-col-w: 190px;      /* ancho bloque derecho (🔥 + barra)  */
+  --pc-progress-h-top: 15px;    /* alto barra en top‑cards */
+  --pc-progress-h-list: 13px;   /* alto barra en lista     */
+  --pc-progress-w-list: 170px;  /* ancho barra en lista    */
   --pc-xp-number-color: #DDE5FF;
   --pc-progress-grad: linear-gradient(90deg,#7d3cff,#B17EFF);
 
@@ -345,3 +345,48 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 @media (max-width: 600px){
   :root{ --pc-right-col-w: 200px; --pc-progress-w-list: 160px; }
 }
+/* ====== FIX: Tabs (Body / Mind / Soul) ====== */
+.pc .pc-tabs{ display:flex; gap:8px; }
+.pc .pc-tab{
+  appearance:none; cursor:pointer; user-select:none;
+  display:inline-flex; align-items:center; gap:6px;
+
+  padding:6px 12px; border-radius:999px;
+  font-weight:800; font-size:12px; letter-spacing:.2px;
+
+  color:#eaf0ff;
+  background:linear-gradient(180deg,#232a57 0%, #1a2042 100%);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 4px 10px rgba(0,0,0,.25);
+  transition:transform .08s ease, box-shadow .12s ease, background .12s ease;
+}
+.pc .pc-tab:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 14px rgba(0,0,0,.32);
+}
+.pc .pc-tab.pc-active{
+  background:linear-gradient(180deg,#2b3470 0%, #1f2750 100%);
+  outline:2px solid rgba(255,255,255,.06);
+}
+
+/* ====== FIX: Barra de búsqueda ====== */
+.pc .pc-filter{
+  width:100%; height:36px;
+  padding:8px 12px; border-radius:10px;
+  font-size:13px; font-weight:600; color:#dfe5ff;
+
+  background:linear-gradient(180deg,#121733,#0f1430);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+.pc .pc-filter::placeholder{ color:#9aa4c7; opacity:.95; }
+.pc .pc-filter:focus{
+  outline:none;
+  border-color:rgba(125,60,255,.35);
+  box-shadow:0 0 0 3px rgba(125,60,255,.18);
+}
+
+/* ====== (opcional) Tooltip por encima de chips ====== */
+.pc .pc-info-bubble{ z-index:999; background:rgba(18,23,51,.96); }
