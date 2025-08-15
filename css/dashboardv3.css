@@ -368,7 +368,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 .energy-track{
   position: relative;
-  height: 14px;                     /* más finita */
+  height: 15px;                     /* más finita */
   border-radius: 999px;
   background: #2b2f3f;              /* track oscuro alineado al dashboard */
   border: 1px solid rgba(255,255,255,.10);
@@ -406,3 +406,117 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 /* Separador inferior más finito para que no “pise” la card de abajo */
 .energy-box { padding-bottom: 10px; }
 .energy-box + .daily-cultivation-section { margin-top: 12px; }
+
+/* =========================================
+   PCARD – Layout fino según tu pedido
+   (pegar al final; no requiere JS)
+   ========================================= */
+:root{
+  /* tunables rápidos */
+  --pc-right-col-w: 220px;      /* ancho del bloque derecho (fueguito + barra) */
+  --pc-progress-h-top: 10px;    /* altura barra en top‑cards */
+  --pc-progress-h-list: 12px;   /* altura barra en lista */
+  --pc-progress-w-list: 160px;  /* ancho barra en lista */
+  --pc-xp-number-color: #DDE5FF;/* color números XP (lista) */
+}
+
+/* ===== Top‑cards: 2 columnas fijas ===== */
+.pc .pc-tcard{
+  display:grid;
+  grid-template-columns: 1fr var(--pc-right-col-w);
+  grid-auto-rows:auto;
+  gap:12px;
+  align-items:start;
+}
+
+/* Izquierda: Título arriba; chips (XP + Stat) abajo */
+.pc .pc-tname{
+  grid-column:1/2;
+  grid-row:1;
+  margin:0 0 2px 0;
+  align-self:flex-start;
+  font-size:14px;
+  font-weight:800;
+}
+.pc .pc-row-mini{
+  grid-column:1/2;
+  grid-row:2;
+  margin:0;
+}
+.pc .pc-chips{ gap:8px }
+.pc .pc-chip,
+.pc .pc-chip.pc-xp{ padding:3px 8px; font-size:11px }
+
+/* Derecha: 🔥 xN arriba, progress abajo, alineados a la derecha */
+.pc .pc-thead{
+  grid-column:2/3;
+  grid-row:1;
+  justify-self:end;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:2px;
+}
+.pc .pc-tcard .pc-progress{
+  grid-column:2/3;
+  grid-row:2;
+  justify-self:end;
+  width:100%;
+  height:var(--pc-progress-h-top);
+  margin-top:2px;
+}
+.pc .pc-tcard .pc-progress-label{ font-size:9.5px }
+
+/* ===== Lista compacta ===== */
+.pc .pc-row{
+  grid-template-columns: 1fr 80px var(--pc-progress-w-list);
+  column-gap:12px;
+  min-height:44px;
+}
+
+/* Columna XP centrada y con color configurable */
+.pc .pc-xp{
+  text-align:center !important;
+  color:var(--pc-xp-number-color) !important;
+  font-weight:900;
+}
+
+/* Barra en lista con altura/ancho variables */
+.pc .pc-right{ justify-content:flex-end }
+.pc .pc-right .pc-progress{
+  width:var(--pc-progress-w-list);
+  height:var(--pc-progress-h-list);
+}
+.pc .pc-progress{
+  position:relative;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  overflow:hidden;
+}
+.pc .pc-progress-fill{
+  position:absolute; inset:0 auto 0 0;
+  width:0;
+  background:linear-gradient(90deg,#7d3cff,#B17EFF);
+  transition:width .25s ease;
+}
+.pc .pc-progress-label{
+  position:absolute; left:0; right:0; top:50%;
+  transform:translateY(-50%);
+  font-size:10px; font-weight:900; text-align:center; color:#eaeaff;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);
+  pointer-events:none;
+}
+.pc .pc-progress-record{ box-shadow:inset 0 0 0 2px rgba(255,215,0,.18); }
+
+/* 🔥 se ve igual, sólo ajustamos leve separación */
+.pc .pc-fire{ font-size:18px; filter:drop-shadow(0 0 6px rgba(255,150,80,.6)) }
+.pc .pc-streak{ margin-top:2px; font-weight:900; font-size:12px }
+
+/* Responsivo (estrecho) */
+@media (max-width: 600px){
+  :root{
+    --pc-right-col-w: 180px;
+    --pc-progress-w-list: 140px;
+  }
+}
