@@ -1,3 +1,27 @@
+// === Worker + fallback a WebApp ===
+const WORKER_BASE    = 'https://gamificationworker.rfullivarri22.workers.dev';
+const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec';
+
+// Devuelve `data` desde el Worker; si no puede, usa la WebApp
+async function loadDataFromCacheOrWebApp(email) {
+  // 1) Worker primero (si no hay cache, hace priming con el Cloner)
+  let r = await fetch(
+    `${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`,
+    { cache: 'no-store' }
+  );
+
+  if (r.ok) {
+    return await r.json();
+  }
+
+  // 2) Fallback: WebApp original
+  const resp = await fetch(
+    `${OLD_WEBAPP_URL}?email=${encodeURIComponent(email)}`,
+    { cache: 'no-store' }
+  );
+  return await resp.json();
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   // Spinner
   const overlay = document.getElementById("spinner-overlay");
@@ -15,11 +39,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       return; 
     }
 
-    // 2) fetch datos
-    const response = await fetch(
-      `https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec?email=${encodeURIComponent(email)}`
-    );
-    const data = await response.json();
+
+    
+    // 2) FETCH DATOS datos (usa Worker -> fallback WebApp)
+    const data = await loadDataFromCacheOrWebApp(email);
+    // opcional: console.log('updated_at:', data.updated_at);
+    
 
     // 3) ENLACES
     //    a) Base que viene del WebApp (aceptamos dos nombres de campo)
@@ -59,6 +84,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const bbddWarning = document.getElementById("bbdd-warning");
       if (bbddWarning) bbddWarning.style.display = "block";
     }
+
+    // 4.2) Primer render listo: ocultamos el spinner global
+    // Dejo un frame para que el DOM pinte antes de ocultar
+    await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+    hideSpinner();
 
     // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE (v2 con lógica actual/max)
     const PCARD = (() => {
