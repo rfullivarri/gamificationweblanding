@@ -329,8 +329,8 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   overflow: hidden;
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
   backdrop-filter: blur(8px);
-  margin-top: 16px; /* margen arriba */
-  margin-bottom: 16px; /* margen abajo */
+  margin-top: 7px; /* margen arriba */
+  margin-bottom: 5px; /* margen abajo */
 }
 
 .pc .pc-row {
