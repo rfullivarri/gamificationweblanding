@@ -227,18 +227,18 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .energy-box + .daily-cultivation-section { margin-top: 12px; }
 
 /* ===============================
-   PCARD – Layout y fixes finales
+   PCARD – Layout y fixes finales (RESPONSIVE + BLUR)
    =============================== */
 :root{
   /* tunables rápidos */
-  --pc-right-col-w: 190px;      /* ancho bloque derecho (🔥 + barra)  */
-  --pc-progress-h-top: 15px;    /* alto barra en top‑cards */
-  --pc-progress-h-list: 13px;   /* alto barra en lista     */
-  --pc-progress-w-list: 170px;  /* ancho barra en lista    */
+  --pc-right-col-w: clamp(180px, 28vw, 240px); /* ancho bloque derecho (🔥 + barra)  */
+  --pc-progress-h-top: 15px;                   /* alto barra en top‑cards            */
+  --pc-progress-h-list: 13px;                  /* alto barra en lista                */
+  --pc-progress-w-list: clamp(140px, 22vw, 200px); /* ancho barra en lista (desktop) */
   --pc-xp-number-color: #DDE5FF;
   --pc-progress-grad: linear-gradient(90deg,#7d3cff,#B17EFF);
 
-  /* acentos (por si no estaban) */
+  /* acentos */
   --pc-border: rgba(255,255,255,.08);
   --pc-border-2: rgba(255,255,255,.06);
   --pc-orange:#ffb86b;
@@ -254,11 +254,10 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   padding:14px;
   box-shadow:0 16px 48px rgba(0,0,0,.3);
   position:relative;
-  /* mantener visible la tooltip que se sale del borde */
-  overflow:visible;
+  overflow:visible; /* para tooltip */
 }
 
-/* ===== Topbar y tooltip arriba de todo ===== */
+/* ===== Topbar y tooltip ===== */
 .pc .pc-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
 .pc .pc-info{position:relative;z-index:10}
 .pc .pc-info-btn{
@@ -267,7 +266,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 }
 .pc .pc-info-bubble{
   position:absolute;right:0;top:30px;width:min(360px,86vw);
-  background:rgba(18,23,51,.96); /* mucho más legible */
+  background:rgba(18,23,51,.96);
   border:1px solid rgba(255,255,255,.24);
   border-radius:10px;padding:10px 12px;font-size:12px;color:#eaf0ff;line-height:1.35;
   box-shadow:0 14px 36px rgba(0,0,0,.45);
@@ -276,14 +275,12 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 }
 .pc .pc-info:hover .pc-info-bubble{opacity:1;transform:translateY(0);pointer-events:auto}
 
-/* ===== Secciones ===== */
+/* ===== Secciones / título ===== */
 .pc .pc-section{display:none}
 .pc .pc-section.pc-active{display:block}
-
-/* ===== Título del bloque ===== */
 .pc .pc-h4{margin:10px 4px 6px;font-size:13px;color:#ffd9a1;font-weight:800;letter-spacing:.3px}
 
-/* ===== Top‑3 cards (grid 2 columnas) ===== */
+/* ===== Top‑3 cards ===== */
 .pc .pc-top3{display:grid;grid-template-columns:1fr;gap:8px}
 .pc .pc-tcard{
   display:grid;
@@ -292,10 +289,9 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   align-items:start;
   padding:10px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--pc-border-2)
 }
-
-/* 🔥 encabezado derecha (reset absoluto viejo) */
+/* 🔥 a la derecha sin posición absoluta */
 .pc .pc-thead{
-  position:static !important;      /* <-- FIX clave */
+  position:static !important;
   grid-column:2/3; grid-row:1;
   justify-self:end; display:flex;flex-direction:column;align-items:center;margin-top:2px
 }
@@ -308,8 +304,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .pc .pc-chip{background:var(--pc-chip);color:#dbe2ff;border:1px solid var(--pc-border-2);padding:3px 8px;border-radius:999px;font-weight:700;font-size:11px;display:inline-flex;gap:6px;align-items:center}
 .pc .pc-chip.pc-xp{background:linear-gradient(135deg,#1b2140,#1f2750)}
 .pc .pc-spark{width:7px;height:7px;border-radius:50%;background:var(--pc-amber);box-shadow:0 0 8px var(--pc-amber)}
-
-/* Barra derecha (misma medida siempre) */
+/* barra derecha */
 .pc .pc-tcard .pc-progress{
   grid-column:2/3; grid-row:2; justify-self:end;
   width:100%;
@@ -322,112 +317,108 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .pc .pc-progress-label{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);font-size:10px;font-weight:900;text-align:center;color:#eaeaff;text-shadow:0 1px 2px rgba(0,0,0,.35);pointer-events:none}
 .pc .pc-progress-record{box-shadow:inset 0 0 0 2px rgba(255,215,0,.18)}
 
-/* ===== Lista ===== */
-.pc .pc-list {
-  border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  backdrop-filter: blur(8px);
-  margin-top: 7px; /* margen arriba */
-  margin-bottom: 5px; /* margen abajo */
+/* ===== Lista (blur + spacing) ===== */
+.pc .pc-list{
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:12px;
+  overflow:hidden;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  margin-top:7px;
+  margin-bottom:5px;
 }
-
-.pc .pc-row {
-  display: grid;
+.pc .pc-row{
+  display:grid;
   grid-template-columns: 1fr 90px var(--pc-progress-w-list);
-  column-gap: 12px;
-  align-items: center;
-  padding: 9px 10px;
-  border-top: 1px solid rgba(255, 255, 255, .05);
-  min-height: 44px;
-  font-size: 13px;
+  column-gap:12px;
+  align-items:center;
+  padding:9px 10px;
+  border-top:1px solid rgba(255,255,255,.05);
+  min-height:44px;
+  font-size:13px;
 }
-
-.pc .pc-row:first-child {
-  border-top: none;
+.pc .pc-row:first-child{border-top:none}
+.pc .pc-row.pc-label{text-transform:uppercase;font-size:11px;letter-spacing:.4px;opacity:.7}
+.pc .pc-xp{text-align:center !important;color:var(--pc-xp-number-color) !important;font-weight:900}
+.pc .pc-right{display:flex;justify-content:flex-end}
+.pc .pc-right .pc-progress{
+  width:var(--pc-progress-w-list);
+  height:var(--pc-progress-h-list);
+  position:relative;border-radius:999px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);overflow:hidden
 }
+/* permitir cortes de línea en nombres largos */
+.pc .pc-row > :first-child{word-break:break-word;overflow-wrap:anywhere}
 
-.pc .pc-row.pc-label {
-  text-transform: uppercase;
-  font-size: 11px;
-  letter-spacing: .4px;
-  opacity: .7;
-}
-
-.pc .pc-xp {
-  text-align: center !important;
-  color: var(--pc-xp-number-color) !important;
-  font-weight: 900;
-}
-
-.pc .pc-right {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.pc .pc-right .pc-progress {
-  width: var(--pc-progress-w-list);
-  height: var(--pc-progress-h-list);
-  position: relative;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .08);
-  border: 1px solid rgba(255, 255, 255, .12);
-  overflow: hidden;
-}
-
-/* otros */
+/* ===== Chips “otras en racha” ===== */
 .pc .pc-morestreak{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:8px 2px 2px}
 .pc .pc-morestreak-label{font-size:11px;opacity:.75;margin-right:4px}
 .pc .pc-morestreak-chip{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);white-space:nowrap}
 
-/* Responsive */
-@media (max-width: 600px){
-  :root{ --pc-right-col-w: 200px; --pc-progress-w-list: 160px; }
-}
-/* ====== FIX: Tabs (Body / Mind / Soul) ====== */
-.pc .pc-tabs{ display:flex; gap:8px; }
+/* ===== Tabs ===== */
+.pc .pc-tabs{ display:flex; gap:8px; flex-wrap:wrap; }
 .pc .pc-tab{
   appearance:none; cursor:pointer; user-select:none;
   display:inline-flex; align-items:center; gap:6px;
-
   padding:6px 12px; border-radius:999px;
   font-weight:800; font-size:12px; letter-spacing:.2px;
-
   color:#eaf0ff;
   background:linear-gradient(180deg,#232a57 0%, #1a2042 100%);
   border:1px solid rgba(255,255,255,.10);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    0 4px 10px rgba(0,0,0,.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 4px 10px rgba(0,0,0,.25);
   transition:transform .08s ease, box-shadow .12s ease, background .12s ease;
 }
-.pc .pc-tab:hover{
-  transform:translateY(-1px);
-  box-shadow:0 6px 14px rgba(0,0,0,.32);
-}
-.pc .pc-tab.pc-active{
-  background:linear-gradient(180deg,#2b3470 0%, #1f2750 100%);
-  outline:2px solid rgba(255,255,255,.06);
-}
+.pc .pc-tab:hover{ transform:translateY(-1px); box-shadow:0 6px 14px rgba(0,0,0,.32); }
+.pc .pc-tab.pc-active{ background:linear-gradient(180deg,#2b3470 0%, #1f2750 100%); outline:2px solid rgba(255,255,255,.06); }
 
-/* ====== FIX: Barra de búsqueda ====== */
+/* ===== Filtro ===== */
 .pc .pc-filter{
   width:100%; height:36px;
   padding:8px 12px; border-radius:10px;
   font-size:13px; font-weight:600; color:#dfe5ff;
-  margin: 17px 0 13px 0;
-
+  margin:17px 0 13px 0;
   background:linear-gradient(180deg,#121733,#0f1430);
   border:1px solid rgba(255,255,255,.12);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
 }
 .pc .pc-filter::placeholder{ color:#9aa4c7; opacity:.95; }
 .pc .pc-filter:focus{
-  outline:none;
-  border-color:rgba(125,60,255,.35);
+  outline:none; border-color:rgba(125,60,255,.35);
   box-shadow:0 0 0 3px rgba(125,60,255,.18);
 }
 
-/* ====== (opcional) Tooltip por encima de chips ====== */
-.pc .pc-info-bubble{ z-index:999; background:rgba(18,23,51,.96); }
+/* ===== Breakpoints ===== */
+@media (max-width: 1100px){
+  :root{
+    --pc-progress-w-list: clamp(120px, 26vw, 180px);
+    --pc-right-col-w: clamp(160px, 30vw, 210px);
+  }
+}
+@media (max-width: 880px){
+  /* lista pasa a 2 filas: barra abajo y 100% */
+  .pc .pc-row{
+    grid-template-columns: 1fr 72px;
+    row-gap:6px;
+  }
+  .pc .pc-xp{ text-align:right !important; }
+  .pc .pc-right{
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+  .pc .pc-right .pc-progress{
+    width:100%;
+    height:var(--pc-progress-h-list);
+  }
+  /* top-cards ajustan columna derecha */
+  .pc .pc-tcard{ grid-template-columns: 1fr minmax(160px, 38vw); }
+}
+@media (max-width: 600px){
+  /* top-cards en una columna: 🔥 arriba, barra debajo */
+  .pc .pc-tcard{
+    grid-template-columns: 1fr;
+    row-gap:8px;
+  }
+  .pc .pc-thead{ justify-self:end; order:1; }
+  .pc .pc-tcard .pc-progress{ order:2; width:100%; }
+}
