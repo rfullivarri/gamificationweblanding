@@ -557,6 +557,15 @@
     nextStep();
   });
 
+  // ====== BACKS que faltaban ======
+  // LOW
+  $go("backLowBody")?.addEventListener("click", ()=> prevStep());     // NEW
+  $go("backLowSoul")?.addEventListener("click", ()=> prevStep());     // NEW
+  // FOUNDATIONS
+  $go("backFoundPrev1")?.addEventListener("click", ()=> prevStep());  // NEW
+  $go("backFBody")?.addEventListener("click", ()=> prevStep());       // NEW
+  $go("backFSoul")?.addEventListener("click", ()=> prevStep());       // NEW
+
   // CHILL open (21)
   $go("chillOneThing").addEventListener("input", ()=> $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length<1));
   $go("confirmChillOpen").addEventListener("click", ()=>{ answers.chill.oneThing=$go("chillOneThing").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
