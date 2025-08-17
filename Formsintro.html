@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Self-Improvement Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e19; --panel:#141a2c; --card:#171b31; --ring:rgba(255,255,255,.08);
+    --text:#eaf0ff; --muted:#a9b2d0; --accent:#7a66ff; --accent2:#a78bfa; --ok:#38d39f;
+    --shadow:0 24px 80px rgba(0,0,0,.40);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1100px 700px at 50% -15%, rgba(122,102,255,.18), transparent 60%),
+      linear-gradient(180deg, #0b0e19, #0b0e19 30%, #0f1325 100%);
+    overflow:hidden;
+  }
+
+  /* HUD */
+  .hud{
+    position:fixed; inset:0 0 auto 0; z-index:20;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 12px; background:rgba(10,12,24,.86); border-bottom:1px solid var(--ring);
+    backdrop-filter: blur(4px);
+  }
+  .hud-left{display:flex; align-items:center; gap:12px}
+  .brand{display:flex; align-items:center; gap:9px; font-weight:800}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 20px var(--accent)}
+  .progress{width:200px; height:8px; background:#0f1430; border-radius:6px; overflow:hidden}
+  .progress .fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2))}
+  .bars{display:flex; align-items:center; gap:14px}
+  .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:110px}
+  .pill .row{display:flex; align-items:center; gap:6px}
+  .pill .emoji{font-size:14px}
+  .pill .label{font-weight:600}
+  progress{width:120px; height:8px; background:#0f1430; border-radius:6px}
+  progress::-webkit-progress-bar{background:#0f1430; border-radius:6px}
+  progress::-webkit-progress-value{border-radius:6px; background:linear-gradient(90deg,#6d78ff,#a78bfa)}
+  .total{font-weight:800; letter-spacing:.2px}
+
+  /* HUD compacto móvil (vertical) */
+  @media (max-width:520px){
+    .progress{width:120px}
+    .bars{gap:8px}
+    .pill{min-width:auto}
+    progress{width:70px}
+  }
+  @media (max-width:430px){
+    .brand span:last-child{display:none}
+    .progress{width:90px}
+    .pill .label{display:none}           /* solo emojis en muy angosto */
+    .pill{min-width:auto}
+    progress{width:58px}
+  }
+
+  /* Overlay */
+  .overlay{position:fixed; inset:48px 0 0 0; display:flex; align-items:center; justify-content:center;}
+  .modal{
+    width:min(980px,94vw); max-height:calc(100vh - 64px); background:rgba(20,24,44,.78);
+    border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow); overflow:hidden;
+    display:grid; grid-template-rows:auto 1fr;
+  }
+
+  /* Screens */
+  .scr{display:none; padding:20px; overflow:auto}
+  .scr.active{display:block}
+  .hero{display:grid; grid-template-columns: 1fr .9fr; gap:20px; align-items:center}
+  @media (max-width:980px){ .hero{grid-template-columns:1fr} }
+  .pic{border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b; aspect-ratio:4/3}
+  .pic img{width:100%; height:100%; object-fit:cover; display:block; opacity:.95}
+
+  h1,h2{margin:8px 0 8px}
+  p{margin:6px 0 10px; color:#cbd3ff; line-height:1.65}
+  .note{color:#aab7ff; font-size:13px}
+  .xp-badge{display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px;
+    background:#101433; border:1px solid var(--ring); margin:6px 0 0}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:12px 0}
+  .card{background:#171b31; border:1px solid var(--ring); border-radius:14px; padding:14px; cursor:pointer;
+    transition:transform .12s ease, background .12s ease;}
+  .card:hover{transform:translateY(-2px)}
+  .card.selected{background:rgba(122,102,255,.22); border-color:rgba(122,102,255,.45)}
+  .checklist{display:grid; gap:10px; margin:12px 0}
+  .chip{display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--ring); background:rgba(255,255,255,.04)}
+  textarea, input[type="text"]{
+    width:100%; padding:12px; border-radius:12px; border:1px solid var(--ring);
+    background:rgba(255,255,255,.05); color:#fff; outline:none;
+  }
+  .counter{font-size:13px; color:#c7cff1; margin-top:6px}
+  .nav{display:flex; justify-content:space-between; gap:8px; margin-top:12px}
+  .btn{background:#7a66ff; border:0; color:#fff; font-weight:800; padding:10px 16px; border-radius:10px; cursor:pointer}
+  .btn.secondary{background:transparent; border:1px solid var(--ring)}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .toast{
+    position:absolute; right:12px; bottom:12px; background:#111a39; border:1px solid var(--ring);
+    padding:8px 10px; border-radius:9px; font-size:13px; color:#cfe0ff; opacity:0; transform:translateY(6px);
+    transition:.2s ease;
+  }
+  .toast.show{opacity:1; transform:none}
+  .summary-box{background:rgba(255,255,255,.05); border:1px solid var(--ring); border-radius:14px; padding:12px}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="hud-left">
+    <div class="brand"><span class="dot"></span> <span>Journey</span></div>
+    <div class="progress"><div id="progressFill" class="fill"></div></div>
+  </div>
+  <div class="bars">
+    <div class="pill">
+      <div class="row"><span class="emoji">🫀</span><span class="label">Body</span></div>
+      <progress id="barBody" value="0" max="100"></progress>
+    </div>
+    <div class="pill">
+      <div class="row"><span class="emoji">🧠</span><span class="label">Mind</span></div>
+      <progress id="barMind" value="0" max="100"></progress>
+    </div>
+    <div class="pill">
+      <div class="row"><span class="emoji">🏵️</span><span class="label">Soul</span></div>
+      <progress id="barSoul" value="0" max="100"></progress>
+    </div>
+  </div>
+  <div class="total">XP: <span id="xpTotal">0</span></div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay">
+  <div class="modal">
+
+    <!-- Intro -->
+    <section class="scr active" id="scr-intro">
+      <div class="hero">
+        <div>
+          <h2>Cap. 0 — El Despertar</h2>
+          <p>
+            Respirá. Hoy encendés tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
+            <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando <strong>XP</strong>.
+            Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones). Arriba vas a ver cómo se carga tu XP total y el de cada pilar.
+          </p>
+          <div class="nav">
+            <button class="btn secondary" disabled>—</button>
+            <button class="btn" id="goModes">Entrar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="assets/abstract-intro.jpg" alt="Intro"></figure>
+      </div>
+    </section>
+
+    <!-- Game Modes -->
+    <section class="scr" id="scr-modes">
+      <div class="hero">
+        <div>
+          <h2>Elegí tu Game Mode</h2>
+          <p>Elegí el <strong>modo</strong> que mejor describe tu estado <strong>hoy</strong> para adaptar el recorrido a tu energía y enfoque.</p>
+          <div class="grid" id="modeGrid">
+            <div class="card" data-mode="LOW"><h3>LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
+            <div class="card" data-mode="CHILL"><h3>CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
+            <div class="card" data-mode="FLOW"><h3>FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
+            <div class="card" data-mode="EVOLVE"><h3>EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
+          </div>
+          <div class="nav">
+            <button class="btn secondary" id="backIntro">Volver</button>
+            <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="assets/abstract-modes.jpg" alt="Modos"></figure>
+      </div>
+    </section>
+
+    <!-- ====== LOW (sin Foundations) -->
+    <section class="scr" id="scr-low-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
+      <h2>LOW · 🫀 Body</h2>
+      <p>Elegí hasta <strong>5</strong> acciones simples que te harían bien ahora. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="lowBodyList"></div>
+      <div class="counter"><span id="lowBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+      <div class="nav">
+        <button class="btn secondary" id="backToModes1">Volver</button>
+        <button class="btn" id="confirmLowBody" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-low-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
+      <h2>LOW · 🏵️ Soul</h2>
+      <p>Elegí hasta <strong>5</strong> cosas simples que te conectan con vos. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="lowSoulList"></div>
+      <div class="counter"><span id="lowSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+      <div class="nav">
+        <button class="btn secondary" id="backLowBody">Volver</button>
+        <button class="btn" id="confirmLowSoul" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-low-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
+      <h2>LOW · 🧠 Mind</h2>
+      <p>Elegí hasta <strong>5</strong> acciones mentales que te ayuden hoy. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="lowMindList"></div>
+      <div class="counter"><span id="lowMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+      <div class="nav">
+        <button class="btn secondary" id="backLowSoul">Volver</button>
+        <button class="btn" id="confirmLowMind" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- Low · comentario final (opcional, 0 XP) -->
+    <section class="scr" id="scr-low-note" data-type="open0">
+      <h2>LOW · ¿Querés contarnos algo más?</h2>
+      <p class="note">Es personal: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
+      <textarea id="lowNote" rows="4" placeholder="(opcional)"></textarea>
+      <div class="nav">
+        <button class="btn secondary" id="backLowMind">Volver</button>
+        <button class="btn" id="confirmLowNote">Continuar</button>
+      </div>
+    </section>
+
+    <!-- ====== CHILL (luego Foundations) -->
+    <section class="scr" id="scr-chill-open" data-type="open21">
+      <div class="hero">
+        <div>
+          <h2>CHILL · Una cosa este mes</h2>
+          <p>Si pudieras mejorar o lograr <strong>solo una cosa</strong> este mes, ¿cuál sería? <span class="xp-badge">+21 XP</span></p>
+          <textarea id="chillOneThing" rows="4" placeholder="Escribí tu respuesta… (obligatoria)"></textarea>
+          <div class="nav">
+            <button class="btn secondary" id="backToModes2">Volver</button>
+            <button class="btn" id="confirmChillOpen" disabled>Confirmar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="assets/abstract-chill.jpg" alt="Chill"></figure>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-chill-motiv" data-type="mode13">
+      <h2>CHILL · ¿Qué te impulsa más?</h2>
+      <p>Elegí las que sientas (al menos una). <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="chillMotivList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backChillOpen">Volver</button>
+        <button class="btn" id="confirmChillMotiv" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== FLOW (luego Foundations) -->
+    <section class="scr" id="scr-flow-goal" data-type="open21">
+      <div class="hero">
+        <div>
+          <h2>FLOW · Tu objetivo</h2>
+          <p>¿Cuál es tu objetivo en este momento? <span class="xp-badge">+21 XP</span></p>
+          <textarea id="flowGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
+          <div class="nav">
+            <button class="btn secondary" id="backToModes3">Volver</button>
+            <button class="btn" id="confirmFlowGoal" disabled>Confirmar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="assets/abstract-flow.jpg" alt="Flow"></figure>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-flow-imped" data-type="mode13">
+      <h2>FLOW · ¿Qué te lo viene impidiendo?</h2>
+      <p>Elegí las que apliquen (al menos una). <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="flowImpedList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backFlowGoal">Volver</button>
+        <button class="btn" id="confirmFlowImped" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== EVOLVE (luego Foundations) -->
+    <section class="scr" id="scr-evolve-goal" data-type="open21">
+      <div class="hero">
+        <div>
+          <h2>EVOLVE · Objetivo desafiante</h2>
+          <p>¿Cuál es tu objetivo desafiante? <span class="xp-badge">+21 XP</span></p>
+          <textarea id="evolveGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
+          <div class="nav">
+            <button class="btn secondary" id="backToModes4">Volver</button>
+            <button class="btn" id="confirmEvolveGoal" disabled>Confirmar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="assets/abstract-evolve.jpg" alt="Evolve"></figure>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-evolve-trade" data-type="mode13">
+      <h2>EVOLVE · ¿Qué estás dispuesto a ajustar?</h2>
+      <p>Elegí las que apliquen (al menos una). <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="evolveTradeList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backEvolveGoal">Volver</button>
+        <button class="btn" id="confirmEvolveTrade" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-evolve-att" data-type="mode21-radio">
+      <h2>EVOLVE · Actitud ante el cambio</h2>
+      <p>Elegí una opción. <span class="xp-badge">+21 XP</span></p>
+      <div class="checklist" id="evolveAttList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backEvolveTrade">Volver</button>
+        <button class="btn" id="confirmEvolveAtt" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== FOUNDATIONS (10 por pilar, máx 5) -->
+    <section class="scr" id="scr-f-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
+      <h2>Foundations · 🫀 Body</h2>
+      <p>Lo físico es tu base. Elegí hasta <strong>5</strong> anclas. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="fBodyList"></div>
+      <div class="counter"><span id="fBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+      <div class="nav">
+        <button class="btn secondary" id="backFoundPrev1">Volver</button>
+        <button class="btn" id="confirmFBody" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-f-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
+      <h2>Foundations · 🏵️ Soul</h2>
+      <p>Sin centro, no hay llegada. Elegí hasta <strong>5</strong> prácticas. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="fSoulList"></div>
+      <div class="counter"><span id="fSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+      <div class="nav">
+        <button class="btn secondary" id="backFBody">Volver</button>
+        <button class="btn" id="confirmFSoul" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-f-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
+      <h2>Foundations · 🧠 Mind</h2>
+      <p>No es hacer más: es <strong>hacer mejor</strong>. Elegí hasta <strong>5</strong> focos. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="fMindList"></div>
+      <div class="counter"><span id="fMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+      <div class="nav">
+        <button class="btn secondary" id="backFSoul">Volver</button>
+        <button class="btn" id="confirmFMind" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== RESUMEN -->
+    <section class="scr" id="scr-summary">
+      <h2>¡Listo para empezar en serio! 🚀</h2>
+      <div class="summary-box" id="summaryBox"></div>
+      <p class="note" style="margin-top:10px">
+        <strong>Capitán</strong>, con esto generamos tus <strong>primeras misiones</strong> y un plan simple para hoy.
+        Vas a poder ver tu avance y reacomodar prioridades en tu <strong>tablero personal</strong>, pero lo importante es el <em>ritmo</em>: pasos cortos, XP real, progreso visible.
+      </p>
+      <div class="nav">
+        <button class="btn secondary" id="restart">Volver al inicio</button>
+        <button class="btn" id="finish">Ver mis primeras misiones</button>
+      </div>
+      <div class="note" style="margin-top:8px">/* TODO: POST a Google Forms con tus <code>entry.xxx</code> */</div>
+    </section>
+
+    <div id="toast" class="toast">+13 XP</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ====== Estado ======
+  const xp = { Body:0, Mind:0, Soul:0, total:0 };
+  const answers = {
+    mode:null,
+    low:{ body:[], soul:[], mind:[], note:"" },
+    chill:{ oneThing:"", motiv:[] },
+    flow:{ goal:"", imped:[] },
+    evolve:{ goal:"", trade:[], att:"" },
+    foundations:{ body:[], soul:[], mind:[] }
+  };
+  const routes = {
+    LOW: ["scr-low-body","scr-low-soul","scr-low-mind","scr-low-note","scr-summary"],
+    CHILL: ["scr-chill-open","scr-chill-motiv","scr-f-body","scr-f-soul","scr-f-mind","scr-summary"],
+    FLOW: ["scr-flow-goal","scr-flow-imped","scr-f-body","scr-f-soul","scr-f-mind","scr-summary"],
+    EVOLVE:["scr-evolve-goal","scr-evolve-trade","scr-evolve-att","scr-f-body","scr-f-soul","scr-f-mind","scr-summary"]
+  };
+  let routeScreens = []; let stepIndex = 0;
+
+  // ====== Helpers ======
+  const $ = s=>document.querySelector(s);
+  const $$ = s=>Array.from(document.querySelectorAll(s));
+  const show = id => { $$(".scr").forEach(s=>s.classList.remove("active")); $("#"+id).classList.add("active"); drawProgress(); };
+  const toast = (txt) => { const t=$("#toast"); t.textContent=txt; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 1100); };
+  function drawProgress(){
+    const total = routeScreens.length || 1;
+    const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
+    $("#progressFill").style.width = pct+"%";
+    $("#barBody").value = Math.min(xp.Body, 100);
+    $("#barMind").value = Math.min(xp.Mind, 100);
+    $("#barSoul").value = Math.min(xp.Soul, 100);
+    $("#xpTotal").textContent = Math.round(xp.total);
+  }
+  function addXP(amount, pillar){
+    if (amount<=0) return;
+    if (pillar==="ALL"){ ["Body","Mind","Soul"].forEach(p=>{ xp[p]+=amount/3; }); xp.total+=amount; }
+    else { xp[pillar]+=amount; xp.total+=amount; }
+    drawProgress();
+  }
+
+  // ====== Contenidos ======
+  const lists = {
+    // LOW
+    lowBody:["Dormir mejor 😴","Alimentarte mejor 🥗","Moverte un poco más 🏃","Tomar más agua 💧","Descansar sin culpa 🧘"],
+    lowSoul:["Respirar profundo 🌬️","Escuchar música 🎶","Naturaleza 🍃","Anotar lo que sentís 📝","Hacer algo sin tener que ser útil 🌈"],
+    lowMind:["Leer algo corto 📖","Anotar tus pensamientos 📓","Mirar una serie tranquila 📺","Pausa sin pantallas 🚫📱","Desarmar idea negativa 🧩"],
+
+    // Foundations (10 cada uno)
+    fBody:[
+      "Actividad física regular (Energía) 🏃","Alimentación saludable (Nutrición) 🥗","Dormir y descansar mejor (Sueño) 😴",
+      "Relajación y pausas (Recuperación) 🛀","Tomar más agua (Hidratación) 💧","Higiene y cuidado personal (Higiene) 🧼",
+      "Más energía al despertar (Vitalidad) 🔆","Mejorar postura / ergonomía (Postura) 🧍‍♂️","Flexibilidad y movilidad (Movilidad) 🧘‍♀️",
+      "Reducir alcohol/tabaco/cafeína (Moderación) 🚫"
+    ],
+    fSoul:[
+      "Fortalecer vínculos (Conexión) 🤝","Practicar espiritualidad / plenitud ✨","Definir propósito (Propósito) 🎯",
+      "Vivir alineado a valores (Valores) ⚖️","Ayudar a otros / causa (Altruismo) 💗","Conocerte más (Insight) 🔍",
+      "Practicar gratitud / actitud positiva (Gratitud) 🙏","Conectarte con la naturaleza (Naturaleza) 🌳",
+      "Jugar y divertirte sin culpa (Gozo) 🎉","Autoestima y auto-habla amable (Autoestima) 💎"
+    ],
+    fMind:[
+      "Mejorar enfoque / productividad (Enfoque) 🎯","Aprender / estudiar mejor (Aprendizaje) 📚","Creatividad e ideas (Creatividad) 🎨",
+      "Manejar estrés o ansiedad (Gestión) 😌","Regular emociones (Autocontrol) 🧠","Ser más resiliente (Resiliencia) 💪",
+      "Más orden mental (Orden) 🗂️","Avanzar en carrera / proyectos (Profesional) 📈","Hábitos financieros (Finanzas) 💰",
+      "Memoria y agilidad (Agilidad) 🧩"
+    ],
+
+    // CHILL motivaciones (MC → 13 XP)
+    chillMotiv:[
+      "🌱 Crecer como persona / desarrollo personal","🎯 Lograr metas concretas que me propongo",
+      "🤝 Sentirme más conectado con otras personas","🧘‍♂️ Vivir con más calma y menos estrés",
+      "🏆 Superarme y romper mis límites","🛠️ Crear o construir algo (proyectos, arte, emprendimientos)",
+      "🗺️ Tener más experiencias y aventuras","❤️ Cuidar mi salud y bienestar a largo plazo"
+    ],
+
+    // FLOW impedimentos (MC → 13 XP)
+    flowImped:[
+      "Falta de tiempo","Falta de energía o motivación","Miedo al fracaso",
+      "Dudas sobre dónde empezar","Falta de apoyo","Procrastinación",
+      "No tengo hábitos aún","Síndrome del impostor","Otra"
+    ],
+
+    // EVOLVE trade-offs (MC → 13 XP) + actitud (radio → 21 XP)
+    evolveTrade:[
+      "Mis hábitos diarios","Mi alimentación","Mis rutinas de descanso","Mi tiempo libre",
+      "Mis relaciones sociales","Mis creencias/bloqueos","Mis espacios físicos","Otra"
+    ],
+    evolveAtt:[
+      "Estoy muy motivado y quiero cambios ya","Quiero ir de a poco pero con foco","Me cuesta la constancia pero quiero intentar"
+    ]
+  };
+
+  // ====== Render checklists ======
+  function paintChecklist(listId, items, type="checkbox", nameGroup="grp"){
+    const host = document.getElementById(listId);
+    host.innerHTML = "";
+    items.forEach((txt,i)=>{
+      const id = `${listId}-${i}`;
+      const input = document.createElement("input");
+      input.type = type;
+      if(type==="radio") input.name = nameGroup;
+      input.id = id;
+      const label = document.createElement("label");
+      label.className = "chip"; label.setAttribute("for", id);
+      label.appendChild(input);
+      const span = document.createElement("span"); span.textContent = txt; label.appendChild(span);
+      host.appendChild(label);
+    });
+  }
+
+  // Pintar todos
+  paintChecklist("lowBodyList", lists.lowBody);
+  paintChecklist("lowSoulList", lists.lowSoul);
+  paintChecklist("lowMindList", lists.lowMind);
+  paintChecklist("fBodyList", lists.fBody);
+  paintChecklist("fSoulList", lists.fSoul);
+  paintChecklist("fMindList", lists.fMind);
+  paintChecklist("chillMotivList", lists.chillMotiv);
+  paintChecklist("flowImpedList", lists.flowImped);
+  paintChecklist("evolveTradeList", lists.evolveTrade);
+  paintChecklist("evolveAttList", lists.evolveAtt, "radio", "evolveAtt");
+
+  // ====== Navegación base ======
+  const $go = id => document.getElementById(id);
+  const nextStep = ()=>{ stepIndex = Math.min(routeScreens.length-1, stepIndex+1); show(routeScreens[stepIndex]); if(routeScreens[stepIndex]==="scr-summary") renderSummary(); };
+  const prevStep = ()=>{ stepIndex = Math.max(0, stepIndex-1); show(routeScreens[stepIndex]); };
+
+  $go("goModes").addEventListener("click", ()=> show("scr-modes"));
+  $go("backIntro").addEventListener("click", ()=> show("scr-intro"));
+
+  // Elegir modo
+  $$("#modeGrid .card").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      $$("#modeGrid .card").forEach(c=>c.classList.remove("selected"));
+      card.classList.add("selected");
+      answers.mode = card.dataset.mode;
+      $go("confirmMode").disabled = false;
+    });
+  });
+  $go("confirmMode").addEventListener("click", ()=>{
+    routeScreens = routes[answers.mode]; stepIndex = 0; show(routeScreens[stepIndex]);
+  });
+
+  // Volver a modes
+  ["backToModes1","backToModes2","backToModes3","backToModes4"].forEach(id=>{
+    if($go(id)) $go(id).addEventListener("click", ()=> show("scr-modes"));
+  });
+
+  // Utilidades selección
+  const getCheckedTexts = sel => $$(sel+" input:checked").map(i=>i.parentElement.textContent.trim());
+  const getRadioText = sel => { const el = $$(sel+" input[type=radio]").find(i=>i.checked); return el?el.parentElement.textContent.trim():""; };
+
+  // Límite 5 checklists
+  function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
+    const max = Number($("#"+scrId).dataset.limit || 5);
+    const inputs = $$("#"+listId+" input");
+    const count = $("#"+countId);
+    function update(){
+      const ch = inputs.filter(i=>i.checked);
+      if(ch.length > max){ ch[ch.length-1].checked=false; }
+      const now = inputs.filter(i=>i.checked).length;
+      count.textContent = now;
+      $go(confirmIdFor(scrId)).disabled = (now<1);
+    }
+    inputs.forEach(i=> i.addEventListener("change", update)); update();
+
+    function confirmIdFor(id){
+      return ({
+        "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
+        "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
+      })[id];
+    }
+    $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
+      storeArrRef.length = 0; getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+      addXP(Number($("#"+scrId).dataset.xp || 13), $("#"+scrId).dataset.pillar);
+      toast(`+${Number($("#"+scrId).dataset.xp || 13)} XP`);
+      nextStep();
+    });
+  }
+
+  // Binds LOW + FOUNDATIONS
+  bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount", answers.low.body);
+  bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount", answers.low.soul);
+  bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount", answers.low.mind);
+  bindLimitedChecklist("scr-f-body","fBodyList","fBodyCount", answers.foundations.body);
+  bindLimitedChecklist("scr-f-soul","fSoulList","fSoulCount", answers.foundations.soul);
+  bindLimitedChecklist("scr-f-mind","fMindList","fMindCount", answers.foundations.mind);
+
+  // LOW note (0 XP)
+  $go("backLowMind").addEventListener("click", ()=> prevStep());
+  $go("confirmLowNote").addEventListener("click", ()=>{
+    answers.low.note = $go("lowNote").value.trim();
+    nextStep();
+  });
+
+  // CHILL open (21)
+  $go("chillOneThing").addEventListener("input", ()=> $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length<1));
+  $go("confirmChillOpen").addEventListener("click", ()=>{ answers.chill.oneThing=$go("chillOneThing").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
+
+  // CHILL motiv (MC → 13)
+  const chillInputs = $$("#chillMotivList input");
+  const updateChill = ()=> $go("confirmChillMotiv").disabled = chillInputs.filter(i=>i.checked).length<1;
+  chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill();
+  $go("confirmChillMotiv").addEventListener("click", ()=>{
+    answers.chill.motiv = getCheckedTexts("#chillMotivList");
+    addXP(13,"ALL"); toast("+13 XP"); nextStep();
+  });
+  $go("backChillOpen").addEventListener("click", ()=> prevStep());
+
+  // FLOW open + imped (imped → 13)
+  $go("flowGoal").addEventListener("input", ()=> $go("confirmFlowGoal").disabled = ($go("flowGoal").value.trim().length<1));
+  $go("confirmFlowGoal").addEventListener("click", ()=>{ answers.flow.goal=$go("flowGoal").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
+  const flowImps = $$("#flowImpedList input");
+  const updateFlow = ()=> $go("confirmFlowImped").disabled = flowImps.filter(i=>i.checked).length<1;
+  flowImps.forEach(i=> i.addEventListener("change", updateFlow)); updateFlow();
+  $go("confirmFlowImped").addEventListener("click", ()=>{
+    answers.flow.imped = getCheckedTexts("#flowImpedList");
+    addXP(13,"ALL"); toast("+13 XP"); nextStep();
+  });
+  $go("backFlowGoal").addEventListener("click", ()=> prevStep());
+
+  // EVOLVE open + trade (MC → 13) + actitud (radio → 21)
+  $go("evolveGoal").addEventListener("input", ()=> $go("confirmEvolveGoal").disabled = ($go("evolveGoal").value.trim().length<1));
+  $go("confirmEvolveGoal").addEventListener("click", ()=>{ answers.evolve.goal=$go("evolveGoal").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
+
+  const evTrade = $$("#evolveTradeList input");
+  const updEvTrade = ()=> $go("confirmEvolveTrade").disabled = evTrade.filter(i=>i.checked).length<1;
+  evTrade.forEach(i=> i.addEventListener("change", updEvTrade)); updEvTrade();
+  $go("confirmEvolveTrade").addEventListener("click", ()=>{
+    answers.evolve.trade = getCheckedTexts("#evolveTradeList");
+    addXP(13,"ALL"); toast("+13 XP"); nextStep();
+  });
+  $go("backEvolveGoal").addEventListener("click", ()=> prevStep());
+
+  const evAtt = $$("#evolveAttList input");
+  evAtt.forEach(i=> i.addEventListener("change", ()=> $go("confirmEvolveAtt").disabled = !evAtt.some(x=>x.checked)));
+  $go("confirmEvolveAtt").addEventListener("click", ()=>{
+    answers.evolve.att = getRadioText("#evolveAttList");
+    addXP(21,"ALL"); toast("+21 XP"); nextStep();
+  });
+  $go("backEvolveTrade").addEventListener("click", ()=> prevStep());
+
+  // Stepper
+  function renderSummary(){
+    const box = $("#summaryBox");
+    const fmt = a => (a && a.length)? a.join(", ") : "—";
+    box.innerHTML = `
+      <div><strong>Game Mode:</strong> ${answers.mode||"—"}</div>
+      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+      ${
+        answers.mode==="LOW"
+        ? `
+          <div><strong>LOW · Body:</strong> ${fmt(answers.low.body)}</div>
+          <div><strong>LOW · Soul:</strong> ${fmt(answers.low.soul)}</div>
+          <div><strong>LOW · Mind:</strong> ${fmt(answers.low.mind)}</div>
+          ${answers.low.note?`<div><strong>Nota:</strong> ${answers.low.note}</div>`:""}
+        `
+        : `
+          ${answers.mode==="CHILL" ? `<div><strong>CHILL · Una cosa:</strong> ${answers.chill.oneThing}</div>
+          <div><strong>CHILL · Motivaciones:</strong> ${fmt(answers.chill.motiv)}</div>`:""}
+          ${answers.mode==="FLOW" ? `<div><strong>FLOW · Objetivo:</strong> ${answers.flow.goal}</div>
+          <div><strong>FLOW · Impedimentos:</strong> ${fmt(answers.flow.imped)}</div>`:""}
+          ${answers.mode==="EVOLVE" ? `<div><strong>EVOLVE · Objetivo:</strong> ${answers.evolve.goal}</div>
+          <div><strong>EVOLVE · Ajustes:</strong> ${fmt(answers.evolve.trade)}</div>
+          <div><strong>EVOLVE · Actitud:</strong> ${answers.evolve.att}</div>`:""}
+          <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+          <div><strong>Foundations · Body:</strong> ${fmt(answers.foundations.body)}</div>
+          <div><strong>Foundations · Soul:</strong> ${fmt(answers.foundations.soul)}</div>
+          <div><strong>Foundations · Mind:</strong> ${fmt(answers.foundations.mind)}</div>
+        `
+      }
+      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+      <div><strong>🫀 Body:</strong> ${Math.round(xp.Body)} XP</div>
+      <div><strong>🧠 Mind:</strong> ${Math.round(xp.Mind)} XP</div>
+      <div><strong>🏵️ Soul:</strong> ${Math.round(xp.Soul)} XP</div>
+      <div style="margin-top:6px"><strong>Total:</strong> ${Math.round(xp.total)} XP</div>
+    `;
+  }
+
+  $go("restart").addEventListener("click", ()=> location.reload());
+
+  // Atajos
+  document.addEventListener("keydown",(e)=>{ if(e.key==="ArrowLeft") prevStep(); if(e.key==="ArrowRight") nextStep(); });
+
+  // init
+  drawProgress();
+  // Exponer estado para scripts externos
+  window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
+})();
+</script>
+<script src="formsIntro.js"></script>
+</body>
+</html>
