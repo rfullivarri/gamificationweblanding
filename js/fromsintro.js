@@ -1,12 +1,11 @@
-// submit.js  —  Enviar respuestas del Journey a Google Forms (versión GitHub Pages + redirect)
+// formsintro.js — Enviar respuestas del Journey a Google Forms (versión estable iOS)
 
-// 1) URL de tu Form (termina en /formResponse)
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
-// 2) Mapeo de tus entry.xxx (ya con email correcto)
+// Mapeo de tus entry.xxx (incluye Email correcto)
 const entries = {
-  email: "entry.646330003",  // ✅ entry del campo Email
+  email: "entry.646330003",
 
   mode: "entry.97701242",
   xp_total: "entry.1162318324",
@@ -42,19 +41,17 @@ const entries = {
   f_mind_open:  "entry.1918822353",
 };
 
-// helper para arrays o strings
 function appendMany(fd, entryId, values){
   if (!entryId || values == null) return;
   if (Array.isArray(values)) values.forEach(v => fd.append(entryId, String(v)));
   else fd.append(entryId, String(values));
 }
 
-// construir el payload desde el estado global
 function buildFormDataFromJourney(){
   const {answers, xp} = window.JOURNEY_STATE;
   const fd = new FormData();
 
-  // XP: total calculado como suma de pilares redondeados (evita desfases)
+  // Sumar igual que en UI (evita 107 vs 108)
   const b = Math.round(xp.Body);
   const m = Math.round(xp.Mind);
   const s = Math.round(xp.Soul);
@@ -101,45 +98,19 @@ function buildFormDataFromJourney(){
   return fd;
 }
 
-// ====== ENVÍO FIABLE A GOOGLE FORMS ======
-// Enviamos como application/x-www-form-urlencoded (compatible con iOS Safari),
-// probamos sendBeacon con Blob; si no, fetch no-cors; si no, formulario oculto + iframe.
-
+// ====== Envío sin sendBeacon (iOS-safe) ======
 async function submitToGoogleForms(){
   const fd = buildFormDataFromJourney();
 
-  // 1) Convertir FormData -> urlencoded (k=v&k=v...)
-  const pairs = [];
-  for (const [k, v] of fd.entries()) {
-    pairs.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v)));
-  }
-  const bodyUrlEnc = pairs.join("&");
-  const blob = new Blob([bodyUrlEnc], { type: "application/x-www-form-urlencoded;charset=UTF-8" });
-
-  // 2) Intento con sendBeacon (iOS no acepta FormData, pero sí Blob urlencoded)
+  // 1) Igual que signup: fetch + FormData (no-cors)
   try {
-    if (navigator.sendBeacon) {
-      const ok = navigator.sendBeacon(FORM_ACTION_URL, blob);
-      if (ok) return true;
-    }
-  } catch (e) {
-    console.warn("[submit] sendBeacon error:", e);
-  }
-
-  // 3) Fallback fetch no-cors con urlencoded
-  try {
-    await fetch(FORM_ACTION_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: bodyUrlEnc
-    });
+    await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
     return true;
   } catch (e) {
-    console.error("[submit] fetch error:", e);
+    // sigue al fallback
   }
 
-  // 4) Último recurso: form oculto apuntando a un iframe invisible
+  // 2) Fallback robusto: form oculto + iframe
   try {
     const iframe = document.createElement("iframe");
     iframe.name = "hidden_iframe_target";
@@ -152,7 +123,6 @@ async function submitToGoogleForms(){
     form.target = "hidden_iframe_target";
     form.style.display = "none";
 
-    // recrear inputs hidden a partir del FormData
     for (const [k, v] of fd.entries()) {
       const input = document.createElement("input");
       input.type = "hidden";
@@ -165,23 +135,22 @@ async function submitToGoogleForms(){
 
     return true;
   } catch (e) {
-    console.error("[submit] hidden form error:", e);
+    console.error("[submit][fallback] error:", e);
     return false;
   }
 }
 
-// Listener del botón final
+// Hook del botón final
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
-  if (!btn) { console.warn("#finish no encontrado"); return; }
+  if (!btn) return;
 
   btn.addEventListener("click", async (e)=>{
     e.preventDefault();
     const ok = await submitToGoogleForms();
-    // Pequeño delay para que el envío termine de flushear
+    // pequeña espera para asegurar flush
     setTimeout(()=>{
-      // Redirección post-envío
       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-    }, 200);
+    }, ok ? 200 : 350);
   });
 });
