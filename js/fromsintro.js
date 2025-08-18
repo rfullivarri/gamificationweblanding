@@ -101,40 +101,87 @@ function buildFormDataFromJourney(){
   return fd;
 }
 
-// envío fiable: primero sendBeacon, si no, fetch no-cors
+// ====== ENVÍO FIABLE A GOOGLE FORMS ======
+// Enviamos como application/x-www-form-urlencoded (compatible con iOS Safari),
+// probamos sendBeacon con Blob; si no, fetch no-cors; si no, formulario oculto + iframe.
+
 async function submitToGoogleForms(){
   const fd = buildFormDataFromJourney();
 
-  let sent = false;
+  // 1) Convertir FormData -> urlencoded (k=v&k=v...)
+  const pairs = [];
+  for (const [k, v] of fd.entries()) {
+    pairs.push(encodeURIComponent(k) + "=" + encodeURIComponent(String(v)));
+  }
+  const bodyUrlEnc = pairs.join("&");
+  const blob = new Blob([bodyUrlEnc], { type: "application/x-www-form-urlencoded;charset=UTF-8" });
+
+  // 2) Intento con sendBeacon (iOS no acepta FormData, pero sí Blob urlencoded)
   try {
     if (navigator.sendBeacon) {
-      // sendBeacon necesita un Blob; FormData funciona en la mayoría de navegadores modernos
-      sent = navigator.sendBeacon(FORM_ACTION_URL, fd);
-      console.log("[submit] sendBeacon:", sent);
+      const ok = navigator.sendBeacon(FORM_ACTION_URL, blob);
+      if (ok) return true;
     }
-  } catch (e) { console.warn("[submit] sendBeacon error:", e); }
+  } catch (e) {
+    console.warn("[submit] sendBeacon error:", e);
+  }
 
-  if (!sent) {
-    try {
-      await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
-      console.log("[submit] fetch no-cors disparado");
-    } catch (e) {
-      console.error("[submit] fetch error:", e);
+  // 3) Fallback fetch no-cors con urlencoded
+  try {
+    await fetch(FORM_ACTION_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: bodyUrlEnc
+    });
+    return true;
+  } catch (e) {
+    console.error("[submit] fetch error:", e);
+  }
+
+  // 4) Último recurso: form oculto apuntando a un iframe invisible
+  try {
+    const iframe = document.createElement("iframe");
+    iframe.name = "hidden_iframe_target";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    const form = document.createElement("form");
+    form.action = FORM_ACTION_URL;
+    form.method = "POST";
+    form.target = "hidden_iframe_target";
+    form.style.display = "none";
+
+    // recrear inputs hidden a partir del FormData
+    for (const [k, v] of fd.entries()) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = String(v);
+      form.appendChild(input);
     }
+    document.body.appendChild(form);
+    form.submit();
+
+    return true;
+  } catch (e) {
+    console.error("[submit] hidden form error:", e);
+    return false;
   }
 }
 
+// Listener del botón final
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) { console.warn("#finish no encontrado"); return; }
 
   btn.addEventListener("click", async (e)=>{
     e.preventDefault();
-    // dispara envío y luego redirige
-    await submitToGoogleForms();
-    // pequeña espera (por si el navegador decide flush asíncrono del beacon)
+    const ok = await submitToGoogleForms();
+    // Pequeño delay para que el envío termine de flushear
     setTimeout(()=>{
+      // Redirección post-envío
       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-    }, 150);
+    }, 200);
   });
 });
