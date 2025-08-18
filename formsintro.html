@@ -755,5 +755,40 @@ document.addEventListener("keydown",(e)=>{
 
 <!-- Tu JS de envío a Google Forms -->
 <script src="js/formsintro.js?v=3"></script>
+<script>
+// ===== Overlay de debug (mobile-friendly) =====
+(function(){
+  const ON = true; // poné false para ocultarlo
+  if(!ON) return;
+
+  const box = document.createElement("div");
+  box.id = "dbgOverlay";
+  box.style.cssText = "position:fixed;z-index:99999;right:8px;bottom:8px;width:min(92vw,360px);max-height:48vh;overflow:auto;background:rgba(0,0,0,.88);color:#c9f6ff;font:12px/1.35 monospace;border:1px solid #2aa;border-radius:8px;padding:8px";
+  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b>DEBUG</b><button id="dbgClear" style="background:#0a3340;color:#9feaf9;border:1px solid #2aa;border-radius:6px;padding:2px 8px">clear</button></div><pre id="dbgLog" style="white-space:pre-wrap;margin:0"></pre>';
+  document.body.appendChild(box);
+  const logEl = document.getElementById("dbgLog");
+  document.getElementById("dbgClear").onclick = ()=> logEl.textContent = "";
+
+  const add = (pfx,args)=>{ 
+    const txt = Array.from(args).map(x=> typeof x==="object" ? JSON.stringify(x) : String(x)).join(" ");
+    logEl.textContent += pfx + txt + "\n"; 
+  };
+
+  const _log = console.log.bind(console);
+  console.log = function(){ add("", arguments); _log.apply(console, arguments); };
+
+  const _err = console.error.bind(console);
+  console.error = function(){ add("ERR: ", arguments); _err.apply(console, arguments); };
+
+  window.onerror = function(msg, src, line, col, err){
+    console.error("[onerror]", msg, src+":"+line+":"+col, err && (err.stack||err));
+  };
+  window.onunhandledrejection = function(e){
+    console.error("[unhandledrejection]", e && (e.reason||e));
+  };
+
+  console.log("🔎 Debug overlay listo");
+})();
+</script>
 </body>
 </html>
