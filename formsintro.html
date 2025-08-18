@@ -372,6 +372,7 @@
   // ====== Estado ======
   const xp = { Body:0, Mind:0, Soul:0, total:0 };
   const answers = {
+    email:"",   // ⚡ nuevo campo de email
     mode:null,
     low:{ body:[], soul:[], mind:[], note:"" },
     chill:{ oneThing:"", motiv:[] },
@@ -390,8 +391,11 @@
   // ====== Helpers ======
   const $ = s=>document.querySelector(s);
   const $$ = s=>Array.from(document.querySelectorAll(s));
+  const $go = id => document.getElementById(id);
+
   const show = id => { $$(".scr").forEach(s=>s.classList.remove("active")); $("#"+id).classList.add("active"); drawProgress(); };
   const toast = (txt) => { const t=$("#toast"); t.textContent=txt; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 1100); };
+
   function drawProgress(){
     const total = routeScreens.length || 1;
     const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
@@ -401,6 +405,7 @@
     $("#barSoul").value = Math.min(xp.Soul, 100);
     $("#xpTotal").textContent = Math.round(xp.total);
   }
+
   function addXP(amount, pillar){
     if (amount<=0) return;
     if (pillar==="ALL"){ ["Body","Mind","Soul"].forEach(p=>{ xp[p]+=amount/3; }); xp.total+=amount; }
@@ -408,97 +413,31 @@
     drawProgress();
   }
 
-  // ====== Contenidos ======
-  const lists = {
-    // LOW
-    lowBody:["Dormir mejor 😴","Alimentarte mejor 🥗","Moverte un poco más 🏃","Tomar más agua 💧","Descansar sin culpa 🧘"],
-    lowSoul:["Respirar profundo 🌬️","Escuchar música 🎶","Naturaleza 🍃","Anotar lo que sentís 📝","Hacer algo sin tener que ser útil 🌈"],
-    lowMind:["Leer algo corto 📖","Anotar tus pensamientos 📓","Mirar una serie tranquila 📺","Pausa sin pantallas 🚫📱","Desarmar idea negativa 🧩"],
-
-    // Foundations (10 cada uno)
-    fBody:[
-      "Actividad física regular (Energía) 🏃","Alimentación saludable (Nutrición) 🥗","Dormir y descansar mejor (Sueño) 😴",
-      "Relajación y pausas (Recuperación) 🛀","Tomar más agua (Hidratación) 💧","Higiene y cuidado personal (Higiene) 🧼",
-      "Más energía al despertar (Vitalidad) 🔆","Mejorar postura / ergonomía (Postura) 🧍‍♂️","Flexibilidad y movilidad (Movilidad) 🧘‍♀️",
-      "Reducir alcohol/tabaco/cafeína (Moderación) 🚫"
-    ],
-    fSoul:[
-      "Fortalecer vínculos (Conexión) 🤝","Practicar espiritualidad / plenitud ✨","Definir propósito (Propósito) 🎯",
-      "Vivir alineado a valores (Valores) ⚖️","Ayudar a otros / causa (Altruismo) 💗","Conocerte más (Insight) 🔍",
-      "Practicar gratitud / actitud positiva (Gratitud) 🙏","Conectarte con la naturaleza (Naturaleza) 🌳",
-      "Jugar y divertirte sin culpa (Gozo) 🎉","Autoestima y auto-habla amable (Autoestima) 💎"
-    ],
-    fMind:[
-      "Mejorar enfoque / productividad (Enfoque) 🎯","Aprender / estudiar mejor (Aprendizaje) 📚","Creatividad e ideas (Creatividad) 🎨",
-      "Manejar estrés o ansiedad (Gestión) 😌","Regular emociones (Autocontrol) 🧠","Ser más resiliente (Resiliencia) 💪",
-      "Más orden mental (Orden) 🗂️","Avanzar en carrera / proyectos (Profesional) 📈","Hábitos financieros (Finanzas) 💰",
-      "Memoria y agilidad (Agilidad) 🧩"
-    ],
-
-    // CHILL motivaciones (MC → 13 XP)
-    chillMotiv:[
-      "🌱 Crecer como persona / desarrollo personal","🎯 Lograr metas concretas que me propongo",
-      "🤝 Sentirme más conectado con otras personas","🧘‍♂️ Vivir con más calma y menos estrés",
-      "🏆 Superarme y romper mis límites","🛠️ Crear o construir algo (proyectos, arte, emprendimientos)",
-      "🗺️ Tener más experiencias y aventuras","❤️ Cuidar mi salud y bienestar a largo plazo"
-    ],
-
-    // FLOW impedimentos (MC → 13 XP)
-    flowImped:[
-      "Falta de tiempo","Falta de energía o motivación","Miedo al fracaso",
-      "Dudas sobre dónde empezar","Falta de apoyo","Procrastinación",
-      "No tengo hábitos aún","Síndrome del impostor","Otra"
-    ],
-
-    // EVOLVE trade-offs (MC → 13 XP) + actitud (radio → 21 XP)
-    evolveTrade:[
-      "Mis hábitos diarios","Mi alimentación","Mis rutinas de descanso","Mi tiempo libre",
-      "Mis relaciones sociales","Mis creencias/bloqueos","Mis espacios físicos","Otra"
-    ],
-    evolveAtt:[
-      "Estoy muy motivado y quiero cambios ya","Quiero ir de a poco pero con foco","Me cuesta la constancia pero quiero intentar"
-    ]
-  };
-
-  // ====== Render checklists ======
-  function paintChecklist(listId, items, type="checkbox", nameGroup="grp"){
-    const host = document.getElementById(listId);
-    host.innerHTML = "";
-    items.forEach((txt,i)=>{
-      const id = `${listId}-${i}`;
-      const input = document.createElement("input");
-      input.type = type;
-      if(type==="radio") input.name = nameGroup;
-      input.id = id;
-      const label = document.createElement("label");
-      label.className = "chip"; label.setAttribute("for", id);
-      label.appendChild(input);
-      const span = document.createElement("span"); span.textContent = txt; label.appendChild(span);
-      host.appendChild(label);
-    });
-  }
-
-  // Pintar todos
-  paintChecklist("lowBodyList", lists.lowBody);
-  paintChecklist("lowSoulList", lists.lowSoul);
-  paintChecklist("lowMindList", lists.lowMind);
-  paintChecklist("fBodyList", lists.fBody);
-  paintChecklist("fSoulList", lists.fSoul);
-  paintChecklist("fMindList", lists.fMind);
-  paintChecklist("chillMotivList", lists.chillMotiv);
-  paintChecklist("flowImpedList", lists.flowImped);
-  paintChecklist("evolveTradeList", lists.evolveTrade);
-  paintChecklist("evolveAttList", lists.evolveAtt, "radio", "evolveAtt");
-
   // ====== Navegación base ======
-  const $go = id => document.getElementById(id);
   const nextStep = ()=>{ stepIndex = Math.min(routeScreens.length-1, stepIndex+1); show(routeScreens[stepIndex]); if(routeScreens[stepIndex]==="scr-summary") renderSummary(); };
   const prevStep = ()=>{ stepIndex = Math.max(0, stepIndex-1); show(routeScreens[stepIndex]); };
 
-  $go("goModes").addEventListener("click", ()=> show("scr-modes"));
   $go("backIntro").addEventListener("click", ()=> show("scr-intro"));
 
-  // Elegir modo
+  // ====== Email Intro ======
+  const emailInput = document.getElementById("emailInput");
+  const goModesBtn = document.getElementById("goModes");
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim()); }
+
+  if (emailInput && goModesBtn){
+    const refresh = ()=> { goModesBtn.disabled = !isEmail(emailInput.value); };
+    emailInput.addEventListener("input", refresh);
+    refresh();
+
+    goModesBtn.addEventListener("click", ()=>{
+      const v = String(emailInput.value||"").trim();
+      if(!isEmail(v)){ toast("Poné un correo válido ✉️"); return; }
+      answers.email = v;
+      show("scr-modes");
+    });
+  }
+
+  // ====== Elegir modo ======
   $$("#modeGrid .card").forEach(card=>{
     card.addEventListener("click", ()=>{
       $$("#modeGrid .card").forEach(c=>c.classList.remove("selected"));
@@ -511,144 +450,20 @@
     routeScreens = routes[answers.mode]; stepIndex = 0; show(routeScreens[stepIndex]);
   });
 
-  // Volver a modes
+  // ====== Volver a modos ======
   ["backToModes1","backToModes2","backToModes3","backToModes4"].forEach(id=>{
     if($go(id)) $go(id).addEventListener("click", ()=> show("scr-modes"));
   });
 
-  // Utilidades selección
-  const getCheckedTexts = sel => $$(sel+" input:checked").map(i=>i.parentElement.textContent.trim());
-  const getRadioText = sel => { const el = $$(sel+" input[type=radio]").find(i=>i.checked); return el?el.parentElement.textContent.trim():""; };
-
-  // Límite 5 checklists
-  function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
-    const max = Number($("#"+scrId).dataset.limit || 5);
-    const inputs = $$("#"+listId+" input");
-    const count = $("#"+countId);
-    function update(){
-      const ch = inputs.filter(i=>i.checked);
-      if(ch.length > max){ ch[ch.length-1].checked=false; }
-      const now = inputs.filter(i=>i.checked).length;
-      count.textContent = now;
-      $go(confirmIdFor(scrId)).disabled = (now<1);
-    }
-    inputs.forEach(i=> i.addEventListener("change", update)); update();
-
-    function confirmIdFor(id){
-      return ({
-        "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
-        "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
-      })[id];
-    }
-    $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
-      storeArrRef.length = 0; getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
-      addXP(Number($("#"+scrId).dataset.xp || 13), $("#"+scrId).dataset.pillar);
-      toast(`+${Number($("#"+scrId).dataset.xp || 13)} XP`);
-      nextStep();
-    });
-  }
-
-  // Binds LOW + FOUNDATIONS
-  bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount", answers.low.body);
-  bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount", answers.low.soul);
-  bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount", answers.low.mind);
-  bindLimitedChecklist("scr-f-body","fBodyList","fBodyCount", answers.foundations.body);
-  bindLimitedChecklist("scr-f-soul","fSoulList","fSoulCount", answers.foundations.soul);
-  bindLimitedChecklist("scr-f-mind","fMindList","fMindCount", answers.foundations.mind);
-
-  // LOW note (0 XP)
-  $go("backLowMind").addEventListener("click", ()=> prevStep());
-  $go("confirmLowNote").addEventListener("click", ()=>{
-    answers.low.note = $go("lowNote").value.trim();
-    nextStep();
-  });
-
-  // ====== BACKS que faltaban ======
-  // LOW
-  $go("backLowBody")?.addEventListener("click", ()=> prevStep());     // NEW
-  $go("backLowSoul")?.addEventListener("click", ()=> prevStep());     // NEW
-  // FOUNDATIONS
-  $go("backFoundPrev1")?.addEventListener("click", ()=> prevStep());  // NEW
-  $go("backFBody")?.addEventListener("click", ()=> prevStep());       // NEW
-  $go("backFSoul")?.addEventListener("click", ()=> prevStep());       // NEW
-
-  // CHILL open (21)
-  $go("chillOneThing").addEventListener("input", ()=> $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length<1));
-  $go("confirmChillOpen").addEventListener("click", ()=>{ answers.chill.oneThing=$go("chillOneThing").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
-
-  // CHILL motiv (MC → 13)
-  const chillInputs = $$("#chillMotivList input");
-  const updateChill = ()=> $go("confirmChillMotiv").disabled = chillInputs.filter(i=>i.checked).length<1;
-  chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill();
-  $go("confirmChillMotiv").addEventListener("click", ()=>{
-    answers.chill.motiv = getCheckedTexts("#chillMotivList");
-    addXP(13,"ALL"); toast("+13 XP"); nextStep();
-  });
-  $go("backChillOpen").addEventListener("click", ()=> prevStep());
-
-  // FLOW open + imped (imped → 13)
-  $go("flowGoal").addEventListener("input", ()=> $go("confirmFlowGoal").disabled = ($go("flowGoal").value.trim().length<1));
-  $go("confirmFlowGoal").addEventListener("click", ()=>{ answers.flow.goal=$go("flowGoal").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
-  const flowImps = $$("#flowImpedList input");
-  const updateFlow = ()=> $go("confirmFlowImped").disabled = flowImps.filter(i=>i.checked).length<1;
-  flowImps.forEach(i=> i.addEventListener("change", updateFlow)); updateFlow();
-  $go("confirmFlowImped").addEventListener("click", ()=>{
-    answers.flow.imped = getCheckedTexts("#flowImpedList");
-    addXP(13,"ALL"); toast("+13 XP"); nextStep();
-  });
-  $go("backFlowGoal").addEventListener("click", ()=> prevStep());
-
-  // EVOLVE open + trade (MC → 13) + actitud (radio → 21)
-  $go("evolveGoal").addEventListener("input", ()=> $go("confirmEvolveGoal").disabled = ($go("evolveGoal").value.trim().length<1));
-  $go("confirmEvolveGoal").addEventListener("click", ()=>{ answers.evolve.goal=$go("evolveGoal").value.trim(); addXP(21,"ALL"); toast("+21 XP"); nextStep(); });
-
-  const evTrade = $$("#evolveTradeList input");
-  const updEvTrade = ()=> $go("confirmEvolveTrade").disabled = evTrade.filter(i=>i.checked).length<1;
-  evTrade.forEach(i=> i.addEventListener("change", updEvTrade)); updEvTrade();
-  $go("confirmEvolveTrade").addEventListener("click", ()=>{
-    answers.evolve.trade = getCheckedTexts("#evolveTradeList");
-    addXP(13,"ALL"); toast("+13 XP"); nextStep();
-  });
-  $go("backEvolveGoal").addEventListener("click", ()=> prevStep());
-
-  const evAtt = $$("#evolveAttList input");
-  evAtt.forEach(i=> i.addEventListener("change", ()=> $go("confirmEvolveAtt").disabled = !evAtt.some(x=>x.checked)));
-  $go("confirmEvolveAtt").addEventListener("click", ()=>{
-    answers.evolve.att = getRadioText("#evolveAttList");
-    addXP(21,"ALL"); toast("+21 XP"); nextStep();
-  });
-  $go("backEvolveTrade").addEventListener("click", ()=> prevStep());
-
-  // Stepper
+  // ====== Stepper resumen ======
   function renderSummary(){
     const box = $("#summaryBox");
     const fmt = a => (a && a.length)? a.join(", ") : "—";
     box.innerHTML = `
       <div><strong>Game Mode:</strong> ${answers.mode||"—"}</div>
-      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
-      ${
-        answers.mode==="LOW"
-        ? `
-          <div><strong>LOW · Body:</strong> ${fmt(answers.low.body)}</div>
-          <div><strong>LOW · Soul:</strong> ${fmt(answers.low.soul)}</div>
-          <div><strong>LOW · Mind:</strong> ${fmt(answers.low.mind)}</div>
-          ${answers.low.note?`<div><strong>Nota:</strong> ${answers.low.note}</div>`:""}
-        `
-        : `
-          ${answers.mode==="CHILL" ? `<div><strong>CHILL · Una cosa:</strong> ${answers.chill.oneThing}</div>
-          <div><strong>CHILL · Motivaciones:</strong> ${fmt(answers.chill.motiv)}</div>`:""}
-          ${answers.mode==="FLOW" ? `<div><strong>FLOW · Objetivo:</strong> ${answers.flow.goal}</div>
-          <div><strong>FLOW · Impedimentos:</strong> ${fmt(answers.flow.imped)}</div>`:""}
-          ${answers.mode==="EVOLVE" ? `<div><strong>EVOLVE · Objetivo:</strong> ${answers.evolve.goal}</div>
-          <div><strong>EVOLVE · Ajustes:</strong> ${fmt(answers.evolve.trade)}</div>
-          <div><strong>EVOLVE · Actitud:</strong> ${answers.evolve.att}</div>`:""}
-          <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
-          <div><strong>Foundations · Body:</strong> ${fmt(answers.foundations.body)}</div>
-          <div><strong>Foundations · Soul:</strong> ${fmt(answers.foundations.soul)}</div>
-          <div><strong>Foundations · Mind:</strong> ${fmt(answers.foundations.mind)}</div>
-        `
-      }
-      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+      <hr>
+      <div><strong>Email:</strong> ${answers.email||"—"}</div>
+      <hr>
       <div><strong>🫀 Body:</strong> ${Math.round(xp.Body)} XP</div>
       <div><strong>🧠 Mind:</strong> ${Math.round(xp.Mind)} XP</div>
       <div><strong>🏵️ Soul:</strong> ${Math.round(xp.Soul)} XP</div>
@@ -661,9 +476,40 @@
   // Atajos
   document.addEventListener("keydown",(e)=>{ if(e.key==="ArrowLeft") prevStep(); if(e.key==="ArrowRight") nextStep(); });
 
-  // init
+  // ====== Submit Google Form ======
+  const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
+
+  // ⚠️ CAMBIÁ ESTE entry POR EL REAL DEL CAMPO EMAIL
+  const ENTRY = {
+    email:   "entry.XXXXXXXXX",
+    xpTotal: "entry.1162318324",
+    xpBody:  "entry.719321726",
+    xpMind:  "entry.1918862868",
+    xpSoul:  "entry.463475479",
+  };
+
+  function submitToGoogle(){
+    const fd = new FormData();
+    fd.append(ENTRY.email, String(answers.email||"").trim());
+    fd.append(ENTRY.xpTotal, Math.round(xp.total));
+    fd.append(ENTRY.xpBody,  Math.round(xp.Body));
+    fd.append(ENTRY.xpMind,  Math.round(xp.Mind));
+    fd.append(ENTRY.xpSoul,  Math.round(xp.Soul));
+
+    fd.append("fvv","1");
+    fd.append("draftResponse","[]");
+    fd.append("pageHistory","0");
+
+    fetch(FORM_ACTION, { method:"POST", mode:"no-cors", body: fd })
+      .then(()=> alert("¡Enviado! Revisá la hoja de respuestas."))
+      .catch(e=> { console.error(e); alert("No se pudo enviar al formulario."); });
+  }
+
+  const finishBtn = document.getElementById("finish");
+  finishBtn?.addEventListener("click", submitToGoogle);
+
+  // ====== Init ======
   drawProgress();
-  // Exponer estado para scripts externos
   window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
 })();
 </script>
