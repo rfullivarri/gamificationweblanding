@@ -54,7 +54,7 @@
   @media (max-width:430px){
     .brand span:last-child{display:none}
     .progress{width:90px}
-    .pill .label{display:none}           /* solo emojis en muy angosto */
+    .pill .label{display:none}
     .pill{min-width:auto}
     progress{width:58px}
   }
@@ -88,7 +88,7 @@
   .checklist{display:grid; gap:10px; margin:12px 0}
   .chip{display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:10px;
     border:1px solid var(--ring); background:rgba(255,255,255,.04)}
-  textarea, input[type="text"]{
+  textarea, input[type="text"], input[type="email"]{
     width:100%; padding:12px; border-radius:12px; border:1px solid var(--ring);
     background:rgba(255,255,255,.05); color:#fff; outline:none;
   }
@@ -142,23 +142,23 @@
           <h2>Cap. 0 — El Despertar</h2>
           <p>
             Respirá. Hoy encendés tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
-            <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando <strong>XP</strong>.
+            <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia  <strong>(XP)</strong>.
             Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones). Arriba vas a ver cómo se carga tu XP total y el de cada pilar.
           </p>
-          <input id="emailInput" type="email" placeholder="Tu correo ✉️" required>
-          <button id="goModes">Empezar</button>
+
+          <!-- Email (obligatorio) -->
           <div class="field" style="margin:12px 0">
-              <label for="emailInput">Tu correo (obligatorio)</label>
-              <input id="emailInput" type="email" placeholder="tu@email.com" required
-           style="padding:10px;width:100%;max-width:320px;border-radius:6px;border:1px solid var(--ring)">
-              <small>Lo usamos para crear tu tablero y guardar tu progreso.</small>
+            <label for="emailInput">Tu correo (obligatorio)</label>
+            <input id="emailInput" type="email" placeholder="tu@email.com" required>
+            <small style="color:#aab7ff">Lo usamos para crear tu tablero y guardar tu progreso.</small>
           </div>
+
           <div class="nav">
-            <button class="btn secondary" disabled>—</button>
-            <button class="btn" id="goModes">Entrar</button>
+            <button class="btn secondary" id="backIntro" disabled>—</button>
+            <button class="btn" id="goModes" disabled>Entrar</button>
           </div>
         </div>
-        <figure class="pic"><img src="https://ibb.co/6c4kzHQh" alt="Intro"></figure>
+        <figure class="pic"><img src="https://i.ibb.co/vCJSp395/761-EAF33-3-AD7-444-E-96-F7-EB58-AC9-D8-F32.png" alt="Intro"></figure>
       </div>
     </section>
 
@@ -179,7 +179,7 @@
             <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
           </div>
         </div>
-        <figure class="pic"><img src="assets/abstract-modes.jpg" alt="Modos"></figure>
+        <figure class="pic"><img src="https://i.ibb.co/Kpw8p1Hh/E57389-B9-DBF2-4-F97-B24-F-E740-C067-A688.png" alt="Modos"></figure>
       </div>
     </section>
 
@@ -240,7 +240,7 @@
             <button class="btn" id="confirmChillOpen" disabled>Confirmar</button>
           </div>
         </div>
-        <figure class="pic"><img src="assets/abstract-chill.jpg" alt="Chill"></figure>
+        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Chill"></figure>
       </div>
     </section>
 
@@ -266,7 +266,7 @@
             <button class="btn" id="confirmFlowGoal" disabled>Confirmar</button>
           </div>
         </div>
-        <figure class="pic"><img src="assets/abstract-flow.jpg" alt="Flow"></figure>
+        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Flow"></figure>
       </div>
     </section>
 
@@ -292,7 +292,7 @@
             <button class="btn" id="confirmEvolveGoal" disabled>Confirmar</button>
           </div>
         </div>
-        <figure class="pic"><img src="assets/abstract-evolve.jpg" alt="Evolve"></figure>
+        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Evolve"></figure>
       </div>
     </section>
 
@@ -360,7 +360,7 @@
       </p>
       <div class="nav">
         <button class="btn secondary" id="restart">Volver al inicio</button>
-        <button class="btn" id="finish">Comenzar el journey</button>
+        <button class="btn" id="finish">Comenzar Journey</button>
       </div>
       <div class="note" style="margin-top:8px">/* TODO: POST a Google Forms con tus <code>entry.xxx</code> */</div>
     </section>
@@ -374,7 +374,7 @@
   // ====== Estado ======
   const xp = { Body:0, Mind:0, Soul:0, total:0 };
   const answers = {
-    email:"",   // ⚡ nuevo campo de email
+    email:"",              // ← agregado
     mode:null,
     low:{ body:[], soul:[], mind:[], note:"" },
     chill:{ oneThing:"", motiv:[] },
@@ -394,78 +394,349 @@
   const $ = s=>document.querySelector(s);
   const $$ = s=>Array.from(document.querySelectorAll(s));
   const $go = id => document.getElementById(id);
-
   const show = id => { $$(".scr").forEach(s=>s.classList.remove("active")); $("#"+id).classList.add("active"); drawProgress(); };
   const toast = (txt) => { const t=$("#toast"); t.textContent=txt; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 1100); };
-
   function drawProgress(){
-    const total = routeScreens.length || 1;
-    const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
-    $("#progressFill").style.width = pct+"%";
-    $("#barBody").value = Math.min(xp.Body, 100);
-    $("#barMind").value = Math.min(xp.Mind, 100);
-    $("#barSoul").value = Math.min(xp.Soul, 100);
-    $("#xpTotal").textContent = Math.round(xp.total);
-  }
+  // % de avance
+  const total = routeScreens.length || 1;
+  const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
+  $("#progressFill").style.width = pct + "%";
+
+  // XP mostrado (redondeado) y barras
+  const b = Math.round(xp.Body);
+  const m = Math.round(xp.Mind);
+  const s = Math.round(xp.Soul);
+
+  $("#barBody").value = Math.min(b, 100);
+  $("#barMind").value = Math.min(m, 100);
+  $("#barSoul").value = Math.min(s, 100);
+
+  // Total mostrado = suma de los tres mostrados
+  const shownTotal = b + m + s;
+  $("#xpTotal").textContent = shownTotal;
+
+  // Mantener xp.total sincronizado con lo que se muestra
+  xp.total = shownTotal;
+}
 
   function addXP(amount, pillar){
-    if (amount<=0) return;
-    if (pillar==="ALL"){ ["Body","Mind","Soul"].forEach(p=>{ xp[p]+=amount/3; }); xp.total+=amount; }
-    else { xp[pillar]+=amount; xp.total+=amount; }
-    drawProgress();
+  if (amount <= 0) return;
+
+  // Fix precisión y total consistente
+  const fix = n => Math.round(n * 100) / 100;
+
+  if (pillar === "ALL") {
+    ["Body","Mind","Soul"].forEach(p => {
+      xp[p] = fix(xp[p] + amount / 3);
+    });
+  } else {
+    xp[pillar] = fix(xp[pillar] + amount);
   }
 
-  // ====== Navegación base ======
-  const nextStep = ()=>{ stepIndex = Math.min(routeScreens.length-1, stepIndex+1); show(routeScreens[stepIndex]); if(routeScreens[stepIndex]==="scr-summary") renderSummary(); };
-  const prevStep = ()=>{ stepIndex = Math.max(0, stepIndex-1); show(routeScreens[stepIndex]); };
+  // El total SIEMPRE es la suma de los pilares (evita 107 vs 108)
+  xp.total = fix(xp.Body + xp.Mind + xp.Soul);
 
-  $go("backIntro").addEventListener("click", ()=> show("scr-intro"));
+  drawProgress();
+}
 
-  // ====== Email Intro ======
-  const emailInput = document.getElementById("emailInput");
-  const goModesBtn = document.getElementById("goModes");
-  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim()); }
+  // ====== Contenido (listas) ======
+  const lists = {
+    lowBody:["Dormir mejor 😴","Alimentarte mejor 🥗","Moverte un poco más 🏃","Tomar más agua 💧","Descansar sin culpa 🧘"],
+    lowSoul:["Respirar profundo 🌬️","Escuchar música 🎶","Naturaleza 🍃","Anotar lo que sentís 📝","Hacer algo sin tener que ser útil 🌈"],
+    lowMind:["Leer algo corto 📖","Anotar tus pensamientos 📓","Mirar una serie tranquila 📺","Pausa sin pantallas 🚫📱","Desarmar idea negativa 🧩"],
+    fBody:[
+      "Actividad física regular (Energía) 🏃","Alimentación saludable (Nutrición) 🥗","Dormir y descansar mejor (Sueño) 😴",
+      "Relajación y pausas (Recuperación) 🛀","Tomar más agua (Hidratación) 💧","Higiene y cuidado personal (Higiene) 🧼",
+      "Más energía al despertar (Vitalidad) 🔆","Mejorar postura / ergonomía (Postura) 🧍‍♂️","Flexibilidad y movilidad (Movilidad) 🧘‍♀️",
+      "Reducir alcohol/tabaco/cafeína (Moderación) 🚫"
+    ],
+    fSoul:[
+      "Fortalecer vínculos (Conexión) 🤝","Practicar espiritualidad / plenitud ✨","Definir propósito (Propósito) 🎯",
+      "Vivir alineado a valores (Valores) ⚖️","Ayudar a otros / causa (Altruismo) 💗","Conocerte más (Insight) 🔍",
+      "Practicar gratitud / actitud positiva (Gratitud) 🙏","Conectarte con la naturaleza (Naturaleza) 🌳",
+      "Jugar y divertirte sin culpa (Gozo) 🎉","Autoestima y auto-habla amable (Autoestima) 💎"
+    ],
+    fMind:[
+      "Mejorar enfoque / productividad (Enfoque) 🎯","Aprender / estudiar mejor (Aprendizaje) 📚","Creatividad e ideas (Creatividad) 🎨",
+      "Manejar estrés o ansiedad (Gestión) 😌","Regular emociones (Autocontrol) 🧠","Ser más resiliente (Resiliencia) 💪",
+      "Más orden mental (Orden) 🗂️","Avanzar en carrera / proyectos (Profesional) 📈","Hábitos financieros (Finanzas) 💰",
+      "Memoria y agilidad (Agilidad) 🧩"
+    ],
+    chillMotiv:[
+      "🌱 Crecer como persona / desarrollo personal","🎯 Lograr metas concretas que me propongo",
+      "🤝 Sentirme más conectado con otras personas","🧘‍♂️ Vivir con más calma y menos estrés",
+      "🏆 Superarme y romper mis límites","🛠️ Crear o construir algo (proyectos, arte, emprendimientos)",
+      "🗺️ Tener más experiencias y aventuras","❤️ Cuidar mi salud y bienestar a largo plazo"
+    ],
+    flowImped:[
+      "Falta de tiempo","Falta de energía o motivación","Miedo al fracaso",
+      "Dudas sobre dónde empezar","Falta de apoyo","Procrastinación",
+      "No tengo hábitos aún","Síndrome del impostor","Otra"
+    ],
+    evolveTrade:[
+      "Mis hábitos diarios","Mi alimentación","Mis rutinas de descanso","Mi tiempo libre",
+      "Mis relaciones sociales","Mis creencias/bloqueos","Mis espacios físicos","Otra"
+    ],
+    evolveAtt:[
+      "Estoy muy motivado y quiero cambios ya","Quiero ir de a poco pero con foco","Me cuesta la constancia pero quiero intentar"
+    ]
+  };
 
-  if (emailInput && goModesBtn){
-    const refresh = ()=> { goModesBtn.disabled = !isEmail(emailInput.value); };
-    emailInput.addEventListener("input", refresh);
-    refresh();
-
-    goModesBtn.addEventListener("click", ()=>{
-      const v = String(emailInput.value||"").trim();
-      if(!isEmail(v)){ toast("Poné un correo válido ✉️"); return; }
-      answers.email = v;
-      show("scr-modes");
+  function paintChecklist(listId, items, type="checkbox", nameGroup="grp"){
+    const host = document.getElementById(listId);
+    host.innerHTML = "";
+    items.forEach((txt,i)=>{
+      const id = `${listId}-${i}`;
+      const input = document.createElement("input");
+      input.type = type;
+      if(type==="radio") input.name = nameGroup;
+      input.id = id;
+      const label = document.createElement("label");
+      label.className = "chip"; label.setAttribute("for", id);
+      label.appendChild(input);
+      const span = document.createElement("span"); span.textContent = txt; label.appendChild(span);
+      host.appendChild(label);
     });
   }
 
-  // ====== Elegir modo ======
-  $$("#modeGrid .card").forEach(card=>{
-    card.addEventListener("click", ()=>{
-      $$("#modeGrid .card").forEach(c=>c.classList.remove("selected"));
-      card.classList.add("selected");
-      answers.mode = card.dataset.mode;
-      $go("confirmMode").disabled = false;
-    });
-  });
-  $go("confirmMode").addEventListener("click", ()=>{
-    routeScreens = routes[answers.mode]; stepIndex = 0; show(routeScreens[stepIndex]);
-  });
+  // Pintar todos
+  paintChecklist("lowBodyList", lists.lowBody);
+  paintChecklist("lowSoulList", lists.lowSoul);
+  paintChecklist("lowMindList", lists.lowMind);
+  paintChecklist("fBodyList", lists.fBody);
+  paintChecklist("fSoulList", lists.fSoul);
+  paintChecklist("fMindList", lists.fMind);
+  paintChecklist("chillMotivList", lists.chillMotiv);
+  paintChecklist("flowImpedList", lists.flowImped);
+  paintChecklist("evolveTradeList", lists.evolveTrade);
+  paintChecklist("evolveAttList", lists.evolveAtt, "radio", "evolveAtt");
 
-  // ====== Volver a modos ======
-  ["backToModes1","backToModes2","backToModes3","backToModes4"].forEach(id=>{
-    if($go(id)) $go(id).addEventListener("click", ()=> show("scr-modes"));
-  });
+// ====== Navegación base ======
+// helpers de paso
+const nextStep = ()=>{
+  const next = Math.min(routeScreens.length - 1, stepIndex + 1);
+  const target = routeScreens[next];
+  if (!target) return;
+  stepIndex = next;
+  show(target);
+  if (target === "scr-summary") renderSummary();
+};
+const prevStep = ()=>{
+  const prev = Math.max(0, stepIndex - 1);
+  stepIndex = prev;
+  show(routeScreens[stepIndex]);
+};
 
-  // ====== Stepper resumen ======
+// (click de goModes se maneja en el bloque de Email)
+$go("backIntro").addEventListener("click", ()=> show("scr-intro"));
+
+// ====== Email Intro ======
+const emailInput = document.getElementById("emailInput");
+const goModesBtn = document.getElementById("goModes");
+const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim());
+
+if (emailInput && goModesBtn){
+  const refresh = ()=> { goModesBtn.disabled = !isEmail(emailInput.value); };
+  emailInput.addEventListener("input", refresh);
+  refresh();
+  goModesBtn.addEventListener("click", ()=>{
+    const v = String(emailInput.value||"").trim();
+    if(!isEmail(v)){ toast("Poné un correo válido ✉️"); return; }
+    answers.email = v;
+    show("scr-modes");
+  });
+}
+
+// Elegir modo
+$$("#modeGrid .card").forEach(card=>{
+  card.addEventListener("click", ()=>{
+    $$("#modeGrid .card").forEach(c=>c.classList.remove("selected"));
+    card.classList.add("selected");
+    answers.mode = card.dataset.mode;
+    $go("confirmMode").disabled = false;
+  });
+});
+$go("confirmMode").addEventListener("click", ()=>{
+  routeScreens = routes[answers.mode];
+  stepIndex = 0;
+  show(routeScreens[stepIndex]);
+});
+
+// Volver a modes
+["backToModes1","backToModes2","backToModes3","backToModes4"].forEach(id=>{
+  if($go(id)) $go(id).addEventListener("click", ()=> show("scr-modes"));
+});
+
+// ====== BACKS para FOUNDATIONS (Body → Soul → Mind) ======
+["backFoundPrev1","backFBody","backFSoul"].forEach(id => {
+  const btn = $go(id);
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    // paso atrás dentro del route actual
+    stepIndex = Math.max(0, stepIndex - 1);
+    show(routeScreens[stepIndex]);
+  });
+});
+
+// Utilidades selección
+const getCheckedTexts = sel => $$(sel+" input:checked").map(i=>i.parentElement.textContent.trim());
+const getRadioText   = sel => { const el = $$(sel+" input[type=radio]").find(i=>i.checked); return el?el.parentElement.textContent.trim():""; };
+
+// Checklist con límite y confirm
+function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
+  const max = Number($("#"+scrId).dataset.limit || 5);
+  const inputs = $$("#"+listId+" input");
+  const count  = $("#"+countId);
+
+  function update(){
+    const ch = inputs.filter(i=>i.checked);
+    if(ch.length > max){ ch[ch.length-1].checked = false; }
+    const now = inputs.filter(i=>i.checked).length;
+    count.textContent = now;
+    $go(confirmIdFor(scrId)).disabled = (now < 1);
+  }
+  inputs.forEach(i=> i.addEventListener("change", update));
+  update();
+
+  function confirmIdFor(id){
+    return ({
+      "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
+      "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
+    })[id];
+  }
+
+  // Confirm de la pantalla (evita doble XP)
+  $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
+    const sec = document.getElementById(scrId);
+    if (sec.dataset.done === "1") {   // ya confirmada
+      nextStep();
+      return;
+    }
+    // Guardar selección
+    storeArrRef.length = 0;
+    getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+    // Sumar XP una vez
+    const xpVal = Number($("#"+scrId).dataset.xp || 13);
+    const pillar = $("#"+scrId).dataset.pillar;
+    addXP(xpVal, pillar);
+    toast(`+${xpVal} XP`);
+    // Marcar como hecha y avanzar
+    sec.dataset.done = "1";
+    nextStep();
+  });
+}
+
+// Binds LOW + FOUNDATIONS
+bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body);
+bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount",   answers.low.soul);
+bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount",   answers.low.mind);
+bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount",     answers.foundations.body);
+bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount",     answers.foundations.soul);
+bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount",     answers.foundations.mind);
+
+// LOW note (0 XP)
+$go("backLowMind").addEventListener("click", ()=> prevStep());
+$go("confirmLowNote").addEventListener("click", ()=>{
+  answers.low.note = $go("lowNote").value.trim();
+  nextStep();
+});
+
+// CHILL
+$go("chillOneThing").addEventListener("input", ()=> $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length<1));
+$go("confirmChillOpen").addEventListener("click", ()=>{
+  answers.chill.oneThing = $go("chillOneThing").value.trim();
+  addXP(21,"ALL"); toast("+21 XP");
+  nextStep();
+});
+const chillInputs = $$("#chillMotivList input");
+const updateChill = ()=> $go("confirmChillMotiv").disabled = chillInputs.filter(i=>i.checked).length<1;
+chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill();
+$go("confirmChillMotiv").addEventListener("click", ()=>{
+  answers.chill.motiv = getCheckedTexts("#chillMotivList");
+  addXP(13,"ALL"); toast("+13 XP");
+  nextStep();
+});
+$go("backChillOpen").addEventListener("click", ()=> prevStep());
+
+// FLOW
+$go("flowGoal").addEventListener("input", ()=> $go("confirmFlowGoal").disabled = ($go("flowGoal").value.trim().length<1));
+$go("confirmFlowGoal").addEventListener("click", ()=>{
+  answers.flow.goal = $go("flowGoal").value.trim();
+  addXP(21,"ALL"); toast("+21 XP");
+  nextStep();
+});
+const flowImps = $$("#flowImpedList input");
+const updateFlow = ()=> $go("confirmFlowImped").disabled = flowImps.filter(i=>i.checked).length<1;
+flowImps.forEach(i=> i.addEventListener("change", updateFlow)); updateFlow();
+$go("confirmFlowImped").addEventListener("click", ()=>{
+  answers.flow.imped = getCheckedTexts("#flowImpedList");
+  addXP(13,"ALL"); toast("+13 XP");
+  nextStep();
+});
+$go("backFlowGoal").addEventListener("click", ()=> prevStep());
+
+// EVOLVE
+$go("evolveGoal").addEventListener("input", ()=> $go("confirmEvolveGoal").disabled = ($go("evolveGoal").value.trim().length<1));
+$go("confirmEvolveGoal").addEventListener("click", ()=>{
+  answers.evolve.goal = $go("evolveGoal").value.trim();
+  addXP(21,"ALL"); toast("+21 XP");
+  nextStep();
+});
+const evTrade = $$("#evolveTradeList input");
+const updEvTrade = ()=> $go("confirmEvolveTrade").disabled = evTrade.filter(i=>i.checked).length<1;
+evTrade.forEach(i=> i.addEventListener("change", updEvTrade)); updEvTrade();
+$go("confirmEvolveTrade").addEventListener("click", ()=>{
+  answers.evolve.trade = getCheckedTexts("#evolveTradeList");
+  addXP(13,"ALL"); toast("+13 XP");
+  nextStep();
+});
+$go("backEvolveGoal").addEventListener("click", ()=> prevStep());
+
+const evAtt = $$("#evolveAttList input");
+evAtt.forEach(i=> i.addEventListener("change", ()=> $go("confirmEvolveAtt").disabled = !evAtt.some(x=>x.checked)));
+$go("confirmEvolveAtt").addEventListener("click", ()=>{
+  answers.evolve.att = getRadioText("#evolveAttList");
+  addXP(21,"ALL"); toast("+21 XP");
+  nextStep();
+});
+$go("backEvolveTrade").addEventListener("click", ()=> prevStep());
+
+// Atajos de teclado (opcional)
+document.addEventListener("keydown",(e)=>{
+  if(e.key==="ArrowLeft")  prevStep();
+  if(e.key==="ArrowRight") nextStep();
+});
+
   function renderSummary(){
     const box = $("#summaryBox");
     const fmt = a => (a && a.length)? a.join(", ") : "—";
     box.innerHTML = `
       <div><strong>Game Mode:</strong> ${answers.mode||"—"}</div>
-      <hr>
       <div><strong>Email:</strong> ${answers.email||"—"}</div>
-      <hr>
+      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+      ${
+        answers.mode==="LOW"
+        ? `
+          <div><strong>LOW · Body:</strong> ${fmt(answers.low.body)}</div>
+          <div><strong>LOW · Soul:</strong> ${fmt(answers.low.soul)}</div>
+          <div><strong>LOW · Mind:</strong> ${fmt(answers.low.mind)}</div>
+          ${answers.low.note?`<div><strong>Nota:</strong> ${answers.low.note}</div>`:""}
+        `
+        : `
+          ${answers.mode==="CHILL" ? `<div><strong>CHILL · Una cosa:</strong> ${answers.chill.oneThing}</div>
+          <div><strong>CHILL · Motivaciones:</strong> ${fmt(answers.chill.motiv)}</div>`:""}
+          ${answers.mode==="FLOW" ? `<div><strong>FLOW · Objetivo:</strong> ${answers.flow.goal}</div>
+          <div><strong>FLOW · Impedimentos:</strong> ${fmt(answers.flow.imped)}</div>`:""}
+          ${answers.mode==="EVOLVE" ? `<div><strong>EVOLVE · Objetivo:</strong> ${answers.evolve.goal}</div>
+          <div><strong>EVOLVE · Ajustes:</strong> ${fmt(answers.evolve.trade)}</div>
+          <div><strong>EVOLVE · Actitud:</strong> ${answers.evolve.att}</div>`:""}
+          <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+          <div><strong>Foundations · Body:</strong> ${fmt(answers.foundations.body)}</div>
+          <div><strong>Foundations · Soul:</strong> ${fmt(answers.foundations.soul)}</div>
+          <div><strong>Foundations · Mind:</strong> ${fmt(answers.foundations.mind)}</div>
+        `
+      }
+      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
       <div><strong>🫀 Body:</strong> ${Math.round(xp.Body)} XP</div>
       <div><strong>🧠 Mind:</strong> ${Math.round(xp.Mind)} XP</div>
       <div><strong>🏵️ Soul:</strong> ${Math.round(xp.Soul)} XP</div>
@@ -473,48 +744,16 @@
     `;
   }
 
+  document.addEventListener("keydown",(e)=>{ if(e.key==="ArrowLeft"){stepIndex=Math.max(0,--stepIndex);show(routeScreens[stepIndex]);} if(e.key==="ArrowRight"){stepIndex=Math.min(routeScreens.length-1,++stepIndex);show(routeScreens[stepIndex]);} });
   $go("restart").addEventListener("click", ()=> location.reload());
 
-  // Atajos
-  document.addEventListener("keydown",(e)=>{ if(e.key==="ArrowLeft") prevStep(); if(e.key==="ArrowRight") nextStep(); });
-
-  // ====== Submit Google Form ======
-  const FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
-
-  // ⚠️ CAMBIÁ ESTE entry POR EL REAL DEL CAMPO EMAIL
-  const ENTRY = {
-    email:   "entry.XXXXXXXXX",
-    xpTotal: "entry.1162318324",
-    xpBody:  "entry.719321726",
-    xpMind:  "entry.1918862868",
-    xpSoul:  "entry.463475479",
-  };
-
-  function submitToGoogle(){
-    const fd = new FormData();
-    fd.append(ENTRY.email, String(answers.email||"").trim());
-    fd.append(ENTRY.xpTotal, Math.round(xp.total));
-    fd.append(ENTRY.xpBody,  Math.round(xp.Body));
-    fd.append(ENTRY.xpMind,  Math.round(xp.Mind));
-    fd.append(ENTRY.xpSoul,  Math.round(xp.Soul));
-
-    fd.append("fvv","1");
-    fd.append("draftResponse","[]");
-    fd.append("pageHistory","0");
-
-    fetch(FORM_ACTION, { method:"POST", mode:"no-cors", body: fd })
-      .then(()=> alert("¡Enviado! Revisá la hoja de respuestas."))
-      .catch(e=> { console.error(e); alert("No se pudo enviar al formulario."); });
-  }
-
-  const finishBtn = document.getElementById("finish");
-  finishBtn?.addEventListener("click", submitToGoogle);
-
-  // ====== Init ======
+  // Init
   drawProgress();
   window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
 })();
 </script>
-<script src="js/formsintro.js"></script>
+
+<!-- Tu JS de envío a Google Forms -->
+<script src="formsintro.js"></script>
 </body>
 </html>
