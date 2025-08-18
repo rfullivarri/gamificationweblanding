@@ -755,10 +755,11 @@ document.addEventListener("keydown",(e)=>{
 
 <!-- Tu JS de envío a Google Forms -->
 <script src="js/formsintro.js?v=3"></script>
+
 <script>
 // ===== Overlay de debug (mobile-friendly) =====
 (function(){
-  const ON = true; // poné false para ocultarlo
+  const ON = true;
   if(!ON) return;
 
   const box = document.createElement("div");
@@ -788,6 +789,16 @@ document.addEventListener("keydown",(e)=>{
   };
 
   console.log("🔎 Debug overlay listo");
+})();
+</script>
+
+<script>
+// Smoke test: confirma que #finish existe y que el listener principal está
+(function(){
+  const fin = document.getElementById("finish");
+  if(!fin){ alert("⚠️ No encuentro #finish"); return; }
+  console.log("✅ #finish existe");
+  fin.addEventListener("click", ()=> console.log("✅ click en #finish (HTML test)"));
 })();
 </script>
 </body>
