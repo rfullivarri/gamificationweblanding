@@ -1,12 +1,12 @@
-// submit.js  —  Enviar respuestas del Journey a Google Forms
+// submit.js  —  Enviar respuestas del Journey a Google Forms (versión GitHub Pages + redirect)
 
 // 1) URL de tu Form (termina en /formResponse)
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
-// 2) Mapeo de tus entry.xxx  (reemplazá el de email por el real)
+// 2) Mapeo de tus entry.xxx (ya con email correcto)
 const entries = {
-  email: "entry.646330003",   // <-- CAMBIAR por el entry del campo Email del Form
+  email: "entry.646330003",  // ✅ entry del campo Email
 
   mode: "entry.97701242",
   xp_total: "entry.1162318324",
@@ -42,28 +42,26 @@ const entries = {
   f_mind_open:  "entry.1918822353",
 };
 
+// helper para arrays o strings
 function appendMany(fd, entryId, values){
   if (!entryId || values == null) return;
   if (Array.isArray(values)) values.forEach(v => fd.append(entryId, String(v)));
   else fd.append(entryId, String(values));
 }
 
+// construir el payload desde el estado global
 function buildFormDataFromJourney(){
   const {answers, xp} = window.JOURNEY_STATE;
   const fd = new FormData();
 
-  // Email
-  appendMany(fd, entries.email, answers.email || "");
-
-  // ===== FIX XP TOTAL =====
-  // Redondear por pilar y calcular el total como suma de esos 3 redondeados
-  // (así evitamos el +1 que aparecía por redondeo separado del total).
+  // XP: total calculado como suma de pilares redondeados (evita desfases)
   const b = Math.round(xp.Body);
   const m = Math.round(xp.Mind);
   const s = Math.round(xp.Soul);
   const totalShown = b + m + s;
 
-  appendMany(fd, entries.mode,     answers.mode || "");
+  appendMany(fd, entries.email,    answers.email || "");
+  appendMany(fd, entries.mode,     answers.mode  || "");
   appendMany(fd, entries.xp_total, totalShown);
   appendMany(fd, entries.xp_body,  b);
   appendMany(fd, entries.xp_mind,  m);
@@ -81,8 +79,8 @@ function buildFormDataFromJourney(){
     appendMany(fd, entries.f_soul, answers.foundations.soul);
     appendMany(fd, entries.f_mind, answers.foundations.mind);
   } else if (answers.mode === "FLOW"){
-    appendMany(fd, entries.flow_goal,   answers.flow.goal || "");
-    appendMany(fd, entries.flow_imped,  answers.flow.imped);
+    appendMany(fd, entries.flow_goal,  answers.flow.goal || "");
+    appendMany(fd, entries.flow_imped, answers.flow.imped);
     appendMany(fd, entries.f_body, answers.foundations.body);
     appendMany(fd, entries.f_soul, answers.foundations.soul);
     appendMany(fd, entries.f_mind, answers.foundations.mind);
@@ -103,21 +101,40 @@ function buildFormDataFromJourney(){
   return fd;
 }
 
+// envío fiable: primero sendBeacon, si no, fetch no-cors
 async function submitToGoogleForms(){
-  try{
-    const fd = buildFormDataFromJourney();
-    await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
-  }catch(err){
-    console.error("Error enviando al Form:", err);
+  const fd = buildFormDataFromJourney();
+
+  let sent = false;
+  try {
+    if (navigator.sendBeacon) {
+      // sendBeacon necesita un Blob; FormData funciona en la mayoría de navegadores modernos
+      sent = navigator.sendBeacon(FORM_ACTION_URL, fd);
+      console.log("[submit] sendBeacon:", sent);
+    }
+  } catch (e) { console.warn("[submit] sendBeacon error:", e); }
+
+  if (!sent) {
+    try {
+      await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
+      console.log("[submit] fetch no-cors disparado");
+    } catch (e) {
+      console.error("[submit] fetch error:", e);
+    }
   }
 }
 
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
-  if (!btn) return;
+  if (!btn) { console.warn("#finish no encontrado"); return; }
+
   btn.addEventListener("click", async (e)=>{
     e.preventDefault();
+    // dispara envío y luego redirige
     await submitToGoogleForms();
-    alert("Misiones generadas. Respuestas enviadas ✅");
+    // pequeña espera (por si el navegador decide flush asíncrono del beacon)
+    setTimeout(()=>{
+      window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+    }, 150);
   });
 });
