@@ -752,197 +752,116 @@ document.addEventListener("keydown",(e)=>{
   window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
 })();
 </script>
-
-<!-- Tu JS de envío a Google Forms -->
-<!-- LO QUE DEBE QUEDAR -->
 <script>
-(function(){
-  // === Config ===
-  const ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
-  const E = {
-    email: "entry.646330003",
-    mode: "entry.97701242",
-    xp_total: "entry.1162318324",
-    xp_body:  "entry.719321726",
-    xp_mind:  "entry.1918862868",
-    xp_soul:  "entry.463475479",
-    // LOW
-    low_body: "entry.811917583",
-    low_soul: "entry.1264509887",
-    low_mind: "entry.930582201",
-    low_note: "entry.1684429349",
-    // CHILL
-    chill_one:   "entry.1593318786",
-    chill_motiv: "entry.245183915",
-    // FLOW
-    flow_goal:  "entry.1840529708",
-    flow_imped: "entry.1903049465",
-    // EVOLVE
-    evolve_goal:  "entry.1816542307",
-    evolve_trade: "entry.263772832",
-    evolve_att:   "entry.1936745776",
-    // FOUNDATIONS
-    f_body:      "entry.1504903278",
-    f_soul:      "entry.753306725",
-    f_mind:      "entry.1978710",
-    f_body_open: "entry.263311735",
-    f_soul_open: "entry.590475620",
-    f_mind_open: "entry.1918822353",
-  };
+const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
-  function pushVal(map, key, val){
-    if (val == null) return;
-    if (Array.isArray(val)) {
-      val.forEach(v => pushVal(map, key, v));
-      return;
-    }
-    if (!map[key]) map[key] = [];
-    map[key].push(String(val));
+const ENTRIES = {
+  email: "entry.646330003",
+  mode: "entry.97701242",
+  xp_total: "entry.1162318324",
+  xp_body:  "entry.719321726",
+  xp_mind:  "entry.1918862868",
+  xp_soul:  "entry.463475479",
+  low_body: "entry.811917583",
+  low_soul: "entry.1264509887",
+  low_mind: "entry.930582201",
+  low_note: "entry.1684429349",
+  chill_one:   "entry.1593318786",
+  chill_motiv: "entry.245183915",
+  flow_goal:  "entry.1840529708",
+  flow_imped: "entry.1903049465",
+  evolve_goal:  "entry.1816542307",
+  evolve_trade: "entry.263772832",
+  evolve_att:   "entry.1936745776",
+  f_body:       "entry.1504903278",
+  f_body_open:  "entry.263311735",
+  f_soul:       "entry.753306725",
+  f_soul_open:  "entry.590475620",
+  f_mind:       "entry.1978710",
+  f_mind_open:  "entry.1918822353",
+};
+
+function addHidden(form, name, value){
+  if (value == null) return;
+  if (Array.isArray(value)) { value.forEach(v => addHidden(form, name, v)); return; }
+  const inp = document.createElement("input");
+  inp.type = "hidden"; inp.name = name; inp.value = String(value);
+  form.appendChild(inp);
+}
+
+function submitJourneyToForm(){
+  const {answers, xp} = window.JOURNEY_STATE;
+
+  const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
+  const total = b + m + s;
+
+  let ifr = document.getElementById("forms_iframe_target");
+  if (!ifr){
+    ifr = document.createElement("iframe");
+    ifr.id = "forms_iframe_target"; ifr.name = "forms_iframe_target";
+    ifr.style.display = "none";
+    document.body.appendChild(ifr);
   }
 
-  function buildPayload(){
-    // Toma el estado global que ya arma tu HTML
-    const S = window.JOURNEY_STATE || {};
-    const answers = S.answers || {};
-    const xp = S.xp || {Body:0,Mind:0,Soul:0};
+  const form = document.createElement("form");
+  form.action = FORM_ACTION_URL;
+  form.method = "POST";
+  form.target = "forms_iframe_target";
+  form.style.display = "none";
 
-    const b = Math.round(xp.Body);
-    const m = Math.round(xp.Mind);
-    const s = Math.round(xp.Soul);
-    const total = b + m + s;
+  addHidden(form, ENTRIES.email,    answers.email || "");
+  addHidden(form, ENTRIES.mode,     answers.mode  || "");
+  addHidden(form, ENTRIES.xp_total, total);
+  addHidden(form, ENTRIES.xp_body,  b);
+  addHidden(form, ENTRIES.xp_mind,  m);
+  addHidden(form, ENTRIES.xp_soul,  s);
 
-    const out = {};
-    pushVal(out, E.email, answers.email || "");
-    pushVal(out, E.mode,  answers.mode  || "");
-    pushVal(out, E.xp_total, total);
-    pushVal(out, E.xp_body,  b);
-    pushVal(out, E.xp_mind,  m);
-    pushVal(out, E.xp_soul,  s);
-
-    if (answers.mode === "LOW"){
-      pushVal(out, E.low_body, answers.low?.body || []);
-      pushVal(out, E.low_soul, answers.low?.soul || []);
-      pushVal(out, E.low_mind, answers.low?.mind || []);
-      pushVal(out, E.low_note, answers.low?.note || "");
-    } else if (answers.mode === "CHILL"){
-      pushVal(out, E.chill_one,   answers.chill?.oneThing || "");
-      pushVal(out, E.chill_motiv, answers.chill?.motiv || []);
-      pushVal(out, E.f_body, answers.foundations?.body || []);
-      pushVal(out, E.f_soul, answers.foundations?.soul || []);
-      pushVal(out, E.f_mind, answers.foundations?.mind || []);
-    } else if (answers.mode === "FLOW"){
-      pushVal(out, E.flow_goal,  answers.flow?.goal || "");
-      pushVal(out, E.flow_imped, answers.flow?.imped || []);
-      pushVal(out, E.f_body, answers.foundations?.body || []);
-      pushVal(out, E.f_soul, answers.foundations?.soul || []);
-      pushVal(out, E.f_mind, answers.foundations?.mind || []);
-    } else if (answers.mode === "EVOLVE"){
-      pushVal(out, E.evolve_goal,  answers.evolve?.goal || "");
-      pushVal(out, E.evolve_trade, answers.evolve?.trade || []);
-      pushVal(out, E.evolve_att,   answers.evolve?.att || "");
-      pushVal(out, E.f_body, answers.foundations?.body || []);
-      pushVal(out, E.f_soul, answers.foundations?.soul || []);
-      pushVal(out, E.f_mind, answers.foundations?.mind || []);
-    }
-
-    // Campos que Google Forms espera
-    pushVal(out, "fvv", "1");
-    pushVal(out, "draftResponse", "[]");
-    pushVal(out, "pageHistory", "0");
-
-    return out;
+  if (answers.mode === "LOW"){
+    addHidden(form, ENTRIES.low_body, answers.low.body);
+    addHidden(form, ENTRIES.low_soul, answers.low.soul);
+    addHidden(form, ENTRIES.low_mind, answers.low.mind);
+    addHidden(form, ENTRIES.low_note, answers.low.note || "");
+  } else if (answers.mode === "CHILL"){
+    addHidden(form, ENTRIES.chill_one,   answers.chill.oneThing || "");
+    addHidden(form, ENTRIES.chill_motiv, answers.chill.motiv);
+    addHidden(form, ENTRIES.f_body, answers.foundations.body);
+    addHidden(form, ENTRIES.f_soul, answers.foundations.soul);
+    addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
+  } else if (answers.mode === "FLOW"){
+    addHidden(form, ENTRIES.flow_goal,  answers.flow.goal || "");
+    addHidden(form, ENTRIES.flow_imped, answers.flow.imped);
+    addHidden(form, ENTRIES.f_body, answers.foundations.body);
+    addHidden(form, ENTRIES.f_soul, answers.foundations.soul);
+    addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
+  } else if (answers.mode === "EVOLVE"){
+    addHidden(form, ENTRIES.evolve_goal,  answers.evolve.goal || "");
+    addHidden(form, ENTRIES.evolve_trade, answers.evolve.trade);
+    addHidden(form, ENTRIES.evolve_att,   answers.evolve.att || "");
+    addHidden(form, ENTRIES.f_body, answers.foundations.body);
+    addHidden(form, ENTRIES.f_soul, answers.foundations.soul);
+    addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
   }
 
-  function submitNativeForm(){
-    const data = buildPayload();
+  addHidden(form, "fvv","1");
+  addHidden(form, "draftResponse","[]");
+  addHidden(form, "pageHistory","0");
 
-    // Crear form oculto y enviarlo (máxima compatibilidad móvil)
-    const form = document.createElement("form");
-    form.action = ACTION;
-    form.method = "POST";
-    form.style.display = "none";
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+}
 
-    for (const name in data){
-      const arr = data[name];
-      arr.forEach(val => {
-        const inp = document.createElement("input");
-        inp.type = "hidden";
-        inp.name = name;
-        inp.value = val;
-        form.appendChild(inp);
-      });
-    }
-    document.body.appendChild(form);
-    form.submit();
-  }
-
-  document.addEventListener("DOMContentLoaded", function(){
-    const btn = document.getElementById("finish");
-    if (!btn) { alert("#finish no encontrado"); return; }
-
-    btn.addEventListener("click", function(e){
-      e.preventDefault();
-      submitNativeForm();
-      // pequeño delay y redirección
-      setTimeout(function(){
-        window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-      }, 350);
-    });
+document.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.getElementById("finish");
+  if (!btn) return;
+  btn.addEventListener("click", (e)=>{
+    e.preventDefault();
+    submitJourneyToForm();
+    setTimeout(()=> {
+      window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+    }, 250);
   });
-})();
-</script>
-<script>
-  setTimeout(()=> {
-    if (!window.__formsIntroLoaded) {
-      console.warn("formsintro.js NO cargó. Revisá la ruta del <script src=...>");
-      alert("formsintro.js no cargó (ruta incorrecta).");
-    }
-  }, 200);
-</script>
-<script>
-// ===== Overlay de debug (mobile-friendly) =====
-(function(){
-  const ON = true;
-  if(!ON) return;
-
-  const box = document.createElement("div");
-  box.id = "dbgOverlay";
-  box.style.cssText = "position:fixed;z-index:99999;right:8px;bottom:8px;width:min(92vw,360px);max-height:48vh;overflow:auto;background:rgba(0,0,0,.88);color:#c9f6ff;font:12px/1.35 monospace;border:1px solid #2aa;border-radius:8px;padding:8px";
-  box.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;"><b>DEBUG</b><button id="dbgClear" style="background:#0a3340;color:#9feaf9;border:1px solid #2aa;border-radius:6px;padding:2px 8px">clear</button></div><pre id="dbgLog" style="white-space:pre-wrap;margin:0"></pre>';
-  document.body.appendChild(box);
-  const logEl = document.getElementById("dbgLog");
-  document.getElementById("dbgClear").onclick = ()=> logEl.textContent = "";
-
-  const add = (pfx,args)=>{ 
-    const txt = Array.from(args).map(x=> typeof x==="object" ? JSON.stringify(x) : String(x)).join(" ");
-    logEl.textContent += pfx + txt + "\n"; 
-  };
-
-  const _log = console.log.bind(console);
-  console.log = function(){ add("", arguments); _log.apply(console, arguments); };
-
-  const _err = console.error.bind(console);
-  console.error = function(){ add("ERR: ", arguments); _err.apply(console, arguments); };
-
-  window.onerror = function(msg, src, line, col, err){
-    console.error("[onerror]", msg, src+":"+line+":"+col, err && (err.stack||err));
-  };
-  window.onunhandledrejection = function(e){
-    console.error("[unhandledrejection]", e && (e.reason||e));
-  };
-
-  console.log("🔎 Debug overlay listo");
-})();
-</script>
-
-<script>
-// Smoke test: confirma que #finish existe y que el listener principal está
-(function(){
-  const fin = document.getElementById("finish");
-  if(!fin){ alert("⚠️ No encuentro #finish"); return; }
-  console.log("✅ #finish existe");
-  fin.addEventListener("click", ()=> console.log("✅ click en #finish (HTML test)"));
-})();
-</script>
+});
+</script> 
 </body>
 </html>
