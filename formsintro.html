@@ -754,8 +754,16 @@ document.addEventListener("keydown",(e)=>{
 </script>
 
 <!-- Tu JS de envío a Google Forms -->
-<script src="js/formsintro.js?v=3"></script>
-
+<!-- LO QUE DEBE QUEDAR -->
+<script src="/gamificationweblanding/js/formsintro.js?v=4"></script>
+<script>
+  setTimeout(()=> {
+    if (!window.__formsIntroLoaded) {
+      console.warn("formsintro.js NO cargó. Revisá la ruta del <script src=...>");
+      alert("formsintro.js no cargó (ruta incorrecta).");
+    }
+  }, 200);
+</script>
 <script>
 // ===== Overlay de debug (mobile-friendly) =====
 (function(){
