@@ -6,7 +6,7 @@ const FORM_ACTION_URL =
 
 // 2) Mapeo de tus entry.xxx  (reemplazá el de email por el real)
 const entries = {
-  email:    "entry.646330003",   // <-- CAMBIAR por el entry del campo Email del Form
+  email: "entry.646330003",   // <-- CAMBIAR por el entry del campo Email del Form
 
   mode: "entry.97701242",
   xp_total: "entry.1162318324",
