@@ -1,62 +1,73 @@
-// 1) PONÉ LA URL DE TU FORM AQUÍ (la que termina en /formResponse)
+// submit.js  —  Enviar respuestas del Journey a Google Forms
+
+// 1) URL de tu Form (termina en /formResponse)
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
-// 2) Mapeo de tus entry.xxx (reemplazá los números)
+// 2) Mapeo de tus entry.xxx  (reemplazá el de email por el real)
 const entries = {
+  email:    "entry.646330003",   // <-- CAMBIAR por el entry del campo Email del Form
+
   mode: "entry.97701242",
   xp_total: "entry.1162318324",
   xp_body:  "entry.719321726",
   xp_mind:  "entry.1918862868",
   xp_soul:  "entry.463475479",
 
-  // ---- LOW (checklists + nota) ----
-  low_body: "entry.811917583",     // Dormir mejor, Alimentarte mejor, ...
-  low_soul: "entry.1264509887",    // Respirar, Música, Naturaleza, ...
-  low_mind: "entry.930582201",     // Leer corto, Anotar, Serie tranquila, ...
-  low_note: "entry.1684429349",    // Contarnos cómo estás LOW (abierta)
+  // ---- LOW ----
+  low_body: "entry.811917583",
+  low_soul: "entry.1264509887",
+  low_mind: "entry.930582201",
+  low_note: "entry.1684429349",
 
   // ---- CHILL ----
-  chill_one:   "entry.1593318786", // “Si pudieras mejorar o lograr una cosa…” (abierta)
-  chill_motiv: "entry.245183915",  // Motivaciones (MC)
+  chill_one:   "entry.1593318786",
+  chill_motiv: "entry.245183915",
 
   // ---- FLOW ----
-  flow_goal:  "entry.1840529708",  // Objetivo FLOW (abierta)
-  flow_imped: "entry.1903049465",  // Impedimentos (MC)
+  flow_goal:  "entry.1840529708",
+  flow_imped: "entry.1903049465",
 
   // ---- EVOLVE ----
-  evolve_goal:  "entry.1816542307", // Objetivo desafiante (abierta)
-  evolve_trade: "entry.263772832",  // ¿Qué estás dispuesto a cambiar? (MC)
-  evolve_att:   "entry.1936745776", // Actitud (radio)
+  evolve_goal:  "entry.1816542307",
+  evolve_trade: "entry.263772832",
+  evolve_att:   "entry.1936745776",
 
-  // ---- FOUNDATIONS (Body / Soul / Mind) ----
-  f_body:       "entry.1504903278", // Body (10 opciones MC)
-  f_body_open:  "entry.263311735",  // “Algo que te cueste” Body (abierta)
-
-  f_soul:       "entry.753306725",  // Soul (10 opciones MC)
-  f_soul_open:  "entry.590475620",  // Prácticas espirituales (abierta)
-
-  f_mind:       "entry.1978710",    // Mind (10 opciones MC)
-  f_mind_open:  "entry.1918822353", // ¿Qué te gustaría lograr mentalmente? (abierta)
+  // ---- FOUNDATIONS ----
+  f_body:       "entry.1504903278",
+  f_body_open:  "entry.263311735",
+  f_soul:       "entry.753306725",
+  f_soul_open:  "entry.590475620",
+  f_mind:       "entry.1978710",
+  f_mind_open:  "entry.1918822353",
 };
 
-// Utilidad: añade 1 o muchas respuestas al mismo entry (checkbox → varias filas del mismo entry)
 function appendMany(fd, entryId, values){
   if (!entryId || values == null) return;
   if (Array.isArray(values)) values.forEach(v => fd.append(entryId, String(v)));
   else fd.append(entryId, String(values));
 }
 
-// Construye el FormData desde el estado expuesto por el flujo
 function buildFormDataFromJourney(){
   const {answers, xp} = window.JOURNEY_STATE;
   const fd = new FormData();
 
-  appendMany(fd, entries.mode,      answers.mode || "");
-  appendMany(fd, entries.xp_total,  Math.round(xp.total));
-  appendMany(fd, entries.xp_body,   Math.round(xp.Body));
-  appendMany(fd, entries.xp_mind,   Math.round(xp.Mind));
-  appendMany(fd, entries.xp_soul,   Math.round(xp.Soul));
+  // Email
+  appendMany(fd, entries.email, answers.email || "");
+
+  // ===== FIX XP TOTAL =====
+  // Redondear por pilar y calcular el total como suma de esos 3 redondeados
+  // (así evitamos el +1 que aparecía por redondeo separado del total).
+  const b = Math.round(xp.Body);
+  const m = Math.round(xp.Mind);
+  const s = Math.round(xp.Soul);
+  const totalShown = b + m + s;
+
+  appendMany(fd, entries.mode,     answers.mode || "");
+  appendMany(fd, entries.xp_total, totalShown);
+  appendMany(fd, entries.xp_body,  b);
+  appendMany(fd, entries.xp_mind,  m);
+  appendMany(fd, entries.xp_soul,  s);
 
   if (answers.mode === "LOW"){
     appendMany(fd, entries.low_body, answers.low.body);
@@ -66,14 +77,12 @@ function buildFormDataFromJourney(){
   } else if (answers.mode === "CHILL"){
     appendMany(fd, entries.chill_one,   answers.chill.oneThing || "");
     appendMany(fd, entries.chill_motiv, answers.chill.motiv);
-    // Foundations
     appendMany(fd, entries.f_body, answers.foundations.body);
     appendMany(fd, entries.f_soul, answers.foundations.soul);
     appendMany(fd, entries.f_mind, answers.foundations.mind);
   } else if (answers.mode === "FLOW"){
     appendMany(fd, entries.flow_goal,   answers.flow.goal || "");
     appendMany(fd, entries.flow_imped,  answers.flow.imped);
-    // Foundations
     appendMany(fd, entries.f_body, answers.foundations.body);
     appendMany(fd, entries.f_soul, answers.foundations.soul);
     appendMany(fd, entries.f_mind, answers.foundations.mind);
@@ -81,7 +90,6 @@ function buildFormDataFromJourney(){
     appendMany(fd, entries.evolve_goal,  answers.evolve.goal || "");
     appendMany(fd, entries.evolve_trade, answers.evolve.trade);
     appendMany(fd, entries.evolve_att,   answers.evolve.att || "");
-    // Foundations
     appendMany(fd, entries.f_body, answers.foundations.body);
     appendMany(fd, entries.f_soul, answers.foundations.soul);
     appendMany(fd, entries.f_mind, answers.foundations.mind);
@@ -104,14 +112,12 @@ async function submitToGoogleForms(){
   }
 }
 
-// Enlazar botón final
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) return;
   btn.addEventListener("click", async (e)=>{
     e.preventDefault();
     await submitToGoogleForms();
-    // Acá navegás a tu ThankYou o dejas la pantalla de misiones
-    alert("Onboarding terminado. Respuestas enviadas ✅");
+    alert("Misiones generadas. Respuestas enviadas ✅");
   });
 });
