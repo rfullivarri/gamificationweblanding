@@ -371,6 +371,21 @@
   </div>
 </div>
 
+  <script>
+  // Muestra cualquier error JS como una banderita arriba
+  (function(){
+    const tag = document.createElement('div');
+    tag.id = 'js-crash';
+    tag.style.cssText = 'position:fixed;top:6px;left:6px;right:6px;z-index:99999;background:#2b1c1c;color:#ffbdbd;padding:8px;border:1px solid #ff5c5c;border-radius:8px;font:12px/1.4 system-ui;display:none';
+    document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(tag));
+    window.addEventListener('error', function(e){
+      tag.style.display='block';
+      tag.textContent = 'JS error: ' + (e.message||'(sin mensaje)') + ' @ ' + (e.filename||'') + ':' + (e.lineno||'');
+      console.log('[JS ERROR]', e);
+    });
+  })();
+</script>
+
 
 <script>
 // ==========================
@@ -493,9 +508,6 @@ const MODE_LABELS = {
   FLOW:  "Flow Mood 🌊 - Tengo un objetivo y quiero comenzar esta aventura",
   EVOLVE:"Evolve Mood 🧬 - Estoy enfocado y quiero ir al próximo nivel"
 };
-
-
-
 </script>
 
 <script>
@@ -837,7 +849,7 @@ const MODE_LABELS = {
   
 <script>
 // ==========================
-// 3) Envío a Google Forms (REEMPLAZA ESTE BLOQUE COMPLETO)
+// 3) Envío a Google Forms (REEMPLAZA TU BLOQUE POR ESTE)
 // ==========================
 const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
@@ -877,8 +889,7 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-// Secuencia larga para “simular” que recorrió todas las secciones.
-// (Evita que Forms ignore entradas de páginas posteriores)
+// Simula que el usuario navegó todas las secciones (clave en Forms multi-página)
 const PAGE_HISTORY_ALL = "0,1,2,3,4,5,6,7,8,9,10";
 
 function addHidden(form, name, value){
@@ -892,11 +903,17 @@ function addHidden(form, name, value){
 }
 
 function submitJourneyToForm(){
-  const {answers, xp} = window.JOURNEY_STATE;
+  const state = window.JOURNEY_STATE;
+  if (!state) { console.log('[submit] JOURNEY_STATE no está disponible'); return; }
+
+  const {answers, xp} = state;
+  // Fallback robusto para mode: usa label exacto si existe, si no, el código (LOW/CHILL/...)
+  const modeLabel = (typeof MODE_LABELS !== 'undefined' && MODE_LABELS && MODE_LABELS[answers.mode]) ? MODE_LABELS[answers.mode] : (answers.mode || "");
+
   const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
   const total = b + m + s;
 
-  // iframe target para evitar CORS/redirect
+  // Iframe target para evitar CORS/redirección
   let ifr = document.getElementById("forms_iframe_target");
   if (!ifr){
     ifr = document.createElement("iframe");
@@ -914,7 +931,7 @@ function submitJourneyToForm(){
 
   // Base
   addHidden(form, ENTRIES.email,    answers.email || "");
-  addHidden(form, ENTRIES.mode,     MODE_LABELS[answers.mode] || ""); // <- sin window.
+  addHidden(form, ENTRIES.mode,     modeLabel);
   addHidden(form, ENTRIES.xp_total, total);
   addHidden(form, ENTRIES.xp_body,  b);
   addHidden(form, ENTRIES.xp_mind,  m);
@@ -947,20 +964,21 @@ function submitJourneyToForm(){
     addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
   }
 
-  // Lo que Forms espera para multi-sección
+  // Campos que Forms espera (multi-sección)
   addHidden(form, "fvv", "1");
   addHidden(form, "draftResponse", "[]");
-  addHidden(form, "pageHistory", PAGE_HISTORY_ALL); // <- clave
-  addHidden(form, "submit", "Submit");               // <- ayuda
+  addHidden(form, "pageHistory", PAGE_HISTORY_ALL);
+  addHidden(form, "submit", "Submit");
 
   document.body.appendChild(form);
 
-  // Debug opcional
+  // Debug visible (útil en Koder)
   try {
-    console.log("[submit] snapshot", { mode: MODE_LABELS[answers.mode], total, b, m, s, answers });
-    console.log("[submit] pageHistory:", PAGE_HISTORY_ALL);
+    console.log("[submit] INICIO →", {modeLabel, total, b, m, s});
+    console.log("[submit] answers snapshot:", JSON.stringify(answers));
   } catch(e){}
 
+  // Enviar
   form.submit();
   form.remove();
 
@@ -976,7 +994,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
   btn.addEventListener("click", (e)=>{
     e.preventDefault();
     submitJourneyToForm();
-    // Redirección opcional:
+    // Redirección opcional
     // setTimeout(()=>location.href="https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1", 500);
   });
 });
