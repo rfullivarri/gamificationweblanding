@@ -834,10 +834,10 @@ const MODE_LABELS = {
   window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
 })();
 </script>
-
+  
 <script>
 // ==========================
-// 3) Envío a Google Forms
+// 3) Envío a Google Forms (REEMPLAZAR ESTE BLOQUE COMPLETO)
 // ==========================
 const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
@@ -877,11 +877,21 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
+// ⚠️ Page history por modo (secuencias suficientemente largas para cubrir todas las secciones)
+const PAGE_HISTORY_BY_MODE = {
+  LOW:    "0,1,2,3,4,5,6",
+  CHILL:  "0,1,2,3,4,5,6,7",
+  FLOW:   "0,1,2,3,4,5,6,7",
+  EVOLVE: "0,1,2,3,4,5,6,7,8"
+};
+
 function addHidden(form, name, value){
   if (value == null) return;
   if (Array.isArray(value)) { value.forEach(v => addHidden(form, name, v)); return; }
   const inp = document.createElement("input");
-  inp.type = "hidden"; inp.name = name; inp.value = String(value);
+  inp.type = "hidden";
+  inp.name = name;
+  inp.value = String(value);
   form.appendChild(inp);
 }
 
@@ -890,10 +900,12 @@ function submitJourneyToForm(){
   const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
   const total = b + m + s;
 
+  // iframe target
   let ifr = document.getElementById("forms_iframe_target");
   if (!ifr){
     ifr = document.createElement("iframe");
-    ifr.id = "forms_iframe_target"; ifr.name = "forms_iframe_target";
+    ifr.id = "forms_iframe_target";
+    ifr.name = "forms_iframe_target";
     ifr.style.display = "none";
     document.body.appendChild(ifr);
   }
@@ -904,13 +916,15 @@ function submitJourneyToForm(){
   form.target = "forms_iframe_target";
   form.style.display = "none";
 
-  addHidden(form, ENTRIES.email,    answers.email || "");
-  addHidden(form, ENTRIES.mode, MODE_LABELS[answers.mode] || "");
-  addHidden(form, ENTRIES.xp_total, total);
-  addHidden(form, ENTRIES.xp_body,  b);
-  addHidden(form, ENTRIES.xp_mind,  m);
-  addHidden(form, ENTRIES.xp_soul,  s);
+  // Campos base
+  addHidden(form, ENTRIES.email,              answers.email || "");
+  addHidden(form, ENTRIES.mode,               (window.MODE_LABELS && window.MODE_LABELS[answers.mode]) ? window.MODE_LABELS[answers.mode] : "");
+  addHidden(form, ENTRIES.xp_total,           total);
+  addHidden(form, ENTRIES.xp_body,            b);
+  addHidden(form, ENTRIES.xp_mind,            m);
+  addHidden(form, ENTRIES.xp_soul,            s);
 
+  // Por modo
   if (answers.mode === "LOW"){
     addHidden(form, ENTRIES.low_body, answers.low.body);
     addHidden(form, ENTRIES.low_soul, answers.low.soul);
@@ -937,14 +951,30 @@ function submitJourneyToForm(){
     addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
   }
 
-  // Campos que Forms espera
-  addHidden(form, "fvv","1");
-  addHidden(form, "draftResponse","[]");
-  addHidden(form, "pageHistory","0");
+  // Campos que Forms espera para multi-sección
+  addHidden(form, "fvv", "1");
+  addHidden(form, "draftResponse", "[]");
+  // 👇 El truco: pageHistory con todas las páginas "recorridas" según el modo
+  const ph = PAGE_HISTORY_BY_MODE[answers.mode] || "0,1,2,3,4,5,6,7,8";
+  addHidden(form, "pageHistory", ph);
+  // Opcional pero suele ayudar:
+  addHidden(form, "submit", "Submit");
 
   document.body.appendChild(form);
+
+  // (Opcional) logs de depuración
+  try {
+    console.log("[submit] INICIO → snapshot:", JSON.stringify({answers, xp:{Body:b, Mind:m, Soul:s, total}}, null, 2));
+    console.log("[submit] pageHistory:", ph);
+  } catch(e){}
+
   form.submit();
   form.remove();
+
+  // (Opcional) confirmar recepción
+  ifr.onload = () => {
+    try { console.log("[submit] iframe load ✅ Forms recibió el POST."); } catch(e){}
+  };
 }
 
 // Hook del botón final
@@ -954,9 +984,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
   btn.addEventListener("click", (e)=>{
     e.preventDefault();
     submitJourneyToForm();
-/**    setTimeout(()=> {
-      window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-    }, 250);*/
+    // Si querés redirigir luego, reactivá esto:
+    // setTimeout(()=> {
+    //   window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+    // }, 500);
   });
 });
 </script>
