@@ -483,6 +483,19 @@ const FORM_LABELS = {
     "🧩 Ejercitar tu memoria y agilidad mental (Agilidad)"
   ]
 };
+
+// ==========================
+// Mapear los modos internos a etiquetas exactas del Form
+// ==========================
+const MODE_LABELS = {
+  LOW:   "Low Mood 🪫 - Quiero un cambio, pero no tengo la energia",
+  CHILL: "Chill Mood 🌿 - Estoy  bien, quiero trackear mis hábitos",
+  FLOW:  "Flow Mood 🌊 - Tengo un objetivo y quiero comenzar esta aventura",
+  EVOLVE:"Evolve Mood 🧬 - Estoy enfocado y quiero ir al próximo nivel"
+};
+
+
+
 </script>
 
 <script>
@@ -892,7 +905,7 @@ function submitJourneyToForm(){
   form.style.display = "none";
 
   addHidden(form, ENTRIES.email,    answers.email || "");
-  addHidden(form, ENTRIES.mode,     answers.mode  || "");
+  addHidden(form, ENTRIES.mode, MODE_LABELS[answers.mode] || "");
   addHidden(form, ENTRIES.xp_total, total);
   addHidden(form, ENTRIES.xp_body,  b);
   addHidden(form, ENTRIES.xp_mind,  m);
@@ -941,9 +954,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
   btn.addEventListener("click", (e)=>{
     e.preventDefault();
     submitJourneyToForm();
-    setTimeout(()=> {
+/**    setTimeout(()=> {
       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-    }, 250);
+    }, 250);*/
   });
 });
 </script>
