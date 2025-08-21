@@ -849,7 +849,7 @@ const MODE_LABELS = {
   
 <script>
 // ==========================
-// 3) Envío a Google Forms (REEMPLAZA TU BLOQUE POR ESTE)
+// 3) Envío a Google Forms (fix "form.submit is not a function")
 // ==========================
 const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
@@ -889,7 +889,7 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-// Simula que el usuario navegó todas las secciones (clave en Forms multi-página)
+// Simulamos recorrido multi-sección (ajústalo si cambias páginas del form)
 const PAGE_HISTORY_ALL = "0,1,2,3,4,5,6,7,8,9,10";
 
 function addHidden(form, name, value){
@@ -907,13 +907,14 @@ function submitJourneyToForm(){
   if (!state) { console.log('[submit] JOURNEY_STATE no está disponible'); return; }
 
   const {answers, xp} = state;
-  // Fallback robusto para mode: usa label exacto si existe, si no, el código (LOW/CHILL/...)
-  const modeLabel = (typeof MODE_LABELS !== 'undefined' && MODE_LABELS && MODE_LABELS[answers.mode]) ? MODE_LABELS[answers.mode] : (answers.mode || "");
+  const modeLabel = (typeof MODE_LABELS !== 'undefined' && MODE_LABELS && MODE_LABELS[answers.mode])
+    ? MODE_LABELS[answers.mode]
+    : (answers.mode || "");
 
   const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
   const total = b + m + s;
 
-  // Iframe target para evitar CORS/redirección
+  // iframe target
   let ifr = document.getElementById("forms_iframe_target");
   if (!ifr){
     ifr = document.createElement("iframe");
@@ -968,34 +969,22 @@ function submitJourneyToForm(){
   addHidden(form, "fvv", "1");
   addHidden(form, "draftResponse", "[]");
   addHidden(form, "pageHistory", PAGE_HISTORY_ALL);
-  addHidden(form, "submit", "Submit");
+  // 🔧 NO agregar name="submit" — rompe form.submit()
 
   document.body.appendChild(form);
 
-  // Debug visible (útil en Koder)
-  try {
-    console.log("[submit] INICIO →", {modeLabel, total, b, m, s});
-    console.log("[submit] answers snapshot:", JSON.stringify(answers));
-  } catch(e){}
+  // Enviar — llamamos al método nativo por si hay nombres conflictivos
+  HTMLFormElement.prototype.submit.call(form);
 
-  // Enviar
-  form.submit();
-  form.remove();
-
-  ifr.onload = () => {
-    try { console.log("[submit] iframe load ✅ Forms recibió el POST."); } catch(e){}
-  };
+  ifr.onload = () => console.log("[submit] iframe load ✅ Forms recibió el POST.");
 }
 
-// Hook del botón final
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) return;
   btn.addEventListener("click", (e)=>{
     e.preventDefault();
     submitJourneyToForm();
-    // Redirección opcional
-    // setTimeout(()=>location.href="https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1", 500);
   });
 });
 </script>
