@@ -849,14 +849,14 @@ const MODE_LABELS = {
   
 <script>
 /* ==========================
-   3) Envío a Google Forms (robusto + logs)
+   3) Envío a Google Forms (fetch + pageHistory)
    ========================== */
 
 /* URL del form */
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
-/* IDs de entradas */
+/* IDs de entradas EXACTOS */
 const ENTRIES = {
   email: "entry.646330003",
   mode: "entry.97701242",
@@ -893,114 +893,96 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
+/* ===== pageHistory =====
+   Debe cubrir todas las secciones del Form.
+   Pongo 0..12 por las dudas (de sobra no molesta).
+   Si tu form tuviera MUCHAS más, agrégalas.
+*/
+const PAGE_HISTORY = "0,1,2,3,4,5,6,7,8,9,10,11,12";
+
 /* Helpers */
-function appendField(fdOrForm, name, val){
+function fdAppend(fd, name, val){
   if (val == null) return;
-  if (Array.isArray(val)){
-    val.forEach(v => appendField(fdOrForm, name, v));
-    return;
-  }
-  const v = String(val);
-  if (fdOrForm instanceof FormData){
-    fdOrForm.append(name, v);
-  } else {
-    const inp = document.createElement("input");
-    inp.type = "hidden"; inp.name = name; inp.value = v;
-    fdOrForm.appendChild(inp);
-  }
+  if (Array.isArray(val)) { val.forEach(v => fdAppend(fd, name, v)); return; }
+  fd.append(name, String(val));
 }
 
-/* Arma todos los campos a partir del estado */
-function buildAllFields(appender){
+/* Construye el cuerpo para el POST */
+function buildFormDataFromState(){
   const {answers, xp} = window.JOURNEY_STATE;
   const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
   const total = b + m + s;
 
-  appender(ENTRIES.email,    answers.email || "");
-  appender(ENTRIES.mode,     MODE_LABELS[answers.mode] || "");
-  appender(ENTRIES.xp_total, total);
-  appender(ENTRIES.xp_body,  b);
-  appender(ENTRIES.xp_mind,  m);
-  appender(ENTRIES.xp_soul,  s);
+  const fd = new FormData();
+
+  fdAppend(fd, ENTRIES.email, answers.email || "");
+  fdAppend(fd, ENTRIES.mode,  (window.MODE_LABELS?.[answers.mode]) || "");
+  fdAppend(fd, ENTRIES.xp_total, total);
+  fdAppend(fd, ENTRIES.xp_body,  b);
+  fdAppend(fd, ENTRIES.xp_mind,  m);
+  fdAppend(fd, ENTRIES.xp_soul,  s);
 
   if (answers.mode === "LOW"){
-    appender(ENTRIES.low_body, answers.low.body);
-    appender(ENTRIES.low_soul, answers.low.soul);
-    appender(ENTRIES.low_mind, answers.low.mind);
-    appender(ENTRIES.low_note, answers.low.note || "");
+    fdAppend(fd, ENTRIES.low_body, answers.low.body);
+    fdAppend(fd, ENTRIES.low_soul, answers.low.soul);
+    fdAppend(fd, ENTRIES.low_mind, answers.low.mind);
+    fdAppend(fd, ENTRIES.low_note, answers.low.note || "");
   } else if (answers.mode === "CHILL"){
-    appender(ENTRIES.chill_one,   answers.chill.oneThing || "");
-    appender(ENTRIES.chill_motiv, answers.chill.motiv);
-    appender(ENTRIES.f_body, answers.foundations.body);
-    appender(ENTRIES.f_soul, answers.foundations.soul);
-    appender(ENTRIES.f_mind, answers.foundations.mind);
+    fdAppend(fd, ENTRIES.chill_one,   answers.chill.oneThing || "");
+    fdAppend(fd, ENTRIES.chill_motiv, answers.chill.motiv);
+    fdAppend(fd, ENTRIES.f_body, answers.foundations.body);
+    fdAppend(fd, ENTRIES.f_soul, answers.foundations.soul);
+    fdAppend(fd, ENTRIES.f_mind, answers.foundations.mind);
   } else if (answers.mode === "FLOW"){
-    appender(ENTRIES.flow_goal,  answers.flow.goal || "");
-    appender(ENTRIES.flow_imped, answers.flow.imped);
-    appender(ENTRIES.f_body, answers.foundations.body);
-    appender(ENTRIES.f_soul, answers.foundations.soul);
-    appender(ENTRIES.f_mind, answers.foundations.mind);
+    fdAppend(fd, ENTRIES.flow_goal,  answers.flow.goal || "");
+    fdAppend(fd, ENTRIES.flow_imped, answers.flow.imped);
+    fdAppend(fd, ENTRIES.f_body, answers.foundations.body);
+    fdAppend(fd, ENTRIES.f_soul, answers.foundations.soul);
+    fdAppend(fd, ENTRIES.f_mind, answers.foundations.mind);
   } else if (answers.mode === "EVOLVE"){
-    appender(ENTRIES.evolve_goal,  answers.evolve.goal || "");
-    appender(ENTRIES.evolve_trade, answers.evolve.trade);
-    appender(ENTRIES.evolve_att,   answers.evolve.att || "");
-    appender(ENTRIES.f_body, answers.foundations.body);
-    appender(ENTRIES.f_soul, answers.foundations.soul);
-    appender(ENTRIES.f_mind, answers.foundations.mind);
+    fdAppend(fd, ENTRIES.evolve_goal,  answers.evolve.goal || "");
+    fdAppend(fd, ENTRIES.evolve_trade, answers.evolve.trade);
+    fdAppend(fd, ENTRIES.evolve_att,   answers.evolve.att || "");
+    fdAppend(fd, ENTRIES.f_body, answers.foundations.body);
+    fdAppend(fd, ENTRIES.f_soul, answers.foundations.soul);
+    fdAppend(fd, ENTRIES.f_mind, answers.foundations.mind);
   }
 
-  // NO enviamos pageHistory/fvv/draftResponse.
+  // Campos meta para Forms con secciones
+  fdAppend(fd, "fvv", "1");
+  fdAppend(fd, "draftResponse", "[]");
+  fdAppend(fd, "pageHistory", PAGE_HISTORY);
+
+  return fd;
 }
 
-/* Envío con fetch(no-cors) + fallback form+iframe (y submit nativo) */
+/* Envío: SOLO fetch (no-cors) para no duplicar filas */
 async function submitJourneyToForm(){
-  const {answers, xp} = window.JOURNEY_STATE;
-  console.log("[submit] snapshot:", JSON.stringify({answers, xp}));
+  const fd = buildFormDataFromState();
 
-  try{
-    const fd = new FormData();
-    buildAllFields((name, val)=> appendField(fd, name, val));
-
+  // Log rápido (lo podés dejar)
+  try {
     const preview = {};
     for (const [k,v] of fd.entries()){
-      (preview[k] ||= []).push(v);
+      if (!preview[k]) preview[k] = [];
+      preview[k].push(v);
     }
-    console.log("[submit] fetch body preview:", preview);
+    console.log("[submit] body:", preview);
+  } catch(_) {}
 
-    await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
-    console.log("[submit] fetch(no-cors) enviado.");
-  }catch(err){
-    console.warn("[submit] fetch falló:", err);
-  }
-
-  // Fallback seguro
-  const iframeName = "forms_iframe_" + Date.now();
-  const ifr = document.createElement("iframe");
-  ifr.name = iframeName; ifr.id = iframeName; ifr.style.display = "none";
-  document.body.appendChild(ifr);
-  ifr.addEventListener("load", ()=> console.log("[submit] iframe load ✅"));
-
-  const form = document.createElement("form");
-  form.action = FORM_ACTION_URL;
-  form.method = "POST";
-  form.target = iframeName;
-  form.style.display = "none";
-
-  buildAllFields((name, val)=> appendField(form, name, val));
-  console.log("[submit] form inputs:", Array.from(form.elements).map(e=>({name:e.name,value:e.value})));
-
-  document.body.appendChild(form);
-  HTMLFormElement.prototype.submit.call(form); // evita colisión con inputs "submit"
-  setTimeout(()=> { form.remove(); /* ifr.remove(); */ }, 1500);
+  // POST (respuesta será 'opaque' por no-cors, es normal)
+  await fetch(FORM_ACTION_URL, { method: "POST", mode: "no-cors", body: fd });
 }
 
 /* Hook del botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) return;
-  btn.addEventListener("click", (e)=>{
+  btn.addEventListener("click", async (e)=>{
     e.preventDefault();
-    submitJourneyToForm();
+    await submitJourneyToForm();
+    // opcional: redirigir o mostrar toast
+    // window.location.href = "loginv2.html?await=1";
   });
 });
 </script>
