@@ -994,42 +994,46 @@ function buildFormDataFromState(){
   return fd;
 }
 
-async function submitJourneyToForm(){
-  if (!window.JOURNEY_STATE) {
-    console.warn("[forms] JOURNEY_STATE no está disponible aún.");
-  }
-
-  // 1) Reusamos tu FormData para no romper nada
-  const fd = buildFormDataFromState();
-
-  // 2) Lo convertimos a URL-ENCODED (igual a un <form> real)
-  const params = new URLSearchParams();
-  for (const [k, v] of fd.entries()) {
-    const s = String(v ?? "").trim();
-    if (s.length === 0) continue;        // evita enviar vacíos
-    params.append(k, s);                  // repite keys para checkboxes
-  }
-
-  // 3) Parámetros internos que algunos Forms esperan (tolerantes)
-  params.append("fvv", "1");
-  params.append("pageHistory", "0");
-  params.append("fbzx", String(Date.now()));
-  params.append("submit", "Submit");      // no siempre necesario, pero ayuda
-
-  // 4) Envío como lo hace un formulario HTML nativo
+async function submitJourneyToForm() {
   try {
-    await fetch(FORM_ACTION_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: params.toString()
-    });
-    console.log("[forms] Enviado como urlencoded ✅");
+    // 1. Armamos los datos del form (esto lo usás vos)
+    const fd = buildFormDataFromState();
+
+    // 2. Creamos un <form> oculto
+    const form = document.createElement("form");
+    form.action = FORM_ACTION_URL; // 👈 tu URL de Google Forms
+    form.method = "POST";
+    form.style.display = "none";
+
+    // 3. Cargamos todos los campos en el form oculto
+    for (const [k, v] of fd.entries()) {
+      // Google Forms espera que checkboxes salgan repetidos, no en array
+      if (Array.isArray(v)) {
+        v.forEach(val => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = k;
+          input.value = val;
+          form.appendChild(input);
+        });
+      } else {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = k;
+        input.value = v;
+        form.appendChild(input);
+      }
+    }
+
+    // 4. Enviamos el form
+    document.body.appendChild(form);
+    form.submit();
+
+    console.log("[forms] Enviado con form.submit ✅");
   } catch (err) {
-    console.error("[forms] Error en envío:", err);
+    console.error("[forms] Error en submitJourneyToForm:", err);
   }
 }
-
 /* Hook del botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
