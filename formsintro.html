@@ -848,14 +848,14 @@ const MODE_LABELS = {
   
 <script>
 /* ==========================
-   3) Envío a Google Forms (NUEVO form)
+   3) Envío a Google Forms (fetch-only, estilo signup)
    ========================== */
 
-/* URL del NUEVO form (tu último ID) */
+/* URL del NUEVO form (el que pasaste) */
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
 
-/* IDs de entradas (1:1 con tu prellenado) */
+/* IDs de entradas (1:1 con tu último prellenado) */
 const ENTRIES = {
   email: "entry.646330003",
   mode:  "entry.97701242",
@@ -894,148 +894,132 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-/* ——— Helpers ——— */
-function appendHidden(form, name, val){
+/* ---------- Helpers ---------- */
+function appendFD(fd, name, val){
   if (val == null) return;
-  if (Array.isArray(val)) { val.forEach(v => appendHidden(form, name, v)); return; }
-  const input = document.createElement("input");
-  input.type = "hidden";
-  input.name = name;
-  input.value = String(val);
-  form.appendChild(input);
+  if (Array.isArray(val)) { val.forEach(v=>appendFD(fd, name, v)); return; }
+  fd.append(name, String(val));
 }
 
-function pickEmailFallback(){
+// Intenta usar MODE_LABELS del Script 1 (si existen)
+function modeLabelFrom(answers){
+  try {
+    if (typeof MODE_LABELS !== "undefined" && MODE_LABELS[answers?.mode]) {
+      return MODE_LABELS[answers.mode];
+    }
+  } catch(_) {}
+  return answers?.mode || "";
+}
+
+// Si tenemos FORM_LABELS, filtramos a los valores válidos EXACTOS (evita que Forms descarte)
+function sanitizeArray(values, allowed){
+  if (!Array.isArray(values)) return [];
+  if (!Array.isArray(allowed) || allowed.length===0) return values; // si no hay catálogo, no filtramos
+  const set = new Set(allowed);
+  const out = values.filter(v => set.has(v));
+  if (out.length !== values.length) {
+    console.warn("[forms] Se filtraron valores no listados en el Form:", values.filter(v=>!set.has(v)));
+  }
+  return out;
+}
+
+function pickEmail(){
   const a = window.JOURNEY_STATE?.answers?.email || "";
   const b = document.querySelector("#emailInput")?.value || "";
   const c = document.querySelector("input[type=email]")?.value || "";
   return String(a || b || c || "").trim();
 }
 
-function pickModeLabel(answers){
-  // Usa los MODE_LABELS del Script 1 si existen; si no, manda el valor crudo.
-  try {
-    if (typeof MODE_LABELS !== "undefined" && MODE_LABELS && MODE_LABELS[answers?.mode]) {
-      return MODE_LABELS[answers.mode];
-    }
-  } catch(_e){}
-  return answers?.mode || "";
-}
+/* Arma el FormData a partir del estado actual */
+function buildFormDataFromState(){
+  const fd = new FormData();
 
-function buildAllFieldsIntoForm(form){
-  const state = window.JOURNEY_STATE || { answers:{}, xp:{} };
+  const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
   const answers = state.answers || {};
-  const xp = state.xp || {};
+  const xp      = state.xp || {};
 
-  const email = pickEmailFallback();
-
+  // Base
+  const email = pickEmail();
   const b = Math.round(Number(xp.Body || 0));
   const m = Math.round(Number(xp.Mind || 0));
   const s = Math.round(Number(xp.Soul || 0));
   const total = b + m + s;
 
-  const modeLabel = pickModeLabel(answers);
+  const modeLabel = modeLabelFrom(answers);
 
-  // ——— Base ———
-  appendHidden(form, ENTRIES.email,    email);
-  appendHidden(form, ENTRIES.mode,     modeLabel);
-  appendHidden(form, ENTRIES.xp_total, total);
-  appendHidden(form, ENTRIES.xp_body,  b);
-  appendHidden(form, ENTRIES.xp_mind,  m);
-  appendHidden(form, ENTRIES.xp_soul,  s);
+  appendFD(fd, ENTRIES.email,    email);
+  appendFD(fd, ENTRIES.mode,     modeLabel);
+  appendFD(fd, ENTRIES.xp_total, total);
+  appendFD(fd, ENTRIES.xp_body,  b);
+  appendFD(fd, ENTRIES.xp_mind,  m);
+  appendFD(fd, ENTRIES.xp_soul,  s);
 
-  // ——— LOW ———
-  appendHidden(form, ENTRIES.low_body, answers?.low?.body || []);
-  appendHidden(form, ENTRIES.low_soul, answers?.low?.soul || []);
-  appendHidden(form, ENTRIES.low_mind, answers?.low?.mind || []);
-  appendHidden(form, ENTRIES.low_note, answers?.low?.note || "");
+  // Si existen catálogos (Script 1), los usamos para sanear
+  const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
 
-  // ——— CHILL ———
-  appendHidden(form, ENTRIES.chill_one,   answers?.chill?.oneThing || "");
-  appendHidden(form, ENTRIES.chill_motiv, answers?.chill?.motiv || []);
+  // LOW
+  appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
+  appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
+  appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
+  appendFD(fd, ENTRIES.low_note, answers?.low?.note || "");
 
-  // ——— FLOW ———
-  appendHidden(form, ENTRIES.flow_goal,  answers?.flow?.goal || "");
-  appendHidden(form, ENTRIES.flow_imped, answers?.flow?.imped || []);
+  // CHILL
+  appendFD(fd, ENTRIES.chill_one,   answers?.chill?.oneThing || "");
+  appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
 
-  // ——— EVOLVE ———
-  appendHidden(form, ENTRIES.evolve_goal,  answers?.evolve?.goal || "");
-  appendHidden(form, ENTRIES.evolve_trade, answers?.evolve?.trade || []);
-  appendHidden(form, ENTRIES.evolve_att,   answers?.evolve?.att || "");
+  // FLOW
+  appendFD(fd, ENTRIES.flow_goal,  answers?.flow?.goal || "");
+  appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
 
-  // ——— FOUNDATIONS ———
-  appendHidden(form, ENTRIES.f_body,       answers?.foundations?.body || []);
-  appendHidden(form, ENTRIES.f_body_open,  ""); // campo abierto (si lo usás)
-  appendHidden(form, ENTRIES.f_soul,       answers?.foundations?.soul || []);
-  appendHidden(form, ENTRIES.f_soul_open,  "");
-  appendHidden(form, ENTRIES.f_mind,       answers?.foundations?.mind || []);
-  appendHidden(form, ENTRIES.f_mind_open,  "");
+  // EVOLVE
+  appendFD(fd, ENTRIES.evolve_goal,  answers?.evolve?.goal || "");
+  appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
+  appendFD(fd, ENTRIES.evolve_att,   answers?.evolve?.att || "");
 
-  // ——— Meta de Google Forms ———
-  appendHidden(form, "fvv", "1");
-  appendHidden(form, "draftResponse", "[]");
-  appendHidden(form, "pageHistory", "0");
+  // FOUNDATIONS
+  appendFD(fd, ENTRIES.f_body,      sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
+  appendFD(fd, ENTRIES.f_body_open, "");
+  appendFD(fd, ENTRIES.f_soul,      sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
+  appendFD(fd, ENTRIES.f_soul_open, "");
+  appendFD(fd, ENTRIES.f_mind,      sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
+  appendFD(fd, ENTRIES.f_mind_open, "");
+
+  return fd;
 }
 
-/* Envío principal: form + iframe (y antes intento fetch no-cors) */
+/* Envío con fetch(no-cors), igual que signup */
 async function submitJourneyToForm(){
-  const snapshot = window.JOURNEY_STATE
-    ? { answers: window.JOURNEY_STATE.answers, xp: window.JOURNEY_STATE.xp }
-    : {};
-  console.log("[submit] snapshot:", JSON.stringify(snapshot));
-
-  // 1) Intento fetch(no-cors). Si el form está restringido, el envío real lo hará el form+iframe.
-  try {
-    const fd = new FormData();
-    (function buildToFD(){
-      const dummyForm = document.createElement("form");
-      buildAllFieldsIntoForm(dummyForm);
-      Array.from(dummyForm.elements).forEach(el => fd.append(el.name, el.value));
-    })();
-
-    const preview = {};
-    for (const [k,v] of fd.entries()){
-      (preview[k] ||= []).push(v);
-    }
-    console.log("[submit] fetch body preview:", preview);
-
-    await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
-    console.log("[submit] fetch(no-cors) enviado (respuesta opaca).");
-  } catch(err){
-    console.warn("[submit] fetch falló:", err);
+  if (!window.JOURNEY_STATE) {
+    console.warn("[forms] JOURNEY_STATE no está disponible aún.");
   }
 
-  // 2) Envío seguro: form + iframe
-  const iframeName = "gform_iframe_" + Date.now();
-  const ifr = document.createElement("iframe");
-  ifr.name = iframeName;
-  ifr.id   = iframeName;
-  ifr.style.display = "none";
-  document.body.appendChild(ifr);
-  ifr.addEventListener("load", ()=> console.log("[submit] iframe load ✅"));
+  const fd = buildFormDataFromState();
 
-  const form = document.createElement("form");
-  form.action = FORM_ACTION_URL;
-  form.method = "POST";
-  form.target = iframeName;
-  form.style.display = "none";
-  // (por defecto, enctype=x-www-form-urlencoded → perfecto para Forms)
+  // Log de depuración (qué exactamente se manda)
+  const preview = {};
+  for (const [k, v] of fd.entries()) {
+    (preview[k] ||= []).push(v);
+  }
+  console.log("[forms] Body a enviar →", preview);
 
-  buildAllFieldsIntoForm(form);
-
-  // log inputs
-  console.log("[submit] form inputs:", Array.from(form.elements).map(e => ({name:e.name, value:e.value})));
-
-  document.body.appendChild(form);
-  HTMLFormElement.prototype.submit.call(form); // submit nativo, sin chocar con inputs llamados "submit"
-  setTimeout(()=> { form.remove(); /* ifr.remove(); */ }, 1500);
+  // Envío
+  try {
+    await fetch(FORM_ACTION_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: fd
+    });
+    console.log("[forms] Enviado con fetch(no-cors) ✅ (respuesta opaca de Google Forms)");
+  } catch (err) {
+    console.error("[forms] Error en envío:", err);
+  }
 }
 
 /* Hook del botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) {
-    console.warn("[submit] No encontré #finish; agregá id='finish' al botón final.");
+    console.warn("[forms] No encontré #finish; agregá id=\"finish\" al botón final.");
     return;
   }
   btn.addEventListener("click", (e)=>{
@@ -1044,6 +1028,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
   });
 });
 </script>
-
+  
 </body>
 </html>
