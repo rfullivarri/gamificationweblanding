@@ -852,11 +852,11 @@ const MODE_LABELS = {
    3) Envío a Google Forms (robusto + logs)
    ========================== */
 
-/* ——— URL del form ——— */
+/* URL del form */
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
 
-/* ——— IDs de entradas ——— */
+/* IDs de entradas */
 const ENTRIES = {
   email: "entry.646330003",
   mode: "entry.97701242",
@@ -893,15 +893,7 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-/* ——— Mapeo exacto de modos (como en el prellenado) ——— */
-const MODE_LABELS = {
-  LOW:   "Low Mood 🪫 - Quiero un cambio, pero no tengo la energia",
-  CHILL: "Chill Mood 🌿 - Estoy  bien, quiero trackear mis hábitos",
-  FLOW:  "Flow Mood 🌊 - Tengo un objetivo y quiero comenzar esta aventura",
-  EVOLVE:"Evolve Mood 🧬 - Estoy enfocado y quiero ir al próximo nivel"
-};
-
-/* Helpers para agregar campos */
+/* Helpers */
 function appendField(fdOrForm, name, val){
   if (val == null) return;
   if (Array.isArray(val)){
@@ -913,9 +905,7 @@ function appendField(fdOrForm, name, val){
     fdOrForm.append(name, v);
   } else {
     const inp = document.createElement("input");
-    inp.type = "hidden";
-    inp.name = name;
-    inp.value = v;
+    inp.type = "hidden"; inp.name = name; inp.value = v;
     fdOrForm.appendChild(inp);
   }
 }
@@ -959,50 +949,36 @@ function buildAllFields(appender){
     appender(ENTRIES.f_mind, answers.foundations.mind);
   }
 
-  // Nota: NO enviamos pageHistory/fvv/draftResponse para evitar que
-  // Forms descarte campos por secciones. Si después hace falta,
-  // lo reactivamos calculado.
+  // NO enviamos pageHistory/fvv/draftResponse.
 }
 
-/* Envío con fetch(no-cors) + fallback a form+iframe */
+/* Envío con fetch(no-cors) + fallback form+iframe (y submit nativo) */
 async function submitJourneyToForm(){
   const {answers, xp} = window.JOURNEY_STATE;
-
-  // 1) Log del snapshot
   console.log("[submit] snapshot:", JSON.stringify({answers, xp}));
 
-  // 2) Intento con fetch (no-cors)
   try{
     const fd = new FormData();
     buildAllFields((name, val)=> appendField(fd, name, val));
 
-    // Log de qué va en el cuerpo
     const preview = {};
     for (const [k,v] of fd.entries()){
-      if (!preview[k]) preview[k] = [];
-      preview[k].push(v);
+      (preview[k] ||= []).push(v);
     }
     console.log("[submit] fetch body preview:", preview);
 
     await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
-    console.log("[submit] fetch(no-cors) enviado (respuesta opaca, pero suele funcionar).");
-
-    // Podés dejar sólo fetch si con esto te llegan; si no, dejamos fallback:
-  } catch(err){
-    console.warn("[submit] fetch falló, uso fallback form+iframe:", err);
+    console.log("[submit] fetch(no-cors) enviado.");
+  }catch(err){
+    console.warn("[submit] fetch falló:", err);
   }
 
-  // 3) Fallback: form + iframe (asegura envío en navegadores que bloquean fetch)
-  const iframeName = "forms_iframe_target_" + Date.now();
+  // Fallback seguro
+  const iframeName = "forms_iframe_" + Date.now();
   const ifr = document.createElement("iframe");
-  ifr.name = iframeName;
-  ifr.id = iframeName;
-  ifr.style.display = "none";
+  ifr.name = iframeName; ifr.id = iframeName; ifr.style.display = "none";
   document.body.appendChild(ifr);
-
-  ifr.addEventListener("load", ()=>{
-    console.log("[submit] iframe load ✅ (Forms respondió).");
-  });
+  ifr.addEventListener("load", ()=> console.log("[submit] iframe load ✅"));
 
   const form = document.createElement("form");
   form.action = FORM_ACTION_URL;
@@ -1011,16 +987,10 @@ async function submitJourneyToForm(){
   form.style.display = "none";
 
   buildAllFields((name, val)=> appendField(form, name, val));
-
-  // Log de inputs creados
-  console.log("[submit] form inputs:", Array.from(form.elements).map(e => ({name:e.name, value:e.value})));
+  console.log("[submit] form inputs:", Array.from(form.elements).map(e=>({name:e.name,value:e.value})));
 
   document.body.appendChild(form);
-
-  // MUY IMPORTANTE: forzar el submit nativo del FORM (por si existe un input llamado "submit")
-  HTMLFormElement.prototype.submit.call(form);
-
-  // Limpieza (opcional, dejamos el iframe un rato por si necesitás ver el load)
+  HTMLFormElement.prototype.submit.call(form); // evita colisión con inputs "submit"
   setTimeout(()=> { form.remove(); /* ifr.remove(); */ }, 1500);
 }
 
@@ -1033,7 +1003,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     submitJourneyToForm();
   });
 });
-</script>p
+</script>
 
 </body>
 </html>
