@@ -987,29 +987,37 @@ function buildFormDataFromState(){
   return fd;
 }
 
-/* Envío con fetch(no-cors), igual que signup */
 async function submitJourneyToForm(){
   if (!window.JOURNEY_STATE) {
     console.warn("[forms] JOURNEY_STATE no está disponible aún.");
   }
 
+  // 1) Reusamos tu FormData para no romper nada
   const fd = buildFormDataFromState();
 
-  // Log de depuración (qué exactamente se manda)
-  const preview = {};
+  // 2) Lo convertimos a URL-ENCODED (igual a un <form> real)
+  const params = new URLSearchParams();
   for (const [k, v] of fd.entries()) {
-    (preview[k] ||= []).push(v);
+    const s = String(v ?? "").trim();
+    if (s.length === 0) continue;        // evita enviar vacíos
+    params.append(k, s);                  // repite keys para checkboxes
   }
-  console.log("[forms] Body a enviar →", preview);
 
-  // Envío
+  // 3) Parámetros internos que algunos Forms esperan (tolerantes)
+  params.append("fvv", "1");
+  params.append("pageHistory", "0");
+  params.append("fbzx", String(Date.now()));
+  params.append("submit", "Submit");      // no siempre necesario, pero ayuda
+
+  // 4) Envío como lo hace un formulario HTML nativo
   try {
     await fetch(FORM_ACTION_URL, {
       method: "POST",
       mode: "no-cors",
-      body: fd
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: params.toString()
     });
-    console.log("[forms] Enviado con fetch(no-cors) ✅ (respuesta opaca de Google Forms)");
+    console.log("[forms] Enviado como urlencoded ✅");
   } catch (err) {
     console.error("[forms] Error en envío:", err);
   }
@@ -1019,12 +1027,13 @@ async function submitJourneyToForm(){
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) {
-    console.warn("[forms] No encontré #finish; agregá id=\"finish\" al botón final.");
+    console.warn('[forms] No encontré #finish; agregá id="finish" al botón final.');
     return;
   }
   btn.addEventListener("click", (e)=>{
     e.preventDefault();
-    submitJourneyToForm();
+    showDebugLog();       // verás el payload
+    submitJourneyToForm();  // 👈 ENVIAR de verdad
   });
 });
 </script>
