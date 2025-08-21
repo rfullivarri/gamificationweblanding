@@ -994,47 +994,34 @@ function buildFormDataFromState(){
   return fd;
 }
 
-async function submitJourneyToForm(){
+async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // 1) Iframe oculto como TARGET para que NO navegue
-    let iframe = document.getElementById("gform_target_iframe");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "gform_target_iframe";
-      iframe.id   = "gform_target_iframe";
-      iframe.style.display = "none";
-      // opcional: log cuando carga algo (no podemos leer el contenido por CORS)
-      iframe.addEventListener("load", ()=> console.log("[forms] iframe onload (respuesta de Forms recibida)"));
-      document.body.appendChild(iframe);
-    }
-
-    // 2) <form> real, apuntando al iframe
-    const form = document.createElement("form");
-    form.action = FORM_ACTION_URL;
-    form.method = "POST";
-    form.target = "gform_target_iframe";   // 👈 clave para NO navegar
-    form.style.display = "none";
-
-    // 3) Pasar TODOS los pares key→value (checkbox = claves repetidas)
+    // 1) Construimos los parámetros como Google Forms espera
+    const params = new URLSearchParams();
     for (const [key, val] of fd.entries()) {
       const s = String(val ?? "").trim();
       if (!s) continue;
-      const input = document.createElement("input");
-      input.type  = "hidden";
-      input.name  = key;
-      input.value = s;
-      form.appendChild(input);
+      params.append(key, s); // maneja checkboxes correctamente
     }
 
-    // 4) Sin tokens extras (fvv/pageHistory/fbzx) — para una sola sección no hacen falta
-    document.body.appendChild(form);
-    form.submit();
-    console.log("[forms] Enviado con form.submit a iframe ✅");
+    // 2) Campos internos obligatorios de Forms
+    params.append("fvv", "1");
+    params.append("draftResponse", "[]");
+    params.append("pageHistory", "0");
+    params.append("fbzx", String(Date.now()));
+    params.append("submit", "Submit");
 
-    // limpieza
-    setTimeout(()=> form.remove(), 1500);
+    // 3) Enviamos como un formulario real
+    await fetch(FORM_ACTION_URL, {
+      method: "POST",
+      mode: "no-cors", // 👈 importante
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: params.toString()
+    });
+
+    console.log("[forms] Enviado como urlencoded ✅");
   } catch (err) {
     console.error("[forms] Error en submitJourneyToForm:", err);
   }
