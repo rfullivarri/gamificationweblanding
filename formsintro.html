@@ -848,17 +848,18 @@ const MODE_LABELS = {
   
 <script>
 /* ==========================
-   3) Envío a Google Forms (fetch + pageHistory)
+   3) Envío a Google Forms (1 sección)
    ========================== */
 
-/* URL del form */
+/* URL del NUEVO form (termina en /formResponse) */
 const FORM_ACTION_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
+  "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
 
-/* IDs de entradas EXACTOS */
+/* IDs de entradas del NUEVO form (tal cual tu prellenado) */
 const ENTRIES = {
   email: "entry.646330003",
   mode: "entry.97701242",
+
   xp_total: "entry.1162318324",
   xp_body:  "entry.719321726",
   xp_mind:  "entry.1918862868",
@@ -892,96 +893,112 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-/* ===== pageHistory =====
-   Debe cubrir todas las secciones del Form.
-   Pongo 0..12 por las dudas (de sobra no molesta).
-   Si tu form tuviera MUCHAS más, agrégalas.
-*/
-const PAGE_HISTORY = "0,1,2,3,4,5,6,7,8,9,10,11,12";
-
-/* Helpers */
-function fdAppend(fd, name, val){
+/* Helper: agrega un campo (maneja arrays) */
+function appendField(target, name, val){
   if (val == null) return;
-  if (Array.isArray(val)) { val.forEach(v => fdAppend(fd, name, v)); return; }
-  fd.append(name, String(val));
+  if (Array.isArray(val)){ val.forEach(v => appendField(target, name, v)); return; }
+  const v = String(val);
+  if (target instanceof FormData){
+    target.append(name, v);
+  } else {
+    const inp = document.createElement("input");
+    inp.type = "hidden"; inp.name = name; inp.value = v;
+    target.appendChild(inp);
+  }
 }
 
-/* Construye el cuerpo para el POST */
-function buildFormDataFromState(){
-  const {answers, xp} = window.JOURNEY_STATE;
-  const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
+/* Toma todo de window.JOURNEY_STATE (definido en Script 2) */
+function buildAllFields(appender){
+  const {answers, xp} = window.JOURNEY_STATE || {};
+  const b = Math.round(xp?.Body || 0), m = Math.round(xp?.Mind || 0), s = Math.round(xp?.Soul || 0);
   const total = b + m + s;
 
-  const fd = new FormData();
+  // comunes
+  appender(ENTRIES.email, answers?.email || "");
+  appender(ENTRIES.mode,  (window.MODE_LABELS && answers?.mode) ? window.MODE_LABELS[answers.mode] : "");
+  appender(ENTRIES.xp_total, total);
+  appender(ENTRIES.xp_body,  b);
+  appender(ENTRIES.xp_mind,  m);
+  appender(ENTRIES.xp_soul,  s);
 
-  fdAppend(fd, ENTRIES.email, answers.email || "");
-  fdAppend(fd, ENTRIES.mode,  (window.MODE_LABELS?.[answers.mode]) || "");
-  fdAppend(fd, ENTRIES.xp_total, total);
-  fdAppend(fd, ENTRIES.xp_body,  b);
-  fdAppend(fd, ENTRIES.xp_mind,  m);
-  fdAppend(fd, ENTRIES.xp_soul,  s);
-
-  if (answers.mode === "LOW"){
-    fdAppend(fd, ENTRIES.low_body, answers.low.body);
-    fdAppend(fd, ENTRIES.low_soul, answers.low.soul);
-    fdAppend(fd, ENTRIES.low_mind, answers.low.mind);
-    fdAppend(fd, ENTRIES.low_note, answers.low.note || "");
-  } else if (answers.mode === "CHILL"){
-    fdAppend(fd, ENTRIES.chill_one,   answers.chill.oneThing || "");
-    fdAppend(fd, ENTRIES.chill_motiv, answers.chill.motiv);
-    fdAppend(fd, ENTRIES.f_body, answers.foundations.body);
-    fdAppend(fd, ENTRIES.f_soul, answers.foundations.soul);
-    fdAppend(fd, ENTRIES.f_mind, answers.foundations.mind);
-  } else if (answers.mode === "FLOW"){
-    fdAppend(fd, ENTRIES.flow_goal,  answers.flow.goal || "");
-    fdAppend(fd, ENTRIES.flow_imped, answers.flow.imped);
-    fdAppend(fd, ENTRIES.f_body, answers.foundations.body);
-    fdAppend(fd, ENTRIES.f_soul, answers.foundations.soul);
-    fdAppend(fd, ENTRIES.f_mind, answers.foundations.mind);
-  } else if (answers.mode === "EVOLVE"){
-    fdAppend(fd, ENTRIES.evolve_goal,  answers.evolve.goal || "");
-    fdAppend(fd, ENTRIES.evolve_trade, answers.evolve.trade);
-    fdAppend(fd, ENTRIES.evolve_att,   answers.evolve.att || "");
-    fdAppend(fd, ENTRIES.f_body, answers.foundations.body);
-    fdAppend(fd, ENTRIES.f_soul, answers.foundations.soul);
-    fdAppend(fd, ENTRIES.f_mind, answers.foundations.mind);
+  // por modo
+  if (answers?.mode === "LOW"){
+    appender(ENTRIES.low_body, answers.low.body);
+    appender(ENTRIES.low_soul, answers.low.soul);
+    appender(ENTRIES.low_mind, answers.low.mind);
+    appender(ENTRIES.low_note, answers.low.note || "");
+  } else if (answers?.mode === "CHILL"){
+    appender(ENTRIES.chill_one,   answers.chill.oneThing || "");
+    appender(ENTRIES.chill_motiv, answers.chill.motiv);
+    appender(ENTRIES.f_body, answers.foundations.body);
+    appender(ENTRIES.f_soul, answers.foundations.soul);
+    appender(ENTRIES.f_mind, answers.foundations.mind);
+  } else if (answers?.mode === "FLOW"){
+    appender(ENTRIES.flow_goal,  answers.flow.goal || "");
+    appender(ENTRIES.flow_imped, answers.flow.imped);
+    appender(ENTRIES.f_body, answers.foundations.body);
+    appender(ENTRIES.f_soul, answers.foundations.soul);
+    appender(ENTRIES.f_mind, answers.foundations.mind);
+  } else if (answers?.mode === "EVOLVE"){
+    appender(ENTRIES.evolve_goal,  answers.evolve.goal || "");
+    appender(ENTRIES.evolve_trade, answers.evolve.trade);
+    appender(ENTRIES.evolve_att,   answers.evolve.att || "");
+    appender(ENTRIES.f_body, answers.foundations.body);
+    appender(ENTRIES.f_soul, answers.foundations.soul);
+    appender(ENTRIES.f_mind, answers.foundations.mind);
   }
 
-  // Campos meta para Forms con secciones
-  fdAppend(fd, "fvv", "1");
-  fdAppend(fd, "draftResponse", "[]");
-  fdAppend(fd, "pageHistory", PAGE_HISTORY);
-
-  return fd;
+  /* No mandamos otros_option_response porque tu UI no los usa.
+     Si en el futuro necesitás “Otro”, avisá y lo agregamos. */
 }
 
-/* Envío: SOLO fetch (no-cors) para no duplicar filas */
+/* Envío robusto: fetch(no-cors) + fallback form+iframe */
 async function submitJourneyToForm(){
-  const fd = buildFormDataFromState();
+  const snap = window.JOURNEY_STATE ? {answers: window.JOURNEY_STATE.answers, xp: window.JOURNEY_STATE.xp} : {};
+  console.log("[submit] snapshot", snap);
 
-  // Log rápido (lo podés dejar)
   try {
-    const preview = {};
-    for (const [k,v] of fd.entries()){
-      if (!preview[k]) preview[k] = [];
-      preview[k].push(v);
-    }
-    console.log("[submit] body:", preview);
-  } catch(_) {}
+    const fd = new FormData();
+    buildAllFields((name,val)=> appendField(fd, name, val));
 
-  // POST (respuesta será 'opaque' por no-cors, es normal)
-  await fetch(FORM_ACTION_URL, { method: "POST", mode: "no-cors", body: fd });
+    // log de vista previa
+    const preview = {};
+    for (const [k,v] of fd.entries()){ (preview[k]??=[]).push(v); }
+    console.log("[submit] body preview", preview);
+
+    await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
+    console.log("[submit] fetch enviado");
+  } catch (err){
+    console.warn("[submit] fetch error", err);
+  }
+
+  // fallback (por navegadores móviles estrictos)
+  const iframeName = "forms_iframe_" + Date.now();
+  const ifr = document.createElement("iframe");
+  ifr.name = iframeName; ifr.id = iframeName; ifr.style.display = "none";
+  document.body.appendChild(ifr);
+
+  const form = document.createElement("form");
+  form.action = FORM_ACTION_URL;
+  form.method = "POST";
+  form.target = iframeName;
+  form.style.display = "none";
+  buildAllFields((name,val)=> appendField(form, name, val));
+  document.body.appendChild(form);
+
+  // por si existe un input llamado "submit"
+  HTMLFormElement.prototype.submit.call(form);
+
+  setTimeout(()=> { try{ form.remove(); /* ifr.remove(); */ }catch{} }, 1500);
 }
 
-/* Hook del botón final */
+/* Hook botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) return;
-  btn.addEventListener("click", async (e)=>{
+  btn.addEventListener("click", (e)=>{
     e.preventDefault();
-    await submitJourneyToForm();
-    // opcional: redirigir o mostrar toast
-    // window.location.href = "loginv2.html?await=1";
+    submitJourneyToForm();
   });
 });
 </script>
