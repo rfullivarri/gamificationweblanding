@@ -848,11 +848,15 @@ const MODE_LABELS = {
 </script>
   
 <script>
-// ==========================
-// 3) Envío a Google Forms (fix "form.submit is not a function")
-// ==========================
-const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
+/* ==========================
+   3) Envío a Google Forms (robusto + logs)
+   ========================== */
 
+/* ——— URL del form ——— */
+const FORM_ACTION_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
+
+/* ——— IDs de entradas ——— */
 const ENTRIES = {
   email: "entry.646330003",
   mode: "entry.97701242",
@@ -889,96 +893,138 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-// Simulamos recorrido multi-sección (ajústalo si cambias páginas del form)
-const PAGE_HISTORY_ALL = "0,1,2,3,4,5,6,7,8,9,10";
+/* ——— Mapeo exacto de modos (como en el prellenado) ——— */
+const MODE_LABELS = {
+  LOW:   "Low Mood 🪫 - Quiero un cambio, pero no tengo la energia",
+  CHILL: "Chill Mood 🌿 - Estoy  bien, quiero trackear mis hábitos",
+  FLOW:  "Flow Mood 🌊 - Tengo un objetivo y quiero comenzar esta aventura",
+  EVOLVE:"Evolve Mood 🧬 - Estoy enfocado y quiero ir al próximo nivel"
+};
 
-function addHidden(form, name, value){
-  if (value == null) return;
-  if (Array.isArray(value)) { value.forEach(v => addHidden(form, name, v)); return; }
-  const inp = document.createElement("input");
-  inp.type = "hidden";
-  inp.name = name;
-  inp.value = String(value);
-  form.appendChild(inp);
+/* Helpers para agregar campos */
+function appendField(fdOrForm, name, val){
+  if (val == null) return;
+  if (Array.isArray(val)){
+    val.forEach(v => appendField(fdOrForm, name, v));
+    return;
+  }
+  const v = String(val);
+  if (fdOrForm instanceof FormData){
+    fdOrForm.append(name, v);
+  } else {
+    const inp = document.createElement("input");
+    inp.type = "hidden";
+    inp.name = name;
+    inp.value = v;
+    fdOrForm.appendChild(inp);
+  }
 }
 
-function submitJourneyToForm(){
-  const state = window.JOURNEY_STATE;
-  if (!state) { console.log('[submit] JOURNEY_STATE no está disponible'); return; }
-
-  const {answers, xp} = state;
-  const modeLabel = (typeof MODE_LABELS !== 'undefined' && MODE_LABELS && MODE_LABELS[answers.mode])
-    ? MODE_LABELS[answers.mode]
-    : (answers.mode || "");
-
+/* Arma todos los campos a partir del estado */
+function buildAllFields(appender){
+  const {answers, xp} = window.JOURNEY_STATE;
   const b = Math.round(xp.Body), m = Math.round(xp.Mind), s = Math.round(xp.Soul);
   const total = b + m + s;
 
-  // iframe target
-  let ifr = document.getElementById("forms_iframe_target");
-  if (!ifr){
-    ifr = document.createElement("iframe");
-    ifr.id = "forms_iframe_target";
-    ifr.name = "forms_iframe_target";
-    ifr.style.display = "none";
-    document.body.appendChild(ifr);
+  appender(ENTRIES.email,    answers.email || "");
+  appender(ENTRIES.mode,     MODE_LABELS[answers.mode] || "");
+  appender(ENTRIES.xp_total, total);
+  appender(ENTRIES.xp_body,  b);
+  appender(ENTRIES.xp_mind,  m);
+  appender(ENTRIES.xp_soul,  s);
+
+  if (answers.mode === "LOW"){
+    appender(ENTRIES.low_body, answers.low.body);
+    appender(ENTRIES.low_soul, answers.low.soul);
+    appender(ENTRIES.low_mind, answers.low.mind);
+    appender(ENTRIES.low_note, answers.low.note || "");
+  } else if (answers.mode === "CHILL"){
+    appender(ENTRIES.chill_one,   answers.chill.oneThing || "");
+    appender(ENTRIES.chill_motiv, answers.chill.motiv);
+    appender(ENTRIES.f_body, answers.foundations.body);
+    appender(ENTRIES.f_soul, answers.foundations.soul);
+    appender(ENTRIES.f_mind, answers.foundations.mind);
+  } else if (answers.mode === "FLOW"){
+    appender(ENTRIES.flow_goal,  answers.flow.goal || "");
+    appender(ENTRIES.flow_imped, answers.flow.imped);
+    appender(ENTRIES.f_body, answers.foundations.body);
+    appender(ENTRIES.f_soul, answers.foundations.soul);
+    appender(ENTRIES.f_mind, answers.foundations.mind);
+  } else if (answers.mode === "EVOLVE"){
+    appender(ENTRIES.evolve_goal,  answers.evolve.goal || "");
+    appender(ENTRIES.evolve_trade, answers.evolve.trade);
+    appender(ENTRIES.evolve_att,   answers.evolve.att || "");
+    appender(ENTRIES.f_body, answers.foundations.body);
+    appender(ENTRIES.f_soul, answers.foundations.soul);
+    appender(ENTRIES.f_mind, answers.foundations.mind);
   }
+
+  // Nota: NO enviamos pageHistory/fvv/draftResponse para evitar que
+  // Forms descarte campos por secciones. Si después hace falta,
+  // lo reactivamos calculado.
+}
+
+/* Envío con fetch(no-cors) + fallback a form+iframe */
+async function submitJourneyToForm(){
+  const {answers, xp} = window.JOURNEY_STATE;
+
+  // 1) Log del snapshot
+  console.log("[submit] snapshot:", JSON.stringify({answers, xp}));
+
+  // 2) Intento con fetch (no-cors)
+  try{
+    const fd = new FormData();
+    buildAllFields((name, val)=> appendField(fd, name, val));
+
+    // Log de qué va en el cuerpo
+    const preview = {};
+    for (const [k,v] of fd.entries()){
+      if (!preview[k]) preview[k] = [];
+      preview[k].push(v);
+    }
+    console.log("[submit] fetch body preview:", preview);
+
+    await fetch(FORM_ACTION_URL, { method:"POST", mode:"no-cors", body: fd });
+    console.log("[submit] fetch(no-cors) enviado (respuesta opaca, pero suele funcionar).");
+
+    // Podés dejar sólo fetch si con esto te llegan; si no, dejamos fallback:
+  } catch(err){
+    console.warn("[submit] fetch falló, uso fallback form+iframe:", err);
+  }
+
+  // 3) Fallback: form + iframe (asegura envío en navegadores que bloquean fetch)
+  const iframeName = "forms_iframe_target_" + Date.now();
+  const ifr = document.createElement("iframe");
+  ifr.name = iframeName;
+  ifr.id = iframeName;
+  ifr.style.display = "none";
+  document.body.appendChild(ifr);
+
+  ifr.addEventListener("load", ()=>{
+    console.log("[submit] iframe load ✅ (Forms respondió).");
+  });
 
   const form = document.createElement("form");
   form.action = FORM_ACTION_URL;
   form.method = "POST";
-  form.target = "forms_iframe_target";
+  form.target = iframeName;
   form.style.display = "none";
 
-  // Base
-  addHidden(form, ENTRIES.email,    answers.email || "");
-  addHidden(form, ENTRIES.mode,     modeLabel);
-  addHidden(form, ENTRIES.xp_total, total);
-  addHidden(form, ENTRIES.xp_body,  b);
-  addHidden(form, ENTRIES.xp_mind,  m);
-  addHidden(form, ENTRIES.xp_soul,  s);
+  buildAllFields((name, val)=> appendField(form, name, val));
 
-  // Según modo
-  if (answers.mode === "LOW"){
-    addHidden(form, ENTRIES.low_body, answers.low.body);
-    addHidden(form, ENTRIES.low_soul, answers.low.soul);
-    addHidden(form, ENTRIES.low_mind, answers.low.mind);
-    addHidden(form, ENTRIES.low_note, answers.low.note || "");
-  } else if (answers.mode === "CHILL"){
-    addHidden(form, ENTRIES.chill_one,   answers.chill.oneThing || "");
-    addHidden(form, ENTRIES.chill_motiv, answers.chill.motiv);
-    addHidden(form, ENTRIES.f_body, answers.foundations.body);
-    addHidden(form, ENTRIES.f_soul, answers.foundations.soul);
-    addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
-  } else if (answers.mode === "FLOW"){
-    addHidden(form, ENTRIES.flow_goal,  answers.flow.goal || "");
-    addHidden(form, ENTRIES.flow_imped, answers.flow.imped);
-    addHidden(form, ENTRIES.f_body, answers.foundations.body);
-    addHidden(form, ENTRIES.f_soul, answers.foundations.soul);
-    addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
-  } else if (answers.mode === "EVOLVE"){
-    addHidden(form, ENTRIES.evolve_goal,  answers.evolve.goal || "");
-    addHidden(form, ENTRIES.evolve_trade, answers.evolve.trade);
-    addHidden(form, ENTRIES.evolve_att,   answers.evolve.att || "");
-    addHidden(form, ENTRIES.f_body, answers.foundations.body);
-    addHidden(form, ENTRIES.f_soul, answers.foundations.soul);
-    addHidden(form, ENTRIES.f_mind, answers.foundations.mind);
-  }
-
-  // Campos que Forms espera (multi-sección)
-  addHidden(form, "fvv", "1");
-  addHidden(form, "draftResponse", "[]");
-  addHidden(form, "pageHistory", PAGE_HISTORY_ALL);
-  // 🔧 NO agregar name="submit" — rompe form.submit()
+  // Log de inputs creados
+  console.log("[submit] form inputs:", Array.from(form.elements).map(e => ({name:e.name, value:e.value})));
 
   document.body.appendChild(form);
 
-  // Enviar — llamamos al método nativo por si hay nombres conflictivos
+  // MUY IMPORTANTE: forzar el submit nativo del FORM (por si existe un input llamado "submit")
   HTMLFormElement.prototype.submit.call(form);
 
-  ifr.onload = () => console.log("[submit] iframe load ✅ Forms recibió el POST.");
+  // Limpieza (opcional, dejamos el iframe un rato por si necesitás ver el load)
+  setTimeout(()=> { form.remove(); /* ifr.remove(); */ }, 1500);
 }
 
+/* Hook del botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) return;
@@ -987,7 +1033,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
     submitJourneyToForm();
   });
 });
-</script>
+</script>p
 
 </body>
 </html>
