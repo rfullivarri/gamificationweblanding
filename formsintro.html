@@ -998,30 +998,46 @@ async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // 1) Construimos los parámetros como Google Forms espera
+    // 1) Construir parámetros base
     const params = new URLSearchParams();
     for (const [key, val] of fd.entries()) {
       const s = String(val ?? "").trim();
       if (!s) continue;
-      params.append(key, s); // maneja checkboxes correctamente
+      params.append(key, s);
     }
 
-    // 2) Campos internos obligatorios de Forms
+    // 2) Buscar el valor real de fbzx en el iframe del form
+    const iframe = document.querySelector("iframe");
+    let fbzx = null;
+    if (iframe && iframe.src.includes("forms")) {
+      const res = await fetch(iframe.src);
+      const html = await res.text();
+      const match = html.match(/name="fbzx" value="([^"]+)"/);
+      if (match) fbzx = match[1];
+    }
+
+    // Si no lo encontramos, abortamos con warning
+    if (!fbzx) {
+      console.error("[forms] No se pudo obtener fbzx real ❌");
+      return;
+    }
+
+    // 3) Agregar campos internos obligatorios
     params.append("fvv", "1");
     params.append("draftResponse", "[]");
     params.append("pageHistory", "0");
-    params.append("fbzx", String(Date.now()));
+    params.append("fbzx", fbzx);
     params.append("submit", "Submit");
 
-    // 3) Enviamos como un formulario real
+    // 4) Enviar con fetch
     await fetch(FORM_ACTION_URL, {
       method: "POST",
-      mode: "no-cors", // 👈 importante
+      mode: "no-cors",
       headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
       body: params.toString()
     });
 
-    console.log("[forms] Enviado como urlencoded ✅");
+    console.log("[forms] ✅ Respuesta enviada correctamente");
   } catch (err) {
     console.error("[forms] Error en submitJourneyToForm:", err);
   }
