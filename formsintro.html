@@ -994,46 +994,52 @@ function buildFormDataFromState(){
   return fd;
 }
 
-async function submitJourneyToForm() {
+async function submitJourneyToForm(){
   try {
-    // 1. Armamos los datos del form (esto lo usás vos)
     const fd = buildFormDataFromState();
 
-    // 2. Creamos un <form> oculto
-    const form = document.createElement("form");
-    form.action = FORM_ACTION_URL; // 👈 tu URL de Google Forms
-    form.method = "POST";
-    form.style.display = "none";
-
-    // 3. Cargamos todos los campos en el form oculto
-    for (const [k, v] of fd.entries()) {
-      // Google Forms espera que checkboxes salgan repetidos, no en array
-      if (Array.isArray(v)) {
-        v.forEach(val => {
-          const input = document.createElement("input");
-          input.type = "hidden";
-          input.name = k;
-          input.value = val;
-          form.appendChild(input);
-        });
-      } else {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = k;
-        input.value = v;
-        form.appendChild(input);
-      }
+    // 1) Iframe oculto como TARGET para que NO navegue
+    let iframe = document.getElementById("gform_target_iframe");
+    if (!iframe) {
+      iframe = document.createElement("iframe");
+      iframe.name = "gform_target_iframe";
+      iframe.id   = "gform_target_iframe";
+      iframe.style.display = "none";
+      // opcional: log cuando carga algo (no podemos leer el contenido por CORS)
+      iframe.addEventListener("load", ()=> console.log("[forms] iframe onload (respuesta de Forms recibida)"));
+      document.body.appendChild(iframe);
     }
 
-    // 4. Enviamos el form
+    // 2) <form> real, apuntando al iframe
+    const form = document.createElement("form");
+    form.action = FORM_ACTION_URL;
+    form.method = "POST";
+    form.target = "gform_target_iframe";   // 👈 clave para NO navegar
+    form.style.display = "none";
+
+    // 3) Pasar TODOS los pares key→value (checkbox = claves repetidas)
+    for (const [key, val] of fd.entries()) {
+      const s = String(val ?? "").trim();
+      if (!s) continue;
+      const input = document.createElement("input");
+      input.type  = "hidden";
+      input.name  = key;
+      input.value = s;
+      form.appendChild(input);
+    }
+
+    // 4) Sin tokens extras (fvv/pageHistory/fbzx) — para una sola sección no hacen falta
     document.body.appendChild(form);
     form.submit();
+    console.log("[forms] Enviado con form.submit a iframe ✅");
 
-    console.log("[forms] Enviado con form.submit ✅");
+    // limpieza
+    setTimeout(()=> form.remove(), 1500);
   } catch (err) {
     console.error("[forms] Error en submitJourneyToForm:", err);
   }
 }
+  
 /* Hook del botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
@@ -1043,8 +1049,8 @@ document.addEventListener("DOMContentLoaded", ()=>{
   }
   btn.addEventListener("click", (e)=>{
     e.preventDefault();
-    showDebugLog();       // verás el payload
-    submitJourneyToForm();  // 👈 ENVIAR de verdad
+    // showDebugLog();  // ⛔️ quitalo para evitar logs duplicados
+    submitJourneyToForm();  // 👈 envío real (a iframe, sin navegar)
   });
 });
 </script>
