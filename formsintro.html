@@ -1028,6 +1028,41 @@ document.addEventListener("DOMContentLoaded", ()=>{
   });
 });
 </script>
+<script>
+function showDebugLog() {
+  const out = document.createElement("pre");
+  out.id = "debugLog";
+  out.style.background = "black";
+  out.style.color = "lime";
+  out.style.padding = "10px";
+  out.style.fontSize = "12px";
+  out.style.whiteSpace = "pre-wrap";
+  document.body.appendChild(out);
+
+  const fd = new FormData();
+  buildAllFields((name,val)=> appendField(fd,name,val));
+
+  let txt = "=== LOG ENVÍO FORMS ===\n";
+  for (const [k,v] of fd.entries()){
+    txt += k + " → " + v + "\n";
+  }
+
+  out.textContent = txt;
+}
+
+// Hook: reemplaza el submit para ver los logs
+document.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.getElementById("finish");
+  if (btn){
+    btn.addEventListener("click", (e)=>{
+      e.preventDefault();
+      showDebugLog();  // 👈 muestra los logs en pantalla
+      // si querés mandar igual al forms, descomentá:
+      // submitJourneyToForm();
+    });
+  }
+});
+</script>
   
 </body>
 </html>
