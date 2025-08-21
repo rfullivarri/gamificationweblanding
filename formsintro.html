@@ -1006,30 +1006,13 @@ async function submitJourneyToForm() {
       params.append(key, s);
     }
 
-    // 2) Buscar el valor real de fbzx en el iframe del form
-    const iframe = document.querySelector("iframe");
-    let fbzx = null;
-    if (iframe && iframe.src.includes("forms")) {
-      const res = await fetch(iframe.src);
-      const html = await res.text();
-      const match = html.match(/name="fbzx" value="([^"]+)"/);
-      if (match) fbzx = match[1];
-    }
-
-    // Si no lo encontramos, abortamos con warning
-    if (!fbzx) {
-      console.error("[forms] No se pudo obtener fbzx real ❌");
-      return;
-    }
-
-    // 3) Agregar campos internos obligatorios
+    // 2) Campos internos obligatorios de Google Forms
     params.append("fvv", "1");
     params.append("draftResponse", "[]");
     params.append("pageHistory", "0");
-    params.append("fbzx", fbzx);
-    params.append("submit", "Submit");
+    params.append("fbzx", "1234567890123456789"); // 👈 PONÉ ACÁ TU VALOR REAL
 
-    // 4) Enviar con fetch
+    // 3) Enviar el POST
     await fetch(FORM_ACTION_URL, {
       method: "POST",
       mode: "no-cors",
