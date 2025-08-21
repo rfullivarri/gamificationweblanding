@@ -848,17 +848,17 @@ const MODE_LABELS = {
   
 <script>
 /* ==========================
-   3) Envío a Google Forms (NUEVO form, sin redefinir MODE_LABELS)
+   3) Envío a Google Forms (NUEVO form)
    ========================== */
 
-/* URL del NUEVO form */
+/* URL del NUEVO form (tu último ID) */
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
 
-/* IDs de entradas (del prellenado NUEVO) */
+/* IDs de entradas (1:1 con tu prellenado) */
 const ENTRIES = {
   email: "entry.646330003",
-  mode: "entry.97701242",
+  mode:  "entry.97701242",
 
   // XP
   xp_total: "entry.1162318324",
@@ -894,102 +894,108 @@ const ENTRIES = {
   f_mind_open:  "entry.1918822353",
 };
 
-/* Helpers */
-function appendField(fdOrForm, name, val){
+/* ——— Helpers ——— */
+function appendHidden(form, name, val){
   if (val == null) return;
-  if (Array.isArray(val)){
-    val.forEach(v => appendField(fdOrForm, name, v));
-    return;
-  }
-  const v = String(val);
-  if (fdOrForm instanceof FormData){
-    fdOrForm.append(name, v);
-  } else {
-    const inp = document.createElement("input");
-    inp.type = "hidden";
-    inp.name = name;
-    inp.value = v;
-    fdOrForm.appendChild(inp);
-  }
+  if (Array.isArray(val)) { val.forEach(v => appendHidden(form, name, v)); return; }
+  const input = document.createElement("input");
+  input.type = "hidden";
+  input.name = name;
+  input.value = String(val);
+  form.appendChild(input);
 }
 
-function getModeLabelFromState(answers){
-  // Usa MODE_LABELS del Script 1 si existe; si no, manda el valor crudo
+function pickEmailFallback(){
+  const a = window.JOURNEY_STATE?.answers?.email || "";
+  const b = document.querySelector("#emailInput")?.value || "";
+  const c = document.querySelector("input[type=email]")?.value || "";
+  return String(a || b || c || "").trim();
+}
+
+function pickModeLabel(answers){
+  // Usa los MODE_LABELS del Script 1 si existen; si no, manda el valor crudo.
   try {
-    if (typeof MODE_LABELS !== "undefined" && MODE_LABELS && MODE_LABELS[answers.mode]){
+    if (typeof MODE_LABELS !== "undefined" && MODE_LABELS && MODE_LABELS[answers?.mode]) {
       return MODE_LABELS[answers.mode];
     }
   } catch(_e){}
-  return answers.mode || "";
+  return answers?.mode || "";
 }
 
-function buildAllFields(appender){
-  const {answers, xp} = window.JOURNEY_STATE || {answers:{}, xp:{}};
+function buildAllFieldsIntoForm(form){
+  const state = window.JOURNEY_STATE || { answers:{}, xp:{} };
+  const answers = state.answers || {};
+  const xp = state.xp || {};
 
-  // fallback por si el mail quedó en el input y no en answers
-  const uiEmail = document.querySelector('#emailInput')?.value?.trim() || "";
-  const email = (answers.email || uiEmail || "").trim();
+  const email = pickEmailFallback();
 
-  const b = Math.round(Number(xp?.Body || 0));
-  const m = Math.round(Number(xp?.Mind || 0));
-  const s = Math.round(Number(xp?.Soul || 0));
+  const b = Math.round(Number(xp.Body || 0));
+  const m = Math.round(Number(xp.Mind || 0));
+  const s = Math.round(Number(xp.Soul || 0));
   const total = b + m + s;
 
-  const modeLabel = getModeLabelFromState(answers);
+  const modeLabel = pickModeLabel(answers);
 
-  // Base
-  appender(ENTRIES.email,    email);
-  appender(ENTRIES.mode,     modeLabel);
-  appender(ENTRIES.xp_total, total);
-  appender(ENTRIES.xp_body,  b);
-  appender(ENTRIES.xp_mind,  m);
-  appender(ENTRIES.xp_soul,  s);
+  // ——— Base ———
+  appendHidden(form, ENTRIES.email,    email);
+  appendHidden(form, ENTRIES.mode,     modeLabel);
+  appendHidden(form, ENTRIES.xp_total, total);
+  appendHidden(form, ENTRIES.xp_body,  b);
+  appendHidden(form, ENTRIES.xp_mind,  m);
+  appendHidden(form, ENTRIES.xp_soul,  s);
 
-  // LOW
-  appender(ENTRIES.low_body, answers?.low?.body || []);
-  appender(ENTRIES.low_soul, answers?.low?.soul || []);
-  appender(ENTRIES.low_mind, answers?.low?.mind || []);
-  appender(ENTRIES.low_note, answers?.low?.note || "");
+  // ——— LOW ———
+  appendHidden(form, ENTRIES.low_body, answers?.low?.body || []);
+  appendHidden(form, ENTRIES.low_soul, answers?.low?.soul || []);
+  appendHidden(form, ENTRIES.low_mind, answers?.low?.mind || []);
+  appendHidden(form, ENTRIES.low_note, answers?.low?.note || "");
 
-  // CHILL
-  appender(ENTRIES.chill_one,   answers?.chill?.oneThing || "");
-  appender(ENTRIES.chill_motiv, answers?.chill?.motiv || []);
+  // ——— CHILL ———
+  appendHidden(form, ENTRIES.chill_one,   answers?.chill?.oneThing || "");
+  appendHidden(form, ENTRIES.chill_motiv, answers?.chill?.motiv || []);
 
-  // FLOW
-  appender(ENTRIES.flow_goal,  answers?.flow?.goal || "");
-  appender(ENTRIES.flow_imped, answers?.flow?.imped || []);
+  // ——— FLOW ———
+  appendHidden(form, ENTRIES.flow_goal,  answers?.flow?.goal || "");
+  appendHidden(form, ENTRIES.flow_imped, answers?.flow?.imped || []);
 
-  // EVOLVE
-  appender(ENTRIES.evolve_goal,  answers?.evolve?.goal || "");
-  appender(ENTRIES.evolve_trade, answers?.evolve?.trade || []);
-  appender(ENTRIES.evolve_att,   answers?.evolve?.att || "");
+  // ——— EVOLVE ———
+  appendHidden(form, ENTRIES.evolve_goal,  answers?.evolve?.goal || "");
+  appendHidden(form, ENTRIES.evolve_trade, answers?.evolve?.trade || []);
+  appendHidden(form, ENTRIES.evolve_att,   answers?.evolve?.att || "");
 
-  // FOUNDATIONS
-  appender(ENTRIES.f_body,      answers?.foundations?.body || []);
-  appender(ENTRIES.f_body_open, "");
-  appender(ENTRIES.f_soul,      answers?.foundations?.soul || []);
-  appender(ENTRIES.f_soul_open, "");
-  appender(ENTRIES.f_mind,      answers?.foundations?.mind || []);
-  appender(ENTRIES.f_mind_open, "");
+  // ——— FOUNDATIONS ———
+  appendHidden(form, ENTRIES.f_body,       answers?.foundations?.body || []);
+  appendHidden(form, ENTRIES.f_body_open,  ""); // campo abierto (si lo usás)
+  appendHidden(form, ENTRIES.f_soul,       answers?.foundations?.soul || []);
+  appendHidden(form, ENTRIES.f_soul_open,  "");
+  appendHidden(form, ENTRIES.f_mind,       answers?.foundations?.mind || []);
+  appendHidden(form, ENTRIES.f_mind_open,  "");
+
+  // ——— Meta de Google Forms ———
+  appendHidden(form, "fvv", "1");
+  appendHidden(form, "draftResponse", "[]");
+  appendHidden(form, "pageHistory", "0");
 }
 
-/* Envío con fetch(no-cors) + fallback nativo form+iframe */
+/* Envío principal: form + iframe (y antes intento fetch no-cors) */
 async function submitJourneyToForm(){
-  const snapshot = window.JOURNEY_STATE ? {
-    answers: window.JOURNEY_STATE.answers,
-    xp: window.JOURNEY_STATE.xp
-  } : {};
+  const snapshot = window.JOURNEY_STATE
+    ? { answers: window.JOURNEY_STATE.answers, xp: window.JOURNEY_STATE.xp }
+    : {};
   console.log("[submit] snapshot:", JSON.stringify(snapshot));
 
-  // 1) fetch(no-cors)
-  try{
+  // 1) Intento fetch(no-cors). Si el form está restringido, el envío real lo hará el form+iframe.
+  try {
     const fd = new FormData();
-    buildAllFields((name, val)=> appendField(fd, name, val));
+    (function buildToFD(){
+      const dummyForm = document.createElement("form");
+      buildAllFieldsIntoForm(dummyForm);
+      Array.from(dummyForm.elements).forEach(el => fd.append(el.name, el.value));
+    })();
 
     const preview = {};
     for (const [k,v] of fd.entries()){
-      if (!preview[k]) preview[k] = [];
-      preview[k].push(v);
+      (preview[k] ||= []).push(v);
     }
     console.log("[submit] fetch body preview:", preview);
 
@@ -999,11 +1005,11 @@ async function submitJourneyToForm(){
     console.warn("[submit] fetch falló:", err);
   }
 
-  // 2) Fallback: form + iframe
-  const iframeName = "forms_iframe_target_" + Date.now();
+  // 2) Envío seguro: form + iframe
+  const iframeName = "gform_iframe_" + Date.now();
   const ifr = document.createElement("iframe");
   ifr.name = iframeName;
-  ifr.id = iframeName;
+  ifr.id   = iframeName;
   ifr.style.display = "none";
   document.body.appendChild(ifr);
   ifr.addEventListener("load", ()=> console.log("[submit] iframe load ✅"));
@@ -1013,13 +1019,15 @@ async function submitJourneyToForm(){
   form.method = "POST";
   form.target = iframeName;
   form.style.display = "none";
+  // (por defecto, enctype=x-www-form-urlencoded → perfecto para Forms)
 
-  buildAllFields((name, val)=> appendField(form, name, val));
+  buildAllFieldsIntoForm(form);
 
+  // log inputs
   console.log("[submit] form inputs:", Array.from(form.elements).map(e => ({name:e.name, value:e.value})));
 
   document.body.appendChild(form);
-  HTMLFormElement.prototype.submit.call(form);
+  HTMLFormElement.prototype.submit.call(form); // submit nativo, sin chocar con inputs llamados "submit"
   setTimeout(()=> { form.remove(); /* ifr.remove(); */ }, 1500);
 }
 
@@ -1027,7 +1035,7 @@ async function submitJourneyToForm(){
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
   if (!btn) {
-    console.warn("[submit] No encontré #finish; agregá el id al botón final.");
+    console.warn("[submit] No encontré #finish; agregá id='finish' al botón final.");
     return;
   }
   btn.addEventListener("click", (e)=>{
