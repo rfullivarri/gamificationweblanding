@@ -934,51 +934,62 @@ function buildFormDataFromState(){
   const answers = state.answers || {};
   const xp      = state.xp || {};
 
-  // Base
+  // ===== OBLIGATORIOS
   const email = pickEmail();
+  const modeLabel = modeLabelFrom(answers);
+  appendFD(fd, ENTRIES.email, email);
+  appendFD(fd, ENTRIES.mode,  modeLabel);
+
+  // ===== XP (mandamos SIEMPRE los números)
   const b = Math.round(Number(xp.Body || 0));
   const m = Math.round(Number(xp.Mind || 0));
   const s = Math.round(Number(xp.Soul || 0));
   const total = b + m + s;
-
-  const modeLabel = modeLabelFrom(answers);
-
-  appendFD(fd, ENTRIES.email,    email);
-  appendFD(fd, ENTRIES.mode,     modeLabel);
   appendFD(fd, ENTRIES.xp_total, total);
   appendFD(fd, ENTRIES.xp_body,  b);
   appendFD(fd, ENTRIES.xp_mind,  m);
   appendFD(fd, ENTRIES.xp_soul,  s);
 
-  // Si existen catálogos (Script 1), los usamos para sanear
+  // ===== Catálogo para sanear (evita que Forms descarte opciones)
   const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
 
   // LOW
   appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
   appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
   appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-  appendFD(fd, ENTRIES.low_note, answers?.low?.note || "");
+  if ((answers?.low?.note || "").trim()) {
+    appendFD(fd, ENTRIES.low_note, answers.low.note.trim());
+  }
+  // (si está vacío, NO lo mandamos)
 
   // CHILL
-  appendFD(fd, ENTRIES.chill_one,   answers?.chill?.oneThing || "");
+  if ((answers?.chill?.oneThing || "").trim()) {
+    appendFD(fd, ENTRIES.chill_one, answers.chill.oneThing.trim());
+  }
   appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
 
   // FLOW
-  appendFD(fd, ENTRIES.flow_goal,  answers?.flow?.goal || "");
+  if ((answers?.flow?.goal || "").trim()) {
+    appendFD(fd, ENTRIES.flow_goal, answers.flow.goal.trim());
+  }
   appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
 
   // EVOLVE
-  appendFD(fd, ENTRIES.evolve_goal,  answers?.evolve?.goal || "");
+  if ((answers?.evolve?.goal || "").trim()) {
+    appendFD(fd, ENTRIES.evolve_goal, answers.evolve.goal.trim());
+  }
   appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-  appendFD(fd, ENTRIES.evolve_att,   answers?.evolve?.att || "");
+  if ((answers?.evolve?.att || "").trim()) {
+    appendFD(fd, ENTRIES.evolve_att, answers.evolve.att.trim());
+  }
 
-  // FOUNDATIONS
-  appendFD(fd, ENTRIES.f_body,      sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
-  appendFD(fd, ENTRIES.f_body_open, "");
-  appendFD(fd, ENTRIES.f_soul,      sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
-  appendFD(fd, ENTRIES.f_soul_open, "");
-  appendFD(fd, ENTRIES.f_mind,      sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
-  appendFD(fd, ENTRIES.f_mind_open, "");
+  // FOUNDATIONS (checkboxes)
+  appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
+  appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
+  appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
+
+  // ⛔ NO enviamos f_body_open / f_soul_open / f_mind_open (no existen en tu UI)
+  // ⛔ No enviamos strings vacíos en ningún "open"
 
   return fd;
 }
