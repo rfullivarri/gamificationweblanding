@@ -1029,38 +1029,122 @@ document.addEventListener("DOMContentLoaded", ()=>{
 });
 </script>
 <script>
+/* ============================================
+   DEBUG PANEL + LOGS EN PANTALLA (sin funciones nuevas)
+   ============================================ */
+
+/** Crea (una vez) un panel de logs en pantalla y “engancha” console.* */
+(function setupOnScreenConsole(){
+  if (document.getElementById("debugPanel")) return;
+
+  const panel = document.createElement("div");
+  panel.id = "debugPanel";
+  panel.style.position = "fixed";
+  panel.style.bottom = "0";
+  panel.style.left = "0";
+  panel.style.right = "0";
+  panel.style.maxHeight = "40vh";
+  panel.style.overflow = "auto";
+  panel.style.background = "#000";
+  panel.style.color = "#0f0";
+  panel.style.font = "12px/1.3 monospace";
+  panel.style.padding = "8px 10px";
+  panel.style.zIndex = "99999";
+  panel.style.borderTop = "1px solid #333";
+  panel.style.whiteSpace = "pre-wrap";
+  panel.style.display = "none";
+
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.justifyContent = "space-between";
+  header.style.alignItems = "center";
+  header.style.marginBottom = "6px";
+  header.innerHTML = `<strong>DEBUG</strong>
+    <div>
+      <button id="dbgToggle" style="margin-right:6px">Mostrar/Ocultar</button>
+      <button id="dbgClear">Limpiar</button>
+    </div>`;
+
+  const pre = document.createElement("pre");
+  pre.id = "debugLog";
+  pre.style.margin = "0";
+
+  panel.appendChild(header);
+  panel.appendChild(pre);
+  document.body.appendChild(panel);
+
+  const toggle = document.getElementById("dbgToggle");
+  const clear = document.getElementById("dbgClear");
+  toggle.addEventListener("click", ()=> {
+    pre.style.display = (pre.style.display === "none" ? "block" : "none");
+  });
+  clear.addEventListener("click", ()=> { pre.textContent = ""; });
+
+  // Monkey-patch consola para que también se vea en el panel
+  const write = (level, args) => {
+    const line = `[${level.toUpperCase()}] ` + Array.from(args).map(v=>{
+      try { 
+        if (typeof v === "object") return JSON.stringify(v, null, 2);
+        return String(v);
+      } catch(_){ return String(v); }
+    }).join(" ") + "\n";
+    pre.textContent += line;
+    panel.style.display = "block";
+  };
+
+  const _log = console.log, _warn = console.warn, _err = console.error;
+  console.log = (...a)=>{ _log(...a); write("log", a); };
+  console.warn = (...a)=>{ _warn(...a); write("warn", a); };
+  console.error = (...a)=>{ _err(...a); write("error", a); };
+})();
+
+/** Muestra el FormData que se enviaría, usando *tus* funciones existentes:
+    - buildFormDataFromState()
+    - appendFD()
+    - submitJourneyToForm() (si querés enviar de verdad) */
 function showDebugLog() {
-  const out = document.createElement("pre");
-  out.id = "debugLog";
-  out.style.background = "black";
-  out.style.color = "lime";
-  out.style.padding = "10px";
-  out.style.fontSize = "12px";
-  out.style.whiteSpace = "pre-wrap";
-  document.body.appendChild(out);
-
-  const fd = new FormData();
-  buildAllFields((name,val)=> appendField(fd,name,val));
-
-  let txt = "=== LOG ENVÍO FORMS ===\n";
-  for (const [k,v] of fd.entries()){
-    txt += k + " → " + v + "\n";
+  if (typeof buildFormDataFromState !== "function") {
+    console.error("buildFormDataFromState no está definida.");
+    return;
   }
 
-  out.textContent = txt;
+  // Construye el mismo FormData que usa el envío real
+  const fd = buildFormDataFromState();
+
+  // Vuelca pares clave→valores
+  const lines = ["=== LOG ENVÍO FORMS ==="];
+  const preview = {};
+  for (const [k, v] of fd.entries()) {
+    (preview[k] ||= []).push(v);
+    lines.push(`${k} → ${v}`);
+  }
+
+  // Muestra en consola (también en panel)
+  console.log(lines.join("\n"));
+  console.log("[forms] Body a enviar →", preview);
+
+  // A la vista siempre
+  const panel = document.getElementById("debugPanel");
+  const pre   = document.getElementById("debugLog");
+  if (panel && pre) {
+    panel.style.display = "block";
+    pre.style.display = "block";
+  }
 }
 
-// Hook: reemplaza el submit para ver los logs
+/** Hook del botón final: primero muestra logs en pantalla;
+    si querés enviar igual, descomentá submitJourneyToForm() */
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
-  if (btn){
-    btn.addEventListener("click", (e)=>{
-      e.preventDefault();
-      showDebugLog();  // 👈 muestra los logs en pantalla
-      // si querés mandar igual al forms, descomentá:
-      // submitJourneyToForm();
-    });
+  if (!btn) {
+    console.warn('[forms] No encontré #finish; agregá id="finish" al botón final.');
+    return;
   }
+  btn.addEventListener("click", (e)=>{
+    e.preventDefault();
+    showDebugLog();            // 👈 SIEMPRE verás el payload
+    // submitJourneyToForm();  // 👈 descomentar si querés enviar además
+  });
 });
 </script>
   
