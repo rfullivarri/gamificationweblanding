@@ -849,7 +849,7 @@ const FORM_LABELS = {
 
 /* URL del NUEVO form (el que pasaste) */
 const FORM_ACTION_URL =
-  "https://docs.google.com/forms/u/0/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
+  "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
 
 /* IDs de entradas (1:1 con tu último prellenado) */
 const ENTRIES = {
@@ -998,31 +998,20 @@ async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // 1) Construir parámetros base
-    const params = new URLSearchParams();
-    for (const [key, val] of fd.entries()) {
-      const s = String(val ?? "").trim();
-      if (!s) continue;
-      params.append(key, s);
-    }
+    // (opcional) log para ver qué se manda
+    const preview = {};
+    for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
+    console.log("[forms] Body a enviar →", preview);
 
-    // 2) Campos internos obligatorios de Google Forms
-    params.append("fvv", "1");
-    params.append("draftResponse", "[]");
-    params.append("pageHistory", "0");
-    params.append("fbzx", "8357744631172932986");
-
-    // 3) Enviar el POST
     await fetch(FORM_ACTION_URL, {
       method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-      body: params.toString()
+      mode: "no-cors",              // igual que SignUp
+      body: fd                      // 👈 multiparte nativo, sin headers manuales
     });
 
-    console.log("[forms] ✅ Respuesta enviada correctamente");
+    console.log("[forms] Enviado con fetch(no-cors) ✅");
   } catch (err) {
-    console.error("[forms] Error en submitJourneyToForm:", err);
+    console.error("[forms] Error en envío:", err);
   }
 }
   
