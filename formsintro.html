@@ -850,6 +850,9 @@ const FORM_LABELS = {
 /* URL del NUEVO form (el que pasaste) */
 const FORM_ACTION_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
+  
+  // 🆔 Constante FBZX que copiaste del enlace prellenado
+const FBZX = "-5193380167844607342";  // 👈 este es el valor que viste en el prefill
 
 /* IDs de entradas (1:1 con tu último prellenado) */
 const ENTRIES = {
@@ -998,31 +1001,40 @@ async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // Log útil
+    // Log bonito para ver qué mandamos
     const preview = {};
     for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
-    console.log("[forms] Body a enviar →", preview);
+    console.log("=== LOG ENVÍO FORMS ===");
+    for (const k in preview) console.log(k, "→", preview[k]);
 
-    // 👉 Convertimos a application/x-www-form-urlencoded (no tokens raros)
+    // Convertir a formato x-www-form-urlencoded
     const params = new URLSearchParams();
     for (const [k, v] of fd.entries()) {
       const s = String(v ?? "").trim();
       if (!s) continue;
-      params.append(k, s);                // repite la misma key para checkboxes
+      params.append(k, s);   // checkboxes = misma key repetida
     }
-    // algunos Forms esperan este campo "submit"
+
+    // ⚙️ Campos internos obligatorios
+    params.append("fvv", "1");
+    params.append("draftResponse", "[]");
+    params.append("pageHistory", "0");
+    params.append("fbzx", FBZX);
     params.append("submit", "Submit");
 
+    // 🚀 Enviar el POST
     await fetch(FORM_ACTION_URL, {
       method: "POST",
       mode: "no-cors",
-      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      headers: { 
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" 
+      },
       body: params.toString()
     });
 
-    console.log("[forms] Enviado como urlencoded ✅");
+    console.log("[forms] ✅ Enviado correctamente (no-cors)");
   } catch (err) {
-    console.error("[forms] Error en envío:", err);
+    console.error("[forms] ❌ Error en envío:", err);
   }
 }
   
