@@ -998,18 +998,29 @@ async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // (opcional) log para ver qué se manda
+    // Log útil
     const preview = {};
     for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
     console.log("[forms] Body a enviar →", preview);
 
+    // 👉 Convertimos a application/x-www-form-urlencoded (no tokens raros)
+    const params = new URLSearchParams();
+    for (const [k, v] of fd.entries()) {
+      const s = String(v ?? "").trim();
+      if (!s) continue;
+      params.append(k, s);                // repite la misma key para checkboxes
+    }
+    // algunos Forms esperan este campo "submit"
+    params.append("submit", "Submit");
+
     await fetch(FORM_ACTION_URL, {
       method: "POST",
-      mode: "no-cors",              // igual que SignUp
-      body: fd                      // 👈 multiparte nativo, sin headers manuales
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: params.toString()
     });
 
-    console.log("[forms] Enviado con fetch(no-cors) ✅");
+    console.log("[forms] Enviado como urlencoded ✅");
   } catch (err) {
     console.error("[forms] Error en envío:", err);
   }
