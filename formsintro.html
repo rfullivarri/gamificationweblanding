@@ -86,33 +86,28 @@
 
   /* Layout de cada pantalla */
   .hero{
-    display:grid; gap:20px;
+    display:grid; gap:24px;
     grid-template-columns: 1.05fr .95fr;
     align-items:start;
   }
   @media (max-width:980px){ .hero{grid-template-columns:1fr} }
 
   /* Imágenes: contenidas y sin sobresalir */
-  .pic{
-    position:relative;
+    .pic{
     border-radius:14px;
     border:1px solid var(--ring);
     overflow:hidden;
     background:#10142b;
-    width:100%;
-    max-width:100%;
-    display:flex;              /* centra el contenido */
-    justify-content:center;
-    align-items:center;
-    padding:8px;               /* 👈 margen interno para que la img no se pegue */
-    box-sizing:border-box;     /* respeta el ancho total */
+    justify-self:center;   /* 👈 centra el bloque dentro de la grilla */
+    max-width: 95%;        /* 👈 evita que llegue pegado al borde derecho */
   }
+  
   .pic img{
-    max-width:100%;     /* nunca más ancha que el contenedor */
-    max-height:100%;    /* nunca más alta que el contenedor */
-    object-fit:contain; /* mantiene proporciones sin recortar */
     display:block;
-    border-radius:10px; /* sigue la curva del recuadro */
+    width:100%;
+    height:100%;
+    object-fit:cover;   /* la imagen llena el marco */
+    border-radius:14px; /* coincide exacto con el borde del contenedor */
     opacity:.96;
   }
   /* Desktop: relación 4:3, altura acotada */
@@ -184,6 +179,15 @@
     transition:.2s ease;
   }
   .toast.show{ opacity:1; transform:none; }
+  .toast{
+  position:fixed; right:12px; background:#111a39;
+  border:1px solid var(--ring); padding:8px 10px; border-radius:9px;
+  font-size:13px; color:#cfe0ff; opacity:0; transform:translateY(6px);
+  transition:opacity .2s ease, transform .2s ease; z-index:30; pointer-events:none;
+}
+#toast13{ bottom:64px; }   /* el “de arriba” */
+#toast21{ bottom:12px; }   /* el “de abajo” */
+.toast.show{ opacity:1; transform:none; }
 </style>
 </head>
 <body>
@@ -476,8 +480,9 @@
       </div>
     </section>
 
-    <!-- Toast para notificaciones de XP (lo usa tu JS) -->
-    <div id="toast" class="toast" aria-live="polite"></div>
+   <!-- toasts listos (solo visuales, sin lógica aún) -->
+    <div id="toast13" class="toast">+13 XP</div>
+    <div id="toast21" class="toast">+21 XP</div>
 
   </div>
 </main>
