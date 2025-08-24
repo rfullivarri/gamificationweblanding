@@ -101,12 +101,18 @@
     background:#10142b;
     width:100%;
     max-width:100%;
+    display:flex;              /* centra el contenido */
+    justify-content:center;
+    align-items:center;
+    padding:8px;               /* 👈 margen interno para que la img no se pegue */
+    box-sizing:border-box;     /* respeta el ancho total */
   }
   .pic img{
+    max-width:100%;     /* nunca más ancha que el contenedor */
+    max-height:100%;    /* nunca más alta que el contenedor */
+    object-fit:contain; /* mantiene proporciones sin recortar */
     display:block;
-    width:100%;
-    height:auto;
-    object-fit:cover;  /* se recorta dentro, no se deforma ni desborda */
+    border-radius:10px; /* sigue la curva del recuadro */
     opacity:.96;
   }
   /* Desktop: relación 4:3, altura acotada */
