@@ -999,12 +999,23 @@ async function submitJourneyToForm() {
     for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
     console.log("=== LOG ENVÍO (via Worker) ===", preview);
 
-    await fetch(PROXY_URL, {
-      method: "POST",
-      mode: "cors",
-      credentials: "omit",
-      headers,
-      body: fd
+    // await fetch(PROXY_URL, {
+    //   method: "POST",
+    //   mode: "cors",
+    //   credentials: "omit",
+    //   headers,
+    //   body: fd
+    // });
+
+    await fetch(PROXY_URL + "?debug=1", {
+    method: "POST",
+    mode: "cors",
+    headers,
+    body: fd
+  })
+    .then(r => r.json())
+    .then(res => {
+      console.log("[forms] 🔍 Debug Worker →", res);
     });
 
     console.log("[forms] ✅ Enviado vía Worker");
