@@ -1194,22 +1194,18 @@ const ENTRIES = {
 };
 
 /* ---------- Helpers ---------- */
+// Reemplaza la versión actual por esta
 function appendFD(fd, name, val){
-  // Arrays (checkboxes)
   if (Array.isArray(val)) {
-    if (val.length === 0) {
-      fd.append(name, "");               // <-- placeholder vacío si no hay selecciones
-    } else {
-      val.forEach(v => appendFD(fd, name, v));
-    }
+    // Checkbox: si no hay selecciones, NO mandes nada
+    if (val.length > 0) val.forEach(v => fd.append(name, String(v)));
     return;
   }
-  // Escalares
-  if (val == null) {                      // null / undefined
-    fd.append(name, "");                  // <-- mandamos string vacío
-    return;
-  }
-  fd.append(name, String(val));
+  // Scalars
+  if (val == null) return;
+  const s = String(val);
+  if (s.trim() === "") return;   // texto vacío → no lo mandes
+  fd.append(name, s);
 }
 
 // Intenta usar MODE_LABELS del Script 1 (si existen)
@@ -1249,15 +1245,14 @@ function buildFormDataFromState(){
   const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
   const answers = state.answers || {};
   const xp      = state.xp || {};
-  const t = x => String(x || "").trim();              // helper texto seguro
+  const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
+  const t = x => String(x || "").trim();
 
-  // ===== OBLIGATORIOS
-  const email = pickEmail();
-  const modeLabel = modeLabelFrom(answers);
-  appendFD(fd, ENTRIES.email, email);
-  appendFD(fd, ENTRIES.mode,  modeLabel);
+  // OBLIGATORIOS
+  appendFD(fd, ENTRIES.email, pickEmail());
+  appendFD(fd, ENTRIES.mode,  modeLabelFrom(answers));
 
-  // ===== XP (siempre números)
+  // XP
   const b = Math.round(Number(xp.Body || 0));
   const m = Math.round(Number(xp.Mind || 0));
   const s = Math.round(Number(xp.Soul || 0));
@@ -1266,40 +1261,97 @@ function buildFormDataFromState(){
   appendFD(fd, ENTRIES.xp_mind,  m);
   appendFD(fd, ENTRIES.xp_soul,  s);
 
-  // ===== Catálogo para sanear
-  const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
-
   // LOW
   appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
   appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
   appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-  appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));                 // 🔸 siempre
+  appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));
 
   // CHILL
-  appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));        // 🔸 siempre
+  appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));
   appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
 
   // FLOW
-  appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));              // 🔸 siempre
+  appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));
   appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
 
   // EVOLVE
-  appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));          // 🔸 siempre
+  appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));
   appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-  appendFD(fd, ENTRIES.evolve_att,   t(answers?.evolve?.att));           // 🔸 siempre
+  appendFD(fd, ENTRIES.evolve_att,   t(answers?.evolve?.att));
 
   // FOUNDATIONS
   appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
   appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
   appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
 
-  // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
+  // “open” de foundations (texto) — se omiten si están vacíos
   appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
   appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
   appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
 
   return fd;
-}  
+}
+
+
+  
+// function buildFormDataFromState(){
+//   const fd = new FormData();
+
+//   const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
+//   const answers = state.answers || {};
+//   const xp      = state.xp || {};
+//   const t = x => String(x || "").trim();              // helper texto seguro
+
+//   // ===== OBLIGATORIOS
+//   const email = pickEmail();
+//   const modeLabel = modeLabelFrom(answers);
+//   appendFD(fd, ENTRIES.email, email);
+//   appendFD(fd, ENTRIES.mode,  modeLabel);
+
+//   // ===== XP (siempre números)
+//   const b = Math.round(Number(xp.Body || 0));
+//   const m = Math.round(Number(xp.Mind || 0));
+//   const s = Math.round(Number(xp.Soul || 0));
+//   appendFD(fd, ENTRIES.xp_total, b+m+s);
+//   appendFD(fd, ENTRIES.xp_body,  b);
+//   appendFD(fd, ENTRIES.xp_mind,  m);
+//   appendFD(fd, ENTRIES.xp_soul,  s);
+
+//   // ===== Catálogo para sanear
+//   const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
+
+//   // LOW
+//   appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
+//   appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
+//   appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
+//   appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));                 // 🔸 siempre
+
+//   // CHILL
+//   appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));        // 🔸 siempre
+//   appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
+
+//   // FLOW
+//   appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));              // 🔸 siempre
+//   appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
+
+//   // EVOLVE
+//   appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));          // 🔸 siempre
+//   appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
+//   appendFD(fd, ENTRIES.evolve_att,   t(answers?.evolve?.att));           // 🔸 siempre
+
+//   // FOUNDATIONS
+//   appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
+//   appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
+//   appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
+
+//   // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
+//   appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
+//   appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
+//   appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
+
+//   return fd;
+// }  
 
   
 // /* Arma el FormData a partir del estado actual */
