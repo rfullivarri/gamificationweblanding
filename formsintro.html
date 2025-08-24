@@ -10,107 +10,89 @@
     --bg:#0b0e19; --panel:#141a2c; --card:#171b31; --ring:rgba(255,255,255,.08);
     --text:#eaf0ff; --muted:#a9b2d0; --accent:#7a66ff; --accent2:#a78bfa; --ok:#38d39f;
     --shadow:0 24px 80px rgba(0,0,0,.40);
+    --hudh:56px;
   }
   *{box-sizing:border-box}
-  html,body{height:100%}
+  html,body{min-height:100%}
   body{
     margin:0; font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
     color:var(--text);
     background:
       radial-gradient(1100px 700px at 50% -15%, rgba(122,102,255,.18), transparent 60%),
       linear-gradient(180deg, #0b0e19, #0b0e19 30%, #0f1325 100%);
-    /* ✅ ahora el scroll es global, no dentro de las tarjetas */
+    /* 👉 dejamos que scrollee la página (no el panel) */
     overflow:auto;
   }
 
-  /* HUD */
+  /* HUD (siempre visible) */
   .hud{
     position:fixed; inset:0 0 auto 0; z-index:20;
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
     padding:10px 12px; background:rgba(10,12,24,.86); border-bottom:1px solid var(--ring);
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px); height:var(--hudh);
   }
   .hud-left{display:flex; align-items:center; gap:12px}
   .brand{display:flex; align-items:center; gap:9px; font-weight:800}
   .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 20px var(--accent)}
-  .progress{width:200px; height:8px; background:#0f1430; border-radius:6px; overflow:hidden}
+  .progress{width:220px; height:8px; background:#0f1430; border-radius:6px; overflow:hidden}
   .progress .fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2))}
-  .bars{display:flex; align-items:center; gap:14px}
-  .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:110px}
+  .bars{display:flex; align-items:center; gap:12px}
+  .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:100px}
   .pill .row{display:flex; align-items:center; gap:6px}
   .pill .emoji{font-size:14px}
   .pill .label{font-weight:600}
-  progress{width:120px; height:8px; background:#0f1430; border-radius:6px}
+  progress{width:110px; height:8px; background:#0f1430; border-radius:6px}
   progress::-webkit-progress-bar{background:#0f1430; border-radius:6px}
   progress::-webkit-progress-value{border-radius:6px; background:linear-gradient(90deg,#6d78ff,#a78bfa)}
-  .total{font-weight:800; letter-spacing:.2px}
+  .total{font-weight:800; letter-spacing:.2px; margin-left:auto}
 
-  @media (max-width:520px){
-    .progress{width:120px}
-    .bars{gap:8px}
-    .pill{min-width:auto}
-    progress{width:70px}
-  }
-  @media (max-width:430px){
-    .brand span:last-child{display:none}
-    .progress{width:90px}
-    .pill .label{display:none}
-    .pill{min-width:auto}
-    progress{width:58px}
+  /* HUD responsive (mobile) */
+  @media (max-width:700px){
+    .hud{height:auto; padding-bottom:8px}
+    .hud-left{width:100%}
+    .progress{width:100%}
+    .bars{width:100%; justify-content:space-between; gap:8px}
+    .pill{min-width:0}
+    progress{width:76px}
+    .total{width:100%; text-align:right; margin:0}
   }
 
-  /* Overlay + modal */
-  .overlay{
-    position:fixed; inset:48px 0 0 0; 
-    display:flex; align-items:center; justify-content:center;
-    /* ✅ el scroll vive acá, no en cada screen */
-    overflow:auto;
-  }
+  /* Espaciador para que el HUD no tape títulos (incluye notch iOS) */
+  .spacer{height:calc(var(--hudh) + env(safe-area-inset-top));}
+
+  /* Contenedor principal (sin overlay fijo => scroll de página) */
   .modal{
-    width:min(980px,94vw);
-    /* ✅ sin límite de alto interno, deja crecer y que scrollee el overlay */
+    width:min(980px,94vw); margin:0 auto 28px;
     background:rgba(20,24,44,.78);
     border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow);
-    overflow:visible; display:grid; grid-template-rows:auto 1fr;
+    overflow:visible; /* no scroll interno */
   }
 
   /* Screens */
-  .scr{display:none; padding:20px; /* ❌ overflow:auto;  */ overflow:visible;}
+  .scr{display:none; padding:20px}
   .scr.active{display:block}
-
-  /* Layout de pantallas con imagen */
-  .hero{
-    display:grid; grid-template-columns: 1fr .95fr; gap:20px;
-    /* ✅ ambas columnas se estiran a la misma altura */
-    align-items:stretch;
-  }
+  .hero{display:grid; grid-template-columns: 1fr .9fr; gap:20px; align-items:start}
   @media (max-width:980px){ .hero{grid-template-columns:1fr} }
 
-  .pic{
-    border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b;
-    /* ✅ que nunca quede enana */
-    min-height:420px;
-  }
-  .pic img{width:100%; height:100%; object-fit:cover; display:block; opacity:.96}
-
-  /* Intro: un toque más grande aún en desktop */
-  @media (min-width:981px){
-    #scr-intro .pic{min-height:480px}
-  }
-  @media (max-width:980px){
-    .pic{min-height:280px}
+  /* Imágenes: nunca más grandes que el contenido */
+  .pic{border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b;
+       aspect-ratio:4/3; max-height:440px}
+  .pic img{width:100%; height:100%; object-fit:cover; display:block; opacity:.95}
+  @media (max-width:700px){
+    .pic{max-height:320px}
   }
 
-  h1,h2{margin:8px 0 8px}
+  h1,h2{margin:8px 0 12px}
   p{margin:6px 0 10px; color:#cbd3ff; line-height:1.65}
   .note{color:#aab7ff; font-size:13px}
   .xp-badge{display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px;
-    background:#101433; border:1px solid var(--ring); margin:6px 0 0}
+    background:#101433; border:1px solid var(--ring); margin-left:8px}
   .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:12px 0}
   .card{background:#171b31; border:1px solid var(--ring); border-radius:14px; padding:14px; cursor:pointer;
     transition:transform .12s ease, background .12s ease;}
   .card:hover{transform:translateY(-2px)}
   .card.selected{background:rgba(122,102,255,.22); border-color:rgba(122,102,255,.45)}
+
   .checklist{display:grid; gap:10px; margin:12px 0}
   .chip{display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:10px;
     border:1px solid var(--ring); background:rgba(255,255,255,.04)}
@@ -118,15 +100,20 @@
     width:100%; padding:12px; border-radius:12px; border:1px solid var(--ring);
     background:rgba(255,255,255,.05); color:#fff; outline:none;
   }
+
+  /* Subtítulo de preguntas abiertas (más visible) */
+  .subq{display:block; font-weight:700; margin:16px 0 10px; color:#e9eeff; font-size:1.05rem}
+  .helper{color:#aab7ff; font-size:13px; margin:-6px 0 10px}
+
   .counter{font-size:13px; color:#c7cff1; margin-top:6px}
-  .nav{display:flex; justify-content:space-between; gap:8px; margin-top:12px}
+  .nav{display:flex; justify-content:space-between; gap:8px; margin-top:14px}
   .btn{background:#7a66ff; border:0; color:#fff; font-weight:800; padding:10px 16px; border-radius:10px; cursor:pointer}
   .btn.secondary{background:transparent; border:1px solid var(--ring)}
   .btn:disabled{opacity:.6; cursor:not-allowed}
   .toast{
-    position:absolute; right:12px; bottom:12px; background:#111a39; border:1px solid var(--ring);
+    position:fixed; right:12px; bottom:12px; background:#111a39; border:1px solid var(--ring);
     padding:8px 10px; border-radius:9px; font-size:13px; color:#cfe0ff; opacity:0; transform:translateY(6px);
-    transition:.2s ease;
+    transition:.2s ease; z-index:25;
   }
   .toast.show{opacity:1; transform:none}
   .summary-box{background:rgba(255,255,255,.05); border:1px solid var(--ring); border-radius:14px; padding:12px}
@@ -157,268 +144,264 @@
   <div class="total">XP: <span id="xpTotal">0</span></div>
 </div>
 
-<!-- Overlay -->
-<div class="overlay">
-  <div class="modal">
+<!-- Espaciador para que el HUD no tape nada -->
+<div class="spacer"></div>
 
-    <!-- Intro -->
-    <section class="scr active" id="scr-intro">
-      <div class="hero">
-        <div>
-          <h2>Cap. 0 — El Despertar</h2>
-          <p>
-            Respirá. Hoy encendés tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
-            <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a sumar puntos de experiencia <strong>(XP)</strong>.
-            Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones). Arriba vas a ver cómo se carga tu XP total y el de cada pilar.
-          </p>
+<!-- Contenido -->
+<div class="modal">
 
-          <!-- Email (obligatorio) -->
-          <div class="field" style="margin:12px 0">
-            <label for="emailInput">Tu correo (obligatorio)</label>
-            <input id="emailInput" type="email" placeholder="tu@email.com" required>
-            <small style="color:#aab7ff">Lo usamos para crear tu tablero y guardar tu progreso.</small>
-          </div>
+  <!-- Intro -->
+  <section class="scr active" id="scr-intro">
+    <div class="hero">
+      <div>
+        <h2>Cap. 0 — El Despertar</h2>
+        <p>
+          Respirá. Hoy encendés tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
+          <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia <strong>(XP)</strong>.
+          Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones). Arriba vas a ver cómo se carga tu XP total y el de cada pilar.
+        </p>
 
-          <div class="nav">
-            <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
-            <button class="btn" id="goModes" disabled>Entrar</button>
-          </div>
+        <!-- Email (obligatorio) -->
+        <div class="field" style="margin:12px 0">
+          <label for="emailInput">Tu correo (obligatorio)</label>
+          <input id="emailInput" type="email" placeholder="tu@email.com" required>
+          <small class="helper">Lo usamos para crear tu tablero y guardar tu progreso.</small>
         </div>
-        <figure class="pic"><img src="https://i.ibb.co/vCJSp395/761-EAF33-3-AD7-444-E-96-F7-EB58-AC9-D8-F32.png" alt="Intro"></figure>
-      </div>
-    </section>
 
-    <!-- Game Modes -->
-    <section class="scr" id="scr-modes">
-      <div class="hero">
-        <div>
-          <h2>Elegí tu Game Mode</h2>
-          <p>Elegí el <strong>modo</strong> que mejor describe tu estado <strong>hoy</strong> para adaptar el recorrido a tu energía y enfoque.</p>
-          <div class="grid" id="modeGrid">
-            <div class="card" data-mode="LOW"><h3>🪫 LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
-            <div class="card" data-mode="CHILL"><h3>🌿 CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
-            <div class="card" data-mode="FLOW"><h3>🌊 FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
-            <div class="card" data-mode="EVOLVE"><h3>🧬 EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
-          </div>
-          <div class="nav">
-            <button class="btn secondary" id="backIntro">Volver</button>
-            <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
-          </div>
+        <div class="nav">
+          <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
+          <button class="btn" id="goModes" disabled>Entrar</button>
         </div>
-        <!-- ✅ imagen a altura completa de la columna -->
-        <figure class="pic"><img src="https://i.ibb.co/Kpw8p1Hh/E57389-B9-DBF2-4-F97-B24-F-E740-C067-A688.png" alt="Modos"></figure>
       </div>
-    </section>
+      <figure class="pic"><img src="https://i.ibb.co/vCJSp395/761-EAF33-3-AD7-444-E-96-F7-EB58-AC9-D8-F32.png" alt="Intro"></figure>
+    </div>
+  </section>
 
-    <!-- ====== LOW (sin Foundations) -->
-    <section class="scr" id="scr-low-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
-      <h2>LOW · 🫀 Body</h2>
-      <p>Elegí hasta <strong>5</strong> acciones simples que te harían bien ahora. <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="lowBodyList"></div>
-      <div class="counter"><span id="lowBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
-      <div class="nav">
-        <button class="btn secondary" id="backToModes1">Volver</button>
-        <button class="btn" id="confirmLowBody" disabled>Confirmar</button>
-      </div>
-    </section>
-
-    <section class="scr" id="scr-low-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
-      <h2>LOW · 🏵️ Soul</h2>
-      <p>Elegí hasta <strong>5</strong> cosas simples que te conectan con vos. <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="lowSoulList"></div>
-      <div class="counter"><span id="lowSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
-      <div class="nav">
-        <button class="btn secondary" id="backLowBody">Volver</button>
-        <button class="btn" id="confirmLowSoul" disabled>Confirmar</button>
-      </div>
-    </section>
-
-    <section class="scr" id="scr-low-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
-      <h2>LOW · 🧠 Mind</h2>
-      <p>Elegí hasta <strong>5</strong> acciones mentales que te ayuden hoy. <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="lowMindList"></div>
-      <div class="counter"><span id="lowMindCount">0</span>/5 seleccionadas (obligatorio)</div>
-      <div class="nav">
-        <button class="btn secondary" id="backLowSoul">Volver</button>
-        <button class="btn" id="confirmLowMind" disabled>Confirmar</button>
-      </div>
-    </section>
-
-    <!-- Low · comentario final (opcional, 0 XP) -->
-    <section class="scr" id="scr-low-note" data-type="open0">
-      <h2>LOW · ¿Querés contarnos algo más?</h2>
-      <p class="note">Es opcional: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
-      <textarea id="lowNote" rows="4" placeholder="(opcional)"></textarea>
-      <div class="nav">
-        <button class="btn secondary" id="backLowMind">Volver</button>
-        <button class="btn" id="confirmLowNote">Continuar</button>
-      </div>
-    </section>
-
-    <!-- ====== CHILL (luego Foundations) -->
-    <section class="scr" id="scr-chill-open" data-type="open21">
-      <div class="hero">
-        <div>
-          <h2>CHILL · Una cosa este mes</h2>
-          <p>Si pudieras mejorar o lograr <strong>solo una cosa</strong> este mes, ¿cuál sería? <span class="xp-badge">+21 XP</span></p>
-          <textarea id="chillOneThing" rows="4" placeholder="Escribí tu respuesta… (obligatoria)"></textarea>
-          <div class="nav">
-            <button class="btn secondary" id="backToModes2">Volver</button>
-            <button class="btn" id="confirmChillOpen" disabled>Confirmar</button>
-          </div>
+  <!-- Game Modes -->
+  <section class="scr" id="scr-modes">
+    <div class="hero">
+      <div>
+        <h2>Elegí tu Game Mode</h2>
+        <p>Elegí el <strong>modo</strong> que mejor describe tu estado <strong>hoy</strong> para adaptar el recorrido a tu energía y enfoque.</p>
+        <div class="grid" id="modeGrid">
+          <div class="card" data-mode="LOW"><h3>🪫 LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
+          <div class="card" data-mode="CHILL"><h3>🌿 CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
+          <div class="card" data-mode="FLOW"><h3>🌊 FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
+          <div class="card" data-mode="EVOLVE"><h3>🧬 EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
         </div>
-        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Chill"></figure>
-      </div>
-    </section>
-
-    <section class="scr" id="scr-chill-motiv" data-type="mode13">
-      <h2>CHILL · ¿Qué te impulsa más?</h2>
-      <p>Elegí las que sientas (al menos una). <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="chillMotivList"></div>
-      <div class="nav">
-        <button class="btn secondary" id="backChillOpen">Volver</button>
-        <button class="btn" id="confirmChillMotiv" disabled>Confirmar</button>
-      </div>
-    </section>
-
-    <!-- ====== FLOW (luego Foundations) -->
-    <section class="scr" id="scr-flow-goal" data-type="open21">
-      <div class="hero">
-        <div>
-          <h2>FLOW · Tu objetivo</h2>
-          <p>¿Cuál es tu objetivo en este momento? <span class="xp-badge">+21 XP</span></p>
-          <textarea id="flowGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
-          <div class="nav">
-            <button class="btn secondary" id="backToModes3">Volver</button>
-            <button class="btn" id="confirmFlowGoal" disabled>Confirmar</button>
-          </div>
+        <div class="nav">
+          <button class="btn secondary" id="backIntro">Volver</button>
+          <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
         </div>
-        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Flow"></figure>
       </div>
-    </section>
+      <figure class="pic"><img src="https://i.ibb.co/Kpw8p1Hh/E57389-B9-DBF2-4-F97-B24-F-E740-C067-A688.png" alt="Modos"></figure>
+    </div>
+  </section>
 
-    <section class="scr" id="scr-flow-imped" data-type="mode13">
-      <h2>FLOW · ¿Qué te lo viene impidiendo?</h2>
-      <p>Elegí las que apliquen (al menos una). <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="flowImpedList"></div>
-      <div class="nav">
-        <button class="btn secondary" id="backFlowGoal">Volver</button>
-        <button class="btn" id="confirmFlowImped" disabled>Confirmar</button>
-      </div>
-    </section>
+  <!-- ====== LOW (sin Foundations) -->
+  <section class="scr" id="scr-low-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
+    <h2>LOW · 🫀 Body</h2>
+    <p>Elegí hasta <strong>5</strong> acciones simples que te harían bien ahora. <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="lowBodyList"></div>
+    <div class="counter"><span id="lowBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+    <div class="nav">
+      <button class="btn secondary" id="backToModes1">Volver</button>
+      <button class="btn" id="confirmLowBody" disabled>Confirmar</button>
+    </div>
+  </section>
 
-    <!-- ====== EVOLVE (luego Foundations) -->
-    <section class="scr" id="scr-evolve-goal" data-type="open21">
-      <div class="hero">
-        <div>
-          <h2>EVOLVE · Objetivo desafiante</h2>
-          <p>¿Cuál es tu objetivo desafiante? <span class="xp-badge">+21 XP</span></p>
-          <textarea id="evolveGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
-          <div class="nav">
-            <button class="btn secondary" id="backToModes4">Volver</button>
-            <button class="btn" id="confirmEvolveGoal" disabled>Confirmar</button>
-          </div>
+  <section class="scr" id="scr-low-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
+    <h2>LOW · 🏵️ Soul</h2>
+    <p>Elegí hasta <strong>5</strong> cosas simples que te conectan con vos. <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="lowSoulList"></div>
+    <div class="counter"><span id="lowSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+    <div class="nav">
+      <button class="btn secondary" id="backLowBody">Volver</button>
+      <button class="btn" id="confirmLowSoul" disabled>Confirmar</button>
+    </div>
+  </section>
+
+  <section class="scr" id="scr-low-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
+    <h2>LOW · 🧠 Mind</h2>
+    <p>Elegí hasta <strong>5</strong> acciones mentales que te ayuden hoy. <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="lowMindList"></div>
+    <div class="counter"><span id="lowMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+    <div class="nav">
+      <button class="btn secondary" id="backLowSoul">Volver</button>
+      <button class="btn" id="confirmLowMind" disabled>Confirmar</button>
+    </div>
+  </section>
+
+  <!-- Low · comentario final (opcional, 0 XP) -->
+  <section class="scr" id="scr-low-note" data-type="open0">
+    <h2>LOW · ¿Querés contarnos algo más?</h2>
+    <p class="note">Es opcional: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
+    <textarea id="lowNote" rows="4" placeholder="(opcional)"></textarea>
+    <div class="nav">
+      <button class="btn secondary" id="backLowMind">Volver</button>
+      <button class="btn" id="confirmLowNote">Continuar</button>
+    </div>
+  </section>
+
+  <!-- ====== CHILL (luego Foundations) -->
+  <section class="scr" id="scr-chill-open" data-type="open21">
+    <div class="hero">
+      <div>
+        <h2>CHILL · Una cosa este mes</h2>
+        <p>Si pudieras mejorar o lograr <strong>solo una cosa</strong> este mes, ¿cuál sería? <span class="xp-badge">+21 XP</span></p>
+        <textarea id="chillOneThing" rows="4" placeholder="Escribí tu respuesta… (obligatoria)"></textarea>
+        <div class="nav">
+          <button class="btn secondary" id="backToModes2">Volver</button>
+          <button class="btn" id="confirmChillOpen" disabled>Confirmar</button>
         </div>
-        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Evolve"></figure>
       </div>
-    </section>
+      <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Chill"></figure>
+    </div>
+  </section>
 
-    <section class="scr" id="scr-evolve-trade" data-type="mode13">
-      <h2>EVOLVE · ¿Qué estás dispuesto a ajustar?</h2>
-      <p>Elegí las que apliquen (al menos una). <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="evolveTradeList"></div>
-      <div class="nav">
-        <button class="btn secondary" id="backEvolveGoal">Volver</button>
-        <button class="btn" id="confirmEvolveTrade" disabled>Confirmar</button>
+  <section class="scr" id="scr-chill-motiv" data-type="mode13">
+    <h2>CHILL · ¿Qué te impulsa más?</h2>
+    <p>Elegí las que sientas (al menos una). <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="chillMotivList"></div>
+    <div class="nav">
+      <button class="btn secondary" id="backChillOpen">Volver</button>
+      <button class="btn" id="confirmChillMotiv" disabled>Confirmar</button>
+    </div>
+  </section>
+
+  <!-- ====== FLOW (luego Foundations) -->
+  <section class="scr" id="scr-flow-goal" data-type="open21">
+    <div class="hero">
+      <div>
+        <h2>FLOW · Tu objetivo</h2>
+        <p>¿Cuál es tu objetivo en este momento? <span class="xp-badge">+21 XP</span></p>
+        <textarea id="flowGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
+        <div class="nav">
+          <button class="btn secondary" id="backToModes3">Volver</button>
+          <button class="btn" id="confirmFlowGoal" disabled>Confirmar</button>
+        </div>
       </div>
-    </section>
+      <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Flow"></figure>
+    </div>
+  </section>
 
-    <section class="scr" id="scr-evolve-att" data-type="mode21-radio">
-      <h2>EVOLVE · Actitud ante el cambio</h2>
-      <p>Elegí una opción. <span class="xp-badge">+21 XP</span></p>
-      <div class="checklist" id="evolveAttList"></div>
-      <div class="nav">
-        <button class="btn secondary" id="backEvolveTrade">Volver</button>
-        <button class="btn" id="confirmEvolveAtt" disabled>Confirmar</button>
+  <section class="scr" id="scr-flow-imped" data-type="mode13">
+    <h2>FLOW · ¿Qué te lo viene impidiendo?</h2>
+    <p>Elegí las que apliquen (al menos una). <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="flowImpedList"></div>
+    <div class="nav">
+      <button class="btn secondary" id="backFlowGoal">Volver</button>
+      <button class="btn" id="confirmFlowImped" disabled>Confirmar</button>
+    </div>
+  </section>
+
+  <!-- ====== EVOLVE (luego Foundations) -->
+  <section class="scr" id="scr-evolve-goal" data-type="open21">
+    <div class="hero">
+      <div>
+        <h2>EVOLVE · Objetivo desafiante</h2>
+        <p>¿Cuál es tu objetivo desafiante? <span class="xp-badge">+21 XP</span></p>
+        <textarea id="evolveGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
+        <div class="nav">
+          <button class="btn secondary" id="backToModes4">Volver</button>
+          <button class="btn" id="confirmEvolveGoal" disabled>Confirmar</button>
+        </div>
       </div>
-    </section>
+      <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Evolve"></figure>
+    </div>
+  </section>
 
-    <!-- ====== FOUNDATIONS (10 por pilar, máx 5) -->
-    <section class="scr" id="scr-f-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
-      <h2>Foundations · 🫀 Body</h2>
-      <p>Lo físico es tu base. Elegí hasta <strong>5</strong> anclas. <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="fBodyList"></div>
-      <div class="counter"><span id="fBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+  <section class="scr" id="scr-evolve-trade" data-type="mode13">
+    <h2>EVOLVE · ¿Qué estás dispuesto a ajustar?</h2>
+    <p>Elegí las que apliquen (al menos una). <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="evolveTradeList"></div>
+    <div class="nav">
+      <button class="btn secondary" id="backEvolveGoal">Volver</button>
+      <button class="btn" id="confirmEvolveTrade" disabled>Confirmar</button>
+    </div>
+  </section>
 
-      <!-- ✅ Pregunta abierta Body -->
-      <div style="margin-top:14px">
-        <label for="fBodyOpen" class="note">¿Hay algo que te cueste o quieras evitar a nivel físico?</label>
-        <textarea id="fBodyOpen" rows="4" maxlength="300" placeholder="Podés mencionar hábitos, dolores, ambientes que te incomodan… (opcional)"></textarea>
-        <div class="counter"><span id="fBodyOpenCnt">0</span>/300</div>
-      </div>
+  <section class="scr" id="scr-evolve-att" data-type="mode21-radio">
+    <h2>EVOLVE · Actitud ante el cambio</h2>
+    <p>Elegí una opción. <span class="xp-badge">+21 XP</span></p>
+    <div class="checklist" id="evolveAttList"></div>
+    <div class="nav">
+      <button class="btn secondary" id="backEvolveTrade">Volver</button>
+      <button class="btn" id="confirmEvolveAtt" disabled>Confirmar</button>
+    </div>
+  </section>
 
-      <div class="nav">
-        <button class="btn secondary" id="backFoundPrev1">Volver</button>
-        <button class="btn" id="confirmFBody" disabled>Confirmar</button>
-      </div>
-    </section>
+  <!-- ====== FOUNDATIONS (10 por pilar, máx 5) -->
+  <section class="scr" id="scr-f-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
+    <h2>Foundations · 🫀 Body</h2>
+    <p>Lo físico es tu base. Elegí hasta <strong>5</strong> anclas. <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="fBodyList"></div>
+    <div class="counter"><span id="fBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
 
-    <section class="scr" id="scr-f-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
-      <h2>Foundations · 🏵️ Soul</h2>
-      <p>Sin centro, no hay llegada. Elegí hasta <strong>5</strong> prácticas. <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="fSoulList"></div>
-      <div class="counter"><span id="fSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+    <!-- pregunta abierta -->
+    <label for="fBodyOpen" class="subq">¿Hay algo que te cueste o quieras evitar a nivel físico?</label>
+    <p class="helper">Podés mencionar hábitos, dolores o ambientes que te incomodan… (opcional)</p>
+    <textarea id="fBodyOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+    <div class="counter">0/300</div>
 
-      <!-- ✅ Pregunta abierta Soul -->
-      <div style="margin-top:14px">
-        <label for="fSoulOpen" class="note">¿Qué tipo de prácticas espirituales te gustaría probar o retomar?</label>
-        <textarea id="fSoulOpen" rows="4" maxlength="300" placeholder="Podés incluir ejemplos personales… (opcional)"></textarea>
-        <div class="counter"><span id="fSoulOpenCnt">0</span>/300</div>
-      </div>
+    <div class="nav">
+      <button class="btn secondary" id="backFoundPrev1">Volver</button>
+      <button class="btn" id="confirmFBody" disabled>Confirmar</button>
+    </div>
+  </section>
 
-      <div class="nav">
-        <button class="btn secondary" id="backFBody">Volver</button>
-        <button class="btn" id="confirmFSoul" disabled>Confirmar</button>
-      </div>
-    </section>
+  <section class="scr" id="scr-f-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
+    <h2>Foundations · 🏵️ Soul</h2>
+    <p>Sin centro, no hay llegada. Elegí hasta <strong>5</strong> prácticas. <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="fSoulList"></div>
+    <div class="counter"><span id="fSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
 
-    <section class="scr" id="scr-f-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
-      <h2>Foundations · 🧠 Mind</h2>
-      <p>No es hacer más: es <strong>hacer mejor</strong>. Elegí hasta <strong>5</strong> focos. <span class="xp-badge">+13 XP</span></p>
-      <div class="checklist" id="fMindList"></div>
-      <div class="counter"><span id="fMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+    <!-- pregunta abierta -->
+    <label for="fSoulOpen" class="subq">¿Qué tipo de prácticas espirituales te gustaría probar o retomar?</label>
+    <p class="helper">Podés incluir ejemplos personales. (opcional)</p>
+    <textarea id="fSoulOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+    <div class="counter">0/300</div>
 
-      <!-- ✅ Pregunta abierta Mind -->
-      <div style="margin-top:14px">
-        <label for="fMindOpen" class="note">¿Qué te gustaría lograr con tu desarrollo mental?</label>
-        <textarea id="fMindOpen" rows="4" maxlength="300" placeholder="Por ejemplo: leer más, organizar mejor el tiempo, mantener el enfoque… (opcional)"></textarea>
-        <div class="counter"><span id="fMindOpenCnt">0</span>/300</div>
-      </div>
+    <div class="nav">
+      <button class="btn secondary" id="backFBody">Volver</button>
+      <button class="btn" id="confirmFSoul" disabled>Confirmar</button>
+    </div>
+  </section>
 
-      <div class="nav">
-        <button class="btn secondary" id="backFSoul">Volver</button>
-        <button class="btn" id="confirmFMind" disabled>Confirmar</button>
-      </div>
-    </section>
+  <section class="scr" id="scr-f-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
+    <h2>Foundations · 🧠 Mind</h2>
+    <p>No es hacer más: es <strong>hacer mejor</strong>. Elegí hasta <strong>5</strong> focos. <span class="xp-badge">+13 XP</span></p>
+    <div class="checklist" id="fMindList"></div>
+    <div class="counter"><span id="fMindCount">0</span>/5 seleccionadas (obligatorio)</div>
 
-    <!-- ====== RESUMEN -->
-    <section class="scr" id="scr-summary">
-      <h2>¡Todo listo para empezar! 🚀</h2>
-      <div class="summary-box" id="summaryBox"></div>
-      <p class="note" style="margin-top:10px">
-        <strong>Capitán</strong>, con esto generamos tus <strong>primeras tasks</strong> y un plan simple para hoy.
-        Vas a poder ver tu avance y reacomodar prioridades en tu <strong>tablero personal</strong>, pero lo importante es el <em>ritmo</em>: pasos cortos, XP real, progreso visible.
-      </p>
-      <div class="nav">
-        <button class="btn secondary" id="restart">Volver al inicio</button>
-        <button class="btn" id="finish">Comenzar Journey</button>
-      </div>
-      <!-- quitado el TODO de Forms -->
-    </section>
+    <!-- pregunta abierta -->
+    <label for="fMindOpen" class="subq">¿Qué te gustaría lograr con tu desarrollo mental?</label>
+    <p class="helper">Por ejemplo: leer más, organizar mejor el tiempo, mantener el enfoque… (opcional)</p>
+    <textarea id="fMindOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+    <div class="counter">0/300</div>
 
-    <div id="toast" class="toast">+13 XP</div>
-  </div>
+    <div class="nav">
+      <button class="btn secondary" id="backFSoul">Volver</button>
+      <button class="btn" id="confirmFMind" disabled>Confirmar</button>
+    </div>
+  </section>
+
+  <!-- ====== RESUMEN -->
+  <section class="scr" id="scr-summary">
+    <h2>¡Todo listo para empezar! 🚀</h2>
+    <div class="summary-box" id="summaryBox"></div>
+    <p class="note" style="margin-top:10px">
+      <strong>Capitán</strong>, con esto generamos tus <strong>primeras tasks</strong> y un plan simple para hoy.
+      Vas a poder ver tu avance y reacomodar prioridades en tu <strong>tablero personal</strong>, pero lo importante es el <em>ritmo</em>: pasos cortos, XP real, progreso visible.
+    </p>
+    <div class="nav">
+      <button class="btn secondary" id="restart">Volver al inicio</button>
+      <button class="btn" id="finish">Comenzar Journey</button>
+    </div>
+  </section>
 </div>
+<div id="toast" class="toast">+13 XP</div>
+
 
 <script>
 // ==========================
