@@ -639,7 +639,10 @@ const FORM_LABELS = {
     chill:{ oneThing:"", motiv:[] },
     flow:{ goal:"", imped:[] },
     evolve:{ goal:"", trade:[], att:"" },
-    foundations:{ body:[], soul:[], mind:[] }
+    foundations:{
+      body:[], soul:[], mind:[],
+      bodyOpen:"", soulOpen:"", mindOpen:""    // 👈 NUEVO
+    }
   };
   const routes = {
     LOW: ["scr-low-body","scr-low-soul","scr-low-mind","scr-low-note","scr-summary"],
@@ -763,7 +766,7 @@ const FORM_LABELS = {
     answers.chill = { oneThing:"", motiv:[] };
     answers.flow  = { goal:"", imped:[] };
     answers.evolve= { goal:"", trade:[], att:"" };
-    answers.foundations = { body:[], soul:[], mind:[] };
+    answers.foundations = { body:[], soul:[], mind:[], bodyOpen:"", soulOpen:"", mindOpen:"" };
   
     // 2) UI: limpiar inputs / checks / textareas
     document.querySelectorAll("input[type=email], input[type=text], textarea")
@@ -863,8 +866,9 @@ const FORM_LABELS = {
 
   // Checklist con límite + XP (13) y, si hay open con texto, +21 extra.
   // Evita duplicar XP aunque vuelvas y confirmes varias veces.
-  function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
-    const max = Number($("#"+scrId).dataset.limit || 5);
+  // Checklist con límite y confirm (+ opcional "open" con +21 XP)
+  function bindLimitedChecklist(scrId, listId, countId, storeArrRef, openTextareaId=null){
+    const max    = Number($("#"+scrId).dataset.limit || 5);
     const inputs = $$("#"+listId+" input");
     const count  = $("#"+countId);
   
@@ -873,7 +877,7 @@ const FORM_LABELS = {
       if(ch.length > max){ ch[ch.length-1].checked = false; }
       const now = inputs.filter(i=>i.checked).length;
       if (count) count.textContent = now;
-      $go(confirmIdFor(scrId)).disabled = (now < 1); // no avanza sin al menos 1
+      $go(confirmIdFor(scrId)).disabled = (now < 1);
     }
     inputs.forEach(i=> i.addEventListener("change", update));
     update();
@@ -886,43 +890,107 @@ const FORM_LABELS = {
     }
   
     $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
-      const sec    = document.getElementById(scrId);
-      const pillar = $("#"+scrId).dataset.pillar;
-      const xp13   = Number($("#"+scrId).dataset.xp || 13);
-      let gained   = 0;
+      const sec = document.getElementById(scrId);
   
-      // 1) Guardar selecciones y, si nunca se acreditó, sumar +13
-      if (sec.dataset.done !== "1") {
-        storeArrRef.length = 0;
-        getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
-        addXP(xp13, pillar);
-        gained += xp13;
-        sec.dataset.done = "1";           // marca checklist acreditado
-      }
+      // 1) Guardar y evaluar el "open" si existe (puede sumarse aunque la checklist ya estuviera hecha)
+      if (openTextareaId){
+        const val = ($go(openTextareaId)?.value || "").trim();
+        // mapear a la key correcta en answers.foundations
+        const keyMap = {
+          "scr-f-body":"bodyOpen",
+          "scr-f-soul":"soulOpen",
+          "scr-f-mind":"mindOpen"
+        };
+        const k = keyMap[scrId];
+        if (k) answers.foundations[k] = val;
   
-      // 2) Si hay textarea con contenido y no se acreditó todavía, sumar +21
-      const openId = OPEN_FOUND[scrId];
-      if (openId){
-        const hasText = ($go(openId)?.value.trim().length > 0);
-        if (hasText && sec.dataset.open21 !== "1"){
-          addXP(21, pillar);
-          gained += 21;
-          sec.dataset.open21 = "1";       // marca open acreditado
+        if (val && sec.dataset.openDone !== "1"){
+          addXP(21,"ALL"); toast("+21 XP");
+          sec.dataset.openDone = "1"; // marca que el +21 ya se otorgó por este open
         }
       }
   
-      if (gained > 0) toast(`+${gained} XP`);
+      // 2) Checklist: solo la 1ª vez guarda, suma +13 y marca done
+      if (sec.dataset.done !== "1"){
+        storeArrRef.length = 0;
+        getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+        const xpVal = Number($("#"+scrId).dataset.xp || 13);
+        const pillar = $("#"+scrId).dataset.pillar;
+        addXP(xpVal, pillar);
+        toast(`+${xpVal} XP`);
+        sec.dataset.done = "1";
+      }
+  
+      // 3) Avanzar
       nextStep();
     });
   }
+
+
+  
+  // function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
+  //   const max = Number($("#"+scrId).dataset.limit || 5);
+  //   const inputs = $$("#"+listId+" input");
+  //   const count  = $("#"+countId);
+  
+  //   function update(){
+  //     const ch = inputs.filter(i=>i.checked);
+  //     if(ch.length > max){ ch[ch.length-1].checked = false; }
+  //     const now = inputs.filter(i=>i.checked).length;
+  //     if (count) count.textContent = now;
+  //     $go(confirmIdFor(scrId)).disabled = (now < 1); // no avanza sin al menos 1
+  //   }
+  //   inputs.forEach(i=> i.addEventListener("change", update));
+  //   update();
+  
+  //   function confirmIdFor(id){
+  //     return ({
+  //       "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
+  //       "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
+  //     })[id];
+  //   }
+  
+  //   $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
+  //     const sec    = document.getElementById(scrId);
+  //     const pillar = $("#"+scrId).dataset.pillar;
+  //     const xp13   = Number($("#"+scrId).dataset.xp || 13);
+  //     let gained   = 0;
+  
+  //     // 1) Guardar selecciones y, si nunca se acreditó, sumar +13
+  //     if (sec.dataset.done !== "1") {
+  //       storeArrRef.length = 0;
+  //       getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+  //       addXP(xp13, pillar);
+  //       gained += xp13;
+  //       sec.dataset.done = "1";           // marca checklist acreditado
+  //     }
+  
+  //     // 2) Si hay textarea con contenido y no se acreditó todavía, sumar +21
+  //     const openId = OPEN_FOUND[scrId];
+  //     if (openId){
+  //       const hasText = ($go(openId)?.value.trim().length > 0);
+  //       if (hasText && sec.dataset.open21 !== "1"){
+  //         addXP(21, pillar);
+  //         gained += 21;
+  //         sec.dataset.open21 = "1";       // marca open acreditado
+  //       }
+  //     }
+  
+  //     if (gained > 0) toast(`+${gained} XP`);
+  //     nextStep();
+  //   });
+  // }
 
   // Binds LOW + FOUNDATIONS
   bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body);
   bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount",   answers.low.soul);
   bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount",   answers.low.mind);
-  bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount",     answers.foundations.body);
-  bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount",     answers.foundations.soul);
-  bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount",     answers.foundations.mind);
+  bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount", answers.foundations.body, "fBodyOpen2");
+  bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount", answers.foundations.soul, "fSoulOpen2");
+  bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount", answers.foundations.mind, "fMindOpen2");
+  // bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount",     answers.foundations.body);
+  // bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount",     answers.foundations.soul);
+  // bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount",     answers.foundations.mind);
 
   // LOW note (0 XP)
   $go("backLowMind")?.addEventListener("click", ()=> prevStep());
@@ -1218,10 +1286,21 @@ function buildFormDataFromState(){
     appendFD(fd, ENTRIES.evolve_att, answers.evolve.att.trim());
   }
 
-  // FOUNDATIONS (checkboxes)
+  // ===== FOUNDATIONS
   appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
   appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
   appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
+  
+  // Enviar los "open" SOLO si hay texto
+  if ((answers?.foundations?.bodyOpen || "").trim()) {
+    appendFD(fd, ENTRIES.f_body_open, answers.foundations.bodyOpen.trim());
+  }
+  if ((answers?.foundations?.soulOpen || "").trim()) {
+    appendFD(fd, ENTRIES.f_soul_open, answers.foundations.soulOpen.trim());
+  }
+  if ((answers?.foundations?.mindOpen || "").trim()) {
+    appendFD(fd, ENTRIES.f_mind_open, answers.foundations.mindOpen.trim());
+  }
 
   // ⛔ NO enviamos f_body_open / f_soul_open / f_mind_open (no existen en tu UI)
   // ⛔ No enviamos strings vacíos en ningún "open"
