@@ -916,43 +916,6 @@ const FORM_LABELS = {
     });
   }
 
-  // // Checklist con límite y confirm
-  // function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
-  //   const max = Number($("#"+scrId).dataset.limit || 5);
-  //   const inputs = $$("#"+listId+" input");
-  //   const count  = $("#"+countId);
-
-  //   function update(){
-  //     const ch = inputs.filter(i=>i.checked);
-  //     if(ch.length > max){ ch[ch.length-1].checked = false; }
-  //     const now = inputs.filter(i=>i.checked).length;
-  //     if (count) count.textContent = now;
-  //     $go(confirmIdFor(scrId)).disabled = (now < 1);
-  //   }
-  //   inputs.forEach(i=> i.addEventListener("change", update));
-  //   update();
-
-  //   function confirmIdFor(id){
-  //     return ({
-  //       "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
-  //       "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
-  //     })[id];
-  //   }
-
-  //   $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
-  //     const sec = document.getElementById(scrId);
-  //     if (sec.dataset.done === "1") { nextStep(); return; }
-  //     storeArrRef.length = 0;
-  //     getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
-  //     const xpVal = Number($("#"+scrId).dataset.xp || 13);
-  //     const pillar = $("#"+scrId).dataset.pillar;
-  //     addXP(xpVal, pillar);
-  //     toast(`+${xpVal} XP`);
-  //     sec.dataset.done = "1";
-  //     nextStep();
-  //   });
-  // }
-
   // Binds LOW + FOUNDATIONS
   bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body);
   bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount",   answers.low.soul);
