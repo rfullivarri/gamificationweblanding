@@ -1295,72 +1295,13 @@ function pickEmail(){
 
 
   
-// function buildFormDataFromState(){
-//   const fd = new FormData();
-
-//   const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
-//   const answers = state.answers || {};
-//   const xp      = state.xp || {};
-//   const t = x => String(x || "").trim();              // helper texto seguro
-
-//   // ===== OBLIGATORIOS
-//   const email = pickEmail();
-//   const modeLabel = modeLabelFrom(answers);
-//   appendFD(fd, ENTRIES.email, email);
-//   appendFD(fd, ENTRIES.mode,  modeLabel);
-
-//   // ===== XP (siempre números)
-//   const b = Math.round(Number(xp.Body || 0));
-//   const m = Math.round(Number(xp.Mind || 0));
-//   const s = Math.round(Number(xp.Soul || 0));
-//   appendFD(fd, ENTRIES.xp_total, b+m+s);
-//   appendFD(fd, ENTRIES.xp_body,  b);
-//   appendFD(fd, ENTRIES.xp_mind,  m);
-//   appendFD(fd, ENTRIES.xp_soul,  s);
-
-//   // ===== Catálogo para sanear
-//   const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
-
-//   // LOW
-//   appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
-//   appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
-//   appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-//   appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));                 // 🔸 siempre
-
-//   // CHILL
-//   appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));        // 🔸 siempre
-//   appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
-
-//   // FLOW
-//   appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));              // 🔸 siempre
-//   appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
-
-//   // EVOLVE
-//   appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));          // 🔸 siempre
-//   appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-//   appendFD(fd, ENTRIES.evolve_att,   t(answers?.evolve?.att));           // 🔸 siempre
-
-//   // FOUNDATIONS
-//   appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
-//   appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
-//   appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
-
-//   // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
-//   appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
-//   appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
-//   appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
-
-//   return fd;
-// }  
-
-  
- /* Arma el FormData a partir del estado actual */
  function buildFormDataFromState(){
    const fd = new FormData();
 
    const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
    const answers = state.answers || {};
    const xp      = state.xp || {};
+   const t = x => String(x || "").trim();              // helper texto seguro
 
    // ===== OBLIGATORIOS
    const email = pickEmail();
@@ -1368,70 +1309,129 @@ function pickEmail(){
    appendFD(fd, ENTRIES.email, email);
    appendFD(fd, ENTRIES.mode,  modeLabel);
 
-   // ===== XP (mandamos SIEMPRE los números)
+   // ===== XP (siempre números)
    const b = Math.round(Number(xp.Body || 0));
    const m = Math.round(Number(xp.Mind || 0));
    const s = Math.round(Number(xp.Soul || 0));
-   const total = b + m + s;
-   appendFD(fd, ENTRIES.xp_total, total);
+   appendFD(fd, ENTRIES.xp_total, b+m+s);
    appendFD(fd, ENTRIES.xp_body,  b);
    appendFD(fd, ENTRIES.xp_mind,  m);
    appendFD(fd, ENTRIES.xp_soul,  s);
 
-   // ===== Catálogo para sanear (evita que Forms descarte opciones)
+   // ===== Catálogo para sanear
    const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
 
-//   // LOW
+   // LOW
    appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
    appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
    appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-   if ((answers?.low?.note || "").trim()) {
-     appendFD(fd, ENTRIES.low_note, answers.low.note.trim());
-   }
-   // (si está vacío, NO lo mandamos)
+   appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));                 // 🔸 siempre
 
-//   // CHILL
-   if ((answers?.chill?.oneThing || "").trim()) {
-     appendFD(fd, ENTRIES.chill_one, answers.chill.oneThing.trim());
-   }
+   // CHILL
+   appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));        // 🔸 siempre
    appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
 
-//   // FLOW
-   if ((answers?.flow?.goal || "").trim()) {
-     appendFD(fd, ENTRIES.flow_goal, answers.flow.goal.trim());
-   }
+   // FLOW
+   appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));              // 🔸 siempre
    appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
 
-//   // EVOLVE
-   if ((answers?.evolve?.goal || "").trim()) {
-     appendFD(fd, ENTRIES.evolve_goal, answers.evolve.goal.trim());
-   }
+   // EVOLVE
+   appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));          // 🔸 siempre
    appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-   if ((answers?.evolve?.att || "").trim()) {
-     appendFD(fd, ENTRIES.evolve_att, answers.evolve.att.trim());
-   }
+   appendFD(fd, ENTRIES.evolve_att,   t(answers?.evolve?.att));           // 🔸 siempre
 
-   // ===== FOUNDATIONS
+   // FOUNDATIONS
    appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
    appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
    appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
-  
-   // Enviar los "open" SOLO si hay texto
-   if ((answers?.foundations?.bodyOpen || "").trim()) {
-     appendFD(fd, ENTRIES.f_body_open, answers.foundations.bodyOpen.trim());
-   }
-   if ((answers?.foundations?.soulOpen || "").trim()) {
-     appendFD(fd, ENTRIES.f_soul_open, answers.foundations.soulOpen.trim());
-   }
-   if ((answers?.foundations?.mindOpen || "").trim()) {
-     appendFD(fd, ENTRIES.f_mind_open, answers.foundations.mindOpen.trim());
-   }
 
-   // ⛔ NO enviamos f_body_open / f_soul_open / f_mind_open (no existen en tu UI)
-   // ⛔ No enviamos strings vacíos en ningún "open"
+   // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
+   appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
+   appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
+   appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
 
    return fd;
- }
+ }  
+
+  
+//  /* Arma el FormData a partir del estado actual */
+//  function buildFormDataFromState(){
+//    const fd = new FormData();
+
+//    const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
+//    const answers = state.answers || {};
+//    const xp      = state.xp || {};
+
+//    // ===== OBLIGATORIOS
+//    const email = pickEmail();
+//    const modeLabel = modeLabelFrom(answers);
+//    appendFD(fd, ENTRIES.email, email);
+//    appendFD(fd, ENTRIES.mode,  modeLabel);
+
+//    // ===== XP (mandamos SIEMPRE los números)
+//    const b = Math.round(Number(xp.Body || 0));
+//    const m = Math.round(Number(xp.Mind || 0));
+//    const s = Math.round(Number(xp.Soul || 0));
+//    const total = b + m + s;
+//    appendFD(fd, ENTRIES.xp_total, total);
+//    appendFD(fd, ENTRIES.xp_body,  b);
+//    appendFD(fd, ENTRIES.xp_mind,  m);
+//    appendFD(fd, ENTRIES.xp_soul,  s);
+
+//    // ===== Catálogo para sanear (evita que Forms descarte opciones)
+//    const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
+
+// //   // LOW
+//    appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
+//    appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
+//    appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
+//    if ((answers?.low?.note || "").trim()) {
+//      appendFD(fd, ENTRIES.low_note, answers.low.note.trim());
+//    }
+//    // (si está vacío, NO lo mandamos)
+
+// //   // CHILL
+//    if ((answers?.chill?.oneThing || "").trim()) {
+//      appendFD(fd, ENTRIES.chill_one, answers.chill.oneThing.trim());
+//    }
+//    appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
+
+// //   // FLOW
+//    if ((answers?.flow?.goal || "").trim()) {
+//      appendFD(fd, ENTRIES.flow_goal, answers.flow.goal.trim());
+//    }
+//    appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
+
+// //   // EVOLVE
+//    if ((answers?.evolve?.goal || "").trim()) {
+//      appendFD(fd, ENTRIES.evolve_goal, answers.evolve.goal.trim());
+//    }
+//    appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
+//    if ((answers?.evolve?.att || "").trim()) {
+//      appendFD(fd, ENTRIES.evolve_att, answers.evolve.att.trim());
+//    }
+
+//    // ===== FOUNDATIONS
+//    appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
+//    appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
+//    appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
+  
+//    // Enviar los "open" SOLO si hay texto
+//    if ((answers?.foundations?.bodyOpen || "").trim()) {
+//      appendFD(fd, ENTRIES.f_body_open, answers.foundations.bodyOpen.trim());
+//    }
+//    if ((answers?.foundations?.soulOpen || "").trim()) {
+//      appendFD(fd, ENTRIES.f_soul_open, answers.foundations.soulOpen.trim());
+//    }
+//    if ((answers?.foundations?.mindOpen || "").trim()) {
+//      appendFD(fd, ENTRIES.f_mind_open, answers.foundations.mindOpen.trim());
+//    }
+
+//    // ⛔ NO enviamos f_body_open / f_soul_open / f_mind_open (no existen en tu UI)
+//    // ⛔ No enviamos strings vacíos en ningún "open"
+
+//    return fd;
+//  }
 
 // ✨ NUEVO: usar el proxy del Worker
 const PROXY_URL = "https://formulariointro.rfullivarri22.workers.dev/";
