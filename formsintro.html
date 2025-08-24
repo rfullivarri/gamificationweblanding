@@ -10,8 +10,7 @@
     --bg:#0b0e19; --panel:#141a2c; --card:#171b31; --ring:rgba(255,255,255,.08);
     --text:#eaf0ff; --muted:#a9b2d0; --accent:#7a66ff; --accent2:#a78bfa; --ok:#38d39f;
     --shadow:0 24px 80px rgba(0,0,0,.40);
-    --hudH:64px;                 /* altura estimada HUD desktop */
-    --gap:16px;
+    --hudH:64px; /* altura HUD desktop */
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -21,13 +20,11 @@
     background:
       radial-gradient(1100px 700px at 50% -15%, rgba(122,102,255,.18), transparent 60%),
       linear-gradient(180deg, #0b0e19, #0b0e19 30%, #0f1325 100%);
-    /* scroll general (no más scroll dentro de la tarjeta) */
     overflow:auto;
-    /* espacio para que la HUD fija no tape el contenido */
-    padding-top: calc(var(--hudH) + 10px);
+    padding-top: calc(var(--hudH) + 10px); /* evita que el HUD tape títulos */
   }
 
-  /* HUD (grid responsivo) */
+  /* HUD (mantengo tu diseño) */
   .hud{
     position:fixed; inset:0 0 auto 0; z-index:20;
     display:grid; gap:10px;
@@ -41,7 +38,6 @@
   .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 20px var(--accent)}
   .journey{display:flex; align-items:center; gap:10px}
   .journey .progress{width:190px}
-
   .mid{grid-area:mid; display:flex; justify-content:center; gap:18px}
   .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:110px}
   .pill .row{display:flex; align-items:center; gap:6px}
@@ -50,13 +46,11 @@
   progress{width:120px; height:8px; background:#0f1430; border-radius:6px}
   progress::-webkit-progress-bar{background:#0f1430; border-radius:6px}
   progress::-webkit-progress-value{border-radius:6px; background:linear-gradient(90deg,#6d78ff,#a78bfa)}
-
   .xp{grid-area:xp; justify-self:end; font-weight:800; letter-spacing:.2px}
-
   .progress{height:8px; background:#0f1430; border-radius:6px; overflow:hidden}
   .progress .fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2))}
 
-  /* HUD móvil: 2 filas → 1) Journey, 2) Body/Mind/Soul + XP */
+  /* HUD móvil intacto */
   @media (max-width:720px){
     :root{ --hudH: 104px; }
     .hud{
@@ -75,13 +69,14 @@
     progress{width:64px}
   }
 
-  /* Contenedor principal (página, sin fixed interno) */
+  /* Página y tarjeta */
   .page{padding:16px; display:flex; justify-content:center}
   .modal{
     width:min(980px,94vw);
     background:rgba(20,24,44,.78);
     border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow);
     padding:20px;
+    overflow:hidden;                 /* 🔒 nada se sale del “post‑it” */
   }
 
   /* Screens */
@@ -90,29 +85,28 @@
 
   /* Layout de cada pantalla */
   .hero{
-    display:grid; gap:20px; align-items:start;
+    display:grid; gap:20px;
     grid-template-columns: 1.05fr .95fr;
+    align-items:start;               /* evita estirado raro */
   }
   @media (max-width:980px){ .hero{grid-template-columns:1fr} }
 
-  /* Imágenes */
+  /* Imágenes: siempre contenidas en la tarjeta y razonables de alto */
   .pic{
     border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b;
-    /* nunca más alta que el contenido a la izquierda (desktop) */
-    max-height: 100%;
+    width:100%;
+    max-height: calc(100vh - var(--hudH) - 180px); /* no más altas que la ventana visible */
   }
-  /* imagen con límites razonables */
-  .pic img{width:100%; height:100%; object-fit:cover; display:block; opacity:.96}
-
-  /* desktop: la figura “respeta” la columna izquierda */
+  .pic img{
+    width:100%; height:100%; object-fit:cover; display:block; opacity:.96;
+  }
+  /* Desktop: proporción agradable, nunca enorme */
   @media (min-width:981px){
-    .hero{align-items:stretch}
-    .pic{aspect-ratio: 4 / 3}
+    .pic{aspect-ratio: 4 / 3; max-height: 520px}
   }
-  /* mobile: ocupa ancho completo pero limita la altura */
+  /* Mobile: un poco más compactas */
   @media (max-width:980px){
     .pic{aspect-ratio:auto; max-height: 360px}
-    .pic img{object-fit:cover}
   }
   @media (max-width:420px){
     .pic{max-height: 320px}
@@ -142,7 +136,6 @@
     background:rgba(255,255,255,.05); color:#fff; outline:none;
   }
 
-  /* Subtítulo de las preguntas abiertas: más “presencia” */
   .open-title{margin:14px 0 8px; font-weight:700; font-size:1.05rem; color:#e9edff}
 
   .counter{font-size:13px; color:#c7cff1; margin-top:6px}
@@ -165,7 +158,6 @@
       <div class="progress"><div id="progressFill" class="fill"></div></div>
     </div>
   </div>
-
   <div class="mid">
     <div class="pill">
       <div class="row"><span class="emoji">🫀</span><span class="label">Body</span></div>
@@ -180,7 +172,6 @@
       <progress id="barSoul" value="0" max="100"></progress>
     </div>
   </div>
-
   <div class="xp">XP: <span id="xpTotal">0</span></div>
 </header>
 
@@ -193,29 +184,18 @@
       <div class="hero">
         <div>
           <h2>Cap. 0 — El Despertar</h2>
-          <p>
-            Respirá. Hoy enciendes tu sistema de mejora. Te voy guiando para equilibrar
-            <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
-          </p>
-          <p>
-            <strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia <strong>(XP)</strong>.
-            Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones).
-          </p>
-
-          <!-- Email (obligatorio) -->
+          <p>Respirá. Hoy enciendes tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.</p>
+          <p><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia <strong>(XP)</strong>. Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones).</p>
           <div class="field" style="margin:12px 0">
             <label for="emailInput">Tu correo (obligatorio)</label>
             <input id="emailInput" type="email" placeholder="tu@email.com" required>
             <small style="color:#aab7ff">Lo usamos para crear tu tablero y guardar tu progreso.</small>
           </div>
-
           <div class="nav">
             <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
             <button class="btn" id="goModes" disabled>Comenzar</button>
           </div>
         </div>
-
-        <!-- Imagen intro con tamaño controlado -->
         <figure class="pic">
           <img src="https://i.ibb.co/vCJSp395/761-EAF33-3-AD7-444-E-96-F7-EB58-AC9-D8-F32.png" alt="Intro">
         </figure>
@@ -239,8 +219,6 @@
             <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
           </div>
         </div>
-
-        <!-- Imagen más grande (altura acompaña a la columna izquierda) -->
         <figure class="pic">
           <img src="https://i.ibb.co/Kpw8p1Hh/E57389-B9-DBF2-4-F97-B24-F-E740-C067-A688.png" alt="Modos">
         </figure>
@@ -254,7 +232,6 @@
       <div class="checklist" id="lowBodyList"></div>
       <div class="counter"><span id="lowBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
 
-      <!-- OPEN Body · UI + chip -->
       <div class="open-title">¿Hay algo que te cueste o quieras evitar a nivel físico? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Podés mencionar hábitos, dolores o ambientes que te incomodan… (opcional)</p>
       <textarea id="fBodyOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
@@ -271,7 +248,6 @@
       <div class="checklist" id="lowSoulList"></div>
       <div class="counter"><span id="lowSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
 
-      <!-- OPEN Soul · UI + chip -->
       <div class="open-title">¿Qué tipo de prácticas espirituales te gustaría probar o retomar? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Podés incluir ejemplos personales… (opcional)</p>
       <textarea id="fSoulOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
@@ -288,7 +264,6 @@
       <div class="checklist" id="lowMindList"></div>
       <div class="counter"><span id="lowMindCount">0</span>/5 seleccionadas (obligatorio)</div>
 
-      <!-- OPEN Mind · UI + chip -->
       <div class="open-title">¿Qué te gustaría lograr con tu desarrollo mental? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Por ejemplo: leer más, organizar mejor el tiempo, mantenerte enfocado… (opcional)</p>
       <textarea id="fMindOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
@@ -299,7 +274,7 @@
       </div>
     </section>
 
-    <!-- Low · comentario final (opcional, 0 XP) -->
+    <!-- Low · comentario final -->
     <section class="scr" id="scr-low-note" data-type="open0">
       <h2>LOW · ¿Querés contarnos algo más?</h2>
       <p class="note">Es opcional: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
@@ -310,7 +285,7 @@
       </div>
     </section>
 
-    <!-- ====== CHILL (luego Foundations) -->
+    <!-- ====== CHILL -->
     <section class="scr" id="scr-chill-open" data-type="open21">
       <div class="hero">
         <div>
@@ -322,10 +297,7 @@
             <button class="btn" id="confirmChillOpen" disabled>Confirmar</button>
           </div>
         </div>
-        <!-- un toque más alta en mobile para ver bien el arte -->
-        <figure class="pic">
-          <img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Chill">
-        </figure>
+        <figure class="pic"><img src="https://i.ibb.co/WpcbX5vy/0817080-B-6816-4-F5-B-B7-DC-0-AC9-E9-E28657.png" alt="Chill"></figure>
       </div>
     </section>
 
