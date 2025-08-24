@@ -70,7 +70,8 @@
   }
 
   /* Página y tarjeta */
-  .page{padding:16px; display:flex; justify-content:center}
+  /* Fix para navegabilidad: el JS busca .overlay */
+  .overlay{ display:flex; justify-content:center; width:100%;}
   .modal{
     width:min(980px,94vw);
     background:rgba(20,24,44,.78);
@@ -91,23 +92,40 @@
   }
   @media (max-width:980px){ .hero{grid-template-columns:1fr} }
 
-  /* Imágenes: siempre contenidas en la tarjeta y razonables de alto */
+  /* Imágenes: siempre contenidas en la tarjeta y sin sobresalir */
   .pic{
-    border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b;
+    border-radius:14px;
+    border:1px solid var(--ring);
+    overflow:hidden;
+    background:#10142b;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+  
     width:100%;
+    max-width:100%;                  /* 👈 nunca más ancho que su contenedor */
     max-height: calc(100vh - var(--hudH) - 180px); /* no más altas que la ventana visible */
   }
+  
   .pic img{
-    width:100%; height:100%; object-fit:cover; display:block; opacity:.96;
+    max-width:100%;                  /* 👈 la imagen nunca pasa el ancho del contenedor */
+    max-height:100%;                 /* 👈 nunca pasa la altura del contenedor */
+    object-fit:contain;              /* 👈 asegura que no se corte ni se deforme */
+    display:block;
+    opacity:.96;
   }
-  /* Desktop: proporción agradable, nunca enorme */
+  
+  /* Desktop: proporción fija y centrada */
   @media (min-width:981px){
     .pic{aspect-ratio: 4 / 3; max-height: 520px}
+    .pic img{object-fit:cover}
   }
-  /* Mobile: un poco más compactas */
+  
+  /* Mobile: más compactas */
   @media (max-width:980px){
     .pic{aspect-ratio:auto; max-height: 360px}
   }
+  
   @media (max-width:420px){
     .pic{max-height: 320px}
   }
@@ -176,7 +194,7 @@
 </header>
 
 <!-- Página -->
-<main class="page">
+<main class="overlay page">
   <div class="modal">
 
     <!-- Intro -->
