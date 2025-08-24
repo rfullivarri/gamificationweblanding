@@ -141,7 +141,7 @@
         <div>
           <h2>Cap. 0 — El Despertar</h2>
           <p>
-            Respirá. Hoy encendés tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
+            Respirá. Hoy enciendes tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
             <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia  <strong>(XP)</strong>.
             Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones). Arriba vas a ver cómo se carga tu XP total y el de cada pilar.
           </p>
@@ -156,7 +156,7 @@
           <div class="nav">
             <!-- Renombrado para evitar ID duplicado -->
             <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
-            <button class="btn" id="goModes" disabled>Entrar</button>
+            <button class="btn" id="goModes" disabled>Comenzar</button>
           </div>
         </div>
         <figure class="pic"><img src="https://i.ibb.co/vCJSp395/761-EAF33-3-AD7-444-E-96-F7-EB58-AC9-D8-F32.png" alt="Intro"></figure>
@@ -170,10 +170,10 @@
           <h2>Elegí tu Game Mode</h2>
           <p>Elegí el <strong>modo</strong> que mejor describe tu estado <strong>hoy</strong> para adaptar el recorrido a tu energía y enfoque.</p>
           <div class="grid" id="modeGrid">
-            <div class="card" data-mode="LOW"><h3>LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
-            <div class="card" data-mode="CHILL"><h3>CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
-            <div class="card" data-mode="FLOW"><h3>FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
-            <div class="card" data-mode="EVOLVE"><h3>EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
+            <div class="card" data-mode="LOW"><h3>🪫LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
+            <div class="card" data-mode="CHILL"><h3>🌿CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
+            <div class="card" data-mode="FLOW"><h3>🌊FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
+            <div class="card" data-mode="EVOLVE"><h3>🧬EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
           </div>
           <div class="nav">
             <!-- Este es el back real que usa el JS -->
@@ -222,7 +222,7 @@
     <!-- Low · comentario final (opcional, 0 XP) -->
     <section class="scr" id="scr-low-note" data-type="open0">
       <h2>LOW · ¿Querés contarnos algo más?</h2>
-      <p class="note">Es personal: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
+      <p class="note">Es opcional: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
       <textarea id="lowNote" rows="4" placeholder="(opcional)"></textarea>
       <div class="nav">
         <button class="btn secondary" id="backLowMind">Volver</button>
@@ -354,7 +354,7 @@
 
     <!-- ====== RESUMEN -->
     <section class="scr" id="scr-summary">
-      <h2>¡Listo para empezar en serio! 🚀</h2>
+      <h2>¡Todo listo para empezar! 🚀</h2>
       <div class="summary-box" id="summaryBox"></div>
       <p class="note" style="margin-top:10px">
         <strong>Capitán</strong>, con esto generamos tus <strong>primeras tasks</strong> y un plan simple para hoy.
@@ -364,7 +364,7 @@
         <button class="btn secondary" id="restart">Volver al inicio</button>
         <button class="btn" id="finish">Comenzar Journey</button>
       </div>
-      <div class="note" style="margin-top:8px">/* TODO: POST a Google Forms con tus <code>entry.xxx</code> */</div>
+      //<div class="note" style="margin-top:8px">/* TODO: POST a Google Forms con tus <code>entry.xxx</code> */</div>
     </section>
 
     <div id="toast" class="toast">+13 XP</div>
@@ -1036,9 +1036,9 @@ document.addEventListener("DOMContentLoaded", ()=>{
     e.preventDefault();
     // showDebugLog();  // ⛔️ quitalo para evitar logs duplicados
     submitJourneyToForm();  // 👈 envío real (a iframe, sin navegar)
-    /*setTimeout(()=> {
+    setTimeout(()=> {
       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-    }, 250);*/
+    }, 250);
   });
 });
 </script>
