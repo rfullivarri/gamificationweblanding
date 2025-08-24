@@ -1194,18 +1194,20 @@ const ENTRIES = {
 };
 
 /* ---------- Helpers ---------- */
-// Reemplaza la versión actual por esta
+// Enviar placeholder “—” en textos vacíos (solo scalar text)
 function appendFD(fd, name, val){
   if (Array.isArray(val)) {
-    // Checkbox: si no hay selecciones, NO mandes nada
-    if (val.length > 0) val.forEach(v => fd.append(name, String(v)));
+    // checkbox: limpiamos y solo si queda algo, enviamos
+    const clean = val
+      .map(v => (v==null ? "" : String(v).trim()))
+      .filter(v => v.length > 0);
+    if (clean.length > 0) clean.forEach(v => fd.append(name, v));
     return;
   }
-  // Scalars
-  if (val == null) return;
-  const s = String(val);
-  if (s.trim() === "") return;   // texto vacío → no lo mandes
-  fd.append(name, s);
+  // texto / número
+  if (val == null) { fd.append(name, "—"); return; }
+  const s = String(val).trim();
+  fd.append(name, s.length ? s : "—");
 }
 
 // Intenta usar MODE_LABELS del Script 1 (si existen)
