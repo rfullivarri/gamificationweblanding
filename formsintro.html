@@ -732,6 +732,60 @@ const FORM_LABELS = {
   paintChecklist("evolveTradeList", LISTS.evolveTrade);
   paintChecklist("evolveAttList",   LISTS.evolveAtt, "radio", "evolveAtt");
 
+  // --- helpers para no duplicar XP y para resetear todo ---
+  // Ejecuta la acción de una pantalla solo la primera vez (usa data-done en la <section>)
+  function doOnce(sectionId, fn) {
+    const sec = document.getElementById(sectionId);
+    if (!sec) return;
+    if (sec.dataset.done === "1") {            // ya se ejecutó → solo avanzar
+      nextStep();
+      return;
+    }
+    fn();                                       // primera vez → hace lo que corresponda
+    sec.dataset.done = "1";                     // marca como hecho
+    nextStep();
+  }
+  
+  // Resetea TODO el estado, UI y marcas "done"
+  function resetAll(){
+    // 1) estado
+    xp.Body = xp.Mind = xp.Soul = xp.total = 0;
+    answers.email = "";
+    answers.mode  = null;
+    answers.low   = { body:[], soul:[], mind:[], note:"" };
+    answers.chill = { oneThing:"", motiv:[] };
+    answers.flow  = { goal:"", imped:[] };
+    answers.evolve= { goal:"", trade:[], att:"" };
+    answers.foundations = { body:[], soul:[], mind:[] };
+  
+    // 2) UI: limpiar inputs / checks / textareas
+    document.querySelectorAll("input[type=email], input[type=text], textarea")
+      .forEach(el => el.value = "");
+    document.querySelectorAll("input[type=checkbox], input[type=radio]")
+      .forEach(el => el.checked = false);
+  
+    // 3) desmarcar selecciones visuales y re‑deshabilitar botones de confirm donde aplique
+    document.querySelectorAll(".card.selected").forEach(c => c.classList.remove("selected"));
+    ["confirmMode","confirmChillOpen","confirmFlowGoal","confirmEvolveGoal",
+     "confirmChillMotiv","confirmFlowImped","confirmEvolveTrade","confirmEvolveAtt",
+     "confirmLowBody","confirmLowSoul","confirmLowMind",
+     "confirmFBody","confirmFSoul","confirmFMind"]
+      .forEach(id => { const b=document.getElementById(id); if(b) b.disabled = true; });
+  
+    // 4) quitar todas las marcas de ejecución (para que no cuenten XP al re‑hacer)
+    document.querySelectorAll(".scr").forEach(s => delete s.dataset.done);
+  
+    // 5) barra superior y progreso
+    document.getElementById("xpTotal").textContent = "0";
+    ["barBody","barMind","barSoul"].forEach(id => { const p=document.getElementById(id); if(p) p.value=0; });
+    const fill = document.getElementById("progressFill"); if (fill) fill.style.width = "0%";
+  
+    // 6) rutas/step y volver a la intro
+    routeScreens = [];
+    stepIndex = 0;
+    show("scr-intro");
+  }
+
   // Navegación base
   const nextStep = ()=>{
     const next = Math.min(routeScreens.length - 1, stepIndex + 1);
@@ -852,64 +906,95 @@ const FORM_LABELS = {
     nextStep();
   });
 
-  // CHILL
-  $go("chillOneThing").addEventListener("input", ()=> $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length<1));
-  $go("confirmChillOpen").addEventListener("click", ()=>{
+  // ---------- CHILL ----------
+$go("chillOneThing").addEventListener("input", ()=> {
+  $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length < 1);
+});
+
+// CHILL open (+21) — evita duplicar XP al re‑confirmar
+$go("confirmChillOpen").addEventListener("click", ()=>{
+  doOnce("scr-chill-open", ()=>{
     answers.chill.oneThing = $go("chillOneThing").value.trim();
-    addXP(21,"ALL"); toast("+21 XP");
-    nextStep();
+    addXP(21, "ALL"); toast("+21 XP");
   });
-  const chillInputs = $$("#chillMotivList input");
-  const updateChill = ()=> $go("confirmChillMotiv").disabled = chillInputs.filter(i=>i.checked).length<1;
-  chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill();
+});
+
+const chillInputs = $$("#chillMotivList input");
+const updateChill = ()=> $go("confirmChillMotiv").disabled = chillInputs.filter(i=>i.checked).length < 1;
+chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill();
+
+// CHILL motiv (+13)
   $go("confirmChillMotiv").addEventListener("click", ()=>{
-    answers.chill.motiv = getCheckedTexts("#chillMotivList");
-    addXP(13,"ALL"); toast("+13 XP");
-    nextStep();
+    doOnce("scr-chill-motiv", ()=>{
+      answers.chill.motiv = getCheckedTexts("#chillMotivList");
+      addXP(13, "ALL"); toast("+13 XP");
+    });
   });
   $go("backChillOpen").addEventListener("click", ()=> prevStep());
-
-  // FLOW
-  $go("flowGoal").addEventListener("input", ()=> $go("confirmFlowGoal").disabled = ($go("flowGoal").value.trim().length<1));
-  $go("confirmFlowGoal").addEventListener("click", ()=>{
-    answers.flow.goal = $go("flowGoal").value.trim();
-    addXP(21,"ALL"); toast("+21 XP");
-    nextStep();
+  
+  
+  // ---------- FLOW ----------
+  $go("flowGoal").addEventListener("input", ()=> {
+    $go("confirmFlowGoal").disabled = ($go("flowGoal").value.trim().length < 1);
   });
+  
+  // FLOW goal (+21)
+  $go("confirmFlowGoal").addEventListener("click", ()=>{
+    doOnce("scr-flow-goal", ()=>{
+      answers.flow.goal = $go("flowGoal").value.trim();
+      addXP(21, "ALL"); toast("+21 XP");
+    });
+  });
+  
   const flowImps = $$("#flowImpedList input");
-  const updateFlow = ()=> $go("confirmFlowImped").disabled = flowImps.filter(i=>i.checked).length<1;
+  const updateFlow = ()=> $go("confirmFlowImped").disabled = flowImps.filter(i=>i.checked).length < 1;
   flowImps.forEach(i=> i.addEventListener("change", updateFlow)); updateFlow();
+  
+  // FLOW imped (+13)
   $go("confirmFlowImped").addEventListener("click", ()=>{
-    answers.flow.imped = getCheckedTexts("#flowImpedList");
-    addXP(13,"ALL"); toast("+13 XP");
-    nextStep();
+    doOnce("scr-flow-imped", ()=>{
+      answers.flow.imped = getCheckedTexts("#flowImpedList");
+      addXP(13, "ALL"); toast("+13 XP");
+    });
   });
   $go("backFlowGoal").addEventListener("click", ()=> prevStep());
-
-  // EVOLVE
-  $go("evolveGoal").addEventListener("input", ()=> $go("confirmEvolveGoal").disabled = ($go("evolveGoal").value.trim().length<1));
+  
+  
+  // ---------- EVOLVE ----------
+  $go("evolveGoal").addEventListener("input", ()=> {
+    $go("confirmEvolveGoal").disabled = ($go("evolveGoal").value.trim().length < 1);
+  });
+  
+  // EVOLVE goal (+21)
   $go("confirmEvolveGoal").addEventListener("click", ()=>{
-    answers.evolve.goal = $go("evolveGoal").value.trim();
-    addXP(21,"ALL"); toast("+21 XP");
-    nextStep();
+    doOnce("scr-evolve-goal", ()=>{
+      answers.evolve.goal = $go("evolveGoal").value.trim();
+      addXP(21, "ALL"); toast("+21 XP");
+    });
   });
+  
   const evTrade = $$("#evolveTradeList input");
-  const updEvTrade = ()=> $go("confirmEvolveTrade").disabled = evTrade.filter(i=>i.checked).length<1;
+  const updEvTrade = ()=> $go("confirmEvolveTrade").disabled = evTrade.filter(i=>i.checked).length < 1;
   evTrade.forEach(i=> i.addEventListener("change", updEvTrade)); updEvTrade();
+  
+  // EVOLVE trade (+13)
   $go("confirmEvolveTrade").addEventListener("click", ()=>{
-    answers.evolve.trade = getCheckedTexts("#evolveTradeList");
-    addXP(13,"ALL"); toast("+13 XP");
-    nextStep();
+    doOnce("scr-evolve-trade", ()=>{
+      answers.evolve.trade = getCheckedTexts("#evolveTradeList");
+      addXP(13, "ALL"); toast("+13 XP");
+    });
   });
-  $go("backEvolveGoal").addEventListener("click", ()=> prevStep());
-
+  
+  // EVOLVE att (+21)
   const evAtt = $$("#evolveAttList input");
   evAtt.forEach(i=> i.addEventListener("change", ()=> $go("confirmEvolveAtt").disabled = !evAtt.some(x=>x.checked)));
   $go("confirmEvolveAtt").addEventListener("click", ()=>{
-    answers.evolve.att = getRadioText("#evolveAttList");
-    addXP(21,"ALL"); toast("+21 XP");
-    nextStep();
+    doOnce("scr-evolve-att", ()=>{
+      answers.evolve.att = getRadioText("#evolveAttList");
+      addXP(21, "ALL"); toast("+21 XP");
+    });
   });
+ 
   $go("backEvolveTrade").addEventListener("click", ()=> prevStep());
 
   // Atajos teclado
@@ -955,6 +1040,8 @@ const FORM_LABELS = {
       <div style="margin-top:6px"><strong>Total:</strong> ${Math.round(xp.total)} XP</div>
     `;
   }
+  // Botón "Volver al inicio" del resumen
+  document.getElementById("restart")?.addEventListener("click", resetAll);
 
   // Init
   drawProgress();
