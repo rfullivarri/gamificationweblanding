@@ -19,7 +19,8 @@
     background:
       radial-gradient(1100px 700px at 50% -15%, rgba(122,102,255,.18), transparent 60%),
       linear-gradient(180deg, #0b0e19, #0b0e19 30%, #0f1325 100%);
-    overflow:hidden;
+    /* ✅ ahora el scroll es global, no dentro de las tarjetas */
+    overflow:auto;
   }
 
   /* HUD */
@@ -44,7 +45,6 @@
   progress::-webkit-progress-value{border-radius:6px; background:linear-gradient(90deg,#6d78ff,#a78bfa)}
   .total{font-weight:800; letter-spacing:.2px}
 
-  /* HUD compacto móvil (vertical) */
   @media (max-width:520px){
     .progress{width:120px}
     .bars{gap:8px}
@@ -59,21 +59,47 @@
     progress{width:58px}
   }
 
-  /* Overlay */
-  .overlay{position:fixed; inset:48px 0 0 0; display:flex; align-items:center; justify-content:center;}
+  /* Overlay + modal */
+  .overlay{
+    position:fixed; inset:48px 0 0 0; 
+    display:flex; align-items:center; justify-content:center;
+    /* ✅ el scroll vive acá, no en cada screen */
+    overflow:auto;
+  }
   .modal{
-    width:min(980px,94vw); max-height:calc(100vh - 64px); background:rgba(20,24,44,.78);
-    border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow); overflow:hidden;
-    display:grid; grid-template-rows:auto 1fr;
+    width:min(980px,94vw);
+    /* ✅ sin límite de alto interno, deja crecer y que scrollee el overlay */
+    background:rgba(20,24,44,.78);
+    border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow);
+    overflow:visible; display:grid; grid-template-rows:auto 1fr;
   }
 
   /* Screens */
-  .scr{display:none; padding:20px; overflow:auto}
+  .scr{display:none; padding:20px; /* ❌ overflow:auto;  */ overflow:visible;}
   .scr.active{display:block}
-  .hero{display:grid; grid-template-columns: 1fr .9fr; gap:20px; align-items:center}
+
+  /* Layout de pantallas con imagen */
+  .hero{
+    display:grid; grid-template-columns: 1fr .95fr; gap:20px;
+    /* ✅ ambas columnas se estiran a la misma altura */
+    align-items:stretch;
+  }
   @media (max-width:980px){ .hero{grid-template-columns:1fr} }
-  .pic{border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b; aspect-ratio:4/3}
-  .pic img{width:100%; height:100%; object-fit:cover; display:block; opacity:.95}
+
+  .pic{
+    border-radius:14px; border:1px solid var(--ring); overflow:hidden; background:#10142b;
+    /* ✅ que nunca quede enana */
+    min-height:420px;
+  }
+  .pic img{width:100%; height:100%; object-fit:cover; display:block; opacity:.96}
+
+  /* Intro: un toque más grande aún en desktop */
+  @media (min-width:981px){
+    #scr-intro .pic{min-height:480px}
+  }
+  @media (max-width:980px){
+    .pic{min-height:280px}
+  }
 
   h1,h2{margin:8px 0 8px}
   p{margin:6px 0 10px; color:#cbd3ff; line-height:1.65}
@@ -141,8 +167,8 @@
         <div>
           <h2>Cap. 0 — El Despertar</h2>
           <p>
-            Respirá. Hoy enciendes tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
-            <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia  <strong>(XP)</strong>.
+            Respirá. Hoy encendés tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.
+            <br><br><strong>Cómo funciona:</strong> por cada pregunta que completes vas a sumar puntos de experiencia <strong>(XP)</strong>.
             Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones). Arriba vas a ver cómo se carga tu XP total y el de cada pilar.
           </p>
 
@@ -154,9 +180,8 @@
           </div>
 
           <div class="nav">
-            <!-- Renombrado para evitar ID duplicado -->
             <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
-            <button class="btn" id="goModes" disabled>Comenzar</button>
+            <button class="btn" id="goModes" disabled>Entrar</button>
           </div>
         </div>
         <figure class="pic"><img src="https://i.ibb.co/vCJSp395/761-EAF33-3-AD7-444-E-96-F7-EB58-AC9-D8-F32.png" alt="Intro"></figure>
@@ -170,17 +195,17 @@
           <h2>Elegí tu Game Mode</h2>
           <p>Elegí el <strong>modo</strong> que mejor describe tu estado <strong>hoy</strong> para adaptar el recorrido a tu energía y enfoque.</p>
           <div class="grid" id="modeGrid">
-            <div class="card" data-mode="LOW"><h3>🪫LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
-            <div class="card" data-mode="CHILL"><h3>🌿CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
-            <div class="card" data-mode="FLOW"><h3>🌊FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
-            <div class="card" data-mode="EVOLVE"><h3>🧬EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
+            <div class="card" data-mode="LOW"><h3>🪫 LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
+            <div class="card" data-mode="CHILL"><h3>🌿 CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
+            <div class="card" data-mode="FLOW"><h3>🌊 FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
+            <div class="card" data-mode="EVOLVE"><h3>🧬 EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
           </div>
           <div class="nav">
-            <!-- Este es el back real que usa el JS -->
             <button class="btn secondary" id="backIntro">Volver</button>
             <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
           </div>
         </div>
+        <!-- ✅ imagen a altura completa de la columna -->
         <figure class="pic"><img src="https://i.ibb.co/Kpw8p1Hh/E57389-B9-DBF2-4-F97-B24-F-E740-C067-A688.png" alt="Modos"></figure>
       </div>
     </section>
@@ -324,6 +349,14 @@
       <p>Lo físico es tu base. Elegí hasta <strong>5</strong> anclas. <span class="xp-badge">+13 XP</span></p>
       <div class="checklist" id="fBodyList"></div>
       <div class="counter"><span id="fBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <!-- ✅ Pregunta abierta Body -->
+      <div style="margin-top:14px">
+        <label for="fBodyOpen" class="note">¿Hay algo que te cueste o quieras evitar a nivel físico?</label>
+        <textarea id="fBodyOpen" rows="4" maxlength="300" placeholder="Podés mencionar hábitos, dolores, ambientes que te incomodan… (opcional)"></textarea>
+        <div class="counter"><span id="fBodyOpenCnt">0</span>/300</div>
+      </div>
+
       <div class="nav">
         <button class="btn secondary" id="backFoundPrev1">Volver</button>
         <button class="btn" id="confirmFBody" disabled>Confirmar</button>
@@ -335,6 +368,14 @@
       <p>Sin centro, no hay llegada. Elegí hasta <strong>5</strong> prácticas. <span class="xp-badge">+13 XP</span></p>
       <div class="checklist" id="fSoulList"></div>
       <div class="counter"><span id="fSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <!-- ✅ Pregunta abierta Soul -->
+      <div style="margin-top:14px">
+        <label for="fSoulOpen" class="note">¿Qué tipo de prácticas espirituales te gustaría probar o retomar?</label>
+        <textarea id="fSoulOpen" rows="4" maxlength="300" placeholder="Podés incluir ejemplos personales… (opcional)"></textarea>
+        <div class="counter"><span id="fSoulOpenCnt">0</span>/300</div>
+      </div>
+
       <div class="nav">
         <button class="btn secondary" id="backFBody">Volver</button>
         <button class="btn" id="confirmFSoul" disabled>Confirmar</button>
@@ -346,6 +387,14 @@
       <p>No es hacer más: es <strong>hacer mejor</strong>. Elegí hasta <strong>5</strong> focos. <span class="xp-badge">+13 XP</span></p>
       <div class="checklist" id="fMindList"></div>
       <div class="counter"><span id="fMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <!-- ✅ Pregunta abierta Mind -->
+      <div style="margin-top:14px">
+        <label for="fMindOpen" class="note">¿Qué te gustaría lograr con tu desarrollo mental?</label>
+        <textarea id="fMindOpen" rows="4" maxlength="300" placeholder="Por ejemplo: leer más, organizar mejor el tiempo, mantener el enfoque… (opcional)"></textarea>
+        <div class="counter"><span id="fMindOpenCnt">0</span>/300</div>
+      </div>
+
       <div class="nav">
         <button class="btn secondary" id="backFSoul">Volver</button>
         <button class="btn" id="confirmFMind" disabled>Confirmar</button>
@@ -364,6 +413,7 @@
         <button class="btn secondary" id="restart">Volver al inicio</button>
         <button class="btn" id="finish">Comenzar Journey</button>
       </div>
+      <!-- quitado el TODO de Forms -->
     </section>
 
     <div id="toast" class="toast">+13 XP</div>
