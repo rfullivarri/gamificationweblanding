@@ -991,26 +991,23 @@ async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // Log corto (opcional)
+    const headers = {};
+    if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
+
+    // Log opcional
     const preview = {};
     for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
     console.log("=== LOG ENVÍO (via Worker) ===", preview);
 
-    // 💡 Podés mandar FormData directo: el Worker acepta formData / urlencoded / json
-    const headers = {};
-    if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
-
     await fetch(PROXY_URL, {
       method: "POST",
-      mode: "cors",            // ahora sí CORS verdadero (el Worker lo permite)
-      headers,                 // agrega X-Proxy-Key si aplica
-      body: fd                 // 👈 mandamos las entry.xxx tal cual
+      mode: "cors",
+      credentials: "omit",
+      headers,
+      body: fd
     });
 
     console.log("[forms] ✅ Enviado vía Worker");
-    console.log("[forms] ✅ Enviado vía Worker");
-    // Opcional: redirigir después
-    // setTimeout(()=> location.href="https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1", 300);
   } catch (err) {
     console.error("[forms] ❌ Error en envío:", err);
   }
