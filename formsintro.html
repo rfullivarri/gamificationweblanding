@@ -720,6 +720,13 @@ const FORM_LABELS = {
     fMind: FORM_LABELS.fMind
   };
 
+  // Textareas "open" de Foundations para sumar +21 si tienen contenido
+  const OPEN_FOUND = {
+    "scr-f-body": "fBodyOpen2",
+    "scr-f-soul": "fSoulOpen2",
+    "scr-f-mind": "fMindOpen2"
+  };
+
   // Pintar todas
   paintChecklist("lowBodyList", LISTS.lowBody);
   paintChecklist("lowSoulList", LISTS.lowSoul);
@@ -854,42 +861,97 @@ const FORM_LABELS = {
   const getCheckedTexts = sel => $$(sel+" input:checked").map(i=>i.parentElement.textContent.trim());
   const getRadioText   = sel => { const el = $$(sel+" input[type=radio]").find(i=>i.checked); return el?el.parentElement.textContent.trim():""; };
 
-  // Checklist con límite y confirm
+  // Checklist con límite + XP (13) y, si hay open con texto, +21 extra.
+  // Evita duplicar XP aunque vuelvas y confirmes varias veces.
   function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
     const max = Number($("#"+scrId).dataset.limit || 5);
     const inputs = $$("#"+listId+" input");
     const count  = $("#"+countId);
-
+  
     function update(){
       const ch = inputs.filter(i=>i.checked);
       if(ch.length > max){ ch[ch.length-1].checked = false; }
       const now = inputs.filter(i=>i.checked).length;
       if (count) count.textContent = now;
-      $go(confirmIdFor(scrId)).disabled = (now < 1);
+      $go(confirmIdFor(scrId)).disabled = (now < 1); // no avanza sin al menos 1
     }
     inputs.forEach(i=> i.addEventListener("change", update));
     update();
-
+  
     function confirmIdFor(id){
       return ({
         "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
         "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
       })[id];
     }
-
+  
     $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
-      const sec = document.getElementById(scrId);
-      if (sec.dataset.done === "1") { nextStep(); return; }
-      storeArrRef.length = 0;
-      getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
-      const xpVal = Number($("#"+scrId).dataset.xp || 13);
+      const sec    = document.getElementById(scrId);
       const pillar = $("#"+scrId).dataset.pillar;
-      addXP(xpVal, pillar);
-      toast(`+${xpVal} XP`);
-      sec.dataset.done = "1";
+      const xp13   = Number($("#"+scrId).dataset.xp || 13);
+      let gained   = 0;
+  
+      // 1) Guardar selecciones y, si nunca se acreditó, sumar +13
+      if (sec.dataset.done !== "1") {
+        storeArrRef.length = 0;
+        getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+        addXP(xp13, pillar);
+        gained += xp13;
+        sec.dataset.done = "1";           // marca checklist acreditado
+      }
+  
+      // 2) Si hay textarea con contenido y no se acreditó todavía, sumar +21
+      const openId = OPEN_FOUND[scrId];
+      if (openId){
+        const hasText = ($go(openId)?.value.trim().length > 0);
+        if (hasText && sec.dataset.open21 !== "1"){
+          addXP(21, pillar);
+          gained += 21;
+          sec.dataset.open21 = "1";       // marca open acreditado
+        }
+      }
+  
+      if (gained > 0) toast(`+${gained} XP`);
       nextStep();
     });
   }
+
+  // // Checklist con límite y confirm
+  // function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
+  //   const max = Number($("#"+scrId).dataset.limit || 5);
+  //   const inputs = $$("#"+listId+" input");
+  //   const count  = $("#"+countId);
+
+  //   function update(){
+  //     const ch = inputs.filter(i=>i.checked);
+  //     if(ch.length > max){ ch[ch.length-1].checked = false; }
+  //     const now = inputs.filter(i=>i.checked).length;
+  //     if (count) count.textContent = now;
+  //     $go(confirmIdFor(scrId)).disabled = (now < 1);
+  //   }
+  //   inputs.forEach(i=> i.addEventListener("change", update));
+  //   update();
+
+  //   function confirmIdFor(id){
+  //     return ({
+  //       "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
+  //       "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
+  //     })[id];
+  //   }
+
+  //   $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
+  //     const sec = document.getElementById(scrId);
+  //     if (sec.dataset.done === "1") { nextStep(); return; }
+  //     storeArrRef.length = 0;
+  //     getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+  //     const xpVal = Number($("#"+scrId).dataset.xp || 13);
+  //     const pillar = $("#"+scrId).dataset.pillar;
+  //     addXP(xpVal, pillar);
+  //     toast(`+${xpVal} XP`);
+  //     sec.dataset.done = "1";
+  //     nextStep();
+  //   });
+  // }
 
   // Binds LOW + FOUNDATIONS
   bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body);
