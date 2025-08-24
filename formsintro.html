@@ -832,11 +832,11 @@ const FORM_LABELS = {
    ========================== */
 
 /* URL del NUEVO form (el que pasaste) */
-const FORM_ACTION_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
+//const FORM_ACTION_URL =
+ // "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
   
   // 🆔 Constante FBZX que copiaste del enlace prellenado
-const FBZX = "-5193380167844607342";  // 👈 este es el valor que viste en el prefill
+//const FBZX = "-5193380167844607342";  // 👈 este es el valor que viste en el prefill
 
 /* IDs de entradas (1:1 con tu último prellenado) */
 const ENTRIES = {
@@ -981,46 +981,41 @@ function buildFormDataFromState(){
   return fd;
 }
 
+// ✨ NUEVO: usar el proxy del Worker
+const PROXY_URL = "https://formulariointro.rfullivarri22.workers.dev/";
+
+// ✨ Si activaste REQUIRE_KEY en el Worker, poné la misma clave acá.
+const PROXY_KEY = "formsintro"; // o "" si no usás clave
+
 async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
-    // Log bonito para ver qué mandamos
+    // Log corto (opcional)
     const preview = {};
     for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
-    console.log("=== LOG ENVÍO FORMS ===");
-    for (const k in preview) console.log(k, "→", preview[k]);
+    console.log("=== LOG ENVÍO (via Worker) ===", preview);
 
-    // Convertir a formato x-www-form-urlencoded
-    const params = new URLSearchParams();
-    for (const [k, v] of fd.entries()) {
-      const s = String(v ?? "").trim();
-      if (!s) continue;
-      params.append(k, s);   // checkboxes = misma key repetida
-    }
+    // 💡 Podés mandar FormData directo: el Worker acepta formData / urlencoded / json
+    const headers = {};
+    if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
 
-    // ⚙️ Campos internos obligatorios
-    params.append("fvv", "1");
-    params.append("draftResponse", "[]");
-    params.append("pageHistory", "0");
-    params.append("fbzx", FBZX);
-    params.append("submit", "Submit");
-
-    // 🚀 Enviar el POST
-    await fetch(FORM_ACTION_URL, {
+    await fetch(PROXY_URL, {
       method: "POST",
-      mode: "no-cors",
-      headers: { 
-        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" 
-      },
-      body: params.toString()
+      mode: "cors",            // ahora sí CORS verdadero (el Worker lo permite)
+      headers,                 // agrega X-Proxy-Key si aplica
+      body: fd                 // 👈 mandamos las entry.xxx tal cual
     });
 
-    console.log("[forms] ✅ Enviado correctamente (no-cors)");
+    console.log("[forms] ✅ Enviado vía Worker");
+    console.log("[forms] ✅ Enviado vía Worker");
+    // Opcional: redirigir después
+    // setTimeout(()=> location.href="https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1", 300);
   } catch (err) {
     console.error("[forms] ❌ Error en envío:", err);
   }
 }
+
   
 /* Hook del botón final */
 document.addEventListener("DOMContentLoaded", ()=>{
