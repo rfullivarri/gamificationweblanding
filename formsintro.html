@@ -70,14 +70,14 @@
   }
 
   /* Página y tarjeta */
-  /* Fix para navegabilidad: el JS busca .overlay */
-  .overlay{ display:flex; justify-content:center; width:100%;}
+  /* Importante para tu JS: necesita .overlay presente */
+  .overlay{ display:flex; justify-content:center; width:100%; }
   .modal{
     width:min(980px,94vw);
     background:rgba(20,24,44,.78);
     border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow);
     padding:20px;
-    overflow:hidden;                 /* 🔒 nada se sale del “post‑it” */
+    overflow:hidden; /* 🔒 nada se sale del “post‑it” */
   }
 
   /* Screens */
@@ -88,46 +88,50 @@
   .hero{
     display:grid; gap:20px;
     grid-template-columns: 1.05fr .95fr;
-    align-items:start;               /* evita estirado raro */
+    align-items:start;
   }
   @media (max-width:980px){ .hero{grid-template-columns:1fr} }
 
-  /* Imágenes: siempre contenidas en la tarjeta y sin sobresalir */
+  /* Imágenes: contenidas y sin sobresalir */
   .pic{
+    position:relative;
     border-radius:14px;
     border:1px solid var(--ring);
     overflow:hidden;
     background:#10142b;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-  
     width:100%;
-    max-width:100%;                  /* 👈 nunca más ancho que su contenedor */
-    max-height: calc(100vh - var(--hudH) - 180px); /* no más altas que la ventana visible */
+    max-width:100%;
   }
-  
   .pic img{
-    max-width:100%;                  /* 👈 la imagen nunca pasa el ancho del contenedor */
-    max-height:100%;                 /* 👈 nunca pasa la altura del contenedor */
-    object-fit:contain;              /* 👈 asegura que no se corte ni se deforme */
     display:block;
+    width:100%;
+    height:auto;
+    object-fit:cover;  /* se recorta dentro, no se deforma ni desborda */
     opacity:.96;
   }
-  
-  /* Desktop: proporción fija y centrada */
+  /* Desktop: relación 4:3, altura acotada */
   @media (min-width:981px){
-    .pic{aspect-ratio: 4 / 3; max-height: 520px}
-    .pic img{object-fit:cover}
+    .pic{
+      aspect-ratio:4 / 3;
+      height:auto;
+      max-height:min(520px, calc(100vh - var(--hudH) - 140px));
+    }
+    .pic img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
   }
-  
-  /* Mobile: más compactas */
+  /* Mobile: compacto */
   @media (max-width:980px){
-    .pic{aspect-ratio:auto; max-height: 360px}
+    .pic{
+      height:auto;
+      max-height:clamp(260px, 42vh, 380px);
+    }
+    .pic img{ height:auto; object-fit:cover; }
   }
-  
   @media (max-width:420px){
-    .pic{max-height: 320px}
+    .pic{ max-height:320px; }
   }
 
   h1,h2{margin:6px 0 10px}
@@ -163,6 +167,17 @@
   .btn:disabled{opacity:.6; cursor:not-allowed}
 
   .summary-box{background:rgba(255,255,255,.05); border:1px solid var(--ring); border-radius:14px; padding:12px}
+
+  /* Toast (necesario para el JS de XP + navegación) */
+  .toast{
+    position:absolute; right:12px; bottom:12px;
+    background:#111a39; border:1px solid var(--ring);
+    padding:8px 10px; border-radius:9px;
+    font-size:13px; color:#cfe0ff;
+    opacity:0; transform:translateY(6px);
+    transition:.2s ease;
+  }
+  .toast.show{ opacity:1; transform:none; }
 </style>
 </head>
 <body>
@@ -454,6 +469,9 @@
         <button class="btn" id="finish">Comenzar Journey</button>
       </div>
     </section>
+
+    <!-- Toast para notificaciones de XP (lo usa tu JS) -->
+    <div id="toast" class="toast" aria-live="polite"></div>
 
   </div>
 </main>
