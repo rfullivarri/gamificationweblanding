@@ -1443,33 +1443,29 @@ async function submitJourneyToForm() {
   try {
     const fd = buildFormDataFromState();
 
+    // ---- FormData -> URLSearchParams (lo que espera tu Worker sin 400) ----
+    const body = new URLSearchParams();
+    for (const [k, v] of fd.entries()) body.append(k, v);
+
     const headers = {};
     if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
+    headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
 
-    // Log opcional
+    // Log opcional (previo a enviar)
     const preview = {};
-    for (const [k,v] of fd.entries()) (preview[k] ||= []).push(v);
+    for (const [k, v] of body.entries()) (preview[k] ||= []).push(v);
     console.log("=== LOG ENVÍO (via Worker) ===", preview);
 
-    // await fetch(PROXY_URL, {
-    //   method: "POST",
-    //   mode: "cors",
-    //   credentials: "omit",
-    //   headers,
-    //   body: fd
-    // });
-
-    await fetch(PROXY_URL + "?debug=1", {
-    method: "POST",
-    mode: "cors",
-    headers,
-    body: fd
-  })
-    .then(r => r.json())
-    .then(res => {
-      console.log("[forms] 🔍 Debug Worker →", res);
+    // Envío con debug=1 para ver status de Google
+    const resp = await fetch(PROXY_URL + "?debug=1", {
+      method: "POST",
+      mode: "cors",
+      headers,
+      body
     });
 
+    const dbg = await resp.json().catch(() => ({}));
+    console.log("[forms] 🔍 Debug Worker →", dbg);
     console.log("[forms] ✅ Enviado vía Worker");
   } catch (err) {
     console.error("[forms] ❌ Error en envío:", err);
