@@ -295,7 +295,7 @@
 
       <div class="open-title">¿Hay algo que te cueste o quieras evitar a nivel físico? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Podés mencionar hábitos, dolores o ambientes que te incomodan… (opcional)</p>
-      <textarea id="fBodyOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+      <textarea id="fBodyOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
 
       <div class="nav">
         <button class="btn secondary" id="backToModes1">Volver</button>
@@ -311,7 +311,7 @@
 
       <div class="open-title">¿Qué tipo de prácticas espirituales te gustaría probar o retomar? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Podés incluir ejemplos personales… (opcional)</p>
-      <textarea id="fSoulOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+      <textarea id="fSoulOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
 
       <div class="nav">
         <button class="btn secondary" id="backLowBody">Volver</button>
@@ -327,7 +327,7 @@
 
       <div class="open-title">¿Qué te gustaría lograr con tu desarrollo mental? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Por ejemplo: leer más, organizar mejor el tiempo, mantenerte enfocado… (opcional)</p>
-      <textarea id="fMindOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+      <textarea id="fMindOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
 
       <div class="nav">
         <button class="btn secondary" id="backLowSoul">Volver</button>
@@ -899,9 +899,13 @@ const FORM_LABELS = {
         const keyMap = {
           "scr-f-body":"bodyOpen",
           "scr-f-soul":"soulOpen",
-          "scr-f-mind":"mindOpen"
+          "scr-f-mind":"mindOpen",
+          "scr-low-body": "bodyOpen",
+          "scr-low-soul": "soulOpen",
+          "scr-low-mind": "mindOpen"
         };
         const k = keyMap[scrId];
+        answers.foundations = answers.foundations || {};
         if (k) answers.foundations[k] = val;
   
         if (val && sec.dataset.openDone !== "1"){
@@ -931,9 +935,9 @@ const FORM_LABELS = {
 
 
   // Binds LOW + FOUNDATIONS
-  bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body);
-  bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount",   answers.low.soul);
-  bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount",   answers.low.mind);
+  bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body, "fBodyOpen");
+  bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount",   answers.low.soul, "fSoulOpen");
+  bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount",   answers.low.mind, "fMindOpen");
   bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount", answers.foundations.body, "fBodyOpen2");
   bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount", answers.foundations.soul, "fSoulOpen2");
   bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount", answers.foundations.mind, "fMindOpen2");
