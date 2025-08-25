@@ -336,7 +336,7 @@
     </section>
 
     <!-- Low · comentario final -->
-    <section class="scr" id="scr-low-note" data-type="open0">
+    <section class="scr" id="scr-low-note" data-type="open" data-xp="21">
       <h2>LOW · ¿Querés contarnos algo más?</h2>
       <p class="note">Es opcional: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
       <textarea id="lowNote" rows="4" placeholder="(opcional)"></textarea>
@@ -941,12 +941,14 @@ const FORM_LABELS = {
   // bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount",     answers.foundations.soul);
   // bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount",     answers.foundations.mind);
 
-  // LOW note (0 XP)
+  // LOW note (21 XP)
   $go("backLowMind")?.addEventListener("click", ()=> prevStep());
   $go("confirmLowNote")?.addEventListener("click", ()=>{
-    answers.low.note = $go("lowNote").value.trim();
-    nextStep();
-  });
+  answers.low.note = $go("lowNote").value.trim();
+  // SUMA XP solo si escribió algo:
+  if (answers.low.note) (window.JOURNEY_STATE.xp.Soul ||= 0, window.JOURNEY_STATE.xp.Soul += Number($go("scr-low-note")?.dataset?.xp || 21));
+  nextStep();
+});
 
   // ---------- CHILL ----------
 $go("chillOneThing").addEventListener("input", ()=> {
