@@ -1330,13 +1330,15 @@ document.addEventListener("DOMContentLoaded", ()=>{
     console.warn('[forms] No encontré #finish; agregá id="finish" al botón final.');
     return;
   }
-  btn.addEventListener("click", (e)=>{
+  btn.addEventListener("click", async (e)=>{
     e.preventDefault();
-    // showDebugLog();  // ⛔️ quitalo para evitar logs duplicados
-    submitJourneyToForm();  // 👈 envío real (a iframe, sin navegar)
-    /*setTimeout(()=> {
+    try {
+      await submitJourneyToForm();        // 👈 esperamos a que el Worker responda
+    } catch (err) {
+      console.error("Envío falló:", err); // opcional: mostrar toast
+    } finally {
       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
-    }, 250);*/
+    }
   });
 });
 </script>
