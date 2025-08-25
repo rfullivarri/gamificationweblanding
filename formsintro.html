@@ -215,7 +215,7 @@
   <div class="brand">
     <span class="dot"></span>
     <div class="journey">
-      <span>Journey</span>
+      <span> id= "hudTitle">Journey</span>
       <div class="progress"><div id="progressFill" class="fill"></div></div>
     </div>
   </div>
@@ -809,6 +809,12 @@ const FORM_LABELS = {
     stepIndex = Math.max(0, stepIndex - 1);
     show(routeScreens[stepIndex]);
   };
+  // HUD: click en "Journey" para volver al landing
+  $go("hudTitle")?.addEventListener("click", ()=>{
+    if (!xp.total || confirm("¿Salir y volver al inicio? Se perderá el progreso.")) {
+      window.location.href = "https://rfullivarri.github.io/gamificationweblanding/indexv2.html"; // 🔗 tu URL del landing
+    }
+  });
 
   // Back a intro (manejo ambos IDs por tu HTML actual)
   const backIntroBtn = $go("backIntro") || $go("backToIntro");
