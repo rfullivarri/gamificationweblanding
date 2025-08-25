@@ -295,7 +295,7 @@
 
       <div class="open-title">¿Hay algo que te cueste o quieras evitar a nivel físico? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Podés mencionar hábitos, dolores o ambientes que te incomodan… (opcional)</p>
-      <textarea id="fBodyOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+      <textarea id="fBodyOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
 
       <div class="nav">
         <button class="btn secondary" id="backToModes1">Volver</button>
@@ -311,7 +311,7 @@
 
       <div class="open-title">¿Qué tipo de prácticas espirituales te gustaría probar o retomar? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Podés incluir ejemplos personales… (opcional)</p>
-      <textarea id="fSoulOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+      <textarea id="fSoulOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
 
       <div class="nav">
         <button class="btn secondary" id="backLowBody">Volver</button>
@@ -327,7 +327,7 @@
 
       <div class="open-title">¿Qué te gustaría lograr con tu desarrollo mental? <span class="xp-badge">+21 XP</span></div>
       <p class="note">Por ejemplo: leer más, organizar mejor el tiempo, mantenerte enfocado… (opcional)</p>
-      <textarea id="fMindOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+      <textarea id="fMindOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
 
       <div class="nav">
         <button class="btn secondary" id="backLowSoul">Volver</button>
@@ -516,9 +516,9 @@ const FORM_LABELS = {
   lowBody: [
     "Dormir mejor 😴",
     "Alimentarte mejor 🥗",
-    "Moverte un poco más 🏃‍♂️",
+    "Moverte un poco más 🏃",
     "Tomar más agua 💧",
-    "Descansar sin culpa 🧘‍♂️"
+    "Descansar sin culpa 🧘"
   ],
   lowSoul: [
     "Respirar profundo unos minutos 🌬️",
@@ -928,58 +928,7 @@ const FORM_LABELS = {
 
 
   
-  // function bindLimitedChecklist(scrId, listId, countId, storeArrRef){
-  //   const max = Number($("#"+scrId).dataset.limit || 5);
-  //   const inputs = $$("#"+listId+" input");
-  //   const count  = $("#"+countId);
-  
-  //   function update(){
-  //     const ch = inputs.filter(i=>i.checked);
-  //     if(ch.length > max){ ch[ch.length-1].checked = false; }
-  //     const now = inputs.filter(i=>i.checked).length;
-  //     if (count) count.textContent = now;
-  //     $go(confirmIdFor(scrId)).disabled = (now < 1); // no avanza sin al menos 1
-  //   }
-  //   inputs.forEach(i=> i.addEventListener("change", update));
-  //   update();
-  
-  //   function confirmIdFor(id){
-  //     return ({
-  //       "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
-  //       "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
-  //     })[id];
-  //   }
-  
-  //   $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
-  //     const sec    = document.getElementById(scrId);
-  //     const pillar = $("#"+scrId).dataset.pillar;
-  //     const xp13   = Number($("#"+scrId).dataset.xp || 13);
-  //     let gained   = 0;
-  
-  //     // 1) Guardar selecciones y, si nunca se acreditó, sumar +13
-  //     if (sec.dataset.done !== "1") {
-  //       storeArrRef.length = 0;
-  //       getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
-  //       addXP(xp13, pillar);
-  //       gained += xp13;
-  //       sec.dataset.done = "1";           // marca checklist acreditado
-  //     }
-  
-  //     // 2) Si hay textarea con contenido y no se acreditó todavía, sumar +21
-  //     const openId = OPEN_FOUND[scrId];
-  //     if (openId){
-  //       const hasText = ($go(openId)?.value.trim().length > 0);
-  //       if (hasText && sec.dataset.open21 !== "1"){
-  //         addXP(21, pillar);
-  //         gained += 21;
-  //         sec.dataset.open21 = "1";       // marca open acreditado
-  //       }
-  //     }
-  
-  //     if (gained > 0) toast(`+${gained} XP`);
-  //     nextStep();
-  //   });
-  // }
+
 
   // Binds LOW + FOUNDATIONS
   bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body);
@@ -1113,7 +1062,7 @@ chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill(
           ${answers.low.note?`<div><strong>Nota:</strong> ${answers.low.note}</div>`:""}
         `
         : `
-          ${answers.mode==="CHILL" ? `<div><strong>CHILL · Una cosa:</strong> ${answers.chill.oneThing}</div>
+          ${answers.mode==="CHILL" ? `<div><strong>CHILL · Objetivo:</strong> ${answers.chill.oneThing}</div>
           <div><strong>CHILL · Motivaciones:</strong> ${fmt(answers.chill.motiv)}</div>`:""}
           ${answers.mode==="FLOW" ? `<div><strong>FLOW · Objetivo:</strong> ${answers.flow.goal}</div>
           <div><strong>FLOW · Impedimentos:</strong> ${fmt(answers.flow.imped)}</div>`:""}
@@ -1144,15 +1093,8 @@ chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill(
   
 <script>
 /* ==========================
-   3) Envío a Google Forms (fetch-only, estilo signup)
+   3) Envío a Google Forms
    ========================== */
-
-/* URL del NUEVO form (el que pasaste) */
-//const FORM_ACTION_URL =
- // "https://docs.google.com/forms/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
-  
-  // 🆔 Constante FBZX que copiaste del enlace prellenado
-//const FBZX = "-5193380167844607342";  // 👈 este es el valor que viste en el prefill
 
 /* IDs de entradas (1:1 con tu último prellenado) */
 const ENTRIES = {
@@ -1262,62 +1204,6 @@ function pickEmail(){
   return String(a || b || c || "").trim();
 }
 
-  
-// /* Arma el FormData a partir del estado actual */
-// function buildFormDataFromState(){
-//   const fd = new FormData();
-
-//   const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
-//   const answers = state.answers || {};
-//   const xp      = state.xp || {};
-//   const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
-//   const t = x => String(x || "").trim();
-
-//   // OBLIGATORIOS
-//   appendFD(fd, ENTRIES.email, pickEmail());
-//   appendFD(fd, ENTRIES.mode,  modeLabelFrom(answers));
-
-//   // XP
-//   const b = Math.round(Number(xp.Body || 0));
-//   const m = Math.round(Number(xp.Mind || 0));
-//   const s = Math.round(Number(xp.Soul || 0));
-//   appendFD(fd, ENTRIES.xp_total, b+m+s);
-//   appendFD(fd, ENTRIES.xp_body,  b);
-//   appendFD(fd, ENTRIES.xp_mind,  m);
-//   appendFD(fd, ENTRIES.xp_soul,  s);
-
-//   // LOW
-//   appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
-//   appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
-//   appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-//   appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));
-
-//   // CHILL
-//   appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));
-//   appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
-
-//   // FLOW
-//   appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));
-//   appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
-
-//   // EVOLVE
-//   appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));
-//   appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-//   appendFD(fd, ENTRIES.evolve_att,   t(answers?.evolve?.att));
-
-//   // FOUNDATIONS
-//   appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
-//   appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
-//   appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
-
-//   // “open” de foundations (texto) — se omiten si están vacíos
-//   appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
-//   appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
-//   appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
-
-//   return fd;
-// }
-
 
   
  function buildFormDataFromState(){
@@ -1377,85 +1263,7 @@ function pickEmail(){
    return fd;
  }  
 
-  
-//  /* Arma el FormData a partir del estado actual */
-//  function buildFormDataFromState(){
-//    const fd = new FormData();
 
-//    const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
-//    const answers = state.answers || {};
-//    const xp      = state.xp || {};
-
-//    // ===== OBLIGATORIOS
-//    const email = pickEmail();
-//    const modeLabel = modeLabelFrom(answers);
-//    appendFD(fd, ENTRIES.email, email);
-//    appendFD(fd, ENTRIES.mode,  modeLabel);
-
-//    // ===== XP (mandamos SIEMPRE los números)
-//    const b = Math.round(Number(xp.Body || 0));
-//    const m = Math.round(Number(xp.Mind || 0));
-//    const s = Math.round(Number(xp.Soul || 0));
-//    const total = b + m + s;
-//    appendFD(fd, ENTRIES.xp_total, total);
-//    appendFD(fd, ENTRIES.xp_body,  b);
-//    appendFD(fd, ENTRIES.xp_mind,  m);
-//    appendFD(fd, ENTRIES.xp_soul,  s);
-
-//    // ===== Catálogo para sanear (evita que Forms descarte opciones)
-//    const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
-
-// //   // LOW
-//    appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
-//    appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
-//    appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-//    if ((answers?.low?.note || "").trim()) {
-//      appendFD(fd, ENTRIES.low_note, answers.low.note.trim());
-//    }
-//    // (si está vacío, NO lo mandamos)
-
-// //   // CHILL
-//    if ((answers?.chill?.oneThing || "").trim()) {
-//      appendFD(fd, ENTRIES.chill_one, answers.chill.oneThing.trim());
-//    }
-//    appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
-
-// //   // FLOW
-//    if ((answers?.flow?.goal || "").trim()) {
-//      appendFD(fd, ENTRIES.flow_goal, answers.flow.goal.trim());
-//    }
-//    appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
-
-// //   // EVOLVE
-//    if ((answers?.evolve?.goal || "").trim()) {
-//      appendFD(fd, ENTRIES.evolve_goal, answers.evolve.goal.trim());
-//    }
-//    appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-//    if ((answers?.evolve?.att || "").trim()) {
-//      appendFD(fd, ENTRIES.evolve_att, answers.evolve.att.trim());
-//    }
-
-//    // ===== FOUNDATIONS
-//    appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
-//    appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
-//    appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
-  
-//    // Enviar los "open" SOLO si hay texto
-//    if ((answers?.foundations?.bodyOpen || "").trim()) {
-//      appendFD(fd, ENTRIES.f_body_open, answers.foundations.bodyOpen.trim());
-//    }
-//    if ((answers?.foundations?.soulOpen || "").trim()) {
-//      appendFD(fd, ENTRIES.f_soul_open, answers.foundations.soulOpen.trim());
-//    }
-//    if ((answers?.foundations?.mindOpen || "").trim()) {
-//      appendFD(fd, ENTRIES.f_mind_open, answers.foundations.mindOpen.trim());
-//    }
-
-//    // ⛔ NO enviamos f_body_open / f_soul_open / f_mind_open (no existen en tu UI)
-//    // ⛔ No enviamos strings vacíos en ningún "open"
-
-//    return fd;
-//  }
 
 // ✨ NUEVO: usar el proxy del Worker
 const PROXY_URL = "https://formulariointro.rfullivarri22.workers.dev/";
