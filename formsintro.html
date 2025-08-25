@@ -1218,14 +1218,40 @@ function modeLabelFrom(answers){
 }
 
 // Si tenemos FORM_LABELS, filtramos a los valores válidos EXACTOS (evita que Forms descarte)
-function sanitizeArray(values, allowed){
-  if (!Array.isArray(values)) return [];
-  if (!Array.isArray(allowed) || allowed.length===0) return values; // si no hay catálogo, no filtramos
-  const set = new Set(allowed);
-  const out = values.filter(v => set.has(v));
-  if (out.length !== values.length) {
-    console.warn("[forms] Se filtraron valores no listados en el Form:", values.filter(v=>!set.has(v)));
+function sanitizeArray(values, allowed, opts = {}) {
+  const { field = "(unknown-field)", mode = "" } = opts || {};
+
+  // Tipo inválido → aviso y vacío
+  if (!Array.isArray(values)) {
+    console.warn(`[forms] ${field} (${mode}) → recibido no-array:`, values);
+    return [];
   }
+
+  // Sin catálogo → no filtramos
+  if (!Array.isArray(allowed) || allowed.length === 0) {
+    return values;
+  }
+
+  const whitelist = new Set(allowed);
+  const out = values.filter(v => whitelist.has(v));
+
+  // Si filtró algo, log detallado + traza acumulada
+  if (out.length !== values.length) {
+    const descartados = values.filter(v => !whitelist.has(v));
+    console.error("[forms] MISMATCH en catálogo", {
+      field, mode,
+      descartados,
+      permitidos: allowed,
+      enviados: out
+    });
+    try {
+      (window.__FORM_MISMATCHES ||= []).push({
+        ts: Date.now(), field, mode,
+        descartados, permitidos: allowed, enviados: out
+      });
+    } catch(_) {}
+  }
+
   return out;
 }
 
@@ -1321,35 +1347,33 @@ function pickEmail(){
    const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
 
    // LOW
-   appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || []));
-   appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || []));
-   appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || []));
-   appendFD(fd, ENTRIES.low_note, t(answers?.low?.note));                 // 🔸 siempre
-
-   // CHILL
-   appendFD(fd, ENTRIES.chill_one,   t(answers?.chill?.oneThing));        // 🔸 siempre
-   appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || []));
-
-   // FLOW
-   appendFD(fd, ENTRIES.flow_goal,  t(answers?.flow?.goal));              // 🔸 siempre
-   appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || []));
-
-   // EVOLVE
-   appendFD(fd, ENTRIES.evolve_goal,  t(answers?.evolve?.goal));          // 🔸 siempre
-   appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || []));
-   const att = (answers?.evolve?.att || "").trim();
-   if (att) appendFD(fd, ENTRIES.evolve_att, att);  // solo si hay valor real
-   
-   // FOUNDATIONS
-   appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || []));
-   appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || []));
-   appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || []));
-
-   // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
-   appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
-   appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
-   appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
-
+  appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || [], { field: "low_body", mode: modeLabel }));
+  appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || [], { field: "low_soul", mode: modeLabel }));
+  appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || [], { field: "low_mind", mode: modeLabel }));
+  appendFD(fd, ENTRIES.low_note, t(answers?.low?.note)); // 🔸 siempre
+  
+  // CHILL
+  appendFD(fd, ENTRIES.chill_one, t(answers?.chill?.oneThing)); // 🔸 siempre
+  appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || [], { field: "chill_motiv", mode: modeLabel }));
+  
+  // FLOW
+  appendFD(fd, ENTRIES.flow_goal, t(answers?.flow?.goal)); // 🔸 siempre
+  appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || [], { field: "flow_imped", mode: modeLabel }));
+  
+  // EVOLVE
+  appendFD(fd, ENTRIES.evolve_goal, t(answers?.evolve?.goal)); // 🔸 siempre
+  appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || [], { field: "evolve_trade", mode: modeLabel }));
+  appendFD(fd, ENTRIES.evolve_att, t(answers?.evolve?.att));
+  
+  // FOUNDATIONS
+  appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || [], { field: "f_body", mode: modeLabel }));
+  appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || [], { field: "f_soul", mode: modeLabel }));
+  appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || [], { field: "f_mind", mode: modeLabel }));
+  
+  // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
+  appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
+  appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
+  appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
    return fd;
  }  
 
