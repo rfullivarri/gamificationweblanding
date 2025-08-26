@@ -212,6 +212,14 @@ cursor: pointer;
 #hudTitle:hover {
 text-decoration: underline; /* opcional, para que se note */
 }
+.btn.loading{ position:relative; }
+.btn.loading::after{
+  content:""; width:14px; height:14px; border:2px solid rgba(255,255,255,.6);
+  border-top-color: transparent; border-radius:50%;
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{ to{ transform:translateY(-50%) rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -1289,55 +1297,118 @@ const PROXY_URL = "https://formulariointro.rfullivarri22.workers.dev/";
 // ✨ Si activaste REQUIRE_KEY en el Worker, poné la misma clave acá.
 const PROXY_KEY = "formsintro"; // o "" si no usás clave
 
-async function submitJourneyToForm() {
+async function submitJourneyToForm(){
   try {
-    const fd = buildFormDataFromState();
-
-    // ---- FormData -> URLSearchParams (lo que espera tu Worker sin 400) ----
-    const body = new URLSearchParams();
-    for (const [k, v] of fd.entries()) body.append(k, v);
+    const fd = buildFormDataFromState();        // ← tu FormData completo
 
     const headers = {};
     if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
-    headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
 
-    // Log opcional (previo a enviar)
-    const preview = {};
-    for (const [k, v] of body.entries()) (preview[k] ||= []).push(v);
-    console.log("=== LOG ENVÍO (via Worker) ===", preview);
+    // Dejar true mientras probás; en producción ponelo en false
+    const USE_DEBUG = true;
+    const url = PROXY_URL + (USE_DEBUG ? "?debug=1" : "");
 
-    // Envío con debug=1 para ver status de Google
-    const resp = await fetch(PROXY_URL + "?debug=1", {
+    const resp = await fetch(url, {
       method: "POST",
       mode: "cors",
+      credentials: "omit",
       headers,
-      body
+      body: fd,
+      keepalive: true            // ← CLAVE para móvil / redirecciones
     });
 
-    const dbg = await resp.json().catch(() => ({}));
-    console.log("[forms] 🔍 Debug Worker →", dbg);
-    console.log("[forms] ✅ Enviado vía Worker");
+    if (USE_DEBUG) {
+      const data = await resp.json().catch(()=>({ ok:false }));
+      console.log("[forms] 🔍 Debug Worker →", data);
+      return !!data.ok;          // true si Forms aceptó (redirect visto por el Worker)
+    }
+
+    // Sin debug, tu Worker devuelve 204 si salió bien
+    return resp.status === 204 || resp.status === 200;
   } catch (err) {
     console.error("[forms] ❌ Error en envío:", err);
+    return false;
   }
 }
 
+// async function submitJourneyToForm() {
+//   try {
+//     const fd = buildFormDataFromState();
+
+//     // ---- FormData -> URLSearchParams (lo que espera tu Worker sin 400) ----
+//     const body = new URLSearchParams();
+//     for (const [k, v] of fd.entries()) body.append(k, v);
+
+//     const headers = {};
+//     if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
+//     headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
+
+//     // Log opcional (previo a enviar)
+//     const preview = {};
+//     for (const [k, v] of body.entries()) (preview[k] ||= []).push(v);
+//     console.log("=== LOG ENVÍO (via Worker) ===", preview);
+
+//     // Envío con debug=1 para ver status de Google
+//     const resp = await fetch(PROXY_URL + "?debug=1", {
+//       method: "POST",
+//       mode: "cors",
+//       headers,
+//       body
+//     });
+
+//     const dbg = await resp.json().catch(() => ({}));
+//     console.log("[forms] 🔍 Debug Worker →", dbg);
+//     console.log("[forms] ✅ Enviado vía Worker");
+//   } catch (err) {
+//     console.error("[forms] ❌ Error en envío:", err);
+//   }
+// }
+
   
-/* Hook del botón final */
+// /* Hook del botón final */
+// document.addEventListener("DOMContentLoaded", ()=>{
+//   const btn = document.getElementById("finish");
+//   if (!btn) {
+//     console.warn('[forms] No encontré #finish; agregá id="finish" al botón final.');
+//     return;
+//   }
+//   btn.addEventListener("click", async (e)=>{
+//     e.preventDefault();
+//     try {
+//       await submitJourneyToForm();        // 👈 esperamos a que el Worker responda
+//     } catch (err) {
+//       console.error("Envío falló:", err); // opcional: mostrar toast
+//     } finally {
+//       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+//     }
+//   });
+// });
+
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
-  if (!btn) {
-    console.warn('[forms] No encontré #finish; agregá id="finish" al botón final.');
-    return;
-  }
+  if (!btn){ console.warn('[forms] No encontré #finish'); return; }
+
   btn.addEventListener("click", async (e)=>{
     e.preventDefault();
-    try {
-      await submitJourneyToForm();        // 👈 esperamos a que el Worker responda
-    } catch (err) {
-      console.error("Envío falló:", err); // opcional: mostrar toast
-    } finally {
+
+    // UI: bloquear y mostrar spinner
+    btn.disabled = true;
+    btn.classList.add("loading");
+    // opcional: cambiar texto mientras envía
+    const oldTxt = btn.textContent;
+    btn.textContent = "Enviando…";
+
+    const ok = await submitJourneyToForm();
+
+    if (ok){
+      // éxito → ahora sí navegamos
       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+    }else{
+      // fallo → reactivar UI y avisar
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      btn.textContent = oldTxt;
+      alert("No pudimos enviar. Revisá tu conexión e intentá de nuevo.");
     }
   });
 });
