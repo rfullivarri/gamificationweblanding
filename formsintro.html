@@ -1297,40 +1297,48 @@ const PROXY_URL = "https://formulariointro.rfullivarri22.workers.dev/";
 // ✨ Si activaste REQUIRE_KEY en el Worker, poné la misma clave acá.
 const PROXY_KEY = "formsintro"; // o "" si no usás clave
 
-async function submitJourneyToForm(){
+async function submitJourneyToForm() {
   try {
-    const fd = buildFormDataFromState();        // ← tu FormData completo
+    // 1) Armamos el FormData como ya lo tenés
+    const fd = buildFormDataFromState();
 
+    // 2) Headers (API key del Worker si aplica)
     const headers = {};
     if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
 
-    // Dejar true mientras probás; en producción ponelo en false
-    const USE_DEBUG = true;
+    // 3) Modo debug conmutado por flag o por query (?debug=1 en la URL actual)
+    const qsDebug = new URL(location.href).searchParams.get("debug") === "1";
+    const USE_DEBUG = qsDebug; // producción por defecto (false), debug si pasás ?debug=1
     const url = PROXY_URL + (USE_DEBUG ? "?debug=1" : "");
 
+    // 4) Fetch al Worker (keepalive para mobile / pestaña que navega)
     const resp = await fetch(url, {
       method: "POST",
       mode: "cors",
       credentials: "omit",
       headers,
       body: fd,
-      keepalive: true            // ← CLAVE para móvil / redirecciones
+      keepalive: true
     });
 
+    // 5) En debug el Worker responde JSON {ok, status, location, html, received...}
     if (USE_DEBUG) {
-      const data = await resp.json().catch(()=>({ ok:false }));
+      const data = await resp.json().catch(() => ({}));
       console.log("[forms] 🔍 Debug Worker →", data);
-      return !!data.ok;          // true si Forms aceptó (redirect visto por el Worker)
+
+      // éxito si el Worker vio redirect/location O si status es 200/204
+      const ok = !!data.ok || data.status === 204 || data.status === 200;
+      return ok;
     }
 
-    // Sin debug, tu Worker devuelve 204 si salió bien
+    // 6) En producción: consideramos éxito 204 (expected) o 200 (variantes)
     return resp.status === 204 || resp.status === 200;
+
   } catch (err) {
     console.error("[forms] ❌ Error en envío:", err);
     return false;
   }
 }
-
 // async function submitJourneyToForm() {
 //   try {
 //     const fd = buildFormDataFromState();
