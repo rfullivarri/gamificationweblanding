@@ -35,17 +35,11 @@ export function apiResume(payload)   { return postJson(`${WORKER2_BASE}/resume`,
 export function apiTestSend(payload) { return postJson(`${WORKER2_BASE}/testsend`,  payload); }
 
 // ============ CONTEXTO (preferencia: dashboardv3.js) ============
-/**
- * Intentamos, en orden:
- * 1) window.GJ_CTX (inyectado por tu dashboardv3.js)
- * 2) localStorage (gj_ctx)
- * 3) Fallback opcional a Worker1 (si setearas WORKER1_FALLBACK)
- */
 export async function apiGetContext(email) {
-  // 1) window
+  // 1) window.GJ_CTX ya armado por dashboardv3.js
   if (window.GJ_CTX && window.GJ_CTX.userSheetId) return window.GJ_CTX;
 
-  // 2) localStorage
+  // 2) cache local
   const raw = localStorage.getItem('gj_ctx');
   if (raw) {
     try {
@@ -54,15 +48,50 @@ export async function apiGetContext(email) {
     } catch {}
   }
 
-  // 3) Fallback (opcional)
+  // 3) Fallback opcional a Worker1 (si definiste WORKER1_FALLBACK)
   if (WORKER1_FALLBACK) {
-    const url = `${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}`;
-    return getJson(url);
+    const w1 = await getJson(`${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}`);
+
+    // helpers para normalizar
+    const sheetIdFromUrl = (url) => {
+      if (!url) return '';
+      const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      return m ? m[1] : '';
+    };
+    const onlyHour = (h) => {
+      if (h == null) return null;
+      const m = String(h).match(/^\s*(\d{1,2})/);
+      if (!m) return null;
+      return Math.max(0, Math.min(23, parseInt(m[1], 10)));
+    };
+
+    // posibles campos que devuelve tu Worker1/WebApp
+    const sheetUrl =
+      w1.sheetUrl || w1.links?.sheet || w1.dashboard_sheet_url || '';
+
+    const userSheetId =
+      w1.user_sheet_id || w1.userSheetId || sheetIdFromUrl(sheetUrl);
+
+    const s = w1.scheduler || {};
+    const ctx = {
+      email,
+      userSheetId,
+      linkPublico: w1.daily_form_url || w1.links?.daily_form || '',
+      scheduler: {
+        canal:      s.canal      ?? 'email',
+        frecuencia: s.frecuencia ?? 'DAILY',
+        dias:       s.dias       ?? '',
+        hora:       (onlyHour(s.hora) ?? 8),   // SOLO HH (0–23)
+        timezone:   s.timezone   ?? 'Europe/Madrid',
+        estado:     s.estado     ?? 'ACTIVO'
+      }
+    };
+    return ctx;
   }
 
-  throw new Error('No hay contexto disponible. Asegurate de setear window.GJ_CTX en dashboardv3.js');
+  // si no hubo ninguna fuente válida
+  throw new Error('No hay contexto disponible. Asegurate de setear window.GJ_CTX en dashboardv3.js o configurar WORKER1_FALLBACK.');
 }
-
 /** Guarda el contexto por si se refresca la SPA */
 export function saveCtx(ctx) {
   try { localStorage.setItem('gj_ctx', JSON.stringify(ctx || {})); } catch {}
