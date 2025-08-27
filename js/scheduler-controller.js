@@ -39,6 +39,7 @@ export function attachSchedulerModal() {
 
   // al abrir → prefill
   modal.addEventListener('open', async ()=>{
+    modal.setNotice('⏳ Cargando tu configuración...');
     try {
       const ctx = await ensureCtx();
       const s = ctx.scheduler || {};
