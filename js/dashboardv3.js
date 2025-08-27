@@ -81,69 +81,91 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ========== SCHEDULER — Exponer contexto para el modal ==========
-    function pick(...vals) {
+    function pick(...vals){
       for (const v of vals) if (v !== undefined && v !== null && String(v).trim() !== '') return v;
       return '';
     }
-    function _sheetIdFromUrl_(url) {
+    function _sheetIdFromUrl_(url){
       if (!url) return '';
       const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
       return m ? m[1] : '';
     }
-    function _normalizeHour_(h) {
+    function _normalizeHour_(h){
       if (h == null) return null;
       const m = String(h).match(/^\s*(\d{1,2})/);
       if (!m) return null;
       return Math.max(0, Math.min(23, parseInt(m[1],10)));
     }
+    // Deep-scan por si la URL del Sheet viene en otro lado
+    function _findSheetIdDeep_(obj){
+      const re = /https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+      let found = '';
+      (function walk(x){
+        if (!x || found) return;
+        if (typeof x === 'string') {
+          const m = x.match(re);
+          if (m) found = m[1];
+        } else if (typeof x === 'object') {
+          for (const k in x) walk(x[k]);
+        }
+      })(obj);
+      return found;
+    }
     
     // posibles llaves que puede traer tu Worker/WebApp
     const sheetUrl = pick(
-      dataRaw.sheetUrl,               // camelCase
-      dataRaw.sheet_url,              // snake_case
-      dataRaw.links?.sheet,           // en links
-      dataRaw.links?.sheet_url,
+      dataRaw.sheetUrl,                // camelCase
+      dataRaw.sheet_url,               // snake_case
+      dataRaw.sheet,                   // genérico
+      dataRaw.links?.sheet,
+      dataRaw.links?.sheetUrl,         // camelCase en links
+      dataRaw.links?.sheet_url,        // snake_case en links
       dataRaw.dashboard_sheet_url,
       dataRaw.links?.dashboard_sheet_url,
       dataRaw.user_sheet_url,
       dataRaw.links?.user_sheet_url
     );
     
+    // ID final del Sheet del usuario (incluye deep-scan como último recurso)
     const userSheetId = pick(
       dataRaw.user_sheet_id,
       dataRaw.userSheetId,
       dataRaw.sheetId,
       dataRaw.sheet_id,
-      _sheetIdFromUrl_(sheetUrl)      // último recurso: parsear de la URL
+      _sheetIdFromUrl_(sheetUrl),
+      _findSheetIdDeep_(dataRaw)       // ← si vino escondida en otro subobjeto
     );
     
+    // Config scheduler (si no vino, defaults)
     const s = dataRaw.scheduler || {};
     const horaNorm = _normalizeHour_(s.hora);
     
+    // Contexto global para el Scheduler (y resto del dashboard)
     window.GJ_CTX = {
-      email,
+      email, // ya definido arriba
       userSheetId,
       linkPublico: pick(data.daily_form_url, dataRaw.daily_form_url, dataRaw.links?.daily_form, ''),
       scheduler: {
         canal:      s.canal      ?? 'email',
         frecuencia: s.frecuencia ?? 'DAILY',
         dias:       s.dias       ?? '',
-        hora:       (horaNorm != null ? horaNorm : 8),
+        hora:       (horaNorm != null ? horaNorm : 8), // SOLO HH (0–23)
         timezone:   s.timezone   ?? 'Europe/Madrid',
         estado:     s.estado     ?? 'ACTIVO'
       }
     };
     
-    // cache (por si el controller cae al LS)
+    // Cache (y por si el controller cae al LS)
     try {
       localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX));
       localStorage.setItem('gj_email', email);
       if (userSheetId) localStorage.setItem('gj_sheetId', userSheetId);
     } catch {}
     
+    // Avisar al controller que el contexto está listo
     window.dispatchEvent(new CustomEvent('gj:ctx-ready', { detail: window.GJ_CTX }));
     
-    // (opcional) abrir con prefill desde tu botón del menú
+    // (Opcional) abrir con prefill desde tu botón del menú
     const btn = document.getElementById('open-scheduler');
     if (btn) {
       btn.addEventListener('click', (e)=>{
@@ -156,7 +178,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       });
     }
-
     
 
     // 3) ENLACES
