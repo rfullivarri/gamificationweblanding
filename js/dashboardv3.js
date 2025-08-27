@@ -76,6 +76,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       bbdd:               dataRaw.bbdd ?? [],
     };
 
+    // Pasar info al Scheduler Modal
+    window.schedulerPrefill = {
+      email: email,
+      userSheetId: dataRaw.user_sheet_id || dataRaw.userSheetId || "",
+      dailyFormUrl: data.daily_form_url || ""
+    };
+
+    document.getElementById("open-scheduler").addEventListener("click", (e) => {
+      e.preventDefault();
+      if (window.openSchedulerModal) {
+        window.openSchedulerModal(window.schedulerPrefill);
+      }
+    });
+
     
 
     // 3) ENLACES
