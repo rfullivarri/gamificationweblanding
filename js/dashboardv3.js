@@ -81,71 +81,79 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ========== SCHEDULER — Exponer contexto para el modal ==========
+    function pick(...vals) {
+      for (const v of vals) if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+      return '';
+    }
     function _sheetIdFromUrl_(url) {
-      if (!url) return "";
+      if (!url) return '';
       const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      return m ? m[1] : "";
+      return m ? m[1] : '';
     }
     function _normalizeHour_(h) {
       if (h == null) return null;
       const m = String(h).match(/^\s*(\d{1,2})/);
       if (!m) return null;
-      const hh = Math.max(0, Math.min(23, parseInt(m[1],10)));
-      return hh;
+      return Math.max(0, Math.min(23, parseInt(m[1],10)));
     }
     
-    // Posibles fuentes que devuelve tu Worker/WebApp
-    const sheetUrl =
-      dataRaw.sheetUrl ||
-      dataRaw.links?.sheet ||
-      dataRaw.dashboard_sheet_url ||
-      "";
+    // posibles llaves que puede traer tu Worker/WebApp
+    const sheetUrl = pick(
+      dataRaw.sheetUrl,               // camelCase
+      dataRaw.sheet_url,              // snake_case
+      dataRaw.links?.sheet,           // en links
+      dataRaw.links?.sheet_url,
+      dataRaw.dashboard_sheet_url,
+      dataRaw.links?.dashboard_sheet_url,
+      dataRaw.user_sheet_url,
+      dataRaw.links?.user_sheet_url
+    );
     
-    // -> si viene directo, buenísimo; si no, lo obtenemos desde la URL
-    const userSheetId =
-      dataRaw.user_sheet_id ||
-      dataRaw.userSheetId   ||
-      _sheetIdFromUrl_(sheetUrl);
+    const userSheetId = pick(
+      dataRaw.user_sheet_id,
+      dataRaw.userSheetId,
+      dataRaw.sheetId,
+      dataRaw.sheet_id,
+      _sheetIdFromUrl_(sheetUrl)      // último recurso: parsear de la URL
+    );
     
     const s = dataRaw.scheduler || {};
     const horaNorm = _normalizeHour_(s.hora);
     
     window.GJ_CTX = {
       email,
-      userSheetId,                              // << ya no queda vacío si viene sheetUrl
-      linkPublico: data.daily_form_url || "",
+      userSheetId,
+      linkPublico: pick(data.daily_form_url, dataRaw.daily_form_url, dataRaw.links?.daily_form, ''),
       scheduler: {
-        canal:      s.canal      ?? "email",
-        frecuencia: s.frecuencia ?? "DAILY",
-        dias:       s.dias       ?? "",
+        canal:      s.canal      ?? 'email',
+        frecuencia: s.frecuencia ?? 'DAILY',
+        dias:       s.dias       ?? '',
         hora:       (horaNorm != null ? horaNorm : 8),
-        timezone:   s.timezone   ?? "Europe/Madrid",
-        estado:     s.estado     ?? "ACTIVO"
+        timezone:   s.timezone   ?? 'Europe/Madrid',
+        estado:     s.estado     ?? 'ACTIVO'
       }
     };
     
-    // Cache (para controller / fallback)
+    // cache (por si el controller cae al LS)
     try {
-      localStorage.setItem("gj_ctx", JSON.stringify(window.GJ_CTX));
-      localStorage.setItem("gj_email", email);
-      if (userSheetId) localStorage.setItem("gj_sheetId", userSheetId);
+      localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX));
+      localStorage.setItem('gj_email', email);
+      if (userSheetId) localStorage.setItem('gj_sheetId', userSheetId);
     } catch {}
     
-    // (Opcional) botón propio para abrir el modal con prefill
-    const btn = document.getElementById("open-scheduler");
+    window.dispatchEvent(new CustomEvent('gj:ctx-ready', { detail: window.GJ_CTX }));
+    
+    // (opcional) abrir con prefill desde tu botón del menú
+    const btn = document.getElementById('open-scheduler');
     if (btn) {
-      btn.addEventListener("click", (e) => {
+      btn.addEventListener('click', (e)=>{
         e.preventDefault();
-        const prefill = {
-          canal:      window.GJ_CTX.scheduler.canal,
-          frecuencia: window.GJ_CTX.scheduler.frecuencia,
-          dias:       window.GJ_CTX.scheduler.dias,
-          hora:       window.GJ_CTX.scheduler.hora ?? 8,
-          timezone:   window.GJ_CTX.scheduler.timezone,
-          estado:     window.GJ_CTX.scheduler.estado,
-          linkPublico:window.GJ_CTX.linkPublico
-        };
-        window.openSchedulerModal?.(prefill);
+        const p = window.GJ_CTX.scheduler;
+        window.openSchedulerModal?.({
+          canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
+          hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
+          linkPublico: window.GJ_CTX.linkPublico
+        });
       });
     }
 
