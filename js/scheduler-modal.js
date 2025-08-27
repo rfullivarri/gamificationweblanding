@@ -242,7 +242,9 @@ class SchedulerModal extends HTMLElement {
   value(){ return {...this._v}; }
 }
 
-customElements.define('scheduler-modal', SchedulerModal);
+if (!customElements.get('scheduler-modal')) {
+  customElements.define('scheduler-modal', SchedulerModal);
+}
 
 
 
