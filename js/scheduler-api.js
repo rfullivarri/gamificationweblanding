@@ -15,6 +15,7 @@ async function getJson(url) {
   return r.json();
 }
 async function postJson(url, body) {
+  console.log("[SCHED] POST →", url, body);
   // Tampoco enviamos credenciales aquí; Workers responden ACAO: *
   const r = await fetch(url, {
     method: 'POST',
