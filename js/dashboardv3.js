@@ -78,27 +78,60 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     
-    // SCHEDULER === Exponer contexto completo para el Scheduler (evita fetch adicional en controller)
+    // ========== SCHEDULER — Exponer contexto para el modal ==========
+    function _sheetIdFromUrl_(url) {
+      if (!url) return "";
+      const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      return m ? m[1] : "";
+    }
+    function _normalizeHour_(h) {
+      if (h == null) return null;
+      const m = String(h).match(/^\s*(\d{1,2})/);
+      if (!m) return null;
+      const hh = Math.max(0, Math.min(23, parseInt(m[1],10)));
+      return hh;
+    }
+    
+    // Fuentes posibles que hoy devuelve tu WebApp/Worker
+    const sheetUrl =
+      dataRaw.sheetUrl ||
+      dataRaw.links?.sheet ||
+      dataRaw.dashboard_sheet_url ||
+      "";
+    
+    const userSheetId =
+      dataRaw.user_sheet_id ||
+      dataRaw.userSheetId   ||
+      _sheetIdFromUrl_(sheetUrl);
+    
+    const s = dataRaw.scheduler || {};
+    const horaNorm = _normalizeHour_(s.hora);
+    
     window.GJ_CTX = {
       email,
-      userSheetId:  dataRaw.user_sheet_id || dataRaw.userSheetId || "",
-      linkPublico:  data.daily_form_url || "",
+      userSheetId,                                // ← ya nunca queda vacío si tenés sheetUrl
+      linkPublico: data.daily_form_url || "",
       scheduler: {
-        canal:       dataRaw.scheduler?.canal       ?? 'email',
-        frecuencia:  dataRaw.scheduler?.frecuencia  ?? 'DAILY',
-        dias:        dataRaw.scheduler?.dias        ?? '',
-        hora:        (dataRaw.scheduler?.hora != null) ? Number(dataRaw.scheduler.hora) : null,
-        timezone:    dataRaw.scheduler?.timezone    ?? 'Europe/Madrid',
-        estado:      dataRaw.scheduler?.estado      ?? 'ACTIVO'
+        canal:      s.canal      ?? 'email',
+        frecuencia: s.frecuencia ?? 'DAILY',
+        dias:       s.dias       ?? '',
+        hora:       (horaNorm != null ? horaNorm : 8),  // solo HH (0–23)
+        timezone:   s.timezone   ?? 'Europe/Madrid',
+        estado:     s.estado     ?? 'ACTIVO'
       }
     };
-    // cache por si recargás
-    try { localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX)); } catch {}
     
-    // 2) (Opcional) abrir con prefill manual si querés seguir usando tu botón propio
+    // Cache por si recargás (y para apiGetContext)
+    try {
+      localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX));
+      localStorage.setItem('gj_email', email);
+      if (userSheetId) localStorage.setItem('gj_sheetId', userSheetId);
+    } catch {}
+    
+    // (Opcional) botón propio para abrir el modal con prefill
     const btn = document.getElementById('open-scheduler');
     if (btn) {
-      btn.addEventListener('click', (e)=>{
+      btn.addEventListener('click', (e) => {
         e.preventDefault();
         const prefill = {
           canal:      window.GJ_CTX.scheduler.canal,
