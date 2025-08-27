@@ -102,6 +102,18 @@ export function attachSchedulerModal() {
   });
 
   // botón del menú 🍔
-  const btn = document.getElementById('edit-form'); // “Programar Daily Quest”
+  // --- Selector flexible: soporta ambos ids
+  const btn =
+    document.getElementById('open-scheduler') ||
+    document.getElementById('edit-form');
+  
   if (btn) btn.addEventListener('click', (e)=>{ e.preventDefault(); modal.open(); });
-}
+  
+  // --- API global opcional (por si querés abrirlo manual desde dashboardv3.js)
+  window.openSchedulerModal = (prefill={}) => {
+    modal.setValue(prefill);
+    modal.open();
+  };
+  
+  // --- Auto attach sin tocar tu HTML (evita script inline)
+  document.addEventListener('DOMContentLoaded', attachSchedulerModal);
