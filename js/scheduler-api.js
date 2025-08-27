@@ -4,26 +4,27 @@
 // Worker2 (Scheduler) — AJUSTÁ con tu dominio del worker que ya usás:
 const WORKER2_BASE = 'https://gamificationscheduler.rfullivarri22.workers.dev';
 
-// Si QUERÉS permitir fallback a un endpoint de Worker1, podés setearlo acá.
-// PERO por defecto LEEMOS el contexto desde dashboardv3.js (window.GJ_CTX).
-const WORKER1_FALLBACK = 'https://gamificationworker.rfullivarri22.workers.dev/bundle'; // p.ej. 'https://tu-worker1/context' (opcional)  https://gamificationworker.rfullivarri22.workers.dev
+// Fallback a Worker1 para traer el contexto del usuario (bundle)
+const WORKER1_FALLBACK = 'https://gamificationworker.rfullivarri22.workers.dev/bundle';
 
 // ============ HELPERS HTTP ============
 async function getJson(url) {
-  const r = await fetch(url, { credentials: 'include',  mode: 'cors' });
+  // SIN credenciales para evitar CORS con ACAO: *
+  const r = await fetch(url, { mode: 'cors', cache: 'no-store' });
   if (!r.ok) throw new Error(`GET ${url} -> ${r.status}`);
   return r.json();
 }
 async function postJson(url, body) {
+  // Tampoco enviamos credenciales aquí; Workers responden ACAO: *
   const r = await fetch(url, {
     method: 'POST',
     mode: 'cors',
-    headers: {'Content-Type':'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
   const text = await r.text();
   let json;
-  try { json = text ? JSON.parse(text) : {}; } catch { json = {raw:text}; }
+  try { json = text ? JSON.parse(text) : {}; } catch { json = { raw: text }; }
   if (!r.ok) throw new Error(`POST ${url} -> ${r.status} | ${text}`);
   return json;
 }
@@ -48,9 +49,9 @@ export async function apiGetContext(email) {
     } catch {}
   }
 
-  // 3) Fallback opcional a Worker1 (si definiste WORKER1_FALLBACK)
+  // 3) Fallback a Worker1 (/bundle?email=…)
   if (WORKER1_FALLBACK) {
-    const w1 = await getJson(`${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}`);
+    const w1 = await getJson(`${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}&_=${Date.now()}`);
 
     // helpers para normalizar
     const sheetIdFromUrl = (url) => {
@@ -92,9 +93,10 @@ export async function apiGetContext(email) {
   // si no hubo ninguna fuente válida
   throw new Error('No hay contexto disponible. Asegurate de setear window.GJ_CTX en dashboardv3.js o configurar WORKER1_FALLBACK.');
 }
+
 /** Guarda el contexto por si se refresca la SPA */
 export function saveCtx(ctx) {
   try { localStorage.setItem('gj_ctx', JSON.stringify(ctx || {})); } catch {}
-  if (ctx?.email)     localStorage.setItem('gj_email', ctx.email);
+  if (ctx?.email)      localStorage.setItem('gj_email', ctx.email);
   if (ctx?.userSheetId) localStorage.setItem('gj_sheetId', ctx.userSheetId);
 }
