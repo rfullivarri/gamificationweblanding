@@ -1,273 +1,245 @@
-// /static/js/scheduler-modal.js
+// js/scheduler-modal.js
+
 const tpl = document.createElement('template');
-tpl.innerHTML = /*html*/`
+tpl.innerHTML = `
 <style>
-:host{all:initial; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-:host{
-  --bg:#0b0f19; --card:#121829; --stroke:rgba(255,255,255,.12);
-  --text:#e8ecf1; --muted:#c7cedd; --brand:#7d3cff; --chip:#1a2236; --ok:#18c37d;
+:host {
+  position: fixed; inset: 0; display: none; z-index: 9999;
 }
-.backdrop{position:fixed; inset:0; background:rgba(7,10,18,.65); backdrop-filter:blur(6px); display:none; z-index:9990}
-.modal{
-  position:fixed; inset:64px 16px 16px; margin:0 auto; max-width: min(920px, 100%);
-  display:none; z-index:9991; background:var(--card); color:var(--text);
-  border:1px solid var(--stroke); border-radius:14px;
-  padding: clamp(16px, 2.6vw, 22px); box-shadow:0 20px 60px rgba(0,0,0,.35)
+.backdrop {
+  position: absolute; inset: 0;
+  background: rgba(10,14,20,.55);
+  backdrop-filter: blur(6px);
 }
-.h{display:flex; align-items:center; gap:12px; margin:0 0 6px}
-.h h2{all:unset; font-weight:800; font-size:clamp(18px,2.2vw,22px)}
-.sub{color:var(--muted); margin:0 0 clamp(8px,1.6vw,12px); font-size:clamp(12px,1.6vw,14px)}
-.x{all:unset; margin-left:auto; color:var(--muted); font-size:20px; cursor:pointer}
-
-.grid{display:grid; gap:clamp(10px,1.8vw,16px)}
-@media (min-width:720px){
-  .grid-3{grid-template-columns: 1fr 1fr 1fr}
-  .grid-2{grid-template-columns: 1.3fr .7fr}
+.dialog {
+  position: relative;
+  max-width: 680px; width: calc(100% - 24px);
+  margin: 6vh auto; background: #121829; color: #e8ecf1;
+  border: 1px solid rgba(255,255,255,.12); border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.4);
+  overflow: hidden;
 }
-.card{
-  background:linear-gradient(0deg,rgba(255,255,255,.02),rgba(255,255,255,.02)),var(--card);
-  border:1px solid var(--stroke); border-radius:12px; padding:clamp(12px,2vw,16px)
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.08);
 }
-.card h3{all:unset; display:block; font-size:clamp(13px,1.8vw,14px); margin:0 0 8px}
+.title { font-weight: 700; letter-spacing:.2px; }
+.close { background: transparent; border: 0; color: #c7cedd; font-size: 20px; cursor: pointer; }
+.body { padding: 16px; }
 
-.chips{display:flex; flex-wrap:wrap; gap:10px}
-.chip{all:unset; background:#1a2236; color:var(--text); border:1px solid var(--stroke);
-  padding:8px 12px; border-radius:999px; font-size:13px; cursor:pointer}
-.chip[aria-pressed="true"]{background:var(--brand); color:#fff; border-color:transparent; font-weight:700}
-.chip[disabled]{opacity:.45; cursor:not-allowed}
-
-.inline{display:flex; align-items:center; gap:12px}
-.input{all:unset; background:#0f1424; border:1px solid var(--stroke); color:#fff;
-  border-radius:10px; padding:10px 12px; font-size:14px; min-width:90px}
-.hint{color:var(--muted); font-size:12px}
-
-.days{display:none; margin-top:8px}
-.days.show{display:flex}
-
-.info{display:flex; align-items:center; gap:8px}
-.badge{background:#0f1424; border:1px solid var(--stroke); border-radius:999px; padding:6px 10px; font-size:12px}
-.i{display:inline-block; width:18px; height:18px; line-height:18px; text-align:center;
-   border-radius:50%; background:#1a2236; color:#b8c0d4; font-weight:800; font-size:12px}
-.i[title]{cursor:help}
-
-.footer{
-  display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-top:14px
+.row { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 14px; }
+@media (min-width: 640px) {
+  .row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
 }
-.actions{display:flex; gap:10px; flex-wrap:wrap}
-.btn{all:unset; border-radius:10px; padding:12px 16px; font-weight:800; cursor:pointer}
-.primary{background:var(--brand); color:#fff}
-.ghost{border:1px solid var(--stroke)}
-.ok{background:var(--ok); color:#0b0f19}
 
-.summary{margin-top:6px; color:var(--muted); font-size:12px}
+.label { font-size: 12px; opacity: .85; margin-bottom: 6px; }
+.btn-group { display: flex; flex-wrap: wrap; gap: 8px; }
 
-.toast{position:fixed; right:20px; bottom:20px; background:#151c2d; color:#fff;
-  border:1px solid var(--stroke); border-radius:10px; padding:10px 14px; display:none}
+.btn {
+  border: 1px solid #3f3b6b; background: #181f31; color:#c7cedd;
+  padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700;
+}
+.btn[data-active="true"] { background: #7d3cff; color: #fff; border-color: #7d3cff; }
+
+.select, .time-input {
+  width: 100%; background: #0f1523; color:#e8ecf1; border:1px solid #2b3350;
+  padding: 10px 12px; border-radius: 10px; outline: none;
+}
+
+.note { font-size: 12px; opacity: .8; margin-top: 6px; }
+.hr { height:1px; background: rgba(255,255,255,.08); margin: 14px 0; }
+
+.footer { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; padding: 12px 16px; border-top:1px solid rgba(255,255,255,.08); }
+.actions { display:flex; gap:10px; flex-wrap:wrap; }
+.primary { background:#7d3cff; border-color:#7d3cff; color:#fff; }
+.warn { border-color:#8b6cf7; }
+.muted { font-size: 12px; opacity: .8; }
+.info { font-size: 12px; opacity: .7; }
+
+.small { font-size: 12px; opacity:.85; display:flex; align-items:center; gap:6px; }
+.small .chip { background:#1a2133; border:1px solid #2b3350; border-radius:8px; padding:6px 8px; }
+
+.hidden { display:none; }
 </style>
 
 <div class="backdrop"></div>
-<div class="modal" role="dialog" aria-modal="true" aria-labelledby="t">
-  <div class="h">
-    <h2 id="t">Programar DailyQuest</h2>
-    <button class="x" aria-label="Cerrar">✕</button>
-  </div>
-  <p class="sub">Configurá tu recordatorio diario. Enviaremos el link del Daily Form en el canal elegido, a la hora configurada.</p>
-
-  <!-- Canal -->
-  <div class="card">
-    <h3>Canal</h3>
-    <div class="chips" id="canal">
-      <button class="chip" data-val="email" aria-pressed="true">Email</button>
-      <button class="chip" data-val="telegram" disabled>Telegram (pronto)</button>
-      <button class="chip" data-val="pwa" disabled>Notificación PWA (pronto)</button>
-    </div>
+<div class="dialog" role="dialog" aria-modal="true" aria-labelledby="sched-title">
+  <div class="header">
+    <div class="title" id="sched-title">🗓️ Programar Daily Quest</div>
+    <button class="close" aria-label="Cerrar">✕</button>
   </div>
 
-  <!-- Frecuencia + Hora -->
-  <div class="grid grid-3">
-    <div class="card">
-      <h3>Frecuencia</h3>
-      <div class="chips" id="freq">
-        <button class="chip" data-val="DAILY" aria-pressed="true">Todos los días</button>
-        <button class="chip" data-val="CUSTOM">Seleccionar días</button>
-      </div>
-      <div id="days" class="chips days" aria-hidden="true">
-        <button class="chip" data-day="L">L</button><button class="chip" data-day="M">M</button>
-        <button class="chip" data-day="X">X</button><button class="chip" data-day="J">J</button>
-        <button class="chip" data-day="V">V</button><button class="chip" data-day="S">S</button>
-        <button class="chip" data-day="D">D</button>
+  <div class="body">
+    <!-- Canal -->
+    <div class="row">
+      <div>
+        <div class="label">Canal</div>
+        <div class="btn-group" id="canal-group">
+          <button class="btn" data-val="email" data-active="true">✉️ Email</button>
+          <button class="btn warn" data-val="telegram" disabled>Telegram (coming soon)</button>
+          <button class="btn warn" data-val="pwa" disabled>Notificación PWA (coming soon)</button>
+        </div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Hora</h3>
-      <div class="inline">
-        <input id="hour" class="input" type="number" min="0" max="23" step="1" placeholder="8" />
-        <span class="hint">0–23 (ej: 8, 13, 21)</span>
+    <!-- Frecuencia + días -->
+    <div class="row cols-2">
+      <div>
+        <div class="label">Frecuencia</div>
+        <div class="btn-group" id="freq-group">
+          <button class="btn" data-val="DAILY" data-active="true">Todos los días</button>
+          <button class="btn" data-val="CUSTOM">Personalizada</button>
+        </div>
+      </div>
+      <div id="days-col" class="hidden">
+        <div class="label">Días</div>
+        <div class="btn-group" id="days-group">
+          <button class="btn" data-day="L">L</button>
+          <button class="btn" data-day="M">M</button>
+          <button class="btn" data-day="X">X</button>
+          <button class="btn" data-day="J">J</button>
+          <button class="btn" data-day="V">V</button>
+          <button class="btn" data-day="S">S</button>
+          <button class="btn" data-day="D">D</button>
+        </div>
+        <div class="note">Elegí uno o más días.</div>
       </div>
     </div>
 
-    <div class="card">
-      <h3>Estado</h3>
-      <div class="chips" id="state">
-        <button class="chip" data-val="ACTIVO" aria-pressed="true">ACTIVO</button>
-        <button class="chip" data-val="PAUSADO">PAUSADO</button>
+    <!-- Hora (solo la hora, sin minutos) -->
+    <div class="row cols-3">
+      <div>
+        <div class="label">Hora (24h)</div>
+        <select id="hour" class="select">
+          ${Array.from({length:24}).map((_,h)=>`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <div class="label">Estado</div>
+        <div class="btn-group" id="estado-group">
+          <button class="btn" data-val="ACTIVO" data-active="true">Activo</button>
+          <button class="btn" data-val="PAUSADO">Pausado</button>
+        </div>
+      </div>
+      <div>
+        <div class="label small">Zona horaria <span class="chip">Europe/Madrid</span></div>
+        <div class="info">Por ahora no editable.</div>
       </div>
     </div>
-  </div>
 
-  <!-- Zona (info) -->
-  <div class="card">
-    <h3>Zona (info)</h3>
-    <div class="info">
-      <span class="badge">Europe/Madrid</span>
-      <span class="i" title="El trigger usa el huso del proyecto. Por ahora no se puede cambiar.">i</span>
-      <span class="hint">Informativo / consistencia.</span>
-    </div>
+    <div class="hr"></div>
+    <div class="note" id="notice">Configurá y guardá tu programación.</div>
   </div>
-
-  <!-- hidden -->
-  <input type="hidden" id="email" />
-  <input type="hidden" id="sheetId" />
-  <input type="hidden" id="link" />
 
   <div class="footer">
-    <button class="btn primary" id="save">💾 Guardar programación</button>
     <div class="actions">
-      <button class="btn ghost"  id="toggle">⏸️ Pausar</button>
-      <button class="btn ghost"  id="test">🧪 Probar envío</button>
+      <button class="btn" id="pause">Pausar</button>
+      <button class="btn" id="resume">Reanudar</button>
+      <button class="btn" id="test">Enviar prueba</button>
+      <button class="btn primary" id="save">Guardar programación</button>
     </div>
+    <div class="muted">Estado actual: <span id="estado-text">ACTIVO</span></div>
   </div>
-
-  <div class="summary" id="summary"></div>
 </div>
-<div class="toast" id="toast"></div>
 `;
 
-export class SchedulerModal extends HTMLElement {
-  constructor(){ super(); this.attachShadow({mode:'open'}).appendChild(tpl.content.cloneNode(true)); }
-  connectedCallback(){
-    const $ = s => this.shadowRoot.querySelector(s);
-    const $$= s => Array.from(this.shadowRoot.querySelectorAll(s));
-
-    this.$ = {
-      back:$('.backdrop'), modal:$('.modal'), toast:$('#toast'),
-      hour:$('#hour'), days:$('#days'), summary:$('#summary'),
-      email:$('#email'), sheetId:$('#sheetId'), link:$('#link'),
-      toggle:$('#toggle')
-    };
-
-    // chips helpers
-    const setGroup=(wrap,val)=> $$(wrap+' .chip').forEach(c=>c.setAttribute('aria-pressed', String(c.dataset.val===val)));
-    const getGroup=(wrap)=> (this.shadowRoot.querySelector(wrap+' .chip[aria-pressed="true"]')?.dataset.val)||null;
-    const toggleDay = (btn)=> btn.setAttribute('aria-pressed', String(!(btn.getAttribute('aria-pressed')==='true')));
-
-    // listeners
-    this.shadowRoot.getElementById('canal').addEventListener('click', e=>{
-      const b=e.target.closest('.chip'); if(!b||b.disabled) return;
-      setGroup('#canal', b.dataset.val); this._updateSummary();
-    });
-
-    this.shadowRoot.getElementById('freq').addEventListener('click', e=>{
-      const b=e.target.closest('.chip'); if(!b) return;
-      setGroup('#freq', b.dataset.val);
-      const isCustom=b.dataset.val==='CUSTOM';
-      this.$.days.classList.toggle('show',isCustom);
-      this.$.days.setAttribute('aria-hidden', String(!isCustom));
-      this._updateSummary();
-    });
-    this.$.days.addEventListener('click', e=>{
-      const b=e.target.closest('.chip'); if(!b) return; toggleDay(b); this._updateSummary();
-    });
-
-    this.shadowRoot.getElementById('state').addEventListener('click', e=>{
-      const b=e.target.closest('.chip'); if(!b) return;
-      setGroup('#state', b.dataset.val);
-      this._syncToggleLabel(); this._updateSummary();
-    });
-
-    this.$.hour.addEventListener('input', ()=>this._updateSummary());
-    this.shadowRoot.querySelector('.x').onclick=()=>this.close();
-    this.$.back.onclick=()=>this.close();
-
-    // acciones
-    this.shadowRoot.getElementById('save').onclick = ()=> this._emit('schedule:save', this._collect());
-    this.$.toggle.onclick = ()=>{
-      const state = getGroup('#state');
-      if (state==='ACTIVO') this._emit('schedule:pause', this._collect());
-      else this._emit('schedule:resume', this._collect());
-    };
-    this.shadowRoot.getElementById('test').onclick = ()=> this._emit('schedule:test', this._collect());
-  }
-
-  _emit(name, detail){
-    this.dispatchEvent(new CustomEvent(name,{bubbles:true,detail}));
-    this.toast('Listo: ' + name.replace('schedule:',''));
-  }
-  toast(msg,ms=1600){ const t=this.$.toast; t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',ms); }
-
-  _collect(){
-    const g = id => (this.shadowRoot.querySelector(id+' .chip[aria-pressed="true"]')?.dataset.val);
-    const h = Number(this.$.hour.value);
-    if (!Number.isInteger(h)||h<0||h>23) { this.toast('Indicá una hora 0–23'); throw new Error('hora inválida'); }
-    let dias=''; if (g('#freq')==='CUSTOM'){
-      const arr = Array.from(this.$.days.querySelectorAll('.chip[aria-pressed="true"]')).map(b=>b.dataset.day);
-      if(!arr.length){ this.toast('Elegí al menos un día'); throw new Error('sin días'); }
-      dias = arr.join(',');
-    }
-    return {
-      email: this.$.email.value.trim(),
-      userSheetId: this.$.sheetId.value.trim(),
-      linkPublico: this.$.link.value.trim(),
-      canal: g('#canal') || 'email',
-      frecuencia: g('#freq') || 'DAILY',
-      dias,
-      hora: String(h),
+class SchedulerModal extends HTMLElement {
+  constructor(){
+    super();
+    this.attachShadow({mode:'open'}).appendChild(tpl.content.cloneNode(true));
+    this._v = {
+      canal: 'email',
+      frecuencia: 'DAILY',
+      dias: '',
+      hora: 8,
       timezone: 'Europe/Madrid',
-      estado: g('#state') || 'ACTIVO'
+      estado: 'ACTIVO',
+      linkPublico: ''
     };
+    // refs
+    this.$back = this.shadowRoot.querySelector('.backdrop');
+    this.$dlg  = this.shadowRoot.querySelector('.dialog');
+    this.$close= this.shadowRoot.querySelector('.close');
+    this.$notice = this.shadowRoot.querySelector('#notice');
+    this.$estadoText = this.shadowRoot.querySelector('#estado-text');
+
+    // groups
+    this.bindToggleGroup('#canal-group','canal');
+    this.bindToggleGroup('#freq-group','frecuencia', (val)=>{
+      this.shadowRoot.querySelector('#days-col').classList.toggle('hidden', val!=='CUSTOM');
+    });
+    this.bindMultiDay('#days-group');
+    this.shadowRoot.querySelector('#hour').addEventListener('change',(e)=>{
+      this._v.hora = parseInt(e.target.value,10);
+    });
+    this.bindToggleGroup('#estado-group','estado', (val)=>{ this.$estadoText.textContent = val; });
+
+    // actions
+    this.$close.addEventListener('click', ()=>this.close());
+    this.$back .addEventListener('click', ()=>this.close());
+    this.shadowRoot.querySelector('#save').addEventListener('click', ()=>{
+      this.dispatchEvent(new CustomEvent('schedule:save',{detail:this.value(), bubbles:true}));
+    });
+    this.shadowRoot.querySelector('#pause').addEventListener('click', ()=>{
+      this.dispatchEvent(new CustomEvent('schedule:pause',{bubbles:true}));
+    });
+    this.shadowRoot.querySelector('#resume').addEventListener('click', ()=>{
+      this.dispatchEvent(new CustomEvent('schedule:resume',{bubbles:true}));
+    });
+    this.shadowRoot.querySelector('#test').addEventListener('click', ()=>{
+      this.dispatchEvent(new CustomEvent('schedule:test',{bubbles:true}));
+    });
   }
 
-  _syncToggleLabel(){
-    const state = (this.shadowRoot.querySelector('#state .chip[aria-pressed="true"]')?.dataset.val)||'ACTIVO';
-    this.$.toggle.textContent = (state==='ACTIVO') ? '⏸️ Pausar' : '▶️ Reanudar';
+  bindToggleGroup(sel, key, onChange){
+    const g = this.shadowRoot.querySelector(sel);
+    g.addEventListener('click', (e)=>{
+      const b = e.target.closest('.btn'); if(!b || b.disabled) return;
+      [...g.querySelectorAll('.btn')].forEach(x=>x.dataset.active='false');
+      b.dataset.active='true';
+      this._v[key] = b.dataset.val;
+      if (onChange) onChange(this._v[key]);
+    });
+  }
+  bindMultiDay(sel){
+    const g = this.shadowRoot.querySelector(sel);
+    g.addEventListener('click',(e)=>{
+      const b = e.target.closest('.btn'); if(!b) return;
+      b.dataset.active = (b.dataset.active === 'true') ? 'false' : 'true';
+      const selected = [...g.querySelectorAll('.btn[data-active="true"]')].map(x=>x.dataset.day);
+      this._v.dias = selected.join(',');
+    });
   }
 
-  _updateSummary(){
-    try{
-      const d = this._collect();
-      const dias = (d.frecuencia==='DAILY') ? 'todos los días' : d.dias;
-      this.$.summary.textContent = `Estado: ${d.estado}. Se enviará ${dias} a las ${d.hora}. Canal: ${d.canal}.`;
-    }catch(_){ /* hora inválida o sin días → no actualizar */ }
+  // API pública
+  open(){ this.style.display='block'; this.dispatchEvent(new CustomEvent('open',{bubbles:true})); }
+  close(){ this.style.display='none'; }
+  setNotice(text){ this.$notice.textContent = text; }
+  setValue(v){
+    // merge + pintar
+    this._v = {...this._v, ...(v||{})};
+    // canal
+    this.setActive('#canal-group','[data-val]',this._v.canal);
+    // freq
+    this.setActive('#freq-group','[data-val]',this._v.frecuencia);
+    this.shadowRoot.querySelector('#days-col').classList.toggle('hidden', this._v.frecuencia!=='CUSTOM');
+    // días
+    [...this.shadowRoot.querySelectorAll('#days-group .btn')].forEach(b=>{
+      b.dataset.active = this._v.dias.split(',').includes(b.dataset.day) ? 'true' : 'false';
+    });
+    // hora
+    const hr = this.shadowRoot.querySelector('#hour');
+    if (String(hr.value)!==String(this._v.hora)) hr.value = String(this._v.hora);
+    // estado
+    this.setActive('#estado-group','[data-val]',this._v.estado);
+    this.$estadoText.textContent = this._v.estado;
   }
-
-  open(prefill={}){
-    const setGroup=(wrap,val)=> this.shadowRoot.querySelectorAll(wrap+' .chip')
-      .forEach(c=>c.setAttribute('aria-pressed', String(c.dataset.val===val)));
-
-    setGroup('#canal', prefill.canal || 'email');
-    setGroup('#freq',  prefill.frecuencia || 'DAILY');
-    setGroup('#state', prefill.estado || 'ACTIVO');
-
-    this.$.hour.value = prefill.hora ?? '';
-    const isCustom = (prefill.frecuencia==='CUSTOM');
-    this.$.days.classList.toggle('show',isCustom);
-    this.$.days.setAttribute('aria-hidden', String(!isCustom));
-    this.$.days.querySelectorAll('.chip').forEach(b=>b.setAttribute('aria-pressed','false'));
-    (prefill.dias||'').split(',').map(s=>s.trim()).filter(Boolean)
-      .forEach(d => this.$.days.querySelector(`.chip[data-day="${d}"]`)?.setAttribute('aria-pressed','true'));
-
-    this.$.email.value   = prefill.email || '';
-    this.$.sheetId.value = prefill.userSheetId || '';
-    this.$.link.value    = prefill.linkPublico || '';
-
-    this._syncToggleLabel();
-    this._updateSummary();
-
-    this.$.back.style.display='block';
-    this.$.modal.style.display='block';
+  setActive(groupSel, itemSel, val){
+    const g = this.shadowRoot.querySelector(groupSel);
+    [...g.querySelectorAll(itemSel)].forEach(b=> b.dataset.active = (b.dataset.val===String(val))?'true':'false');
   }
-
-  close(){ this.$.back.style.display='none'; this.$.modal.style.display='none'; }
+  value(){ return {...this._v}; }
 }
+
 customElements.define('scheduler-modal', SchedulerModal);
