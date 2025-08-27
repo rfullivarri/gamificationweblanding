@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("No se proporcionó un correo electrónico."); 
       return; 
     }
+    
+    // 1.1) Contexto para el SCHEDULER
+    window.GJ_CTX = { email };
 
 
     
@@ -77,7 +80,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
 
-    
     // ========== SCHEDULER — Exponer contexto para el modal ==========
     function _sheetIdFromUrl_(url) {
       if (!url) return "";
@@ -88,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (h == null) return null;
       const m = String(h).match(/^\s*(\d{1,2})/);
       if (!m) return null;
-      const hh = Math.max(0, Math.min(23, parseInt(m[1],10)));
+      const hh = Math.max(0, Math.min(23, parseInt(m[1], 10)));
       return hh;
     }
     
@@ -99,48 +101,55 @@ document.addEventListener("DOMContentLoaded", async () => {
       dataRaw.dashboard_sheet_url ||
       "";
     
+    // ID final del Sheet del usuario
     const userSheetId =
       dataRaw.user_sheet_id ||
-      dataRaw.userSheetId   ||
-      _sheetIdFromUrl_(sheetUrl);
+      dataRaw.userSheetId ||
+      _sheetIdFromUrl_(sheetUrl) ||
+      "";
     
+    // Config scheduler (si no vino, defaults)
     const s = dataRaw.scheduler || {};
     const horaNorm = _normalizeHour_(s.hora);
     
+    // Contexto global para el Scheduler (y resto del dashboard)
     window.GJ_CTX = {
-      email,
-      userSheetId,                                // ← ya nunca queda vacío si tenés sheetUrl
-      linkPublico: data.daily_form_url || "",
+      email,                                       // ya lo definiste antes
+      userSheetId,                                 // ← queda resuelto incluso si vino solo sheetUrl
+      linkPublico: data.daily_form_url || dataRaw.daily_form_url || "",
       scheduler: {
-        canal:      s.canal      ?? 'email',
-        frecuencia: s.frecuencia ?? 'DAILY',
-        dias:       s.dias       ?? '',
-        hora:       (horaNorm != null ? horaNorm : 8),  // solo HH (0–23)
-        timezone:   s.timezone   ?? 'Europe/Madrid',
-        estado:     s.estado     ?? 'ACTIVO'
-      }
+        canal:      s.canal      ?? "email",
+        frecuencia: s.frecuencia ?? "DAILY",
+        dias:       s.dias       ?? "",
+        hora:       (horaNorm != null ? horaNorm : 8), // SOLO HH (0–23)
+        timezone:   s.timezone   ?? "Europe/Madrid",
+        estado:     s.estado     ?? "ACTIVO",
+      },
     };
     
-    // Cache por si recargás (y para apiGetContext)
+    // Cache (y por si el controller hace fallback a LS)
     try {
-      localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX));
-      localStorage.setItem('gj_email', email);
-      if (userSheetId) localStorage.setItem('gj_sheetId', userSheetId);
+      localStorage.setItem("gj_ctx", JSON.stringify(window.GJ_CTX));
+      localStorage.setItem("gj_email", email);
+      if (userSheetId) localStorage.setItem("gj_sheetId", userSheetId);
     } catch {}
     
+    // 🔔 Avisar al controller que el contexto está listo
+    window.dispatchEvent(new CustomEvent("gj:ctx-ready", { detail: window.GJ_CTX }));
+    
     // (Opcional) botón propio para abrir el modal con prefill
-    const btn = document.getElementById('open-scheduler');
+    const btn = document.getElementById("open-scheduler");
     if (btn) {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener("click", (e) => {
         e.preventDefault();
         const prefill = {
-          canal:      window.GJ_CTX.scheduler.canal,
-          frecuencia: window.GJ_CTX.scheduler.frecuencia,
-          dias:       window.GJ_CTX.scheduler.dias,
-          hora:       window.GJ_CTX.scheduler.hora ?? 8,
-          timezone:   window.GJ_CTX.scheduler.timezone,
-          estado:     window.GJ_CTX.scheduler.estado,
-          linkPublico:window.GJ_CTX.linkPublico
+          canal:       window.GJ_CTX.scheduler.canal,
+          frecuencia:  window.GJ_CTX.scheduler.frecuencia,
+          dias:        window.GJ_CTX.scheduler.dias,
+          hora:        window.GJ_CTX.scheduler.hora ?? 8,
+          timezone:    window.GJ_CTX.scheduler.timezone,
+          estado:      window.GJ_CTX.scheduler.estado,
+          linkPublico: window.GJ_CTX.linkPublico,
         };
         window.openSchedulerModal?.(prefill);
       });
