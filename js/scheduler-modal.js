@@ -141,7 +141,8 @@ tpl.innerHTML = `
     </div>
     <div class="muted">Estado actual: <span id="estado-text">ACTIVO</span></div>
   </div>
-</div>;
+</div>
+`;
 
 
 class SchedulerModal extends HTMLElement {
