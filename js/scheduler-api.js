@@ -1,7 +1,7 @@
 // js/scheduler-api.js
 
 // === CONFIGURACIÓN ===
-// Worker2 (Scheduler) — AJUSTÁ con tu dominio del worker que ya usás:
+// Worker2 (Scheduler)
 const WORKER2_BASE = 'https://gamificationscheduler.rfullivarri22.workers.dev';
 
 // Fallback a Worker1 para traer el contexto del usuario (bundle)
@@ -15,7 +15,7 @@ async function getJson(url) {
   return r.json();
 }
 async function postJson(url, body) {
-  console.log("[SCHED] POST →", url, body);
+  console.log('[SCHED] POST →', url, body);
   // Tampoco enviamos credenciales aquí; Workers responden ACAO: *
   const r = await fetch(url, {
     method: 'POST',
@@ -47,6 +47,21 @@ export async function apiGetContext(email) {
     const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
     return m ? m[1] : '';
   };
+  const findSheetIdDeep = (obj) => {
+    // busca una URL de Google Sheets en cualquier string del objeto
+    const re = /https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/;
+    let found = '';
+    (function walk(x){
+      if (!x || found) return;
+      if (typeof x === 'string') {
+        const m = x.match(re);
+        if (m) found = m[1];
+      } else if (typeof x === 'object') {
+        for (const k in x) walk(x[k]);
+      }
+    })(obj);
+    return found;
+  };
   const onlyHour = (h) => {
     if (h == null) return null;
     const m = String(h).match(/^\s*(\d{1,2})/);
@@ -69,17 +84,18 @@ export async function apiGetContext(email) {
   // 3) fallback al Worker1 /bundle si lo configuraste
   if (WORKER1_FALLBACK) {
     const w1 = await getJson(`${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}`);
-    // console.log('[SCHED] /bundle →', w1); // (debug opcional)
 
     const sheetUrl = pick(
-      w1.sheetUrl, w1.sheet_url,
-      w1.links?.sheet, w1.links?.sheet_url,
+      w1.sheetUrl, w1.sheet_url, w1.sheet,
+      w1.links?.sheet, w1.links?.sheet_url, w1.links?.sheetUrl,
       w1.dashboard_sheet_url, w1.links?.dashboard_sheet_url,
       w1.user_sheet_url, w1.links?.user_sheet_url
     );
+
     const userSheetId = pick(
       w1.user_sheet_id, w1.userSheetId, w1.sheetId, w1.sheet_id,
-      sheetIdFromUrl(sheetUrl)
+      sheetIdFromUrl(sheetUrl),
+      findSheetIdDeep(w1) // ← último recurso: escaneo profundo
     );
 
     const s = w1.scheduler || {};
@@ -104,6 +120,6 @@ export async function apiGetContext(email) {
 /** Guarda el contexto por si se refresca la SPA */
 export function saveCtx(ctx) {
   try { localStorage.setItem('gj_ctx', JSON.stringify(ctx || {})); } catch {}
-  if (ctx?.email)      localStorage.setItem('gj_email', ctx.email);
+  if (ctx?.email)       localStorage.setItem('gj_email', ctx.email);
   if (ctx?.userSheetId) localStorage.setItem('gj_sheetId', ctx.userSheetId);
 }
