@@ -1,11 +1,11 @@
 // js/scheduler-controller.js
 
 
-import './scheduler-modal.js';
+import './scheduler-modal.js?v=3';
 import {
   apiSchedule, apiPause, apiResume, apiTestSend,
   apiGetContext, saveCtx
-} from './scheduler-api.js';
+} from './scheduler-api.js?v=3';
 
 // —— helpers ——
 function getEmail() {
