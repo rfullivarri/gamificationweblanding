@@ -76,19 +76,42 @@ document.addEventListener("DOMContentLoaded", async () => {
       bbdd:               dataRaw.bbdd ?? [],
     };
 
-    // Pasar info al Scheduler Modal
-    window.schedulerPrefill = {
-      email: email,
-      userSheetId: dataRaw.user_sheet_id || dataRaw.userSheetId || "",
-      dailyFormUrl: data.daily_form_url || ""
-    };
 
-    document.getElementById("open-scheduler").addEventListener("click", (e) => {
-      e.preventDefault();
-      if (window.openSchedulerModal) {
-        window.openSchedulerModal(window.schedulerPrefill);
+    
+    // SCHEDULER === Exponer contexto completo para el Scheduler (evita fetch adicional en controller)
+    window.GJ_CTX = {
+      email,
+      userSheetId:  dataRaw.user_sheet_id || dataRaw.userSheetId || "",
+      linkPublico:  data.daily_form_url || "",
+      scheduler: {
+        canal:       dataRaw.scheduler?.canal       ?? 'email',
+        frecuencia:  dataRaw.scheduler?.frecuencia  ?? 'DAILY',
+        dias:        dataRaw.scheduler?.dias        ?? '',
+        hora:        (dataRaw.scheduler?.hora != null) ? Number(dataRaw.scheduler.hora) : null,
+        timezone:    dataRaw.scheduler?.timezone    ?? 'Europe/Madrid',
+        estado:      dataRaw.scheduler?.estado      ?? 'ACTIVO'
       }
-    });
+    };
+    // cache por si recargás
+    try { localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX)); } catch {}
+    
+    // 2) (Opcional) abrir con prefill manual si querés seguir usando tu botón propio
+    const btn = document.getElementById('open-scheduler');
+    if (btn) {
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        const prefill = {
+          canal:      window.GJ_CTX.scheduler.canal,
+          frecuencia: window.GJ_CTX.scheduler.frecuencia,
+          dias:       window.GJ_CTX.scheduler.dias,
+          hora:       window.GJ_CTX.scheduler.hora ?? 8,
+          timezone:   window.GJ_CTX.scheduler.timezone,
+          estado:     window.GJ_CTX.scheduler.estado,
+          linkPublico:window.GJ_CTX.linkPublico
+        };
+        window.openSchedulerModal?.(prefill);
+      });
+    }
 
     
 
