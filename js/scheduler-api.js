@@ -6,17 +6,18 @@ const WORKER2_BASE = 'https://gamificationscheduler.rfullivarri22.workers.dev';
 
 // Si QUERÉS permitir fallback a un endpoint de Worker1, podés setearlo acá.
 // PERO por defecto LEEMOS el contexto desde dashboardv3.js (window.GJ_CTX).
-const WORKER1_FALLBACK = 'https://gamificationworker.rfullivarri22.workers.dev'; // p.ej. 'https://tu-worker1/context' (opcional)
+const WORKER1_FALLBACK = ''; // p.ej. 'https://tu-worker1/context' (opcional)  https://gamificationworker.rfullivarri22.workers.dev
 
 // ============ HELPERS HTTP ============
 async function getJson(url) {
-  const r = await fetch(url, { credentials: 'include' });
+  const r = await fetch(url, { credentials: 'include',  mode: 'cors' });
   if (!r.ok) throw new Error(`GET ${url} -> ${r.status}`);
   return r.json();
 }
 async function postJson(url, body) {
   const r = await fetch(url, {
     method: 'POST',
+    mode: 'cors',
     headers: {'Content-Type':'application/json'},
     body: JSON.stringify(body)
   });
