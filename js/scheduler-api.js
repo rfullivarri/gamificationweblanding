@@ -38,61 +38,67 @@ export function apiTestSend(payload) { return postJson(`${WORKER2_BASE}/testsend
 
 // ============ CONTEXTO (preferencia: dashboardv3.js) ============
 export async function apiGetContext(email) {
-  // 1) window.GJ_CTX ya armado por dashboardv3.js
-  if (window.GJ_CTX && window.GJ_CTX.userSheetId) return window.GJ_CTX;
+  const pick = (...vals) => {
+    for (const v of vals) if (v !== undefined && v !== null && String(v).trim() !== '') return v;
+    return '';
+  };
+  const sheetIdFromUrl = (url) => {
+    if (!url) return '';
+    const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    return m ? m[1] : '';
+  };
+  const onlyHour = (h) => {
+    if (h == null) return null;
+    const m = String(h).match(/^\s*(\d{1,2})/);
+    if (!m) return null;
+    return Math.max(0, Math.min(23, parseInt(m[1],10)));
+  };
+
+  // 1) si el dashboard ya dejó todo listo y con sheetId, usamos eso
+  if (window.GJ_CTX?.userSheetId) return window.GJ_CTX;
 
   // 2) cache local
   const raw = localStorage.getItem('gj_ctx');
   if (raw) {
     try {
       const ctx = JSON.parse(raw);
-      if (ctx && ctx.userSheetId) return ctx;
+      if (ctx?.userSheetId) return ctx;
     } catch {}
   }
 
-  // 3) Fallback a Worker1 (/bundle?email=…)
+  // 3) fallback al Worker1 /bundle si lo configuraste
   if (WORKER1_FALLBACK) {
-    const w1 = await getJson(`${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}&_=${Date.now()}`);
+    const w1 = await getJson(`${WORKER1_FALLBACK}?email=${encodeURIComponent(email)}`);
+    // console.log('[SCHED] /bundle →', w1); // (debug opcional)
 
-    // helpers para normalizar
-    const sheetIdFromUrl = (url) => {
-      if (!url) return '';
-      const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      return m ? m[1] : '';
-    };
-    const onlyHour = (h) => {
-      if (h == null) return null;
-      const m = String(h).match(/^\s*(\d{1,2})/);
-      if (!m) return null;
-      return Math.max(0, Math.min(23, parseInt(m[1], 10)));
-    };
-
-    // posibles campos que devuelve tu Worker1/WebApp
-    const sheetUrl =
-      w1.sheetUrl || w1.links?.sheet || w1.dashboard_sheet_url || '';
-
-    const userSheetId =
-      w1.user_sheet_id || w1.userSheetId || sheetIdFromUrl(sheetUrl);
+    const sheetUrl = pick(
+      w1.sheetUrl, w1.sheet_url,
+      w1.links?.sheet, w1.links?.sheet_url,
+      w1.dashboard_sheet_url, w1.links?.dashboard_sheet_url,
+      w1.user_sheet_url, w1.links?.user_sheet_url
+    );
+    const userSheetId = pick(
+      w1.user_sheet_id, w1.userSheetId, w1.sheetId, w1.sheet_id,
+      sheetIdFromUrl(sheetUrl)
+    );
 
     const s = w1.scheduler || {};
-    const ctx = {
+    return {
       email,
       userSheetId,
-      linkPublico: w1.daily_form_url || w1.links?.daily_form || '',
+      linkPublico: pick(w1.daily_form_url, w1.links?.daily_form, w1.links?.daily_form_url, ''),
       scheduler: {
         canal:      s.canal      ?? 'email',
         frecuencia: s.frecuencia ?? 'DAILY',
         dias:       s.dias       ?? '',
-        hora:       (onlyHour(s.hora) ?? 8),   // SOLO HH (0–23)
+        hora:       (onlyHour(s.hora) ?? 8),
         timezone:   s.timezone   ?? 'Europe/Madrid',
         estado:     s.estado     ?? 'ACTIVO'
       }
     };
-    return ctx;
   }
 
-  // si no hubo ninguna fuente válida
-  throw new Error('No hay contexto disponible. Asegurate de setear window.GJ_CTX en dashboardv3.js o configurar WORKER1_FALLBACK.');
+  throw new Error('No hay contexto disponible (falta userSheetId).');
 }
 
 /** Guarda el contexto por si se refresca la SPA */
