@@ -82,53 +82,72 @@ export function attachSchedulerModal() {
 
   // acciones
   // --- handler de Guardar ---
+  // helper para extraer el ID desde una URL de Sheets
+  function extractSheetIdFromUrl(url) {
+    if (!url) return '';
+    const m = String(url).match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    return m ? m[1] : '';
+  }
+  
   modal.addEventListener('schedule:save', async (ev) => {
-    const payloadNotice = (p) => JSON.stringify({
-      email: p.email,
-      sheetId: p.sheetId,
-      canal: p.canal,
-      frecuencia: p.frecuencia,
-      dias: p.dias,
-      hora: p.hora,
-      timezone: p.timezone,
-      estado: p.estado,
-      linkPublico: !!p.linkPublico
-    });
-  
     try {
-      // bloquear botones mientras guardamos
-      modal.setNotice('⏳ Guardando programación…');
-      const ctx = await ensureCtx();
-      const payload = buildPayload(ctx, ev.detail);
+      // 1) Traer contexto “fresco”
+      let ctx = await ensureCtx();
   
-      console.log('[SCHED ⇢ /schedule] payload =', payload);
-      const res = await apiSchedule(payload);
-      console.log('[SCHED ⇠ /schedule] response =', res);
+      // 2) Si el ID no está, intentar reconstruirlo
+      let sheetId =
+        ctx.userSheetId ||
+        extractSheetIdFromUrl(ctx.linkPublico) ||
+        '';
   
-      // actualizar contexto local para que el modal muestre lo nuevo
-      const newCtx = {
-        ...ctx,
-        scheduler: {
-          ...(ctx.scheduler || {}),
-          canal: payload.canal,
-          frecuencia: payload.frecuencia,
-          dias: payload.dias,
-          hora: payload.hora,
-          timezone: payload.timezone,
-          estado: payload.estado
-        }
+      // 3) Si sigue vacío, forzar fallback (limpio cache y pido al Worker1)
+      if (!sheetId) {
+        try { localStorage.removeItem('gj_ctx'); } catch {}
+        ctx = await ensureCtx(); // esto ahora irá al fallback si lo configuraste
+        sheetId =
+          ctx.userSheetId ||
+          extractSheetIdFromUrl(ctx.linkPublico) ||
+          '';
+      }
+  
+      // 4) Validación final
+      if (!sheetId) {
+        console.error('[SCHED] No tengo sheetId. ctx=', ctx);
+        modal.setNotice('❌ No pude obtener tu Sheet ID. Refrescá la página e intentá de nuevo.');
+        return;
+      }
+  
+      // 5) Armar payload (mandamos ambos por compatibilidad)
+      const v = ev.detail || {};
+      const payload = {
+        email: ctx.email,
+        userSheetId: sheetId,
+        sheetId,                            // ← por si tu Worker2 lo espera así
+        canal: v.canal,
+        frecuencia: v.frecuencia,
+        dias: v.dias || '',
+        hora: String(v.hora),               // solo “HH”
+        timezone: v.timezone || 'Europe/Madrid',
+        estado: v.estado,
+        linkPublico: v.linkPublico || ctx.linkPublico || ''
       };
-      saveCtx(newCtx);
-      window.GJ_CTX = newCtx;
   
-      const human = (payload.frecuencia === 'CUSTOM' && payload.dias)
-        ? `Se enviará ${payload.dias} a las ${String(payload.hora).padStart(2,'0')}.`
-        : `Se enviará todos los días a las ${String(payload.hora).padStart(2,'0')}.`;
+      console.log('[SCHED → /schedule] payload =', payload);
   
-      modal.setNotice(`✅ Programación guardada. ${human}`);
+      // 6) Guardar
+      const resp = await apiSchedule(payload);
+      console.log('[SCHED ← /schedule] response =', resp);
+  
+      if (resp?.status === 'ERROR') {
+        modal.setNotice(`❌ Error al guardar: ${resp.message || 'desconocido'}`);
+        return;
+      }
+  
+      modal.setNotice(`✅ Programación guardada. Se enviará ${v.frecuencia==='CUSTOM' && v.dias ? `${v.dias} a las ${v.hora}` : `todos los días a las ${v.hora}`}.`);
+  
     } catch (e) {
       console.error(e);
-      modal.setNotice('❌ Error guardando programación. Abrí la consola para ver detalles.');
+      modal.setNotice('❌ Error guardando programación');
     }
   });
 
