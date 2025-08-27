@@ -19,14 +19,17 @@ async function ensureCtx() {
   saveCtx(ctx);
   return ctx;
 }
+// --- construye el payload que va al Worker2
 function buildPayload(ctx, v) {
+  const horaNum = Number(v.hora); // asegurar número
   return {
     email: ctx.email,
-    userSheetId: ctx.userSheetId,
+    userSheetId: ctx.userSheetId,     // nombre 1
+    sheetId: ctx.userSheetId,         // nombre 2 (por compatibilidad)
     canal: v.canal,
     frecuencia: v.frecuencia,
     dias: v.dias || '',
-    hora: String(v.hora),                   // SOLO “HH”
+    hora: isNaN(horaNum) ? 8 : horaNum,      // SOLO HH como número
     timezone: v.timezone || 'Europe/Madrid',
     estado: v.estado,
     linkPublico: v.linkPublico || ctx.linkPublico || ''
@@ -78,15 +81,54 @@ export function attachSchedulerModal() {
   });
 
   // acciones
+  // --- handler de Guardar ---
   modal.addEventListener('schedule:save', async (ev) => {
+    const payloadNotice = (p) => JSON.stringify({
+      email: p.email,
+      sheetId: p.sheetId,
+      canal: p.canal,
+      frecuencia: p.frecuencia,
+      dias: p.dias,
+      hora: p.hora,
+      timezone: p.timezone,
+      estado: p.estado,
+      linkPublico: !!p.linkPublico
+    });
+  
     try {
+      // bloquear botones mientras guardamos
+      modal.setNotice('⏳ Guardando programación…');
       const ctx = await ensureCtx();
       const payload = buildPayload(ctx, ev.detail);
-      await apiSchedule(payload);
-      modal.setNotice('✅ Programación guardada.');
+  
+      console.log('[SCHED ⇢ /schedule] payload =', payload);
+      const res = await apiSchedule(payload);
+      console.log('[SCHED ⇠ /schedule] response =', res);
+  
+      // actualizar contexto local para que el modal muestre lo nuevo
+      const newCtx = {
+        ...ctx,
+        scheduler: {
+          ...(ctx.scheduler || {}),
+          canal: payload.canal,
+          frecuencia: payload.frecuencia,
+          dias: payload.dias,
+          hora: payload.hora,
+          timezone: payload.timezone,
+          estado: payload.estado
+        }
+      };
+      saveCtx(newCtx);
+      window.GJ_CTX = newCtx;
+  
+      const human = (payload.frecuencia === 'CUSTOM' && payload.dias)
+        ? `Se enviará ${payload.dias} a las ${String(payload.hora).padStart(2,'0')}.`
+        : `Se enviará todos los días a las ${String(payload.hora).padStart(2,'0')}.`;
+  
+      modal.setNotice(`✅ Programación guardada. ${human}`);
     } catch (e) {
       console.error(e);
-      modal.setNotice('❌ Error guardando programación');
+      modal.setNotice('❌ Error guardando programación. Abrí la consola para ver detalles.');
     }
   });
 
