@@ -33,6 +33,41 @@ header{
 #dashboard-menu a{display:block;padding:12px 18px;color:#fff;text-decoration:none}
 #dashboard-menu a:hover{background:#501c88}
 
+/* estilo base del botón (tunealo a tu diseño) */
+#refresh-kv {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .6rem 1rem;
+  border-radius: .6rem;
+  border: 1px solid rgba(255,255,255,.15);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+/* bolita girando escondida por defecto */
+#refresh-kv .spinner {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  display: none;
+  animation: spin .8s linear infinite;
+}
+/* cuando el JS agrega .is-loading, mostramos spinner y bajamos opacidad del label */
+#refresh-kv.is-loading .spinner { display: inline-block; }
+#refresh-kv.is-loading .btn-label { opacity: .7; }
+
+/* opcional: deshabilitar clicks durante carga */
+#refresh-kv.is-loading { pointer-events: none; opacity: .85; }
+
+/* animación */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+
+
 /* CONTENEDOR */
 .dashboard-content{padding:10px 18px}
 
