@@ -90,6 +90,7 @@ export function attachSchedulerModal() {
   }
   
   modal.addEventListener('schedule:save', async (ev) => {
+    modal.setAttribute('data-busy', '1');
     try {
       // 1) Traer contexto “fresco”
       let ctx = await ensureCtx();
@@ -184,10 +185,13 @@ export function attachSchedulerModal() {
     } catch (e) {
       console.error(e);
       modal.setNotice('❌ Error guardando programación');
-    }
+    } finally {
+      modal.removeAttribute('data-busy');  // ← apaga spinner
+      }
   });
 
   modal.addEventListener('schedule:pause', async () => {
+    modal.setAttribute('data-busy', '1');
     try {
       const ctx = await ensureCtx();
       await apiPause({ email: ctx.email, userSheetId: ctx.userSheetId });
@@ -195,10 +199,13 @@ export function attachSchedulerModal() {
     } catch (e) {
       console.error(e);
       modal.setNotice('❌ Error al pausar');
-    }
+    } finally {
+      modal.removeAttribute('data-busy');  // ← apaga spinner
+      }
   });
 
   modal.addEventListener('schedule:resume', async () => {
+    modal.setAttribute('data-busy', '1');
     try {
       const ctx = await ensureCtx();
       await apiResume({ email: ctx.email, userSheetId: ctx.userSheetId });
@@ -206,10 +213,13 @@ export function attachSchedulerModal() {
     } catch (e) {
       console.error(e);
       modal.setNotice('❌ Error al reanudar');
+    } finally {
+      modal.removeAttribute('data-busy');  // ← apaga spinner
     }
   });
 
   modal.addEventListener('schedule:test', async () => {
+    modal.setAttribute('data-busy', '1');
     try {
       const ctx = await ensureCtx();
       await apiTestSend({ email: ctx.email, userSheetId: ctx.userSheetId });
@@ -217,6 +227,8 @@ export function attachSchedulerModal() {
     } catch (e) {
       console.error(e);
       modal.setNotice('❌ Error en el envío de prueba');
+    } finally {
+      modal.removeAttribute('data-busy');  // ← apaga spinner
     }
   });
 
