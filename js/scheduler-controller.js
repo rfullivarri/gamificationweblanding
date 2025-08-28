@@ -144,7 +144,43 @@ export function attachSchedulerModal() {
       }
   
       modal.setNotice(`✅ Programación guardada. Se enviará ${v.frecuencia==='CUSTOM' && v.dias ? `${v.dias} a las ${v.hora}` : `todos los días a las ${v.hora}`}.`);
-  
+
+      // === refrescar KV del Worker y re-cargar el contexto para pintar lo nuevo ===
+      try {
+        // usa tu función global existente (definida en dashboardv3.js)
+        if (window.refreshBundle) {
+          await window.refreshBundle(ctx.email);
+          // pequeña espera para asegurar persistencia
+          await new Promise(r => setTimeout(r, 400));
+        }
+      } catch (e) {
+        console.warn('[SCHED] refreshBundle falló (no bloqueante):', e);
+      }
+      
+      // forzar que el próximo get no use el cache anterior del ctx
+      try { localStorage.removeItem('gj_ctx'); } catch {}
+      
+      // volver a leer el contexto (ya con los datos nuevos del Worker)
+      const ctx2 = await ensureCtx();
+      const s2 = ctx2.scheduler || {};
+      
+      // re-pintar el modal con lo último
+      modal.setValue({
+        canal:      s2.canal || 'email',
+        frecuencia: s2.frecuencia || 'DAILY',
+        dias:       s2.dias || '',
+        hora:       (s2.hora != null ? Number(s2.hora) : 8),
+        timezone:   s2.timezone || 'Europe/Madrid',
+        estado:     s2.estado || 'ACTIVO',
+        linkPublico: ctx2.linkPublico || ''
+      });
+      
+      // feedback final
+      const txt2 = (s2.frecuencia === 'CUSTOM' && s2.dias)
+        ? `Se enviará ${s2.dias} a las ${s2.hora || 8}.`
+        : `Se enviará todos los días a las ${s2.hora || 8}.`;
+      modal.setNotice(`✅ Guardado y actualizado. ${txt2}`);
+
     } catch (e) {
       console.error(e);
       modal.setNotice('❌ Error guardando programación');
