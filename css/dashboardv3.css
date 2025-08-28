@@ -33,19 +33,6 @@ header{
 #dashboard-menu a{display:block;padding:12px 18px;color:#fff;text-decoration:none}
 #dashboard-menu a:hover{background:#501c88}
 
-/* estilo base del botón (tunealo a tu diseño) */
-#refresh-kv {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .6rem 1rem;
-  border-radius: .6rem;
-  border: 1px solid rgba(255,255,255,.15);
-  background: transparent;
-  color: #fff;
-  cursor: pointer;
-}
 /* bolita girando escondida por defecto */
 #refresh-kv .spinner {
   width: 1em;
