@@ -895,35 +895,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-//===BOTON ACTUALIZAR===
-(function attachRefreshButton(){
-  const btn = document.getElementById('refresh-kv') 
+// === BOTÓN ACTUALIZAR ===
+(function attachRefreshButton () {
+  const btn = document.getElementById('refresh-kv')
             || document.querySelector('[data-action="refresh-kv"]');
   if (!btn) return;
 
-  let cooling = false;       // anti-spam básico
-  btn.addEventListener('click', async (e)=>{
+  let cooling = false;
+  btn.addEventListener('click', async (e) => {
     e.preventDefault();
     if (cooling) return;
     cooling = true;
 
-    const email = (window.GJ_CTX && window.GJ_CTX.email) 
+    const email = (window.GJ_CTX && window.GJ_CTX.email)
                || new URLSearchParams(location.search).get('email');
-    if (!email) { alert("Falta email"); cooling=false; return; }
+    if (!email) { alert('Falta email'); cooling = false; return; }
 
-    // opcional: spinner/toast
     try {
-      btn.classList.add('is-loading'); // si tenés estilos
-      await refreshBundle(email);
-      // pequeño aviso
-      if (window.toast) toast.success("Actualizado ✨");
-      else console.log("Actualizado");
+      btn.classList.add('is-loading');     // spinner CSS opcional
+      await refreshBundle(email);          // ← actualiza el KV en el Worker
+
+      // feedback opcional
+      if (window.toast) toast.success('Actualizado ✨');
+
+      // pequeña pausa para que KV quede persistido y…
+      await new Promise(r => setTimeout(r, 400));
+
+      // …recargamos la página para re-leer TODO el bundle y pintar lo nuevo
+      location.reload();
+      return; // por si el reload se demora
     } catch (err) {
       console.error(err);
-      alert("No se pudo actualizar ahora.");
+      alert('No se pudo actualizar ahora.');
     } finally {
       btn.classList.remove('is-loading');
-      setTimeout(()=> cooling=false, 1500);
+      setTimeout(() => (cooling = false), 1500);
     }
   });
 })();
@@ -1013,12 +1019,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await sendAvatarToForm(email, url);
 
         // Refrescar KV para que el Worker tenga el nuevo avatar al toque
-        try {
-          statusEl.textContent = "Actualizando caché…";
-          await refreshBundle(email);
-        } catch (e) {
-          console.warn("Refresh KV falló (no bloqueante):", e);
-        }
+        await refreshBundle(ctx.email);
   
         // Refrescar avatar en el acto
         if (avatarImg) avatarImg.src = url;
@@ -1034,21 +1035,51 @@ document.addEventListener("DOMContentLoaded", async () => {
   })();
 
 
+// ====== REFRESH GENÉRICO (Worker pull) ======
+async function refreshBundle(email, { mode = 'reload' } = {}) {
+  if (!email) throw new Error('Falta email');
 
-// ====== REFRESH KV (Front → Worker → WebApp → KV) ======
-async function refreshBundle(email) {
-  if (!email) throw new Error("Falta email para refrescar");
+  // 1) Pedir al Worker que se refresque desde el WebApp y escriba el KV
+  const r = await fetch(`${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    cache: 'no-store',
+    body: JSON.stringify({ email })
+  });
+  if (!r.ok) throw new Error('refresh-pull failed: ' + r.status);
 
-  const r = await fetch(
-    `${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }, // ok aunque también mandemos el email en query
-      cache: 'no-store',
-      body: JSON.stringify({ email })
-    }
-  );
+  // 2a) Modo simple: recargar todo (garantiza que el dashboard use el bundle nuevo)
+  if (mode === 'reload') { location.reload(); return; }
 
-  if (!r.ok) throw new Error('Worker refresh-pull failed: ' + r.status);
-  return r.json(); // { ok:true, email, key, source: 'webapp->worker' }
+  // 2b) Modo sin F5: obtener bundle fresco y anunciarlo (para quien quiera escucharlo)
+  const b = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+  if (!b.ok) return;
+  const freshRaw = await b.json();
+
+  // Guardar y avisar. NO tocamos ctx ni campos sueltos.
+  window.GJ_BUNDLE = freshRaw;
+  try { localStorage.setItem('gj_bundle', JSON.stringify(freshRaw)); } catch {}
+  window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: freshRaw }));
+
+  return freshRaw;
 }
+
+
+
+// // ====== REFRESH KV (Front → Worker → WebApp → KV) ======
+// async function refreshBundle(email) {
+//   if (!email) throw new Error("Falta email para refrescar");
+
+//   const r = await fetch(
+//     `${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`,
+//     {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' }, // ok aunque también mandemos el email en query
+//       cache: 'no-store',
+//       body: JSON.stringify({ email })
+//     }
+//   );
+
+//   if (!r.ok) throw new Error('Worker refresh-pull failed: ' + r.status);
+//   return r.json(); // { ok:true, email, key, source: 'webapp->worker' }
+// }
