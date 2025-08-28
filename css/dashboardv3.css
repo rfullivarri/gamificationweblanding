@@ -66,6 +66,17 @@ header{
 /* animación */
 @keyframes spin { to { transform: rotate(360deg); } }
 
+#dashboard-menu a.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+#dashboard-menu a.is-loading::after {
+  content: "⏳";
+  position: absolute;
+  right: 10px;
+}
 
 
 /* CONTENEDOR */
