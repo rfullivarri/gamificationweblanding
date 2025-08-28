@@ -1035,26 +1035,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 
-// ======REFRESH KV WORKER====
+// ====== REFRESH KV (Front → Worker → WebApp → KV) ======
 async function refreshBundle(email) {
   if (!email) throw new Error("Falta email para refrescar");
 
-  // 1) Intento CORS con JSON (si tu GAS acepta CORS, genial)
-  try {
-    const r = await fetch(OLD_WEBAPP_URL, {
+  const r = await fetch(
+    `${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`,
+    {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' }, // ok aunque también mandemos el email en query
       cache: 'no-store',
-      body: JSON.stringify({ action: 'refresh', email })
-    });
-    if (r.ok) return await r.text();
-  } catch (_) { /* seguimos al fallback */ }
+      body: JSON.stringify({ email })
+    }
+  );
 
-  // 2) Fallback sin CORS: usar FormData (no dispara preflight)
-  const fd = new FormData();
-  fd.append('action', 'refresh');
-  fd.append('email', email);
-
-  await fetch(OLD_WEBAPP_URL, { method: 'POST', mode: 'no-cors', body: fd });
-  return 'dispatched';
+  if (!r.ok) throw new Error('Worker refresh-pull failed: ' + r.status);
+  return r.json(); // { ok:true, email, key, source: 'webapp->worker' }
 }
