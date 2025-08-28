@@ -1,25 +1,25 @@
 // === Worker + fallback a WebApp ===
 const WORKER_BASE    = 'https://gamificationworker.rfullivarri22.workers.dev';
-const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzbigb7y9Hcwbo1O8A8mnLRM5zFt0JaOApAJnVyh7HZbl0XmeSdGWgj1pJ3twDwctK9Qw/exec';
+const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxncfav0V6OJsHDFMcFg7S8qISWXrG5P5l5WTCzBn-iC_4cerC22lsznJHlDsQhneGdpA/exec';
 
 // Devuelve `data` desde el Worker; si no puede, usa la WebApp
 async function loadDataFromCacheOrWebApp(email) {
-  // 1) Worker primero (si no hay cache, hace priming con el Cloner)
-  let r = await fetch(
-    `${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`,
-    { cache: 'no-store' }
-  );
+  try {
+    const r = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
 
-  if (r.ok) {
-    return await r.json();
+    if (r.status === 200) {
+      return await r.json();
+    }
+    // Si no hay bundle todavía
+    if (r.status === 204) {
+      throw new Error('No bundle yet');
+    }
+    // Cualquier otro status del Worker => probamos fallback
+    throw new Error(`Worker ${r.status}`);
+  } catch (err) {
+    const resp = await fetch(`${OLD_WEBAPP_URL}?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+    return await resp.json();
   }
-
-  // 2) Fallback: WebApp original
-  const resp = await fetch(
-    `${OLD_WEBAPP_URL}?email=${encodeURIComponent(email)}`,
-    { cache: 'no-store' }
-  );
-  return await resp.json();
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -895,9 +895,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+//===BOTON ACTUALIZAR===
+(function attachRefreshButton(){
+  const btn = document.getElementById('refresh-kv') 
+            || document.querySelector('[data-action="refresh-kv"]');
+  if (!btn) return;
+
+  let cooling = false;       // anti-spam básico
+  btn.addEventListener('click', async (e)=>{
+    e.preventDefault();
+    if (cooling) return;
+    cooling = true;
+
+    const email = (window.GJ_CTX && window.GJ_CTX.email) 
+               || new URLSearchParams(location.search).get('email');
+    if (!email) { alert("Falta email"); cooling=false; return; }
+
+    // opcional: spinner/toast
+    try {
+      btn.classList.add('is-loading'); // si tenés estilos
+      await refreshBundle(email);
+      // pequeño aviso
+      if (window.toast) toast.success("Actualizado ✨");
+      else console.log("Actualizado");
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo actualizar ahora.");
+    } finally {
+      btn.classList.remove('is-loading');
+      setTimeout(()=> cooling=false, 1500);
+    }
+  });
+})();
 
 
-// ===== Avatar: abrir/cerrar + subir a ImgBB + persistir en Sheet =====
+
+// ===== CAMBIAR AVATAR abrir/cerrar + subir a ImgBB + persistir en Sheet =====
   // ===== Config del Form que actualiza el avatar =====
   const AVATAR_FORM = {
     ACTION: "https://docs.google.com/forms/u/0/d/e/1FAIpQLScFl3MFsLSos0OEnW9mTI2eZ3DpRBmfq8o29fgKLxEKpXX4Kg/formResponse", // <-- FORM_ACTION
@@ -978,6 +1011,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   
         statusEl.textContent = "Actualizando tu perfil…";
         await sendAvatarToForm(email, url);
+
+        // Refrescar KV para que el Worker tenga el nuevo avatar al toque
+        try {
+          statusEl.textContent = "Actualizando caché…";
+          await refreshBundle(email);
+        } catch (e) {
+          console.warn("Refresh KV falló (no bloqueante):", e);
+        }
   
         // Refrescar avatar en el acto
         if (avatarImg) avatarImg.src = url;
@@ -991,3 +1032,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   })();
+
+
+
+// ======REFRESH KV WORKER====
+async function refreshBundle(email) {
+  if (!email) throw new Error("Falta email para refrescar");
+
+  // 1) Intento CORS con JSON (si tu GAS acepta CORS, genial)
+  try {
+    const r = await fetch(OLD_WEBAPP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({ action: 'refresh', email })
+    });
+    if (r.ok) return await r.text();
+  } catch (_) { /* seguimos al fallback */ }
+
+  // 2) Fallback sin CORS: usar FormData (no dispara preflight)
+  const fd = new FormData();
+  fd.append('action', 'refresh');
+  fd.append('email', email);
+
+  await fetch(OLD_WEBAPP_URL, { method: 'POST', mode: 'no-cors', body: fd });
+  return 'dispatched';
+}
