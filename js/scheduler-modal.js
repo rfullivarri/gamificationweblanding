@@ -88,6 +88,19 @@ tpl.innerHTML = `
   filter: saturate(.9);
 }
 
+/* Mostrar spinner si el botón #save está ocupado */
+#save[data-busy="1"] .spinner { display: inline-block; }
+
+/* Deshabilitar solo el botón mientras guarda */
+#save[data-busy="1"] { 
+  opacity: .75;
+  pointer-events: none;
+  cursor: default;
+}
+
+/* por si querés feedback también en el label */
+#save[data-busy="1"] .btn-label { opacity: .85; }
+
 </style>
 
 <div class="backdrop"></div>
