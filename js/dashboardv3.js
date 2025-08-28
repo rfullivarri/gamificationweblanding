@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
     
     // Config scheduler (si no vino, defaults)
-    const s = dataRaw.scheduler || {};
+    const s = dataRaw.schedule || dataRaw.scheduler || {};
     const horaNorm = _normalizeHour_(s.hora);
     
     // Contexto global para el Scheduler (y resto del dashboard)
