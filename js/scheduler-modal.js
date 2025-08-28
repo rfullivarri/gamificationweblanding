@@ -61,6 +61,33 @@ tpl.innerHTML = `
 .small .chip { background:#1a2133; border:1px solid #2b3350; border-radius:8px; padding:6px 8px; }
 
 .hidden { display:none; }
+
+/* —— SPINNER & BUSY STATE —— */
+.spinner {
+  width: 1em;
+  height: 1em;
+  margin-left: .5rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  display: none;
+  animation: sched-spin .8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes sched-spin { to { transform: rotate(360deg); } }
+
+/* Cuando el modal esté ocupado, mostramos spinner y deshabilitamos acciones */
+:host([data-busy="1"]) .spinner { display: inline-block; }
+:host([data-busy="1"]) .actions .btn {
+  opacity: .7;
+  pointer-events: none;
+  cursor: default;
+}
+:host([data-busy="1"]) .dialog { /* suavizar feedback visual */
+  filter: saturate(.9);
+}
+
 </style>
 
 <div class="backdrop"></div>
@@ -137,7 +164,10 @@ tpl.innerHTML = `
       <button class="btn" id="pause">Pausar</button>
       <button class="btn" id="resume">Reanudar</button>
       <button class="btn" id="test">Enviar prueba</button>
-      <button class="btn primary" id="save">Guardar programación</button>
+      <button class="btn primary" id="save">
+        <span class="btn-label">Guardar programación</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
     </div>
     <div class="muted">Estado actual: <span id="estado-text">ACTIVO</span></div>
   </div>
