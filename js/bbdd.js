@@ -332,7 +332,7 @@ async function init(){
   qs("#bbdd-save").addEventListener("click", ()=>doSave().catch(e=>toast(e.message,false)));
   qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
   qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
-  qs("#paste-rows").addEventListener("click", pasteFromClipboard);
+  //qs("#paste-rows").addEventListener("click", pasteFromClipboard);
   qs("#search").addEventListener("input", onFilter);
 
   // Botón AI global (opcional)
@@ -362,6 +362,24 @@ async function init(){
       }
     }
   });
+
+  // Atajo: Ctrl/⌘ + V para pegar filas (si no estás escribiendo en un input/textarea/select)
+  document.addEventListener("keydown", async (e)=>{
+    const isPaste = (e.key.toLowerCase() === "v") && (e.ctrlKey || e.metaKey);
+    if (!isPaste) return;
+
+    const tag = (document.activeElement?.tagName || "").toLowerCase();
+    const isEditingField = ["input","textarea","select"].includes(tag);
+    if (isEditingField) return; // dejá que el navegador pegue dentro del campo
+
+    e.preventDefault();
+    try {
+      await pasteFromClipboard();
+    } catch (err) {
+      toast("No pude leer el portapapeles. Probá habilitar permisos.", false);
+    }
+  });
+  
 
   // load data
   try{
