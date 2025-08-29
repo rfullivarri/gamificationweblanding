@@ -248,4 +248,69 @@ html,body{ font-family:"Inter", ui-sans-serif, system-ui, -apple-system, Segoe U
 }
 @keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
 
+/* ===== Tabla: contenedor con overlay y scroll ===== */
+.bbdd-table-wrap{
+  position: relative;
+  max-height: 60vh;            /* ajustá si querés más/menos alto */
+  overflow: auto;
+  border-radius: 12px;
+}
+
+/* ===== Spinner overlay ===== */
+.bbdd-table-spinner{
+  position: absolute;
+  inset: 0;
+  display: none;               /* se muestra cuando .table-loading en #table-wrap */
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(16,20,38,0.55);     /* capa oscura */
+  backdrop-filter: blur(2px);
+  z-index: 5;
+  color: var(--ink);
+  font-weight: 600;
+}
+#table-wrap.table-loading .bbdd-table-spinner{ display: flex; }
+
+.bbdd-table-spinner .ring{
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.18);
+  border-top-color: var(--brand);
+  animation: gj-spin 0.9s linear infinite;
+}
+@keyframes gj-spin{ to{ transform: rotate(360deg); } }
+
+/* ===== Sticky header ===== */
+.bbdd-table{
+  width: 100%;
+  border-collapse: separate;   /* necesario para sticky + radius lindos */
+  border-spacing: 0;
+}
+.bbdd-table thead th{
+  position: sticky;
+  top: 0;                      /* se pega arriba del contenedor con scroll */
+  z-index: 2;
+  background: var(--soft);     /* mismo fondo que cards */
+  box-shadow: 0 1px 0 rgba(0,0,0,.25) inset;
+}
+
+/* (opcional) cuando hay overlay, bloqueá clicks sobre la tabla */
+#table-wrap.table-loading .bbdd-table { pointer-events: none; }
+
+//====chispas AI=======================================
+.ai-sparkle {
+  position:absolute; right:12px; top:12px;
+  width:18px; height:18px; opacity:0; pointer-events:none;
+  background: radial-gradient(circle, #ffd27e 20%, rgba(255,210,126,0) 60%);
+  filter: drop-shadow(0 0 6px #ffd27e);
+  animation: sparkle 900ms ease-out infinite;
+}
+@keyframes sparkle {
+  0%   { transform:scale(.4); opacity:.0; }
+  30%  { transform:scale(1);  opacity:.9; }
+  100% { transform:scale(.2); opacity:0; }
+}
+
 
