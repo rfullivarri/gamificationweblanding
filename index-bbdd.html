@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conf BBDD & Daily Quest</title>
+  <link rel="stylesheet" href="bbdd.css" />
+</head>
+<body>
+  <!-- Modal overlay: en desktop se usa como modal; en mobile ocupa toda la pantalla -->
+  <div id="bbdd-overlay" class="bbdd-overlay hidden">
+    <div class="bbdd-panel">
+      <header class="bbdd-header">
+        <button id="bbdd-back" class="btn ghost">← Volver</button>
+        <h1>🪄 Conf BBDD & Daily Quest</h1>
+        <div class="spacer"></div>
+        <button id="bbdd-save" class="btn">Guardar</button>
+        <button id="bbdd-confirm" class="btn success">Confirmar cambios ✓</button>
+      </header>
+
+      <section class="bbdd-tip gj-info">
+        <b>📌 IMPORTANTE – Cómo deben ser tus Tasks</b><br/>
+        ✔️ Que puedas completarlas en un solo día.<br/>
+        ✔️ Deben ser claras, específicas y medibles.<br/>
+        🚫 Evitá frases vagas como “hacer algo saludable”.<br/>
+        🎯 Mejor: “Preparar una comida saludable” o “Meditar 10 minutos”.<br/>
+        ♻️ Ideal si podés repetirlas cada semana.
+      </section>
+
+      <section class="bbdd-tools">
+        <div class="left">
+          <button id="add-row" class="btn ghost">+ Fila</button>
+          <button id="paste-rows" class="btn ghost" title="Pegar desde el portapapeles">Pegar</button>
+          <span id="dirty-indicator" class="dot hidden">● Cambios sin guardar</span>
+        </div>
+        <div class="right">
+          <input id="search" class="input" placeholder="Filtrar… (ej: 'ayuno', 'Mind')" />
+        </div>
+      </section>
+
+      <section class="bbdd-table-wrap">
+        <table id="bbdd-table" class="bbdd-table" aria-label="Tabla BBDD">
+          <thead>
+            <tr>
+              <th style="width:110px">Pilares</th>
+              <th style="width:160px">Rasgo</th>
+              <th style="width:160px">Stats</th>
+              <th>Tasks</th>
+              <th style="width:120px">Dificultad</th>
+              <th style="width:120px">Feedback</th>
+              <th style="width:60px"></th>
+            </tr>
+          </thead>
+          <tbody id="bbdd-tbody"><!-- filas dinámicas --></tbody>
+        </table>
+      </section>
+
+      <footer class="bbdd-footer">
+        <small id="status-msg"></small>
+        <div class="spacer"></div>
+        <button id="close-modal" class="btn ghost">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Configuración de modo:
+    // - Si se incluye en el dashboard, setear window.BBDD_MODE="modal" y llamar window.openBBDD(email)
+    // - Si se quiere como página independiente, usar query ?email= y window.BBDD_MODE="page"
+    window.BBDD_MODE = window.BBDD_MODE || (matchMedia("(max-width: 768px)").matches ? "page" : "modal");
+  </script>
+  <script src="bbdd.js"></script>
+</body>
+</html>
