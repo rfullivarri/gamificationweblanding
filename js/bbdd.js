@@ -1,0 +1,336 @@
+/* ====== Config ====== */
+const API_BASE = "/api"; // cambia esto a tu WebApp/Worker cuando quieras
+const DASHBOARD_URL = "https://rfullivarri.github.io/gamificationweblanding/dashboardv3.html";
+
+/* ====== Catálogos ====== */
+const PILARES_OPTS = ["Body", "Mind", "Soul"];
+const DIFICULTAD_OPTS = ["Fácil", "Media", "Difícil"];
+const RASGOS_POR_PILAR = {
+  Body: ["Energía","Nutrición","Sueño","Recuperación","Hidratación","Higiene","Vitalidad","Postura","Movilidad","Moderación"],
+  Mind: ["Enfoque","Aprendizaje","Creatividad","Gestión","Autocontrol","Resiliencia","Orden","Proyección","Finanzas","Agilidad"],
+  Soul: ["Conexión","Espiritualidad","Propósito","Valores","Altruismo","Insight","Gratitud","Naturaleza","Gozo","Autoestima"],
+};
+const RASGOS_COMBO = Object.entries(RASGOS_POR_PILAR)
+  .flatMap(([pilar, rasgos]) => rasgos.map(r => `${r}, ${pilar}`));
+
+/* ====== Util ====== */
+const qs = sel => document.querySelector(sel);
+const qsa = sel => [...document.querySelectorAll(sel)];
+const param = (k) => new URL(location.href).searchParams.get(k);
+const email = (param("email") || localStorage.getItem("gj_email") || "").trim().toLowerCase();
+
+function hashRows(rows){
+  // rows: array de arrays (A-E)
+  const s = rows.map(r => r.map(v => (v??"").toString().trim()).join("|")).join("||");
+  // djb2 simple
+  let h=5381; for(const ch of s) h=((h<<5)+h)+ch.charCodeAt(0); return h>>>0;
+}
+function cleanRasgo(s){
+  s = (s||"").trim();
+  return s.includes(",") ? s.split(",")[0].trim() : s;
+}
+function normPilar(v){
+  const map = { body:"Body", cuerpo:"Body", mind:"Mind", mente:"Mind", soul:"Soul", alma:"Soul" };
+  const k = (v||"").toString().trim().toLowerCase();
+  return map[k] || (v||"").toString().trim();
+}
+function normDiff(v){
+  const map = { facil:"Fácil","fácil":"Fácil", media:"Media", medio:"Media", dificil:"Difícil","difícil":"Difícil" };
+  const k = (v||"").toString().trim().toLowerCase();
+  return map[k] || (v||"").toString().trim();
+}
+function toast(msg, ok=true){
+  const el = qs("#status-msg");
+  el.textContent = msg;
+  el.style.color = ok ? "#9ff7cc" : "#ff8a9b";
+  setTimeout(()=>{ el.textContent=""; }, 4000);
+}
+
+/* ====== Estado ====== */
+let state = {
+  rows: [],          // [[Pilar,Rasgo,Stats,Tasks,Dificultad,Feedback]]
+  origHash: null,
+  dirty: false,
+  filter: "",
+};
+
+/* ====== API (adaptable a tu WebApp actual) ====== */
+async function apiGetBBDD(email){
+  const r = await fetch(`${API_BASE}/bbdd?email=${encodeURIComponent(email)}`, {credentials:"include"});
+  if(!r.ok) throw new Error("Error al cargar BBDD");
+  const js = await r.json();
+  // Esperado: { rows: [ ["Body","Energía","Ejercicio","Caminar 10 minutos","Fácil"], ... ] }
+  return js;
+}
+async function apiSaveBBDD(email, rows){
+  const r = await fetch(`${API_BASE}/bbdd`, {
+    method:"PUT",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email, rows })
+  });
+  if(!r.ok) throw new Error("Error al guardar BBDD");
+  return r.json();
+}
+async function apiConfirmBBDD(email){
+  const r = await fetch(`${API_BASE}/bbdd/confirm`, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ email })
+  });
+  if(!r.ok) throw new Error("Error al confirmar cambios");
+  return r.json();
+}
+
+/* ====== Render ====== */
+function render(){
+  const tbody = qs("#bbdd-tbody");
+  tbody.innerHTML = "";
+
+  const filtered = state.filter
+    ? state.rows.filter(r => r.join(" ").toLowerCase().includes(state.filter.toLowerCase()))
+    : state.rows;
+
+  filtered.forEach((row, idx) => {
+    const tr = document.createElement("tr");
+    tr.draggable = true;
+    tr.dataset.index = idx;
+    tr.innerHTML = `
+      <td>${selectPilar(row[0])}</td>
+      <td>${selectRasgo(row[1])}</td>
+      <td>${inputText(row[2], "Stats")}</td>
+      <td>${inputText(row[3], "Tasks")}</td>
+      <td>${selectDiff(row[4])}</td>
+      <td>${feedbackButtons(row[5]||"")}</td>
+      <td class="row-actions">
+        <span class="handle" title="Arrastrar">⋮⋮</span>
+        <button class="mini" data-act="dup">Duplicar</button>
+        <button class="mini" data-act="del">Eliminar</button>
+      </td>
+    `;
+    // handlers de inputs
+    tr.addEventListener("input", onRowInput);
+    tr.addEventListener("click", onRowClick);
+
+    // drag & drop
+    tr.addEventListener("dragstart", onDragStart);
+    tr.addEventListener("dragover", onDragOver);
+    tr.addEventListener("drop", onDrop);
+
+    tbody.appendChild(tr);
+  });
+
+  qs("#dirty-indicator").classList.toggle("hidden", !state.dirty);
+}
+
+function selectPilar(val){
+  const opts = Array.from(new Set([...PILARES_OPTS])); // podríamos sumar existentes si querés
+  const html = opts.map(o => `<option ${o===val?"selected":""}>${o}</option>`).join("");
+  return `<select data-col="0">${html}</select>`;
+}
+function selectRasgo(val){
+  const opts = Array.from(new Set([val, ...RASGOS_COMBO])).filter(Boolean);
+  const html = opts.map(o => `<option ${o===val?"selected":""}>${o}</option>`).join("");
+  return `<select data-col="1">${html}</select>`;
+}
+function selectDiff(val){
+  const opts = Array.from(new Set([...DIFICULTAD_OPTS, val].filter(Boolean)));
+  const html = opts.map(o => `<option ${o===val?"selected":""}>${o}</option>`).join("");
+  return `<select data-col="4">${html}</select>`;
+}
+function inputText(val, placeholder){
+  const v = (val??"").toString().replace(/"/g,"&quot;");
+  return `<input class="input" data-col="2or3" placeholder="${placeholder}" value="${v}"/>`.replace("2or3", placeholder==="Stats"?"2":"3");
+}
+function feedbackButtons(current){
+  // estados: "like" | "meh" | "dislike" | ""
+  const is = (k)=> current===k ? "active" : "";
+  return `
+    <div class="feedback" data-col="5">
+      <button data-fb="like" class="${is("like")}">👍</button>
+      <button data-fb="meh" class="${is("meh")}">😐</button>
+      <button data-fb="dislike" class="${is("dislike")}">👎</button>
+    </div>
+  `;
+}
+
+/* ====== Handlers ====== */
+function markDirty(){ state.dirty = true; render(); }
+
+function onRowInput(e){
+  const tr = e.currentTarget;
+  const idx = Number(tr.dataset.index);
+  const t = e.target;
+  if(t.matches("select,[data-col]")){
+    const col = Number(t.dataset.col);
+    let val = t.value;
+    if(col===0) val = normPilar(val);
+    if(col===1) val = cleanRasgo(val);
+    if(col===4) val = normDiff(val);
+    state.rows[idx][col] = val;
+    markDirty();
+  }
+}
+function onRowClick(e){
+  const tr = e.currentTarget;
+  const idx = Number(tr.dataset.index);
+  const t = e.target;
+
+  if(t.closest(".feedback")){
+    const fb = t.dataset.fb;
+    if(!fb) return;
+    const box = t.closest(".feedback");
+    state.rows[idx][5] = fb;
+    // toggle UI
+    box.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+    t.classList.add("active");
+    markDirty();
+    return;
+  }
+
+  if(t.dataset.act === "dup"){
+    const copy = [...state.rows[idx]];
+    state.rows.splice(idx+1,0,copy);
+    markDirty(); render();
+  }
+  if(t.dataset.act === "del"){
+    state.rows.splice(idx,1);
+    markDirty(); render();
+  }
+}
+
+/* Drag & drop */
+let dragIndex = null;
+function onDragStart(e){ dragIndex = Number(e.currentTarget.dataset.index); e.dataTransfer.effectAllowed="move"; }
+function onDragOver(e){ e.preventDefault(); e.dataTransfer.dropEffect="move"; }
+function onDrop(e){
+  e.preventDefault();
+  const to = Number(e.currentTarget.dataset.index);
+  if(dragIndex===null || to===dragIndex) return;
+  const [item] = state.rows.splice(dragIndex,1);
+  state.rows.splice(to,0,item);
+  dragIndex = null;
+  markDirty(); render();
+}
+
+/* ====== Actions ====== */
+function currentVisibleRows(){
+  // devuelve matriz A-E (ignora feedback para guardar)
+  return state.rows.map(r => [ normPilar(r[0]), cleanRasgo(r[1]), (r[2]||""),(r[3]||""), normDiff(r[4]) ]);
+}
+
+async function doSave(){
+  const rows = currentVisibleRows()
+    .filter(r => r.some(v => (v||"").toString().trim()!=="")); // quita filas totalmente vacías
+
+  // validaciones mínimas
+  for(const r of rows){
+    if(!["Body","Mind","Soul"].includes(r[0])) return toast("Pilar inválido. Usá Body/Mind/Soul.", false);
+    if(!r[3]) return toast("La columna 'Tasks' no puede estar vacía.", false);
+  }
+
+  await apiSaveBBDD(email, rows);
+  state.origHash = hashRows(rows);
+  state.dirty = false;
+  toast("✅ Guardado");
+  render();
+}
+
+async function doConfirm(){
+  // guarda si hay cambios antes de confirmar
+  const rows = currentVisibleRows().filter(r => r.some(v => (v||"").toString().trim()!==""));
+  const newHash = hashRows(rows);
+  if(newHash !== state.origHash){
+    await apiSaveBBDD(email, rows);
+    state.origHash = newHash;
+  }
+  await apiConfirmBBDD(email);
+  toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
+  // opción: cerrar y volver al dashboard
+  setTimeout(()=>{
+    if(window.BBDD_MODE==="modal"){
+      closeOverlay();
+      if(confirm("¿Volver al Dashboard?")) location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+    }else{
+      location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+    }
+  }, 400);
+}
+
+/* ====== Clipboard paste ====== */
+async function pasteFromClipboard(){
+  try{
+    const text = await navigator.clipboard.readText();
+    if(!text) return;
+    const lines = text.split(/\r?\n/).map(l=>l.split("\t"));
+    // mapeamos columnas 0..4 como A-E
+    for(const cols of lines){
+      if(cols.every(c=>!c)) continue;
+      const row = [
+        normPilar(cols[0]||""),
+        cleanRasgo(cols[1]||""),
+        (cols[2]||""),
+        (cols[3]||""),
+        normDiff(cols[4]||""),
+        "" // feedback
+      ];
+      state.rows.push(row);
+    }
+    markDirty(); render();
+  }catch(err){ toast("No pude leer el portapapeles", false); }
+}
+
+/* ====== Filtro ====== */
+function onFilter(e){ state.filter = e.target.value; render(); }
+
+/* ====== Overlay control ====== */
+function openOverlay(){
+  qs("#bbdd-overlay").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+}
+function closeOverlay(){
+  if(state.dirty && !confirm("Tenés cambios sin guardar. ¿Cerrar igualmente?")) return;
+  qs("#bbdd-overlay").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+
+/* ====== Init ====== */
+async function init(){
+  if(!email){
+    alert("No se detectó tu email. Abrí esta página desde el Dashboard (menú → Editar Base).");
+    return;
+  }
+
+  // Modo: modal o página
+  if(window.BBDD_MODE==="modal"){ openOverlay(); }
+  else { qs("#bbdd-overlay").classList.remove("hidden"); }
+
+  // listeners UI
+  qs("#bbdd-back").addEventListener("click", ()=> history.back());
+  qs("#close-modal").addEventListener("click", closeOverlay);
+  qs("#bbdd-save").addEventListener("click", ()=>doSave().catch(e=>toast(e.message,false)));
+  qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
+  qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
+  qs("#paste-rows").addEventListener("click", pasteFromClipboard);
+  qs("#search").addEventListener("input", onFilter);
+
+  // load data
+  try{
+    const { rows } = await apiGetBBDD(email);
+    // extendemos con slot para feedback
+    state.rows = rows.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
+    state.origHash = hashRows(rows);
+    render();
+  }catch(err){
+    toast("Error cargando BBDD: " + err.message, false);
+  }
+}
+
+if(document.readyState!=="loading") init();
+else document.addEventListener("DOMContentLoaded", init);
+
+/* ====== Exponer helper para abrir modal desde el dashboard ====== */
+window.openBBDD = function(emailParam){
+  if(emailParam) localStorage.setItem("gj_email", emailParam);
+  window.BBDD_MODE = "modal";
+  init();
+};
