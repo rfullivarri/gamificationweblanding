@@ -14,7 +14,7 @@
     <div class="bbdd-panel">
       <header class="bbdd-header">
         <button id="bbdd-back" class="btn ghost">← Volver</button>
-        <h1>🪄 Conf BBDD & Daily Quest</h1>
+        <h1>⚙️ Conf BBDD & Daily Quest</h1>
         <div class="spacer"></div>
         <button id="bbdd-save" class="btn">Guardar</button>
         <button id="bbdd-confirm" class="btn success">Confirmar cambios ✓</button>
@@ -36,11 +36,15 @@
       <section class="bbdd-tools">
         <div class="left">
           <button id="add-row" class="btn ghost">+ Fila</button>
-          <button id="paste-rows" class="btn ghost" title="Pegar desde el portapapeles">Pegar</button>
           <span id="dirty-indicator" class="dot hidden">● Cambios sin guardar</span>
         </div>
-        <div class="right">
+      
+        <div class="center">
           <input id="search" class="input" placeholder="Filtrar… (ej: 'ayuno', 'Mind')" />
+        </div>
+      
+        <div class="right">
+          <button id="bbdd-ai" class="btn ghost" title="Enviar a IA">✨ AI</button>
         </div>
       </section>
 
