@@ -86,5 +86,31 @@
     window.BBDD_MODE = window.BBDD_MODE || (matchMedia("(max-width: 768px)").matches ? "page" : "modal");
   </script>
   <script src="js/bbdd.js"></script>
+  <script>
+  // Navegación de vuelta al dashboard si vino con &back=
+  (function () {
+    const params = new URLSearchParams(location.search);
+    const backURL = params.get('back'); // viene urlencodeado por el dashboard
+
+    function goBack() {
+      if (backURL) {
+        location.href = decodeURIComponent(backURL);
+      } else {
+        // fallback razonable
+        history.length > 1 ? history.back() : (location.href = 'dashboardv3.html');
+      }
+    }
+
+    // Botón "Volver" del header (si existe)
+    document.getElementById('btn-back')?.addEventListener('click', (e) => {
+      e.preventDefault(); goBack();
+    });
+
+    // Botón "Cerrar" del footer (si existe)
+    document.getElementById('close-modal')?.addEventListener('click', (e) => {
+      e.preventDefault(); goBack();
+    });
+  })();
+</script>
 </body>
 </html>
