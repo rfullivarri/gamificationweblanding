@@ -314,3 +314,61 @@ html,body{ font-family:"Inter", ui-sans-serif, system-ui, -apple-system, Segoe U
 }
 
 
+/* ===== Spinner de la tabla ===== */
+#table-wrap { position: relative; }
+
+/* overlay centrado + blur de fondo */
+#table-spinner{
+  position: absolute;
+  inset: 0;
+  display: none;                /* se muestra con .table-loading */
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  backdrop-filter: blur(4px);
+  background: rgba(10, 12, 24, .45);
+}
+
+/* efecto de “desactivar” el contenido debajo */
+#table-wrap.table-loading #bbdd-table {
+  filter: blur(1px);
+  opacity: .6;
+  pointer-events: none;
+}
+
+/* mostrar overlay cuando está cargando */
+#table-wrap.table-loading #table-spinner { display: flex; }
+
+/* animación simple */
+#table-spinner .dot{
+  width: 12px; height: 12px; border-radius: 50%;
+  margin-right: 10px;
+  animation: pulse 1.2s infinite ease-in-out;
+  background: currentColor;
+}
+#table-spinner .txt{
+  font-weight: 600;
+  opacity: .9;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(0.8); opacity: .6; }
+  50%      { transform: scale(1.1); opacity: 1; }
+}
+
+
+/* El contenedor puede scrollear verticalmente, la cabecera queda sticky */
+.bbdd-table-wrap {
+  overflow: auto;          /* asegura scroll si hace falta */
+}
+
+/* sticky header */
+#bbdd-table thead th{
+  position: sticky;
+  top: 0;
+  z-index: 3;                         /* por encima de filas */
+  background: #171a23;                /* mismo bg del panel para tapar blur */
+  box-shadow: 0 1px 0 rgba(255,255,255,.04);
+}
+
+
+
