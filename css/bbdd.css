@@ -230,3 +230,54 @@ html,body{
   30%{ transform:scale(1); opacity:.9; }
   100%{ transform:scale(.2); opacity:0; }
 }
+
+/* El contenedor necesita altura aunque no haya filas todavía */
+#table-wrap{
+  position: relative;
+  margin: 0 16px 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(16,22,48,.55), rgba(13,18,40,.55));
+  overflow: auto;
+  max-height: 60vh;
+
+  /* 💡 clave para que el spinner tenga “lienzo” donde centrarse */
+  min-height: 360px;        /* subilo a 420 si querés más */
+}
+
+/* Overlay centrado */
+#table-spinner{
+  position: absolute;
+  inset: 0;
+  display: none;            /* se muestra con .table-loading */
+  z-index: 6;               /* por encima del thead sticky */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: rgba(10,12,24,.45);
+  color: var(--ink);
+  font-weight: 600;
+
+  /* centrado perfecto */
+  display: grid;
+  place-items: center;
+}
+
+/* layout interno del spinner */
+#table-spinner .wrap{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#table-spinner .ring{
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.18);
+  border-top-color: var(--brand);
+  animation: gj-spin .9s linear infinite;
+}
+@keyframes gj-spin{ to{ transform: rotate(360deg); } }
+
+/* Mostrar overlay + “apagar” tabla mientras carga */
+#table-wrap.table-loading #table-spinner{ display: grid; }
+#table-wrap.table-loading #bbdd-table{
+  filter: blur(1px); opacity: .6; pointer-events: none;
+}
