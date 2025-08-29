@@ -47,7 +47,13 @@
         </div>
       </section>
 
-      <section class="bbdd-table-wrap">
+      <section id="table-wrap" class="bbdd-table-wrap">
+        <!-- Overlay spinner mientras carga la tabla -->
+        <div id="table-spinner" class="bbdd-table-spinner" aria-live="polite" aria-busy="true">
+          <div class="ring" aria-hidden="true"></div>
+          <span>Cargando tus tareas…</span>
+        </div>
+      
         <table id="bbdd-table" class="bbdd-table" aria-label="Tabla BBDD">
           <thead>
             <tr>
