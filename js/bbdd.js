@@ -329,10 +329,8 @@ async function init(){
     else history.back();
   });
   qs("#close-modal").addEventListener("click", closeOverlay);
-  qs("#bbdd-save").addEventListener("click", ()=>doSave().catch(e=>toast(e.message,false)));
   qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
   qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
-  //qs("#paste-rows").addEventListener("click", pasteFromClipboard);
   qs("#search").addEventListener("input", onFilter);
 
   // Botón AI global (opcional)
