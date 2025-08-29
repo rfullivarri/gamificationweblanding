@@ -92,17 +92,21 @@ function render(){
   const tbody = qs("#bbdd-tbody");
   tbody.innerHTML = "";
 
-  const filtered = state.filter
-    ? state.rows.filter(r => r.join(" ").toLowerCase().includes(state.filter.toLowerCase()))
-    : state.rows;
+  const term = state.filter.toLowerCase();
 
-  filtered.forEach((row, idx) => {
+  state.rows.forEach((row, realIdx) => {
+    // aplicar filtro sin perder índice real
+    if (term) {
+      const hay = row.join(" ").toLowerCase().includes(term);
+      if (!hay) return;
+    }
+
     const tr = document.createElement("tr");
     tr.draggable = true;
-    tr.dataset.index = idx;
+    tr.dataset.index = realIdx; // << índice REAL en state.rows
     tr.innerHTML = `
       <td>${selectPilar(row[0])}</td>
-      <td>${selectRasgo(row[1])}</td>
+      <td>${selectRasgo(row[1], row[0])}</td>
       <td>${inputText(row[2], "Stats")}</td>
       <td>${inputText(row[3], "Tasks")}</td>
       <td>${selectDiff(row[4])}</td>
@@ -112,11 +116,8 @@ function render(){
         <button class="mini" data-act="del">Eliminar</button>
       </td>
     `;
-    // handlers de inputs
     tr.addEventListener("input", onRowInput);
     tr.addEventListener("click", onRowClick);
-
-    // drag & drop
     tr.addEventListener("dragstart", onDragStart);
     tr.addEventListener("dragover", onDragOver);
     tr.addEventListener("drop", onDrop);
@@ -165,38 +166,50 @@ function onRowInput(e){
   const tr = e.currentTarget;
   const idx = Number(tr.dataset.index);
   const t = e.target;
+
   if(t.matches("select,[data-col]")){
     const col = Number(t.dataset.col);
     let val = t.value;
-    if(col===0) val = normPilar(val);
+
+    if(col===0){ // cambió Pilar
+      val = normPilar(val);
+      state.rows[idx][0] = val;
+
+      // si el rasgo actual no pertenece al nuevo pilar, limpiar
+      const rasgoActual = cleanRasgo(state.rows[idx][1]);
+      if (!RASGOS_POR_PILAR[val]?.includes(rasgoActual)) {
+        state.rows[idx][1] = "";
+      }
+      markDirty();
+      return; // re-render para refrescar combo de rasgo
+    }
+
     if(col===1) val = cleanRasgo(val);
     if(col===4) val = normDiff(val);
+
     state.rows[idx][col] = val;
     markDirty();
   }
 }
+
 function onRowClick(e){
   const tr = e.currentTarget;
   const idx = Number(tr.dataset.index);
   const t = e.target;
 
+  // feedback por fila
   if(t.closest(".feedback")){
     const fb = t.dataset.fb; // "improve" o "replace"
     if(!fb) return;
     const box = t.closest(".feedback");
-    // idx = número de fila actual (seguro ya lo calculás arriba)
-    state.rows[idx][5] = fb; // guardamos el estado en la columna Feedback
+    state.rows[idx][5] = fb;
     box.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
     t.classList.add("active");
     markDirty();
     return;
-}
-
-  if(t.dataset.act === "dup"){
-    const copy = [...state.rows[idx]];
-    state.rows.splice(idx+1,0,copy);
-    markDirty(); render();
   }
+
+  // eliminar fila
   if(t.dataset.act === "del"){
     state.rows.splice(idx,1);
     markDirty(); render();
@@ -298,6 +311,7 @@ function closeOverlay(){
   document.body.style.overflow = "";
 }
 
+
 /* ====== Init ====== */
 async function init(){
   if(!email){
@@ -310,21 +324,43 @@ async function init(){
   else { qs("#bbdd-overlay").classList.remove("hidden"); }
 
   // listeners UI
-  qs("#bbdd-back").addEventListener("click", ()=> history.back());
+  qs("#bbdd-back").addEventListener("click", ()=> {
+    if(window.BBDD_MODE==="modal") closeOverlay();
+    else history.back();
+  });
   qs("#close-modal").addEventListener("click", closeOverlay);
   qs("#bbdd-save").addEventListener("click", ()=>doSave().catch(e=>toast(e.message,false)));
   qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
   qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
   qs("#paste-rows").addEventListener("click", pasteFromClipboard);
   qs("#search").addEventListener("input", onFilter);
-  
-  document.getElementById("bbdd-ai").addEventListener("click", ()=>{
-    const marcadas = state.rows.filter(r => r[5]==="improve" || r[5]==="replace");
-    if(!marcadas.length){
-      alert("Seleccioná al menos una task con feedback 🪄 o 🔁");
-      return;
+
+  // Botón AI global (opcional)
+  const aiBtn = document.getElementById("bbdd-ai");
+  if (aiBtn) {
+    aiBtn.addEventListener("click", ()=>{
+      const marcadas = state.rows.filter(r => r[5]==="improve" || r[5]==="replace");
+      if(!marcadas.length){
+        alert("Seleccioná al menos una task con feedback🪄 o 🔁");
+        return;
+      }
+      console.log("Tasks seleccionadas para AI:", marcadas);
+    });
+  }
+
+  // Cerrar con ESC (confirma si hay cambios)
+  document.addEventListener("keydown", (e)=>{
+    if(e.key==="Escape"){
+      const doClose = () => {
+        if(window.BBDD_MODE==="modal") closeOverlay();
+        else history.back();
+      };
+      if(state.dirty){
+        if(confirm("Tenés cambios sin guardar. ¿Cerrar igualmente?")) doClose();
+      } else {
+        doClose();
+      }
     }
-    console.log("Tasks seleccionadas para AI:", marcadas);
   });
 
   // load data
