@@ -160,7 +160,11 @@ function feedbackButtons(current){
 }
 
 /* ====== Handlers ====== */
-function markDirty(){ state.dirty = true; render(); }
+function markDirty(){
+  state.dirty = true;
+  const dot = document.querySelector("#dirty-indicator");
+  if (dot) dot.classList.remove("hidden"); // sin re-render
+}
 
 function onRowInput(e){
   const tr = e.currentTarget;
@@ -171,24 +175,23 @@ function onRowInput(e){
     const col = Number(t.dataset.col);
     let val = t.value;
 
-    if(col===0){ // cambió Pilar
+    if (col===0){            // Pilar cambió
       val = normPilar(val);
       state.rows[idx][0] = val;
-
-      // si el rasgo actual no pertenece al nuevo pilar, limpiar
+    
       const rasgoActual = cleanRasgo(state.rows[idx][1]);
       if (!RASGOS_POR_PILAR[val]?.includes(rasgoActual)) {
         state.rows[idx][1] = "";
       }
       markDirty();
-      return; // re-render para refrescar combo de rasgo
+      render();              // <-- sólo acá
+      return;
     }
-
-    if(col===1) val = cleanRasgo(val);
-    if(col===4) val = normDiff(val);
-
+    // col 1/2/3/4:
+    if (col===1) val = cleanRasgo(val);
+    if (col===4) val = normDiff(val);
     state.rows[idx][col] = val;
-    markDirty();
+    markDirty();            // <-- sin render
   }
 }
 
@@ -198,13 +201,14 @@ function onRowClick(e){
   const t = e.target;
 
   // feedback por fila
-  if(t.closest(".feedback")){
-    const fb = t.dataset.fb; // "improve" o "replace"
+  if (t.closest(".feedback")){
+    const fb = t.dataset.fb; // "improve" | "replace"
     if(!fb) return;
+    const wasActive = t.classList.contains("active");
+    state.rows[idx][5] = wasActive ? "" : fb; // toggle
     const box = t.closest(".feedback");
-    state.rows[idx][5] = fb;
     box.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
-    t.classList.add("active");
+    if (!wasActive) t.classList.add("active");
     markDirty();
     return;
   }
@@ -254,44 +258,64 @@ async function doSave(){
 }
 
 async function doConfirm(){
-  // 1) Construir A–E desde el estado actual (normalizado)
-  const rows = currentVisibleRows().filter(r => r.some(v => (v||"").toString().trim()!==""));
+  const btn = document.querySelector("#bbdd-confirm");
+  // START loading UI
+  btn.disabled = true;
+  btn.classList.add("loading");
+  btn.setAttribute("aria-busy", "true");
 
-  // 2) Guardar en servidor (decide estado y escribe Setup!E14)
-  let saveRes;
-  try{
-    saveRes = await apiSaveBBDD(email, rows); // { ok, estado, ... }
-  }catch(err){
-    toast("Error al guardar: " + err.message, false);
-    return;
-  }
+  try {
+    // 1) Construir A–E desde el estado actual (normalizado)
+    const rows = currentVisibleRows().filter(r =>
+      r.some(v => (v||"").toString().trim()!=="")
+    );
 
-  const estado = (saveRes && saveRes.estado) || "constante";
-  if (estado === "constante"){
-    toast("✅ No hubo cambios (estado: constante)");
-    state.dirty = false;
-    render();
-    return; // No confirm → no BOBO
-  }
-
-  // 3) Confirmar (marca F/G y dispara BOBO)
-  try{
-    await apiConfirmBBDD(email);
-    toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
-  }catch(err){
-    toast("Error en confirmación: " + err.message, false);
-    return;
-  }
-
-  // 4) Cerrar / volver
-  setTimeout(()=>{
-    if(window.BBDD_MODE==="modal"){
-      closeOverlay();
-      if(confirm("¿Volver al Dashboard?")) location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
-    }else{
-      location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+    // 2) Guardar en servidor (decide estado y escribe Setup!E14)
+    let saveRes;
+    try {
+      saveRes = await apiSaveBBDD(email, rows); // { ok, estado, ... }
+    } catch (err) {
+      toast("Error al guardar: " + err.message, false);
+      return; // <- el finally re-activa el botón
     }
-  }, 400);
+
+    const estado = (saveRes && saveRes.estado) || "constante";
+    if (estado === "constante"){
+      toast("✅ No hubo cambios (estado: constante)");
+      state.dirty = false;
+      // No re-render masivo aquí para no perder foco; sólo ocultá el dot:
+      const dot = document.querySelector("#dirty-indicator");
+      if (dot) dot.classList.add("hidden");
+      return; // <- no confirm → no BOBO
+    }
+
+    // 3) Confirmar (marca F/G y dispara BOBO)
+    try {
+      await apiConfirmBBDD(email);
+      toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
+    } catch (err) {
+      toast("Error en confirmación: " + err.message, false);
+      return;
+    }
+
+    // 4) Cerrar / volver
+    setTimeout(()=>{
+      if(window.BBDD_MODE==="modal"){
+        closeOverlay();
+        if(confirm("¿Volver al Dashboard?")){
+          location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+        }
+      } else {
+        location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+      }
+    }, 400);
+
+  } finally {
+    // END loading UI (se ejecuta SIEMPRE, incluso si hubo return/throw)
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    btn.removeAttribute("aria-busy");
+  }
 }
 
 /* ====== Clipboard paste ====== */
