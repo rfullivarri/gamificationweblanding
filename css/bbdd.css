@@ -240,3 +240,12 @@ html,body{ font-family:"Inter", ui-sans-serif, system-ui, -apple-system, Segoe U
 #bbdd-ai.btn:hover{ background: rgba(125,60,255,.28); }
 
 
+.btn.loading { opacity: .7; cursor: wait; position: relative; }
+.btn.loading::after{
+  content: ""; position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: translateY(-50%) rotate(360deg); } }
+
+
