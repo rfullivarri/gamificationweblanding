@@ -282,3 +282,49 @@ html,body{
   box-shadow: 0 1px 0 rgba(255,255,255,.04);
 }
 
+
+
+
+
+
+//========ULTIMO===================
+
+/* === Blur sutil en panel y header === */
+.bbdd-panel {
+  background: linear-gradient(180deg, rgba(18,22,45,0.75), rgba(12,16,35,0.75));
+  border: 1px solid rgba(122,134,255,0.18);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.bbdd-header {
+  background: linear-gradient(180deg, rgba(22,27,62,.75), rgba(16,21,48,.55));
+  border-bottom: 1px solid rgba(122,134,255,0.16);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+/* === Blur también en la barra de herramientas (con filtro/AI) === */
+.bbdd-tools {
+  background: rgba(16, 20, 38, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 8px;
+  padding: 10px 16px;
+}
+
+/* === Scrollbar más discreto (oscuro y cuadrado) === */
+.bbdd-table-wrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.bbdd-table-wrap::-webkit-scrollbar-track {
+  background: rgba(20, 22, 35, 0.4);
+}
+.bbdd-table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(90, 105, 214, 0.6);
+  border-radius: 4px;
+}
+.bbdd-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(125, 60, 255, 0.8);
+}
