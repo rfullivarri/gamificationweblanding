@@ -234,6 +234,18 @@ function onDrop(e){
   markDirty(); render();
 }
 
+/*====HELPERS=====*/
+function setTableLoading(on){
+  qs("#table-wrap").classList.toggle("table-loading", on);
+  qs("#table-spinner").style.display = on ? "block" : "none";
+}
+
+function aiLoading(on){
+  qs("#ai-sparkle").style.display = on ? "block" : "none";
+}
+
+
+
 /* ====== Actions ====== */
 function currentVisibleRows(){
   // devuelve matriz A-E (ignora feedback para guardar)
@@ -292,6 +304,8 @@ async function doConfirm(){
     // 3) Confirmar (marca F/G y dispara BOBO)
     try {
       await apiConfirmBBDD(email);
+      state.dirty = false;    
+      render();             
       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
     } catch (err) {
       toast("Error en confirmación: " + err.message, false);
@@ -424,6 +438,7 @@ async function init(){
   
 
   // load data
+  setTableLoading(true);
   try{
     const { rows } = await apiGetBBDD(email);
     // extendemos con slot para feedback
@@ -432,7 +447,7 @@ async function init(){
     render();
   }catch(err){
     toast("Error cargando BBDD: " + err.message, false);
-  }
+  } finally {  setTableLoading(false);}
 }
 
 if(document.readyState!=="loading") init();
