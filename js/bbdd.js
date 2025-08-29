@@ -1,7 +1,7 @@
-
-
 /* ====== Config ====== */
-const API_BASE = "/api"; // cambia esto a tu WebApp/Worker cuando quieras
+// PRODUCCIÓN: apuntá al Worker
+const API_BASE = "https://gamificationbbddedit.rfullivarri22.workers.dev/api";
+const PROXY_KEY = "bbddconfig2332"; // misma que pusiste en el Worker
 const DASHBOARD_URL = "https://rfullivarri.github.io/gamificationweblanding/dashboardv3.html";
 
 /* ====== Catálogos ====== */
@@ -58,52 +58,20 @@ let state = {
 
 
 
-// ==== MODO MOCK (quitar cuando conectes backend) ========================================================
-const USE_MOCK = !location.href.includes("useRealApi=1"); // poné ?useRealApi=1 para usar el backend real
-const MOCK_KEY = "gj_bbdd_mock_" + (email || "anon");
-
-async function mockGet() {
-  let data = JSON.parse(localStorage.getItem(MOCK_KEY) || "null");
-  if (!data) {
-    data = {
-      rows: [
-        ["Body","Energía","Ejercicio","Caminar 10 minutos","Fácil"],
-        ["Mind","Enfoque","Productividad","Planificar el día","Fácil"],
-        ["Soul","Conexión","Relaciones","Enviar un mensaje a un amigo","Fácil"]
-      ]
-    };
-    localStorage.setItem(MOCK_KEY, JSON.stringify(data));
-  }
-  return data;
-}
-async function mockPut(rows) {
-  localStorage.setItem(MOCK_KEY, JSON.stringify({ rows }));
-  return { ok: true };
-}
-async function mockConfirm() { return { ok: true }; }
-
-// Reemplazar APIs si estás en MOCK
-if (USE_MOCK) {
-  apiGetBBDD = async () => mockGet();
-  apiSaveBBDD = async (_email, rows) => mockPut(rows);
-  apiConfirmBBDD = async () => mockConfirm();
-  console.log("[BBDD] Usando modo MOCK (localStorage). Agregá ?useRealApi=1 para usar el backend real.");
-}
-//===============================================================================================================
-
 
 /* ====== API (adaptable a tu WebApp actual) ====== */
 async function apiGetBBDD(email){
-  const r = await fetch(`${API_BASE}/bbdd?email=${encodeURIComponent(email)}`, {credentials:"include"});
+  const r = await fetch(`${API_BASE}/bbdd?email=${encodeURIComponent(email)}`, {
+    credentials:"include",
+    headers: { "X-Proxy-Key": PROXY_KEY }
+  });
   if(!r.ok) throw new Error("Error al cargar BBDD");
-  const js = await r.json();
-  // Esperado: { rows: [ ["Body","Energía","Ejercicio","Caminar 10 minutos","Fácil"], ... ] }
-  return js;
+  return r.json();
 }
 async function apiSaveBBDD(email, rows){
   const r = await fetch(`${API_BASE}/bbdd`, {
-    method:"PUT",
-    headers:{ "Content-Type":"application/json" },
+    method:"POST",
+    headers:{ "Content-Type":"application/json", "X-Proxy-Key": PROXY_KEY },
     body: JSON.stringify({ email, rows })
   });
   if(!r.ok) throw new Error("Error al guardar BBDD");
@@ -112,7 +80,7 @@ async function apiSaveBBDD(email, rows){
 async function apiConfirmBBDD(email){
   const r = await fetch(`${API_BASE}/bbdd/confirm`, {
     method:"POST",
-    headers:{ "Content-Type":"application/json" },
+    headers:{ "Content-Type":"application/json", "X-Proxy-Key": PROXY_KEY },
     body: JSON.stringify({ email })
   });
   if(!r.ok) throw new Error("Error al confirmar cambios");
@@ -141,7 +109,6 @@ function render(){
       <td>${feedbackButtons(row[5]||"")}</td>
       <td class="row-actions">
         <span class="handle" title="Arrastrar">⋮⋮</span>
-        <button class="mini" data-act="dup">Duplicar</button>
         <button class="mini" data-act="del">Eliminar</button>
       </td>
     `;
@@ -165,8 +132,10 @@ function selectPilar(val){
   const html = opts.map(o => `<option ${o===val?"selected":""}>${o}</option>`).join("");
   return `<select data-col="0">${html}</select>`;
 }
-function selectRasgo(val){
-  const opts = Array.from(new Set([val, ...RASGOS_COMBO])).filter(Boolean);
+function selectRasgo(val, pilarActual){
+  const p = normPilar(pilarActual||"");
+  const base = RASGOS_POR_PILAR[p] || [];
+  const opts = Array.from(new Set([val, ...base])).filter(Boolean);
   const html = opts.map(o => `<option ${o===val?"selected":""}>${o}</option>`).join("");
   return `<select data-col="1">${html}</select>`;
 }
@@ -180,13 +149,11 @@ function inputText(val, placeholder){
   return `<input class="input" data-col="2or3" placeholder="${placeholder}" value="${v}"/>`.replace("2or3", placeholder==="Stats"?"2":"3");
 }
 function feedbackButtons(current){
-  // estados: "like" | "meh" | "dislike" | ""
-  const is = (k)=> current===k ? "active" : "";
+  const is = k => current===k ? "active" : "";
   return `
     <div class="feedback" data-col="5">
-      <button data-fb="like" class="${is("like")}">👍</button>
-      <button data-fb="meh" class="${is("meh")}">😐</button>
-      <button data-fb="dislike" class="${is("dislike")}">👎</button>
+      <button data-fb="improve" class="${is("improve")}" title="Mejorar esta task">🪄</button>
+      <button data-fb="replace" class="${is("replace")}" title="Modificar esta task">🔁</button>
     </div>
   `;
 }
@@ -214,16 +181,16 @@ function onRowClick(e){
   const t = e.target;
 
   if(t.closest(".feedback")){
-    const fb = t.dataset.fb;
+    const fb = t.dataset.fb; // "improve" o "replace"
     if(!fb) return;
     const box = t.closest(".feedback");
-    state.rows[idx][5] = fb;
-    // toggle UI
+    // idx = número de fila actual (seguro ya lo calculás arriba)
+    state.rows[idx][5] = fb; // guardamos el estado en la columna Feedback
     box.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
     t.classList.add("active");
     markDirty();
     return;
-  }
+}
 
   if(t.dataset.act === "dup"){
     const copy = [...state.rows[idx]];
@@ -350,6 +317,15 @@ async function init(){
   qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
   qs("#paste-rows").addEventListener("click", pasteFromClipboard);
   qs("#search").addEventListener("input", onFilter);
+  
+  document.getElementById("bbdd-ai").addEventListener("click", ()=>{
+    const marcadas = state.rows.filter(r => r[5]==="improve" || r[5]==="replace");
+    if(!marcadas.length){
+      alert("Seleccioná al menos una task con feedback 🪄 o 🔁");
+      return;
+    }
+    console.log("Tasks seleccionadas para AI:", marcadas);
+  });
 
   // load data
   try{
