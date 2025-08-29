@@ -328,3 +328,126 @@ html,body{
 .bbdd-table-wrap::-webkit-scrollbar-thumb:hover {
   background: rgba(125, 60, 255, 0.8);
 }
+
+//******************************************************************************/
+//BARRA COMO ME GUSTA
+/* === Tabla: wrapper scrolleable (necesario para sticky) === */
+#table-wrap{
+  position: relative;
+  overflow: auto;
+  max-height: 60vh;           /* ajustá si querés más alto/bajo */
+  border-radius: 14px;
+}
+
+/* === Tabla + header con degradé y sticky === */
+#bbdd-table{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 14px;
+  overflow: hidden;           /* recorta puntas del header */
+}
+
+#bbdd-table thead th{
+  position: sticky;
+  top: 0;                     /* <- se “frena” arriba del wrapper */
+  z-index: 3;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, rgba(44,52,106,.85), rgba(26,31,68,.88)) !important;
+  color: #dbe0ff;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+  border-bottom: 1px solid rgba(122,134,255,.22);
+  border-right: 1px solid rgba(122,134,255,.10);
+}
+#bbdd-table thead th:first-child{ border-top-left-radius: 14px; }
+#bbdd-table thead th:last-child{  border-top-right-radius: 14px; border-right: none; }
+
+#bbdd-table tbody tr:hover{ background: rgba(28,34,82,.22); }
+
+
+/*******************************************************************************/
+
+//=======MOVIL===================================/
+/* ====== MOBILE FIX (hasta 768px) ====== */
+@media (max-width: 768px){
+
+  /* que el overlay/panel pueda scrollear todo el contenido */
+  .bbdd-overlay{
+    align-items: stretch;            /* panel ocupa alto completo */
+    padding: 0;
+  }
+  .bbdd-panel{
+    height: 100vh;                   /* usar toda la pantalla */
+    max-height: 100vh;
+    overflow: auto;                  /* scroll general del panel */
+    border-radius: 14px;
+  }
+
+  /* header compacta */
+  .bbdd-header{
+    position: sticky; top: 0; z-index: 20;  /* queda fija arriba */
+    padding: 12px 14px;
+  }
+  .bbdd-header h1{ font-size: 16px; }
+
+  /* tarjeta "IMPORTANTE" más compacta */
+  .gj-info{
+    margin: 12px 12px;
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  /* barra de herramientas en columnas (btn + filtro + AI) */
+  .bbdd-tools{
+    grid-template-columns: 1fr;      /* una sola columna */
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .bbdd-tools .left,
+  .bbdd-tools .center,
+  .bbdd-tools .right{
+    justify-self: stretch;
+  }
+
+  /* >>> La tabla NO tiene scroll interno en mobile */
+  .bbdd-table-wrap{
+    max-height: none;                /* quita límite de alto */
+    overflow: visible;               /* el scroll lo maneja el panel */
+    border-radius: 14px;             /* mantiene curvitas */
+  }
+
+  /* el header sticky de la tabla puede molestar; lo desactivamos en mobile */
+  #bbdd-table thead th{
+    position: static;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* spinner centrado igual funciona, pero dentro del wrap */
+  #table-spinner{
+    position: sticky;                /* permanece visible al cargar */
+    top: 0;
+    border-radius: 14px;
+    margin: 0 12px;
+  }
+
+  /* inputs/botones un poco más grandes para dedo */
+  .input, select{ padding: 10px 12px; border-radius: 12px; }
+  .btn{ padding: 10px 12px; border-radius: 12px; }
+
+  /* curvitas consistentes para no “cuadrar” las puntas */
+  .bbdd-table{ border-radius: 14px; overflow: hidden; }
+  #table-spinner{ border-radius: 14px; }
+}
+
+/* (opcional) scrollbar más discreto en todos los tamaños */
+.bbdd-panel::-webkit-scrollbar,
+.bbdd-table-wrap::-webkit-scrollbar{ width: 8px; height: 8px; }
+.bbdd-panel::-webkit-scrollbar-thumb,
+.bbdd-table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.14);
+  border-radius: 10px;
+}
+
+
