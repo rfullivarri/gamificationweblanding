@@ -254,16 +254,36 @@ async function doSave(){
 }
 
 async function doConfirm(){
-  // guarda si hay cambios antes de confirmar
+  // 1) Construir A–E desde el estado actual (normalizado)
   const rows = currentVisibleRows().filter(r => r.some(v => (v||"").toString().trim()!==""));
-  const newHash = hashRows(rows);
-  if(newHash !== state.origHash){
-    await apiSaveBBDD(email, rows);
-    state.origHash = newHash;
+
+  // 2) Guardar en servidor (decide estado y escribe Setup!E14)
+  let saveRes;
+  try{
+    saveRes = await apiSaveBBDD(email, rows); // { ok, estado, ... }
+  }catch(err){
+    toast("Error al guardar: " + err.message, false);
+    return;
   }
-  await apiConfirmBBDD(email);
-  toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
-  // opción: cerrar y volver al dashboard
+
+  const estado = (saveRes && saveRes.estado) || "constante";
+  if (estado === "constante"){
+    toast("✅ No hubo cambios (estado: constante)");
+    state.dirty = false;
+    render();
+    return; // No confirm → no BOBO
+  }
+
+  // 3) Confirmar (marca F/G y dispara BOBO)
+  try{
+    await apiConfirmBBDD(email);
+    toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
+  }catch(err){
+    toast("Error en confirmación: " + err.message, false);
+    return;
+  }
+
+  // 4) Cerrar / volver
   setTimeout(()=>{
     if(window.BBDD_MODE==="modal"){
       closeOverlay();
