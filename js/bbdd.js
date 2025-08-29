@@ -1,3 +1,5 @@
+
+
 /* ====== Config ====== */
 const API_BASE = "/api"; // cambia esto a tu WebApp/Worker cuando quieras
 const DASHBOARD_URL = "https://rfullivarri.github.io/gamificationweblanding/dashboardv3.html";
@@ -53,6 +55,42 @@ let state = {
   dirty: false,
   filter: "",
 };
+
+
+
+// ==== MODO MOCK (quitar cuando conectes backend) ========================================================
+const USE_MOCK = !location.href.includes("useRealApi=1"); // poné ?useRealApi=1 para usar el backend real
+const MOCK_KEY = "gj_bbdd_mock_" + (email || "anon");
+
+async function mockGet() {
+  let data = JSON.parse(localStorage.getItem(MOCK_KEY) || "null");
+  if (!data) {
+    data = {
+      rows: [
+        ["Body","Energía","Ejercicio","Caminar 10 minutos","Fácil"],
+        ["Mind","Enfoque","Productividad","Planificar el día","Fácil"],
+        ["Soul","Conexión","Relaciones","Enviar un mensaje a un amigo","Fácil"]
+      ]
+    };
+    localStorage.setItem(MOCK_KEY, JSON.stringify(data));
+  }
+  return data;
+}
+async function mockPut(rows) {
+  localStorage.setItem(MOCK_KEY, JSON.stringify({ rows }));
+  return { ok: true };
+}
+async function mockConfirm() { return { ok: true }; }
+
+// Reemplazar APIs si estás en MOCK
+if (USE_MOCK) {
+  apiGetBBDD = async () => mockGet();
+  apiSaveBBDD = async (_email, rows) => mockPut(rows);
+  apiConfirmBBDD = async () => mockConfirm();
+  console.log("[BBDD] Usando modo MOCK (localStorage). Agregá ?useRealApi=1 para usar el backend real.");
+}
+//===============================================================================================================
+
 
 /* ====== API (adaptable a tu WebApp actual) ====== */
 async function apiGetBBDD(email){
