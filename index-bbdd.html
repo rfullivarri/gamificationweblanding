@@ -188,5 +188,43 @@
     });
   })();
 </script>
+  
+<script>
+  (function(){
+    function recalcTableMax(){
+      const header = document.querySelector('.bbdd-header');
+      const tools  = document.querySelector('.bbdd-tools');
+      const footer = document.querySelector('.bbdd-footer');
+  
+      const hHeader = header ? header.offsetHeight : 0;
+      const hTools  = tools  ? tools.offsetHeight  : 0;
+      const hFooter = footer ? footer.offsetHeight : 0;
+  
+      // a) decimos a la barra de herramientas dónde “pegarse”
+      document.documentElement
+        .style.setProperty('--sticky-tools-top', hHeader + 'px');
+  
+      // b) calculamos el alto libre para la tabla
+      const padding = 24; // respirito total aprox.
+      const available = Math.max(
+        200,
+        window.innerHeight - (hHeader + hTools + hFooter + padding)
+      );
+      document.documentElement
+        .style.setProperty('--table-max', available + 'px');
+    }
+  
+    // correr al inicio y cuando cambia el tamaño
+    window.addEventListener('load', recalcTableMax);
+    window.addEventListener('resize', recalcTableMax);
+  
+    // por si cambian alturas (fuentes, toasts, etc.), ajuste suave
+    let raf;
+    new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(recalcTableMax);
+    }).observe(document.body);
+  })();
+</script>
 </body>
 </html>
