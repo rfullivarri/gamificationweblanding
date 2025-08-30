@@ -1115,6 +1115,7 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
     targetEl.appendChild(pop);
 
     // posicionamiento básico debajo del chip
+  
     function place(){
       // mostrar temporalmente para medir
       pop.style.visibility = 'hidden';
