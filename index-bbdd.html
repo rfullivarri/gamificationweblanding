@@ -73,6 +73,7 @@
             <col class="col-task" />
             <col class="col-dificultad" />
             <col class="col-feedback" />
+            <col class="col-eliminar" />
           </colgroup>
                     
           <thead>
@@ -152,14 +153,15 @@
 <style id="bbdd-hotfix">
   /* ===== Variables (una sola fuente de verdad) ===== */
   :root{
-    --col-gap: 8px;            /* separación entre columnas */
+    --col-gap: 5px;            /* separación entre columnas */
     /* Ajustá estos % si querés. Suman ~100% */
     --w-pilar:        10%;
-    --w-rasgo:        14%;
-    --w-stat:         14%;
+    --w-rasgo:        12%;
+    --w-stat:         12%;
     --w-task:         38%;     /* ↓ bajé Task para darle aire a la derecha */
-    --w-dificultad:   12%;     /* ↑ más ancho para el select */
+    --w-dificultad:   10%;     /* ↑ más ancho para el select */
     --w-feedback:     12%;     /* ↑ más ancho para los 2 botones + eliminar */
+    --w-eliminar:     6%;
   }
 
   /* ===== Overlay + Panel scrolleable ===== */
@@ -213,8 +215,8 @@
   /* ===== Barra 3: BARRA FIJA DE COLUMNAS (usamos ESTA, no thead) ===== */
   .bbdd-columns{
     display:grid !important;           /* aseguro que esté visible */
-    position:sticky; top:var(--columns-top, 100px); z-index:30;
-    grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback);
+    position:sticky; top:var(--columns-top) + 6px); z-index:30;
+    grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar);
     gap:var(--col-gap);
     margin:6px 4px 0;                  /* menos margen lateral = más ancho útil */
     padding:8px 10px;
@@ -226,7 +228,7 @@
   .is-stuck .bbdd-columns{ padding:6px 8px; }  /* modo compacto cuando tools pega */
 
   /* ===== Contenedor de la tabla ===== */
-  .bbdd-table-wrap{ margin:6px 4px 10px; position:relative; }
+  .bbdd-table-wrap{ margin:3px 3px 3px; position:relative; }
 
   /* ===== Tabla + anchos por colgroup (alineado con barra fija) ===== */
   #bbdd-table{
