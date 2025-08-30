@@ -455,3 +455,76 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   .pc .pc-thead{ justify-self:end; order:1; }
   .pc .pc-tcard .pc-progress{ order:2; width:100%; }
 }
+
+
+
+/* === Chips de información (ⓘ) === */
+.info-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(122,134,255,0.6);
+  background: rgba(18,22,45,0.95);   /* fondo sólido */
+  color: #dbe0ff;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.info-chip:hover {
+  background: rgba(125,60,255,0.9);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Para que no se superponga con el título */
+.card-title {
+  position: relative; /* clave para posicionar el chip dentro */
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+/* Pop-up del chip */
+.info-pop {
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  background: rgba(12,16,35,0.95);
+  border: 1px solid rgba(122,134,255,0.35);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #ecedff;
+  font-size: 13px;
+  line-height: 1.4;
+  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  max-width: 280px;
+  z-index: 50;
+}
+
+/* Botón de cierre dentro del pop */
+.info-close {
+  display: inline-block;
+  margin-top: 8px;
+  background: rgba(26,31,68,.8);
+  border: 1px solid rgba(122,134,255,.25);
+  color: #ecedff;
+  font-size: 12px;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.info-close:hover {
+  background: rgba(125,60,255,0.85);
+  color: #fff;
+}
+
