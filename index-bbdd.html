@@ -150,15 +150,16 @@
   })();
 </script>
 <style id="bbdd-hotfix">
-  /* ===== Config común de columnas (1 sola fuente de verdad) ===== */
+  /* ===== Variables (una sola fuente de verdad) ===== */
   :root{
-    --col-gap: 12px;
-    --col1: 110px;   /* Pilares   */
-    --col2: 160px;   /* Rasgo     */
-    --col3: 160px;   /* Stats     */
-    --col4: 1fr;     /* Tasks     */
-    --col5: 120px;   /* Dificultad*/
-    --col6: 120px;   /* Feedback  */
+    --col-gap: 8px;            /* separación entre columnas */
+    /* Ajustá estos % si querés. Suman ~100% */
+    --w-pilar:        10%;
+    --w-rasgo:        14%;
+    --w-stat:         14%;
+    --w-task:         38%;     /* ↓ bajé Task para darle aire a la derecha */
+    --w-dificultad:   12%;     /* ↑ más ancho para el select */
+    --w-feedback:     12%;     /* ↑ más ancho para los 2 botones + eliminar */
   }
 
   /* ===== Overlay + Panel scrolleable ===== */
@@ -173,7 +174,7 @@
   .bbdd-panel{
     width:min(1200px,100%);
     height:min(96dvh,100dvh);
-    overflow:auto; /* ← el panel es el scroller */
+    overflow:auto; /* el panel es el scroller */
     border-radius:14px; border:1px solid rgba(122,134,255,.18);
     background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
     box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
@@ -209,33 +210,48 @@
   .bbdd-tools .center{ display:flex; justify-content:center; }
   .bbdd-tools .right{ display:flex; justify-content:flex-end; gap:10px; }
 
-  /* ===== Barra 3: Columnas fija (sustituye visual al THEAD) ===== */
+  /* ===== Barra 3: BARRA FIJA DE COLUMNAS (usamos ESTA, no thead) ===== */
   .bbdd-columns{
+    display:grid !important;           /* aseguro que esté visible */
     position:sticky; top:var(--columns-top, 100px); z-index:30;
-    display:grid;
-    grid-template-columns: var(--col1) var(--col2) var(--col3) var(--col4) var(--col5) var(--col6);
+    grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback);
     gap:var(--col-gap);
-    margin:8px 16px 0; padding:8px 10px;
+    margin:6px 4px 0;                  /* menos margen lateral = más ancho útil */
+    padding:8px 10px;
     border-radius:12px;
     background: linear-gradient(180deg, rgba(44,52,106,.95), rgba(26,31,68,.95));
     color:#dbe0ff; font-weight:600;
     border-bottom:1px solid rgba(122,134,255,.22);
   }
+  .is-stuck .bbdd-columns{ padding:6px 8px; }  /* modo compacto cuando tools pega */
 
   /* ===== Contenedor de la tabla ===== */
-  .bbdd-table-wrap{ margin:8px 16px 16px; position:relative; }
-  #bbdd-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  .bbdd-table-wrap{ margin:6px 4px 10px; position:relative; }
 
-  /* Ocultamos visualmente el THEAD real, se usa solo para accesibilidad */
+  /* ===== Tabla + anchos por colgroup (alineado con barra fija) ===== */
+  #bbdd-table{
+    width:100%; border-collapse:separate; border-spacing:0;
+    table-layout: fixed; /* clave */
+  }
+  #bbdd-table col.col-pilar      { width: var(--w-pilar); }
+  #bbdd-table col.col-rasgo      { width: var(--w-rasgo); }
+  #bbdd-table col.col-stat       { width: var(--w-stat); }
+  #bbdd-table col.col-task       { width: var(--w-task); }
+  #bbdd-table col.col-dificultad { width: var(--w-dificultad); }
+  #bbdd-table col.col-feedback   { width: var(--w-feedback); }
+
+  /* Ocultamos el THEAD real (accesibilidad sí, visual no) */
   #bbdd-table thead{
     position:absolute !important;
     width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);
     white-space:nowrap;
   }
 
-  /* Celdas alineadas con el grid (gracias al colgroup) */
+  /* Filas (compactas) */
   #bbdd-table tbody td{
-    padding:6px 10px; border-bottom:1px solid rgba(122,134,255,.10);
+    padding:6px 10px;
+    border-bottom:1px solid rgba(122,134,255,.10);
+    vertical-align:middle;
   }
 
   /* Spinner */
@@ -247,107 +263,12 @@
   }
   .bbdd-table-wrap.table-loading #table-spinner{ display:flex; }
 
-  /* Compacto cuando tools quedó pegado (más filas visibles) */
-  .is-stuck .bbdd-tools{ padding:6px 12px; }
-  .is-stuck .bbdd-columns{ padding:6px 8px; }
-
   /* Mobile */
   @media (max-width:768px){
     .bbdd-overlay{ align-items:stretch; padding:0; }
     .bbdd-panel{ width:100%; height:100dvh; border-radius:0; }
     .bbdd-tools{ top:var(--tools-top, 52px); }
   }
-  /* ——— Ganar ancho sin romper el look ——— */
-.bbdd-table-wrap{ 
-  /* antes: margin: 8px 16px 16px; */
-  margin: 8px 8px 12px;     /* ← menos margen lateral */
-}
-
-/* ——— Columnas fijas para que el header coincida con las celdas ——— */
-#bbdd-table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0;
-  table-layout: fixed;                 /* ← clave para alinear */
-}
-
-/* Anchuras pensadas para tu layout; ajustables en 1 línea */
-:root{
-  /* si querés, tocá estos porcentajes hasta que te quede perfecto */
-  --w-pilar:        10%;
-  --w-rasgo:        14%;
-  --w-stat:         14%;
-  --w-task:         42%;   /* la flexible */
-  --w-dificultad:   10%;
-  --w-feedback:     10%;
-}
-
-/* Asignar los anchos al colgroup */
-#bbdd-table col.col-pilar      { width: var(--w-pilar); }
-#bbdd-table col.col-rasgo      { width: var(--w-rasgo); }
-#bbdd-table col.col-stat       { width: var(--w-stat); }
-#bbdd-table col.col-task       { width: var(--w-task); }
-#bbdd-table col.col-dificultad { width: var(--w-dificultad); }
-#bbdd-table col.col-feedback   { width: var(--w-feedback); }
-
-/* Encabezado sticky: pequeño “clearance” para que no quede pisado */
-#bbdd-table thead th{
-  position: sticky;
-  top: var(--thead-top, 100px);
-  z-index: 20;
-  padding: 8px 10px;
-  background: linear-gradient(180deg, rgba(44,52,106,.95), rgba(26,31,68,.95));
-  color:#dbe0ff;
-  border-bottom:1px solid rgba(122,134,255,.22);
-  text-align:left;
-  white-space:nowrap;
-}
-
-/* Filas compactas (opcional, ayuda a ver más) */
-#bbdd-table tbody td{
-  padding:6px 10px;
-  border-bottom:1px solid rgba(122,134,255,.10);
-}
-/* (A) Desactivar la barra duplicada para evitar el “pisado” */
-.bbdd-columns{ display:none !important; }
-
-/* (B) Ganar ancho lateral */
-.bbdd-table-wrap{
-  /* antes: margin: 8px 16px 16px; después lo bajaste a 8px 8px 12px */
-  margin: 6px 4px 10px;           /* ← menos borde a ambos lados */
-}
-
-/* (C) Usar una sola fuente de verdad para anchos de columnas */
-:root{
-  --col-gap: 10px;        /* un poquito menos de gap entre columnas */
-  /* ajustá estos % a gusto; suman ≈100% */
-  --w-pilar:        10%;
-  --w-rasgo:        14%;
-  --w-stat:         14%;
-  --w-task:         40%;   /* ↓ achicamos Task para darle aire a la derecha */
-  --w-dificultad:   12%;   /* ↑ un poco más de ancho */
-  --w-feedback:     10%;
-}
-
-/* Aplicar anchos al <colgroup> */
-#bbdd-table{ table-layout: fixed; }
-#bbdd-table col.col-pilar      { width: var(--w-pilar); }
-#bbdd-table col.col-rasgo      { width: var(--w-rasgo); }
-#bbdd-table col.col-stat       { width: var(--w-stat);  }
-#bbdd-table col.col-task       { width: var(--w-task);  }
-#bbdd-table col.col-dificultad { width: var(--w-dificultad); }
-#bbdd-table col.col-feedback   { width: var(--w-feedback); }
-
-/* Encabezado THEAD: asegurar gap de 2px siempre */
-#bbdd-table thead th{
-  position: sticky;
-  top: var(--thead-top, 100px);
-  z-index: 20;
-  padding: 8px 10px;
-  background: linear-gradient(180deg, rgba(44,52,106,.95), rgba(26,31,68,.95));
-  border-bottom:1px solid rgba(122,134,255,.22);
-  color:#dbe0ff; text-align:left; white-space:nowrap;
-}
 </style>
   
 <script>
