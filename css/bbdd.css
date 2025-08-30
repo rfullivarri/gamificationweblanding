@@ -469,3 +469,95 @@ html,body{
   border-radius: 14px;                  /* curvitas coherentes */
   box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
 }
+
+//===============================ULTIMO ARREGLO====================
+/* ========== BBDD – FIX LAYOUT/SCROLL/STICKY (OVERRIDES) ========== */
+
+/* 1) El panel es un contenedor flex de columna y controla el overflow */
+.bbdd-panel{
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;            /* evita que el contenido se salga del panel */
+}
+
+/* 2) Wrapper de la tabla: crece, scrollea y no se sale del panel (desktop) */
+#table-wrap{
+  flex: 1 1 auto;              /* ocupa el alto libre del panel */
+  min-height: 360px;           /* lienzo para el spinner y primeras filas */
+  max-height: none;            /* lo maneja el flex, no un tope fijo */
+  overflow: auto;              /* el scroll vive acá en desktop */
+  margin: 0 16px 16px;         /* respeta padding visual del panel */
+  border-radius: 14px;
+}
+
+/* 3) thead sticky en desktop dentro del #table-wrap */
+#bbdd-table thead th{
+  position: sticky;
+  top: 0;                      /* se “pega” al borde superior del wrapper */
+  z-index: 3;                  /* por encima de filas y spinner tenue */
+}
+
+/* 4) Spinner centrado sobre la tabla mientras carga */
+#table-spinner{
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 4;                  /* sobre thead, pero no tapa el header */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: rgba(10,12,24,.45);
+  color: var(--ink);
+  font-weight: 600;
+}
+#table-wrap.table-loading #table-spinner{ display:flex; }
+#table-wrap.table-loading #bbdd-table{ filter:blur(1px); opacity:.6; pointer-events:none; }
+
+/* 5) Scrollbar oscuro del wrapper (evita “barra blanca”) */
+#table-wrap::-webkit-scrollbar{ width:10px; height:10px; }
+#table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(122,134,255,.28);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+#table-wrap::-webkit-scrollbar-track{ background: transparent; }
+
+/* 6) Overlay con blur más fuerte para no distraer */
+.bbdd-overlay{
+  background: rgba(8,12,28,.55);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+}
+
+/* 7) MOBILE: scrollea TODO el panel; la tabla NO tiene scroll propio */
+@media (max-width: 768px){
+  .bbdd-overlay{
+    align-items: stretch;      /* panel ocupa toda la pantalla */
+    padding: 0;
+  }
+  .bbdd-panel{
+    height: 100vh;
+    max-height: 100vh;
+    overflow: auto;            /* el scroll general vive en el panel */
+    border-radius: 0;
+  }
+
+  /* el wrapper deja de scrollear; solo actúa como contenedor visual */
+  #table-wrap{
+    flex: 0 0 auto;
+    max-height: none;
+    overflow: visible;
+    margin: 0 12px 12px;
+    border-radius: 14px;
+  }
+
+  /* thead sticky en móvil respecto del viewport del panel */
+  #bbdd-table thead th{
+    position: sticky;
+    top: 0;                    /* queda pegado arriba al scrollear el panel */
+    z-index: 5;
+  }
+}
