@@ -561,3 +561,50 @@ html,body{
     z-index: 5;
   }
 }
+
+/* ====== STICKY LAYOUT EN DESKTOP ====== */
+@media (min-width: 769px){
+  /* Header fijo arriba */
+  .bbdd-header{
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+
+  /* Barra de herramientas fija debajo del header */
+  .bbdd-tools{
+    position: sticky;
+    top: var(--sticky-tools-top, 64px); /* la ajustamos por JS */
+    z-index: 39;
+    background: rgba(16, 20, 38, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(122,134,255,.16);
+  }
+
+  /* La tarjeta “IMPORTANTE” NO es sticky: se va al scrollear */
+  .gj-info{ position: relative; }
+
+  /* La tabla no se sale del contenedor y usa todo el alto disponible */
+  #table-wrap{
+    max-height: var(--table-max, 60vh); /* lo ajusta JS según viewport */
+    overflow: auto;
+  }
+
+  /* Header de la tabla pegado dentro del wrapper */
+  #bbdd-table thead th{
+    position: sticky;
+    top: 0;
+    z-index: 3;
+  }
+}
+
+/* Scrollbar oscuro y discreto (por si tu sistema lo muestra) */
+#table-wrap::-webkit-scrollbar{ width:10px; height:10px; }
+#table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(122,134,255,.28);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+#table-wrap::-webkit-scrollbar-track{ background: transparent; }
