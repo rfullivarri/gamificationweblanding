@@ -822,3 +822,99 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   .gj-constancy-card h2.section-title { font-size: var(--fs-sm); }
 }
 
+/* ===================== OVERRIDE FINAL — DOPAMINE PILLAR CARD ===================== */
+/* Scope seguro */
+.pc-card.gj-constancy-card { display:block; width:100%; max-width:100%; box-sizing:border-box; }
+
+/* Tipografías y espacios más compactos por defecto */
+.gj-constancy-card{
+  container-type:inline-size;
+  --fs-xxs: clamp(.60rem, .56rem + .18cqw, .72rem);
+  --fs-xs:  clamp(.72rem, .66rem + .22cqw, .86rem);
+  --fs-sm:  clamp(.84rem, .76rem + .28cqw, .98rem);
+  --fs-md:  clamp(.94rem, .86rem + .30cqw, 1.08rem);
+  --space-1: clamp(.25rem, .20rem + .20cqw, .50rem);
+  --space-2: clamp(.50rem, .44rem + .28cqw, .70rem);
+  --space-3: clamp(.70rem, .60rem + .38cqw, .95rem);
+}
+
+/* -------- RACHAS (arriba) -------- */
+/* Grid donde el título usa todo el ancho hasta el 🔥 */
+.gj-constancy-card .streak-item{
+  display:grid;
+  grid-template-columns: 1fr auto;           /* título crece / fueguito a la derecha */
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-radius:14px;
+  background: rgba(17,20,33,.82);
+}
+.gj-constancy-card .streak-item .title{
+  font-size:var(--fs-sm);
+  font-weight:600;
+  line-height:1.2;
+  min-width:0;                               /* permite quebrar texto largo */
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.gj-constancy-card .streak-item .streak-badge{
+  font-size:var(--fs-xs);
+  align-self:start;
+  white-space:nowrap;
+}
+.gj-constancy-card .streak-item .meta{
+  grid-column:1 / -1;                        /* chips debajo del título */
+  display:flex; flex-wrap:wrap; gap:.4rem;
+}
+.gj-constancy-card .chip{ padding:.32em .55em; font-size:var(--fs-xxs); line-height:1; border-radius:999px; }
+.gj-constancy-card .progress{ grid-column:1 / -1; height:clamp(8px, 6px + .35cqw, 11px); border-radius:999px; background:rgba(90,95,120,.35); position:relative; overflow:hidden; }
+.gj-constancy-card .progress>.bar{ height:100%; width:var(--value,0%); background:linear-gradient(90deg,#9a5dff,#b67bff); }
+.gj-constancy-card .progress>.label{ position:absolute; inset:0; display:grid; place-items:center; font-size:var(--fs-xxs); font-weight:700; color:#f6f3ff; }
+
+/* En contenedor angosto (típico 13" al 100%) ocultamos Stat: para ganar aire */
+@container (max-width: 1100px){
+  .gj-constancy-card .chip.stat{ display:none; }
+  .gj-constancy-card h2.section-title{ font-size:var(--fs-sm); }
+}
+
+/* -------- TABLA / LISTA (abajo) — dos niveles por fila -------- */
+/* Sin scroll horizontal: el nombre quiebra, la barra baja y ocupa 100% */
+.gj-constancy-card .task-table{ background:rgba(17,20,33,.82); border-radius:14px; padding:var(--space-2); }
+.gj-constancy-card .task-row{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) auto; /* 1) arriba: TAREA | XP */
+  grid-auto-rows:auto;
+  gap:.45rem .8rem;
+  align-items:center;
+  padding:.55rem 0;
+  border-bottom:1px solid rgba(140,150,200,.08);
+}
+.gj-constancy-card .task-row:last-child{ border-bottom:0; }
+
+.gj-constancy-card .task-row > *{ min-width:0; }      /* permite contraer sin overflow */
+.gj-constancy-card .task-row .name{
+  font-size:var(--fs-sm);
+  line-height:1.2;
+  word-break:break-word;
+  overflow-wrap:anywhere;
+}
+.gj-constancy-card .task-row .xp{
+  font-size:var(--fs-xxs);
+  font-weight:800;
+  white-space:nowrap;
+  padding:.08em .35em;
+  border-radius:8px;
+  background: rgba(125,60,255,.18);
+  color:#e6d6ff;
+}
+
+/* 2) abajo: la barra ocupa todo el ancho */
+.gj-constancy-card .task-row .weekly{
+  grid-column:1 / -1;                          /* barra en la segunda línea */
+}
+.gj-constancy-card .task-row .weekly .progress{ height:clamp(8px, 6px + .30cqw, 10px); }
+.gj-constancy-card .task-row .weekly .label{ font-size:var(--fs-xxs); }
+
+/* Nunca scroll horizontal en la card */
+.gj-constancy-card, .gj-constancy-card *{ box-sizing:border-box; }
+.gj-constancy-card .task-table{ overflow-x:clip; }
+
