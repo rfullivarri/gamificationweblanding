@@ -215,7 +215,7 @@
   /* ===== Barra 3: BARRA FIJA DE COLUMNAS (usamos ESTA, no thead) ===== */
   .bbdd-columns{
     display:grid !important;           /* aseguro que esté visible */
-    position:sticky; top:var(--columns-top, 107px); z-index:30;     /*///ACAAAAAAA*/
+    position:sticky; top:var(--columns-top, 100px); z-index:35;     /*///ACAAAAAAA*/
     grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar);
     gap:var(--col-gap);
     margin:6px 4px 0;                  /* menos margen lateral = más ancho útil */
@@ -228,7 +228,7 @@
   .is-stuck .bbdd-columns{ padding:6px 8px; }  /* modo compacto cuando tools pega */
 
   /* ===== Contenedor de la tabla ===== */
-  .bbdd-table-wrap{ margin:13px 3px 3px; position:relative; }
+  .bbdd-table-wrap{ margin:13px 1px 1px 1px; position:relative; }
 
   /* ===== Tabla + anchos por colgroup (alineado con barra fija) ===== */
   #bbdd-table{
