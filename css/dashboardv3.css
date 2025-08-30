@@ -696,3 +696,87 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 /* desactiva el sistema viejo (hover) si aún existiera */
 .pc .pc-info-bubble{ display:none !important; }
+
+/* ===== PCARD – FIXES RESPONSIVE + SIN SCROLL HORIZONTAL ================== */
+
+/* 1) Lista en grid: 3 columnas + barra ocupa ancho disponible */
+.pc .pc-list{
+  overflow-x: hidden;          /* adiós scroll horizontal */
+  padding-right: 10px;         /* respirito en borde derecho */
+}
+.pc .pc-row{
+  display: grid;
+  grid-template-columns: 1fr min-content minmax(120px, 38%);
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+}
+.pc .pc-row .pc-right{ justify-self: end; }
+.pc .pc-progress{ width: 100%; }     /* la barra se adapta al grid */
+.pc .pc-progress-fill{ max-width: 100%; }
+
+/* 2) Header “TAREA · XP · SEMANAL” visible y sticky dentro de la lista */
+.pc .pc-row.pc-label{
+  position: sticky; top: 0; z-index: 2;
+  background: rgba(255,255,255,.04);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.pc .pc-row.pc-label > div{
+  font-weight: 700; letter-spacing: .02em; opacity: .95;
+}
+
+/* 3) Tipografías y densidad para viewports chicos (≤ 1280px/1100px/1024px) */
+@media (max-width: 1280px){
+  .pc .pc-list{ font-size: 14px; }
+  .pc .pc-row{ gap: 10px; }
+  .pc .pc-progress-label{ font-size: 12px; }
+}
+@media (max-width: 1100px){
+  :root{ --pc-progress-h-list: 14px; }
+  .pc .pc-list{ font-size: 13.5px; }
+}
+@media (max-width: 1024px){
+  .pc .pc-row{
+    grid-template-columns: 1fr min-content minmax(110px, 42%);
+  }
+}
+
+/* 4) Top-3 en racha: título usa todo el renglón y no salta de línea al pedo */
+.pc .pc-top3{ display: grid; gap: 12px; }
+.pc .pc-tcard{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title streak"
+    "chips streak"
+    "bar   bar";
+  align-items: center;
+  gap: 8px 10px;
+}
+.pc .pc-tname{
+  grid-area: title;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-right: 8px;
+}
+.pc .pc-thead{ grid-area: streak; margin-left: 8px; }
+.pc .pc-chips-inline{ grid-area: chips; display: flex; gap: 6px; flex-wrap: wrap; }
+.pc .pc-progress{ grid-area: bar; }
+
+/* Chips y badges más compactos para que no rompan el alto */
+.pc .pc-chip, .pc .pc-xp-small{
+  font-size: 12px; line-height: 1; padding: 4px 8px;
+}
+
+/* 5) Respeto de padding derecho en la card (evita “pegado” al borde) */
+.pc-card{ padding-right: 16px; }
+
+/* 6) Info-chip de Constancia: compatible con los otros (ya tenés JS fixed) */
+.pc .pc-info{ position: relative; }
+.pc .pc-info .info-chip{
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1px solid rgba(122,134,255,.4);
+  background: #1a2042; color: #e8eaff; font-weight: 700;
+}
+.pc .pc-info .info-chip:hover{ background:#7d3cff; color:#fff; }
