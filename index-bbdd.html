@@ -27,7 +27,7 @@
         🎯 Mejor: “Preparar una comida saludable” o “Meditar 10 minutos”.<br/>
         ♻️ Ideal si podés repetirlas cada semana.
         <div class="legend">
-          <span>✨ Mejorar: pulir esta misma task</span>
+          <span>🪄 Mejorar: pulir esta misma task</span>
           <span>🔁 Modificar: proponer una distinta manteniendo Pilar/Rasgo/Stat/Dificultad</span>
         </div>
       </section>
@@ -67,12 +67,12 @@
       
         <table id="bbdd-table" class="bbdd-table" aria-label="Tabla BBDD">
           <colgroup>
-            <col style="width:var(--col1);" />
-            <col style="width:var(--col2);" />
-            <col style="width:var(--col3);" />
-            <col style="width:var(--col4);" />
-            <col style="width:var(--col5);" />
-            <col style="width:var(--col6);" />
+            <col class="col-pilar" />
+            <col class="col-rasgo" />
+            <col class="col-stat" />
+            <col class="col-task" />
+            <col class="col-dificultad" />
+            <col class="col-feedback" />
           </colgroup>
                     
           <thead>
@@ -257,6 +257,57 @@
     .bbdd-panel{ width:100%; height:100dvh; border-radius:0; }
     .bbdd-tools{ top:var(--tools-top, 52px); }
   }
+  /* ——— Ganar ancho sin romper el look ——— */
+.bbdd-table-wrap{ 
+  /* antes: margin: 8px 16px 16px; */
+  margin: 8px 8px 12px;     /* ← menos margen lateral */
+}
+
+/* ——— Columnas fijas para que el header coincida con las celdas ——— */
+#bbdd-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  table-layout: fixed;                 /* ← clave para alinear */
+}
+
+/* Anchuras pensadas para tu layout; ajustables en 1 línea */
+:root{
+  /* si querés, tocá estos porcentajes hasta que te quede perfecto */
+  --w-pilar:        10%;
+  --w-rasgo:        14%;
+  --w-stat:         14%;
+  --w-task:         42%;   /* la flexible */
+  --w-dificultad:   10%;
+  --w-feedback:     10%;
+}
+
+/* Asignar los anchos al colgroup */
+#bbdd-table col.col-pilar      { width: var(--w-pilar); }
+#bbdd-table col.col-rasgo      { width: var(--w-rasgo); }
+#bbdd-table col.col-stat       { width: var(--w-stat); }
+#bbdd-table col.col-task       { width: var(--w-task); }
+#bbdd-table col.col-dificultad { width: var(--w-dificultad); }
+#bbdd-table col.col-feedback   { width: var(--w-feedback); }
+
+/* Encabezado sticky: pequeño “clearance” para que no quede pisado */
+#bbdd-table thead th{
+  position: sticky;
+  top: var(--thead-top, 100px);
+  z-index: 20;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, rgba(44,52,106,.95), rgba(26,31,68,.95));
+  color:#dbe0ff;
+  border-bottom:1px solid rgba(122,134,255,.22);
+  text-align:left;
+  white-space:nowrap;
+}
+
+/* Filas compactas (opcional, ayuda a ver más) */
+#bbdd-table tbody td{
+  padding:6px 10px;
+  border-bottom:1px solid rgba(122,134,255,.10);
+}
 </style>
   
 <script>
@@ -287,49 +338,46 @@
 </script>
   
 <script>
-  /* Sticky correcto del THEAD compensando TIP + margin del contenedor */
+  /* Sticky THEAD: compensa TIP, márgenes del wrap y agrega un pequeño clearance */
   (function () {
     const panel     = document.querySelector('.bbdd-panel');
     const header    = document.querySelector('.bbdd-header');
     const tools     = document.querySelector('.bbdd-tools');
     const tableWrap = document.querySelector('.bbdd-table-wrap');
   
+    // Ajuste fino para evitar "pisado" visual (1–2 px)
+    const CLEARANCE = 2;
+  
     let S = { hH: 56, hT: 44, gap: 0, mTop: 0 };
   
-    function numberPx(v){
-      const n = parseFloat(v || '0');
-      return isNaN(n) ? 0 : n;
-    }
+    const px = v => (isNaN(parseFloat(v)) ? 0 : parseFloat(v));
   
     function measure() {
       const hH = header ? header.getBoundingClientRect().height : 56;
       const hT = tools  ? tools.getBoundingClientRect().height  : 44;
   
-      // Distancia entre bottom del header y top de tools.
       const rectH = header.getBoundingClientRect();
       const rectT = tools .getBoundingClientRect();
       const gap   = Math.max(0, rectT.top - rectH.bottom);
   
-      // Margen superior real del contenedor de tabla (para que el thead no "flote").
-      const cs = tableWrap ? getComputedStyle(tableWrap) : null;
-      const mTop = cs ? numberPx(cs.marginTop) : 0;
+      const cs    = tableWrap ? getComputedStyle(tableWrap) : null;
+      const mTop  = cs ? px(cs.marginTop) : 0;
   
       S = { hH, hT, gap, mTop };
   
-      // Tools pegado justo bajo header
+      // tools pegado justo bajo header
       document.documentElement.style.setProperty('--tools-top', hH + 'px');
     }
   
     function applyTheadTop(stuck) {
-      // Encabezado debe quedar pegado a tools:
-      //   cuando TIP visible: hH + gap + hT
-      //   cuando tools pegado: hH + hT
-      //   menos el margin-top del wrap, para que coincida con el borde superior de la tabla
-      const top = S.hH + S.hT + (stuck ? 0 : S.gap) - S.mTop;
+      // Cuando TIP está visible: header + gap + tools
+      // Cuando tools ya está pegado: header + tools
+      // Restamos margin-top del wrap y sumamos CLEARANCE para que no se "coma" el borde
+      const top = S.hH + S.hT + (stuck ? 0 : S.gap) - S.mTop + CLEARANCE;
       document.documentElement.style.setProperty('--thead-top', Math.max(0, top) + 'px');
     }
   
-    // Sentinel para saber cuándo tools queda "stuck"
+    // Sentinel para detectar cuando tools está pegado
     const sentinel = document.createElement('div');
     sentinel.style.height = '1px';
     tools.before(sentinel);
@@ -340,19 +388,12 @@
       applyTheadTop(stuck);
     }, { root: panel, threshold: 1 });
   
-    function rerender() {
-      measure();
-      applyTheadTop(panel.classList.contains('is-stuck'));
-    }
-  
+    function rerender() { measure(); applyTheadTop(panel.classList.contains('is-stuck')); }
     function init() {
       measure();
       io.observe(sentinel);
-      applyTheadTop(false); // estado inicial: TIP visible
-      // Ajustes extra por si cambian fuentes/alto de elementos
-      if (document.fonts && document.fonts.ready) {
-        document.fonts.ready.then(rerender);
-      }
+      applyTheadTop(false);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(rerender);
       requestAnimationFrame(rerender);
       setTimeout(rerender, 0);
     }
