@@ -600,32 +600,164 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 }
 
 
-//======================================================
-/* Contenedor general: padding simétrico y sin scroll horizontal */
-.pc-card{ padding:14px; overflow-x:hidden; }
 
-/* ------------------------------ RESPONSIVE ---------------------------- */
-@media (max-width:1280px){
-  .pc .pc-row{
-    grid-template-columns: 1fr 56px minmax(130px,42%);
-  }
-  .pc .pc-progress{ height:10px } /* un pelín más alta para legibilidad */
+
+
+
+//=========================================================================================================
+
+/* === SCOPE: sólo afecta adentro de .gj-constancy-card === */
+.gj-constancy-card {
+  container-type: inline-size;                /* habilita cqw/cqi (escala por ancho real de la card) */
+  --fs-xxs: clamp(.68rem, .64rem + .2cqw, .78rem);
+  --fs-xs:  clamp(.78rem, .72rem + .25cqw, .9rem);
+  --fs-sm:  clamp(.9rem,  .82rem + .35cqw, 1.05rem);
+  --fs-md:  clamp(1.0rem, .9rem  + .4cqw,  1.15rem);
+  --fs-lg:  clamp(1.05rem,.95rem + .45cqw, 1.25rem);
+
+  --space-1: clamp .25rem, .2rem + .2cqw, .5rem;
+  --space-2: clamp .5rem,  .45rem + .3cqw, .75rem;
+  --space-3: clamp .75rem, .6rem + .4cqw,  1rem;
+
+  --radius-1: 10px;
+  --radius-2: 14px;
+  --chip-bg: rgba(30,38,64,.9);
+  --chip-text: #cfe0ff;
+  --xp-bg: rgba(125,60,255,.18);
+  --xp-text: #e6d6ff;
+
+  /* padding simétrico de la card raíz para evitar márgenes distintos */
+  padding-inline: var(--space-2);
 }
-@media (max-width:1024px){          /* notebooks 13" */
-  .pc .pc-tname{ font-size:clamp(11px,1vw,15px); padding-right:80px }
-  .pc .pc-streak{ top:32px }
-  .pc .pc-row{
-    grid-template-columns: 1fr 52px minmax(120px,46%);
-    gap:10px;
-  }
-  .pc .pc-row.pc-label{ font-size:.9em }
+
+/* ====== Pestañas Body/Mind/Soul (chips superiores) ====== */
+.gj-constancy-card .tabs,
+.gj-constancy-card .pillars,
+.gj-constancy-card .filters { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+
+.gj-constancy-card .tab,
+.gj-constancy-card .pill,
+.gj-constancy-card .chip {
+  font-size: var(--fs-xs);
+  line-height: 1;
+  padding: .5em .8em;
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--chip-text);
+  display: inline-flex; align-items: center; gap: .5em;
+  white-space: nowrap;
 }
-@media (max-width:768px){           /* mobile / landscape */
-  .pc .pc-tname{ font-size:clamp(15px,4.2vw,18px); padding-right:72px }
-  .pc .pc-row{
-    grid-template-columns: 1fr 48px minmax(110px,50%);
-    gap:8px;
-  }
-  .pc .pc-progress{ height:8px }
+
+/* ====== Sección título “Tareas con racha de constancia” ====== */
+.gj-constancy-card .card-title,
+.gj-constancy-card h2.section-title {
+  font-size: var(--fs-md);
+  font-weight: 600;                 /* baja la negrita gigante */
+  letter-spacing: .2px;
+  margin: var(--space-2) 0 var(--space-1);
 }
+
+/* ====== Ítems con racha (las 3 cards superiores) ====== */
+.gj-constancy-card .streak-item {
+  background: rgba(17,20,33,.8);
+  border-radius: var(--radius-2);
+  padding: var(--space-2);
+  display: grid;
+  grid-template-columns: 1fr auto;     /* título a la izq, 🔥 a la derecha */
+  gap: var(--space-2);
+}
+
+.gj-constancy-card .streak-item + .streak-item { margin-top: var(--space-2); }
+
+.gj-constancy-card .streak-item .title {
+  font-size: var(--fs-sm);
+  font-weight: 600;                    /* menos gritón que 700/800 */
+  line-height: 1.2;
+}
+
+.gj-constancy-card .streak-item .meta { 
+  grid-column: 1 / -1;
+  display: flex; gap: var(--space-1); flex-wrap: wrap; align-items: center;
+}
+
+/* chips de XP y Stat */
+.gj-constancy-card .chip.xp   { background: var(--xp-bg); color: var(--xp-text); font-size: var(--fs-xxs); }
+.gj-constancy-card .chip.stat { background: var(--chip-bg); font-size: var(--fs-xxs); }
+
+/* 🔥 streak badge a la derecha */
+.gj-constancy-card .streak-item .streak-badge {
+  font-size: var(--fs-xs);
+  align-self: start; opacity: .9;
+}
+
+/* Barra de progreso consistente (altura fluida) */
+.gj-constancy-card .progress {
+  grid-column: 1 / -1;
+  height: clamp(10px, 7px + .6cqw, 14px);
+  border-radius: 999px;
+  background: rgba(90,95,120,.35);
+  overflow: clip;
+  position: relative;
+}
+.gj-constancy-card .progress > .bar {
+  height: 100%; width: var(--value, 0%);
+  background: linear-gradient(90deg, #9a5dff, #b67bff);
+}
+.gj-constancy-card .progress > .label {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  font-size: var(--fs-xxs); font-weight: 600; color: #f6f3ff;
+}
+
+/* ====== Filtro ====== */
+.gj-constancy-card .filter-input input,
+.gj-constancy-card input[type="search"] {
+  width: 100%;
+  padding: .7em 1em;
+  border-radius: 12px;
+  background: rgba(17,20,33,.75);
+  border: 1px solid rgba(140,150,200,.18);
+  color: #e7ecff;
+  font-size: var(--fs-xs);
+  margin: var(--space-2) 0 var(--space-2);
+}
+
+/* ====== Tabla/listado inferior (TAREA | XP | SEMANAL) ====== */
+.gj-constancy-card .task-table { 
+  background: rgba(17,20,33,.8);
+  border-radius: var(--radius-2);
+  padding: var(--space-2);
+}
+
+.gj-constancy-card .task-row {
+  display: grid;
+  grid-template-columns: 1fr auto minmax(140px, 32%);
+  align-items: center;
+  gap: var(--space-2);
+  padding-block: .55rem;
+  border-bottom: 1px solid rgba(140,150,200,.08);
+}
+.gj-constancy-card .task-row:last-child { border-bottom: 0; }
+
+.gj-constancy-card .task-row .name { font-size: var(--fs-sm); line-height: 1.2; }
+.gj-constancy-card .task-row .xp   { font-size: var(--fs-xs); font-weight: 600; opacity: .9; }
+
+/* Barra semanal dentro de la tabla */
+.gj-constancy-card .task-row .weekly { }
+.gj-constancy-card .task-row .weekly .progress { height: clamp(9px, 7px + .4cqw, 12px); }
+.gj-constancy-card .task-row .weekly .label    { font-size: var(--fs-xxs); }
+
+/* ====== COMPACT MODE automático si la card es angosta ====== */
+@container (max-width: 880px) {
+  .gj-constancy-card .card-title { font-size: var(--fs-sm); font-weight: 600; }
+  .gj-constancy-card .streak-item .title { font-size: var(--fs-xs); }
+  .gj-constancy-card .chip.stat { display: none; }          /* gana espacio: oculta “Stat: …” */
+  .gj-constancy-card .streak-badge { font-size: var(--fs-xxs); }
+  .gj-constancy-card .task-row { grid-template-columns: 1fr auto minmax(120px, 40%); gap: var(--space-1); }
+}
+
+/* ====== Extras de robustez ====== */
+.gj-constancy-card * { box-sizing: border-box; }
+.gj-constancy-card .streak-item,
+.gj-constancy-card .task-table { margin-inline: 0; }  /* equilibra márgenes izq/der */
 
