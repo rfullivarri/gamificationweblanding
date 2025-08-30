@@ -30,10 +30,6 @@
           <span>✨ Mejorar: pulir esta misma task</span>
           <span>🔁 Modificar: proponer una distinta manteniendo Pilar/Rasgo/Stat/Dificultad</span>
         </div>
-      
-        <!-- Botón de colapsar/expandir -->
-        <button type="button" class="tip-toggle btn ghost small" aria-expanded="false">Mostrar guía</button>
-        <span class="tip-fade" aria-hidden="true"></span>
       </section>
 
       <section class="bbdd-tools">
@@ -226,41 +222,60 @@
 </script>
   
 <script>
-/* Calcula offsets y activa "modo compacto" cuando tools queda pegado */
-(function(){
-  const panel = document.querySelector('.bbdd-panel');
-  const header = document.querySelector('.bbdd-header');
-  const tools  = document.querySelector('.bbdd-tools');
-
-  function recalcOffsets(){
-    const hH = header ? header.getBoundingClientRect().height : 56;
-    const hT = tools  ? tools.getBoundingClientRect().height  : 44;
-    // tools se pega justo debajo del header
-    document.documentElement.style.setProperty('--tools-top', hH + 'px');
-    // thead se pega justo debajo de tools
-    document.documentElement.style.setProperty('--thead-top', (hH + hT) + 'px');
-  }
-
-  // Sentinel: detecta si tools está "stuck" (pegado)
-  const sentinel = document.createElement('div');
-  sentinel.style.height = '1px';
-  tools.before(sentinel);
-
-  const io = new IntersectionObserver(([e])=>{
-    // cuando el sentinel deja de ser visible, tools está pegado
-    const stuck = !e.isIntersecting;
-    panel.classList.toggle('is-stuck', stuck);
-  }, {root: panel, threshold: 1.0});
-
-  function init(){
-    recalcOffsets();
-    io.observe(sentinel);
-  }
-
-  new ResizeObserver(recalcOffsets).observe(document.body);
-  window.addEventListener('load', init);
-  window.addEventListener('resize', recalcOffsets);
-})();
+  /* Sticky correcto del thead: compensa el alto del TIP cuando aún está visible */
+  (function(){
+    const panel  = document.querySelector('.bbdd-panel');
+    const header = document.querySelector('.bbdd-header');
+    const tools  = document.querySelector('.bbdd-tools');
+  
+    let S = { hH:56, hT:44, gap:0 };
+  
+    function measure() {
+      const hH = header ? header.getBoundingClientRect().height : 56;
+      const hT = tools  ? tools.getBoundingClientRect().height  : 44;
+  
+      // Distancia entre el borde inferior del header y el borde superior de tools.
+      // Mientras el TIP esté visible, este "gap" es > 0; cuando tools se pega, gap ≈ 0.
+      const rectH = header.getBoundingClientRect();
+      const rectT = tools .getBoundingClientRect();
+      const gap   = Math.max(0, rectT.top - rectH.bottom);
+  
+      S = { hH, hT, gap };
+  
+      // Tools se pega justo debajo del header
+      document.documentElement.style.setProperty('--tools-top', hH + 'px');
+    }
+  
+    function applyTheadTop(stuck) {
+      // Si NO está pegado (TIP visible): hH + gap + hT
+      // Si está pegado: hH + hT
+      const top = S.hH + S.hT + (stuck ? 0 : S.gap);
+      document.documentElement.style.setProperty('--thead-top', top + 'px');
+    }
+  
+    // Sentinel para saber cuándo tools queda "pegado"
+    const sentinel = document.createElement('div');
+    sentinel.style.height = '1px';
+    tools.before(sentinel);
+  
+    const io = new IntersectionObserver(([e]) => {
+      const stuck = !e.isIntersecting;
+      panel.classList.toggle('is-stuck', stuck);
+      applyTheadTop(stuck);
+    }, { root: panel, threshold: 1 });
+  
+    function init(){
+      measure();
+      io.observe(sentinel);
+      applyTheadTop(false); // Estado inicial: arriba del todo (TIP visible)
+    }
+  
+    // Recalcular en cambios de layout
+    const rerender = () => { measure(); applyTheadTop(panel.classList.contains('is-stuck')); };
+    new ResizeObserver(rerender).observe(document.body);
+    window.addEventListener('load', init);
+    window.addEventListener('resize', rerender);
+  })();
 </script>
 
 </body>
