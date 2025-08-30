@@ -600,3 +600,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 }
 
 
+//======================================================
+/* Contenedor general: padding simétrico y sin scroll horizontal */
+.pc-card{ padding:14px; overflow-x:hidden; }
+
