@@ -598,3 +598,101 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   }
   .pc .pc-row > div{ font-size: clamp(12px,1.15vw,14px); }
 }
+
+
+
+//==================================================================================
+/* ===== Pillar Card (Constancia) – FIX sin scroll horizontal ===== */
+.pc .pc-list{           /* contenedor de la tabla */
+  overflow-x: hidden;   /* adiós barra horizontal */
+}
+
+.pc .pc-row{
+  display: grid;
+  grid-template-columns: 1fr auto minmax(140px, 28vw); /* nombre | XP | barra */
+  align-items: center;
+  column-gap: 16px;
+}
+
+@media (max-width: 1280px){
+  .pc .pc-row{
+    grid-template-columns: 1fr auto minmax(140px, 36vw);
+  }
+}
+@media (max-width: 1024px){
+  .pc .pc-row{
+    grid-template-columns: 1fr auto minmax(140px, 44vw);
+  }
+}
+
+/* que los hijos puedan encogerse y no “empujen” a la derecha */
+.pc .pc-row > div{ min-width: 0; }
+
+/* nombre de tarea: cortar en 2-3 líneas si hace falta */
+.pc .pc-row > div:first-child{
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;       /* evita “verticalizar” */
+  overflow-wrap: anywhere;
+}
+
+/* columna de XP centrada y compacta */
+.pc .pc-row .pc-xp{
+  justify-self: center;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+/* barra ocupa su columna, nunca desborda */
+.pc .pc-right{ min-width: 0; }
+.pc .pc-progress{ width: 100%; }
+
+/* encabezado usa el mismo grid y permite partir el texto largo */
+.pc .pc-row.pc-label{
+  grid-template-columns: 1fr auto minmax(140px, 28vw);
+}
+.pc .pc-row.pc-label > div{ 
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* ===== InfoChip dentro del topbar de la Pillar Card ===== */
+/* Ancla a la derecha del topbar */
+.pc .pc-topbar .card-title-with-info{
+  margin-left: auto;
+  position: relative;
+  display: flex; align-items: center;
+}
+
+/* el botón “i” igual al resto */
+.pc .pc-topbar .card-title-with-info .info-chip{
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(122,134,255,.55);
+  background: #151a33; color:#e8eaff;
+  font: 700 14px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: transform .12s ease, background .12s ease, color .12s ease;
+}
+.pc .pc-topbar .card-title-with-info .info-chip:hover{
+  transform: scale(1.06); background:#7d3cff; color:#fff;
+}
+
+/* globo igual al resto, pero con mayor z-index para atravesar la card */
+.pc .pc-topbar .card-title-with-info .info-pop{
+  position: absolute;      /* el JS la posiciona; acá solo estilo */
+  max-width: 320px;
+  background: #0f1328;
+  border: 1px solid rgba(122,134,255,.28);
+  color: #ecedff;
+  padding: 12px 14px;
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
+  z-index: 9999;           /* por encima de todo */
+}
+
+/* desactiva el sistema viejo (hover) si aún existiera */
+.pc .pc-info-bubble{ display:none !important; }
