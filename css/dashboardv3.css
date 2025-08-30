@@ -601,398 +601,104 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 
 
-//==================================================================================
-/* ===== Pillar Card (Constancia) – FIX sin scroll horizontal ===== */
-.pc .pc-list{           /* contenedor de la tabla */
-  overflow-x: hidden;   /* adiós barra horizontal */
-}
+/* =======================================================================
+   PCARD – Constancia (vFinal compacto + sin scroll + barras visibles)
+   ======================================================================= */
 
-.pc .pc-row{
-  display: grid;
-  grid-template-columns: 1fr auto minmax(140px, 28vw); /* nombre | XP | barra */
-  align-items: center;
-  column-gap: 16px;
-}
+/* Contenedor general: padding simétrico y sin scroll horizontal */
+.pc-card{ padding:14px; overflow-x:hidden; }
 
-@media (max-width: 1280px){
-  .pc .pc-row{
-    grid-template-columns: 1fr auto minmax(140px, 36vw);
-  }
-}
-@media (max-width: 1024px){
-  .pc .pc-row{
-    grid-template-columns: 1fr auto minmax(140px, 44vw);
-  }
-}
+/* Topbar + chip de info (usa tu InfoChip v3) */
+.pc .pc-topbar{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pc .pc-topbar .card-title-with-info{ margin-left:auto }
+.pc .pc-topbar .info-pop{ z-index:9999 } /* por encima de todo */
 
-/* que los hijos puedan encogerse y no “empujen” a la derecha */
-.pc .pc-row > div{ min-width: 0; }
-
-/* nombre de tarea: cortar en 2-3 líneas si hace falta */
-.pc .pc-row > div:first-child{
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
-  word-break: break-word;       /* evita “verticalizar” */
-  overflow-wrap: anywhere;
-}
-
-/* columna de XP centrada y compacta */
-.pc .pc-row .pc-xp{
-  justify-self: center;
-  white-space: nowrap;
-  font-weight: 700;
-}
-
-/* barra ocupa su columna, nunca desborda */
-.pc .pc-right{ min-width: 0; }
-.pc .pc-progress{ width: 100%; }
-
-/* encabezado usa el mismo grid y permite partir el texto largo */
-.pc .pc-row.pc-label{
-  grid-template-columns: 1fr auto minmax(140px, 28vw);
-}
-.pc .pc-row.pc-label > div{ 
-  min-width: 0;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-/* ===== InfoChip dentro del topbar de la Pillar Card ===== */
-/* Ancla a la derecha del topbar */
-.pc .pc-topbar .card-title-with-info{
-  margin-left: auto;
-  position: relative;
-  display: flex; align-items: center;
-}
-
-/* el botón “i” igual al resto */
-.pc .pc-topbar .card-title-with-info .info-chip{
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  border: 1px solid rgba(122,134,255,.55);
-  background: #151a33; color:#e8eaff;
-  font: 700 14px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-  display: grid; place-items: center;
-  cursor: pointer;
-  transition: transform .12s ease, background .12s ease, color .12s ease;
-}
-.pc .pc-topbar .card-title-with-info .info-chip:hover{
-  transform: scale(1.06); background:#7d3cff; color:#fff;
-}
-
-/* globo igual al resto, pero con mayor z-index para atravesar la card */
-.pc .pc-topbar .card-title-with-info .info-pop{
-  position: absolute;      /* el JS la posiciona; acá solo estilo */
-  max-width: 320px;
-  background: #0f1328;
-  border: 1px solid rgba(122,134,255,.28);
-  color: #ecedff;
-  padding: 12px 14px;
-  border-radius: 12px;
-  box-shadow: 0 10px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
-  z-index: 9999;           /* por encima de todo */
-}
-
-/* desactiva el sistema viejo (hover) si aún existiera */
-.pc .pc-info-bubble{ display:none !important; }
-
-/* ===== PCARD – FIXES RESPONSIVE + SIN SCROLL HORIZONTAL ================== */
-
-/* 1) Lista en grid: 3 columnas + barra ocupa ancho disponible */
-.pc .pc-list{
-  overflow-x: hidden;          /* adiós scroll horizontal */
-  padding-right: 10px;         /* respirito en borde derecho */
-}
-.pc .pc-row{
-  display: grid;
-  grid-template-columns: 1fr min-content minmax(120px, 38%);
-  align-items: center;
-  gap: 12px;
-  box-sizing: border-box;
-}
-.pc .pc-row .pc-right{ justify-self: end; }
-.pc .pc-progress{ width: 100%; }     /* la barra se adapta al grid */
-.pc .pc-progress-fill{ max-width: 100%; }
-
-/* 2) Header “TAREA · XP · SEMANAL” visible y sticky dentro de la lista */
-.pc .pc-row.pc-label{
-  position: sticky; top: 0; z-index: 2;
-  background: rgba(255,255,255,.04);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-}
-.pc .pc-row.pc-label > div{
-  font-weight: 700; letter-spacing: .02em; opacity: .95;
-}
-
-/* 3) Tipografías y densidad para viewports chicos (≤ 1280px/1100px/1024px) */
-@media (max-width: 1280px){
-  .pc .pc-list{ font-size: 14px; }
-  .pc .pc-row{ gap: 10px; }
-  .pc .pc-progress-label{ font-size: 12px; }
-}
-@media (max-width: 1100px){
-  :root{ --pc-progress-h-list: 14px; }
-  .pc .pc-list{ font-size: 13.5px; }
-}
-@media (max-width: 1024px){
-  .pc .pc-row{
-    grid-template-columns: 1fr min-content minmax(110px, 42%);
-  }
-}
-
-/* 4) Top-3 en racha: título usa todo el renglón y no salta de línea al pedo */
-.pc .pc-top3{ display: grid; gap: 12px; }
+/* --------------------------- TOP-3 EN RACHA --------------------------- */
+.pc .pc-top3{ display:grid; gap:12px }
 .pc .pc-tcard{
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    "title streak"
-    "chips streak"
-    "bar   bar";
-  align-items: center;
-  gap: 8px 10px;
+  position:relative;
+  padding:12px 14px;
+  border-radius:12px;
 }
 .pc .pc-tname{
-  grid-area: title;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  margin-right: 8px;
+  font-size:clamp(16px,1.3vw,19px);
+  line-height:1.25;
+  font-weight:800;
+  margin:4px 0 6px;
+  padding-right:86px;                  /* reserva para 🔥xN */
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-.pc .pc-thead{ grid-area: streak; margin-left: 8px; }
-.pc .pc-chips-inline{ grid-area: chips; display: flex; gap: 6px; flex-wrap: wrap; }
-.pc .pc-progress{ grid-area: bar; }
-
-/* Chips y badges más compactos para que no rompan el alto */
-.pc .pc-chip, .pc .pc-xp-small{
-  font-size: 12px; line-height: 1; padding: 4px 8px;
+.pc .pc-tcard .pc-fire{ position:absolute; right:14px; top:10px; font-size:18px }
+.pc .pc-tcard .pc-streak{ position:absolute; right:18px; top:34px; font-weight:800; font-size:13px; color:#ffcf8a }
+.pc .pc-chips-inline{ display:flex; gap:6px; flex-wrap:wrap }
+.pc .pc-xp-small{ font-size:12px; }
+@media (max-width:1100px){
+  /* Si falta aire, ocultá el chip de Stat (no tiene clase pc-xp-small) */
+  .pc .pc-tcard .pc-chip:not(.pc-xp-small){ display:none }
 }
+/* Barra slim y SIN texto (no duplicar con 🔥xN) */
+.pc .pc-tcard .pc-progress{ height:8px; margin-top:6px; width:100% }
+.pc .pc-tcard .pc-progress-label{ display:none !important }
 
-/* 5) Respeto de padding derecho en la card (evita “pegado” al borde) */
-.pc-card{ padding-right: 16px; }
-
-/* 6) Info-chip de Constancia: compatible con los otros (ya tenés JS fixed) */
-.pc .pc-info{ position: relative; }
-.pc .pc-info .info-chip{
-  width: 28px; height: 28px; border-radius: 50%;
-  display: grid; place-items: center;
-  border: 1px solid rgba(122,134,255,.4);
-  background: #1a2042; color: #e8eaff; font-weight: 700;
+/* ----------------------------- LISTA INFERIOR ------------------------- */
+/* Grid: 1) TAREA  2) XP  3) PROGRESO  — sin scroll horizontal */
+.pc .pc-list{ margin-top:12px; overflow-x:hidden }
+.pc .pc-row{
+  display:grid;
+  grid-template-columns: 1fr 64px minmax(150px, 38%);
+  align-items:center;
+  gap:12px;
 }
-.pc .pc-info .info-chip:hover{ background:#7d3cff; color:#fff; }
+.pc .pc-row > *{ min-width:0 }         /* evita empujes por textos largos */
+.pc .pc-row .pc-xp{ text-align:right; font-weight:700; font-size:.95em }
+.pc .pc-row .pc-right{ justify-self:stretch }   /* la barra toma todo el ancho */
 
-/* ====== PCARD – FIXES RESPONSIVE (sin romper lo actual) ================== */
-
-/* ——— columnas y header de la lista ——— */
-.pc .pc-list{ overflow-x:hidden; }
-.pc .pc-row{ 
-  display:grid; 
-  grid-template-columns: 1fr minmax(54px,80px) minmax(170px, 1fr);
-  align-items:center; gap:14px;
-}
-.pc .pc-row .pc-xp{ text-align:right; font-weight:700; }
-.pc .pc-row .pc-right{ justify-self:stretch; }
-
-/* header (TAREA / XP / SEMANAL) siempre visible y consistente */
-.pc .pc-row.pc-label{
-  position:sticky; top:0; z-index:2;
-  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-  backdrop-filter:saturate(120%);
-  font-weight:800; letter-spacing:.3px; color:#e9ecff;
-  padding-block:12px;
-}
-
-/* ——— top-3 cards: título usa TODA la fila y el fuego no pisa la barra ——— */
-.pc .pc-tcard{ position:relative; }
-.pc .pc-tcard .pc-tname{
-  font-weight:800; line-height:1.25; margin:8px 0 6px 0;
-  /* deja espacio para el fuego de la derecha */
-  padding-right:72px;
-}
-.pc .pc-tcard .pc-thead{ 
-  position:absolute; right:12px; top:10px; display:flex; align-items:center; gap:6px;
-}
-.pc .pc-fire{ font-size:18px; }
-.pc .pc-streak{ font-weight:800; color:#ffcf8a; }
-
-/* barra de progreso: modo “compacto” (sin números dentro) por defecto en top-3 */
-.pc .pc-tcard .pc-progress{ margin-top:6px; }
-.pc .pc-tcard .pc-progress-label{ display:none; }
-
-/* ——— barras genéricas ——— */
-.pc .pc-progress{ 
-  position:relative; height:14px; border-radius:999px; 
+/* Barras de la lista: siempre visibles y sin texto dentro */
+.pc .pc-progress{ width:100%; height:8px; border-radius:999px;
   background:rgba(255,255,255,.09); overflow:hidden;
 }
 .pc .pc-progress-fill{ height:100%; border-radius:inherit;
   background:linear-gradient(90deg,#7d3cff,#b17eff);
 }
-.pc .pc-progress-label{
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-weight:800; font-size:12px; color:#1a1533;
+.pc .pc-list .pc-progress-label{ display:none !important }
+
+/* Encabezado compacto y claro (incluye “TAREA”) */
+.pc .pc-row.pc-label{
+  position:sticky; top:0; z-index:1;
+  padding:8px 0;
+  background:rgba(255,255,255,.03);
+  font-weight:800; font-size:.95em; letter-spacing:.2px;
 }
+.pc .pc-row.pc-label > div:first-child{ text-transform:uppercase }
+.pc .pc-row.pc-label > div:first-child:empty::before{ content:"TAREA" }
 
-/* ====== RESPONSIVE ======================================================== */
-
-/* <= 1280px: tipografías más chicas y barras sin texto para ganar aire */
-@media (max-width: 1280px){
-  .pc .pc-h4{ font-size:15px; }
-  .pc .pc-tcard .pc-tname{ font-size:18px; }
-  .pc .pc-chip{ font-size:12px; }
-  .pc .pc-row{ 
-    grid-template-columns: 1fr minmax(48px,68px) minmax(150px,1fr);
-    gap:12px;
-  }
-  .pc .pc-progress{ height:12px; }
-  .pc .pc-progress-label{ display:none; } /* <- quita “2/3🏆” dentro de la barra */
-}
-
-/* <= 1024px (típica notebook 13”): aún más compacto (sin desorden ni scroll) */
-@media (max-width: 1024px){
-  .pc .pc-tcard .pc-tname{ font-size:16px; padding-right:64px; }
+/* ------------------------------ RESPONSIVE ---------------------------- */
+@media (max-width:1280px){
   .pc .pc-row{
-    grid-template-columns: 1fr minmax(42px,60px) minmax(130px,1fr);
+    grid-template-columns: 1fr 56px minmax(130px,42%);
+  }
+  .pc .pc-progress{ height:10px } /* un pelín más alta para legibilidad */
+}
+@media (max-width:1024px){          /* notebooks 13" */
+  .pc .pc-tname{ font-size:clamp(15px,1.4vw,18px); padding-right:80px }
+  .pc .pc-streak{ top:32px }
+  .pc .pc-row{
+    grid-template-columns: 1fr 52px minmax(120px,46%);
     gap:10px;
   }
-  .pc .pc-row.pc-label{ font-size:13px; }
-  .pc .pc-progress{ height:10px; }
+  .pc .pc-row.pc-label{ font-size:.9em }
 }
-
-/* <= 768px (mobile): todo legible y sin solapes */
-@media (max-width: 768px){
-  .pc .pc-tcard .pc-tname{ font-size:15px; padding-right:58px; }
-  .pc .pc-chip{ font-size:11px; }
+@media (max-width:768px){           /* mobile / landscape */
+  .pc .pc-tname{ font-size:clamp(15px,4.2vw,18px); padding-right:72px }
   .pc .pc-row{
-    grid-template-columns: 1fr 52px 40%;
-    gap:10px;
+    grid-template-columns: 1fr 48px minmax(110px,50%);
+    gap:8px;
   }
-  .pc .pc-progress{ height:9px; }
+  .pc .pc-progress{ height:8px }
 }
 
-/* ——— margen derecho que faltaba en el bloque de rachas ——— */
-.pc .pc-top3, 
-.pc .pc-morestreak,
-.pc .pc-section{ padding-right:6px; }
+/* --------------------- Alineación de márgenes laterales ---------------- */
+.pc .pc-section{ padding-right:0 }    /* evita “borde más ancho” a la derecha */
+.pc .pc-list{ padding-right:0 }       /* simétrico con la izquierda */
 
-/* ——— “fueguito xN” de top-3 con tamaño estable ——— */
-.pc .pc-thead .pc-streak{ font-size:13px; }
 
-/* ——— kills de scroll horizontal accidental ——— */
-.pc-card{ overflow-x:hidden; }
-
-/* === PATCH FINAL – PCARD compact + responsive (v1) ===================== */
-/* 1) Escalas tipográficas base dentro del bloque de constancia */
-.pc{
-  --pc-f-title: clamp(18px, 1.6vw, 22px);
-  --pc-f-strong: clamp(14px, 1.1vw, 16px);
-  --pc-f-body: clamp(13px, .95vw, 14px);
-  --pc-f-small: clamp(11px, .85vw, 13px);
-}
-
-/* ----------------------------------------------------------------------- */
-/* 2) Tarjetas TOP con racha (pc-tcard)                                    */
-/*    - Reservamos espacio a la derecha para el 🔥xN
-      - Barra slim sin texto
-      - Chips y títulos más compactos                                       */
-.pc .pc-tcard{
-  position: relative;
-  padding: 14px 16px 14px 16px;
-  border-radius: 14px;
-}
-
-/* Título de la tarea: usa todo el renglón y deja lugar al 🔥 */
-.pc .pc-tname{
-  font-size: var(--pc-f-title);
-  line-height: 1.2;
-  font-weight: 800;
-  margin: 4px 0 8px;
-  padding-right: 92px; /* reserva para el fuego y su xN */
-  word-break: break-word;
-}
-
-/* Chips compactos */
-.pc .pc-chips-inline{ gap: 8px; margin-top: 6px; }
-.pc .pc-chip{ font-size: var(--pc-f-small); padding: 6px 10px; }
-.pc .pc-xp-small{ font-size: var(--pc-f-small); }
-
-/* 🔥 xN fijo a la derecha, sin tocar la barra */
-.pc .pc-tcard .pc-fire{
-  position: absolute; right: 16px; top: 14px; font-size: 20px;
-}
-.pc .pc-tcard .pc-streak{
-  position: absolute; right: 20px; top: 40px;
-  font-weight: 800; font-size: 14px;
-}
-
-/* Barra slim y SIN texto dentro (para no duplicar info con 🔥xN) */
-.pc .pc-tcard .pc-progress{ height: 10px; margin-top: 6px; }
-.pc .pc-tcard .pc-progress-label{ display: none !important; }
-
-/* ----------------------------------------------------------------------- */
-/* 3) Lista inferior (pc-list)                                             */
-/*    - Grid de 3 columnas: TAREA | XP | PROGRESO
-      - Sin scroll horizontal
-      - Encabezado más chico                                                */
-.pc-list{ margin-top: 14px; }
-.pc-list, .pc-row{ width: 100%; }
-.pc-row{ 
-  display: grid;
-  grid-template-columns: 1fr 68px minmax(160px, 40%);
-  align-items: center;
-  gap: 12px;
-}
-.pc-row > *{ min-width: 0; }  /* evita overflow por textos largos */
-.pc-row .pc-xp{ text-align: right; font-weight: 800; }
-.pc-row .pc-right{ justify-self: end; width: 100%; }
-
-/* Encabezado compacto y visible (incluye “TAREA”) */
-.pc-row.pc-label{
-  font-size: var(--pc-f-strong);
-  letter-spacing: .3px;
-  opacity: .92;
-}
-.pc-row.pc-label > div:first-child{ text-transform: uppercase; }
-.pc-row.pc-label > div:first-child:empty::before{ content: "TAREA"; } /* por si viniera vacío */
-
-/* Barras de la lista: slim y sin texto para que no se mezclen con XP */
-.pc-list .pc-progress{ height: 10px; }
-.pc-list .pc-progress-label{ display: none !important; }
-
-/* No permitas que nada crezca más que la card */
-.pc-card *{ max-width: 100%; }
-
-/* ----------------------------------------------------------------------- */
-/* 4) Ajustes de márgenes/sangrías en la columna derecha (estabas corto)   */
-.pc .pc-section{ padding-right: 6px; }        /* aire global */
-.pc .pc-list{ padding-right: 4px; }
-
-/* ----------------------------------------------------------------------- */
-/* 5) Responsivo – pantallas medianas                                      */
-@media (max-width: 1024px){
-  .pc .pc-tname{ padding-right: 82px; font-size: clamp(16px, 1.4vw, 20px); }
-  .pc .pc-streak{ top: 38px; }
-  .pc .pc-tcard .pc-progress{ height: 9px; }
-
-  .pc-row{ grid-template-columns: 1fr 60px minmax(130px, 42%); gap: 10px; }
-  .pc-row.pc-label{ font-size: clamp(13px, 1vw, 14px); }
-  .pc-list .pc-progress{ height: 9px; }
-}
-
-/* ----------------------------------------------------------------------- */
-/* 6) Responsivo – pantallas chicas (13" y mobile landscape)               */
-@media (max-width: 768px){
-  .pc .pc-tname{
-    font-size: clamp(15px, 4.2vw, 18px);
-    padding-right: 74px;
-  }
-  .pc .pc-chip, .pc .pc-xp-small{ font-size: 12px; padding: 5px 8px; }
-  .pc .pc-tcard .pc-progress{ height: 8px; }
-
-  .pc-row{ grid-template-columns: 1fr 54px minmax(110px, 48%); gap: 8px; }
-  .pc-row.pc-label{ font-size: 12px; }
-  .pc-list .pc-progress{ height: 8px; }
-}
-
-/* ----------------------------------------------------------------------- */
-/* 7) Extra robustez: nunca scroll horizontal dentro del bloque            */
-.pc-card{ overflow-x: clip; }   /* tooltip sigue ok por ser position:fixed */
