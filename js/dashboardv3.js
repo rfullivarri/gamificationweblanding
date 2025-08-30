@@ -394,7 +394,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     
         const infoHTML = `
-          <div class="pc-info-btn">ℹ️</div>
+          <div class="info-chip" title="Ayuda">ⓘ</div>
           <div class="pc-info-bubble">
             <b>Cómo leer:</b><br/>
             • 🔥 + <b>xN</b> = días de racha real.<br/>
