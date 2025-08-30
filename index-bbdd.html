@@ -165,7 +165,7 @@
   .bbdd-overlay{
     position:fixed; inset:0; z-index:9999;
     display:flex; align-items:center; justify-content:center;
-    padding:clamp(8px,2vh,24px);
+    padding:clamp(6px,1.5vh,16px);
     background: rgba(8,12,28,.55);
     backdrop-filter: blur(16px) saturate(1.08);
     -webkit-backdrop-filter: blur(16px) saturate(1.08);
@@ -308,6 +308,46 @@
   padding:6px 10px;
   border-bottom:1px solid rgba(122,134,255,.10);
 }
+/* (A) Desactivar la barra duplicada para evitar el “pisado” */
+.bbdd-columns{ display:none !important; }
+
+/* (B) Ganar ancho lateral */
+.bbdd-table-wrap{
+  /* antes: margin: 8px 16px 16px; después lo bajaste a 8px 8px 12px */
+  margin: 6px 4px 10px;           /* ← menos borde a ambos lados */
+}
+
+/* (C) Usar una sola fuente de verdad para anchos de columnas */
+:root{
+  --col-gap: 10px;        /* un poquito menos de gap entre columnas */
+  /* ajustá estos % a gusto; suman ≈100% */
+  --w-pilar:        10%;
+  --w-rasgo:        14%;
+  --w-stat:         14%;
+  --w-task:         40%;   /* ↓ achicamos Task para darle aire a la derecha */
+  --w-dificultad:   12%;   /* ↑ un poco más de ancho */
+  --w-feedback:     10%;
+}
+
+/* Aplicar anchos al <colgroup> */
+#bbdd-table{ table-layout: fixed; }
+#bbdd-table col.col-pilar      { width: var(--w-pilar); }
+#bbdd-table col.col-rasgo      { width: var(--w-rasgo); }
+#bbdd-table col.col-stat       { width: var(--w-stat);  }
+#bbdd-table col.col-task       { width: var(--w-task);  }
+#bbdd-table col.col-dificultad { width: var(--w-dificultad); }
+#bbdd-table col.col-feedback   { width: var(--w-feedback); }
+
+/* Encabezado THEAD: asegurar gap de 2px siempre */
+#bbdd-table thead th{
+  position: sticky;
+  top: var(--thead-top, 100px);
+  z-index: 20;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, rgba(44,52,106,.95), rgba(26,31,68,.95));
+  border-bottom:1px solid rgba(122,134,255,.22);
+  color:#dbe0ff; text-align:left; white-space:nowrap;
+}
 </style>
   
 <script>
@@ -345,9 +385,7 @@
     const tools     = document.querySelector('.bbdd-tools');
     const tableWrap = document.querySelector('.bbdd-table-wrap');
   
-    // Ajuste fino para evitar "pisado" visual (1–2 px)
     const CLEARANCE = 2;
-  
     let S = { hH: 56, hT: 44, gap: 0, mTop: 0 };
   
     const px = v => (isNaN(parseFloat(v)) ? 0 : parseFloat(v));
@@ -364,15 +402,10 @@
       const mTop  = cs ? px(cs.marginTop) : 0;
   
       S = { hH, hT, gap, mTop };
-  
-      // tools pegado justo bajo header
       document.documentElement.style.setProperty('--tools-top', hH + 'px');
     }
   
     function applyTheadTop(stuck) {
-      // Cuando TIP está visible: header + gap + tools
-      // Cuando tools ya está pegado: header + tools
-      // Restamos margin-top del wrap y sumamos CLEARANCE para que no se "coma" el borde
       const top = S.hH + S.hT + (stuck ? 0 : S.gap) - S.mTop + CLEARANCE;
       document.documentElement.style.setProperty('--thead-top', Math.max(0, top) + 'px');
     }
@@ -389,6 +422,7 @@
     }, { root: panel, threshold: 1 });
   
     function rerender() { measure(); applyTheadTop(panel.classList.contains('is-stuck')); }
+  
     function init() {
       measure();
       io.observe(sentinel);
@@ -396,6 +430,11 @@
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(rerender);
       requestAnimationFrame(rerender);
       setTimeout(rerender, 0);
+  
+      // NUEVO: si el scroll vuelve a 0, forzar estado “no pegado” (respeta el gap)
+      panel.addEventListener('scroll', () => {
+        if (panel.scrollTop === 0) applyTheadTop(false);
+      }, { passive: true });
     }
   
     new ResizeObserver(rerender).observe(document.body);
