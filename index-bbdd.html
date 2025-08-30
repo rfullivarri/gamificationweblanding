@@ -118,61 +118,141 @@
 </script>
 
 <style id="bbdd-hotfix">
-  /* ====== HOTFIX ====== */
+  /* ====== LAYOUT GENERAL ====== */
   .bbdd-overlay{
     position:fixed; inset:0; z-index:9999;
-    display:flex; align-items:center; justify-content:center; padding:24px;
+    display:flex; align-items:center; justify-content:center;
+    padding:clamp(8px,2vh,24px);
     background: rgba(8,12,28,.55);
     backdrop-filter: blur(16px) saturate(1.08);
     -webkit-backdrop-filter: blur(16px) saturate(1.08);
   }
   .bbdd-panel{
-    width:min(1200px,100%); height:min(90vh,100%);
-    display:flex; flex-direction:column; overflow:hidden;   /* <- clave */
+    width:min(1200px,100%);
+    height:min(96dvh,100dvh);              /* ocupa casi toda la altura de viewport */
+    max-height:96dvh;
+    display:grid;
+    grid-template-rows: auto /* header */
+                         auto /* tip */
+                         auto /* tools */
+                         1fr  /* tabla */
+                         auto /* footer */;
+    overflow:hidden;
     border-radius:14px; border:1px solid rgba(122,134,255,.18);
     background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
     box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
   }
-  /* Área de tabla que scrollea (desktop) */
-  #table-wrap{
-    position:relative; flex:1 1 auto; min-height:360px;
-    overflow:auto; margin:0 16px 16px; border-radius:14px;
+
+  /* ====== HEADER STICKY ====== */
+  .bbdd-header{
+    position:sticky; top:0; z-index:10;
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px;
+    background: linear-gradient(180deg, rgba(26,31,68,.94), rgba(18,22,45,.90));
+    border-bottom:1px solid rgba(122,134,255,.20);
   }
-  /* Header sticky */
+  .bbdd-header h1{ font-size:16px; margin:0; }
+  .bbdd-header .spacer{ flex:1; }
+
+  /* ====== TIP COLAPSABLE (por defecto colapsado) ====== */
+  .bbdd-tip{
+    position:relative;
+    margin:12px 16px 0;
+    padding:12px 14px 36px; /* espacio para el toggle */
+    border:1px solid rgba(122,134,255,.18);
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(28,34,74,.6), rgba(20,24,52,.6));
+    overflow:auto;
+  }
+  .bbdd-tip.collapsed{
+    max-height:88px;                /* ocupa poco alto por defecto */
+    overflow:hidden;
+  }
+  .bbdd-tip .legend{ display:flex; gap:12px; margin-top:10px; opacity:.9; font-size:.9rem; }
+  .bbdd-tip .tip-fade{
+    position:absolute; left:0; right:0; bottom:0; height:38px;
+    background: linear-gradient(to bottom, transparent, rgba(12,16,35,.96));
+    pointer-events:none; display:none;
+  }
+  .bbdd-tip.collapsed .tip-fade{ display:block; }
+
+  .tip-toggle{
+    position:absolute; right:10px; bottom:8px;
+    font-size:12px; padding:4px 8px; line-height:1;
+  }
+
+  /* ====== TOOLS STICKY ====== */
+  .bbdd-tools{
+    position:sticky; top:var(--tools-top, 56px); z-index:9;
+    display:grid; grid-template-columns: 1fr 1fr 1fr; align-items:center;
+    gap:12px; padding:8px 16px;
+    background: linear-gradient(180deg, rgba(26,31,68,.92), rgba(20,24,52,.92));
+    border-bottom:1px solid rgba(122,134,255,.18);
+  }
+  .bbdd-tools .left{ display:flex; align-items:center; gap:12px; }
+  .bbdd-tools .center{ display:flex; justify-content:center; }
+  .bbdd-tools .right{ display:flex; justify-content:flex-end; align-items:center; gap:10px; }
+
+  /* ====== TABLA: ocupa todo el resto y scrollea ====== */
+  .bbdd-table-wrap{
+    min-height:0;            /* permite que 1fr funcione */
+    overflow:auto;
+    margin:12px 16px 16px;
+    border-radius:12px;
+    position:relative;
+  }
   #bbdd-table{ width:100%; border-collapse:separate; border-spacing:0; }
+
+  /* header sticky siempre visible al scrollear */
   #bbdd-table thead th{
-    position:sticky; top:0; z-index:3;
-    padding:10px 12px;
-    background: linear-gradient(180deg, rgba(44,52,106,.85), rgba(26,31,68,.88));
-    color:#dbe0ff; border-bottom:1px solid rgba(122,134,255,.22);
+    position:sticky; top:0; z-index:5;
+    padding:8px 10px;
+    background: linear-gradient(180deg, rgba(44,52,106,.92), rgba(26,31,68,.94));
+    color:#dbe0ff;
+    border-bottom:1px solid rgba(122,134,255,.22);
+    text-align:left; font-weight:600; white-space:nowrap;
   }
-  /* Spinner centrado */
+  /* filas un poco más compactas para ver más tareas */
+  #bbdd-table tbody td{
+    padding:6px 10px; border-bottom:1px solid rgba(122,134,255,.10);
+  }
+
+  /* Spinner centrado sobre la tabla */
   #table-spinner{
-    position:absolute; inset:0; display:none; z-index:4;
-    display:flex; align-items:center; justify-content:center; gap:12px;
+    position:absolute; inset:0; display:none; z-index:6;
+    align-items:center; justify-content:center; gap:12px;
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     background: rgba(10,12,24,.45); color:#ecedff; font-weight:600;
   }
-  #table-wrap.table-loading #table-spinner{ display:flex; }
-  #table-wrap.table-loading #bbdd-table{ filter:blur(1px); opacity:.6; pointer-events:none; }
-  /* Scrollbar oscuro */
-  #table-wrap::-webkit-scrollbar{ width:10px; height:10px; }
-  #table-wrap::-webkit-scrollbar-thumb{
+  .bbdd-table-wrap.table-loading #table-spinner{ display:flex; }
+  .bbdd-table-wrap.table-loading #bbdd-table{ filter:blur(1px); opacity:.6; pointer-events:none; }
+
+  /* ===== Scrollbar oscuro (WebKit) ===== */
+  .bbdd-table-wrap::-webkit-scrollbar{ width:10px; height:10px; }
+  .bbdd-table-wrap::-webkit-scrollbar-thumb{
     background: rgba(122,134,255,.28); border-radius:10px; border:2px solid transparent; background-clip: padding-box;
   }
-  #table-wrap::-webkit-scrollbar-track{ background: transparent; }
-  
-  /* ===== Mobile: scrollea el panel completo ===== */
+  .bbdd-table-wrap::-webkit-scrollbar-track{ background:transparent; }
+
+  /* ===== FOOTER ===== */
+  .bbdd-footer{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 16px; border-top:1px solid rgba(122,134,255,.18);
+    background: linear-gradient(180deg, rgba(20,24,52,.88), rgba(16,20,44,.88));
+  }
+  .bbdd-footer .spacer{ flex:1; }
+
+  /* ===== Botones pequeños reutilizados ===== */
+  .btn.small{ font-size:12px; padding:6px 10px; }
+
+  /* ===== MOBILE: pantalla completa ===== */
   @media (max-width:768px){
     .bbdd-overlay{ align-items:stretch; padding:0; }
     .bbdd-panel{
-      height:100vh; max-height:100vh; overflow:auto; border-radius:0;
-      padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); /* evita corte abajo */
+      width:100%; height:100dvh; max-height:100dvh; border-radius:0;
+      grid-template-rows: auto auto auto 1fr auto;
     }
-    #table-wrap{
-      flex:0 0 auto; overflow:visible; margin:0 12px 12px; border-radius:14px;
-    }
-    #bbdd-table thead th{ position:sticky; top:0; z-index:5; }
+    .bbdd-tools{ position:sticky; top:0; } /* menos offset */
   }
 </style>
 
@@ -195,39 +275,28 @@
   
 <script>
   (function(){
-    function recalcTableMax(){
-      const header = document.querySelector('.bbdd-header');
-      const tools  = document.querySelector('.bbdd-tools');
-      const footer = document.querySelector('.bbdd-footer');
-  
-      const hHeader = header ? header.offsetHeight : 0;
-      const hTools  = tools  ? tools.offsetHeight  : 0;
-      const hFooter = footer ? footer.offsetHeight : 0;
-  
-      // a) decimos a la barra de herramientas dónde “pegarse”
-      document.documentElement
-        .style.setProperty('--sticky-tools-top', hHeader + 'px');
-  
-      // b) calculamos el alto libre para la tabla
-      const padding = 24; // respirito total aprox.
-      const available = Math.max(
-        200,
-        window.innerHeight - (hHeader + hTools + hFooter + padding)
-      );
-      document.documentElement
-        .style.setProperty('--table-max', available + 'px');
+    // —— Toggle guía (colapsada por defecto)
+    const tip = document.getElementById('bbdd-tip');
+    const btn = tip?.querySelector('.tip-toggle');
+    function setTip(collapsed){
+      tip.classList.toggle('collapsed', collapsed);
+      if (btn) btn.setAttribute('aria-expanded', String(!collapsed));
+      if (btn) btn.textContent = collapsed ? 'Mostrar guía' : 'Ocultar guía';
+      calcToolsTop(); // por si cambia la altura
     }
-  
-    // correr al inicio y cuando cambia el tamaño
-    window.addEventListener('load', recalcTableMax);
-    window.addEventListener('resize', recalcTableMax);
-  
-    // por si cambian alturas (fuentes, toasts, etc.), ajuste suave
-    let raf;
-    new ResizeObserver(() => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(recalcTableMax);
-    }).observe(document.body);
+    btn?.addEventListener('click', () => setTip(!tip.classList.contains('collapsed')));
+    // inicia colapsada
+    if (tip) setTip(true);
+
+    // —— Mantener el toolbar justo debajo del header
+    function calcToolsTop(){
+      const header = document.querySelector('.bbdd-header');
+      const top = header ? header.getBoundingClientRect().height : 56;
+      document.documentElement.style.setProperty('--tools-top', top + 'px');
+    }
+    window.addEventListener('load', calcToolsTop);
+    window.addEventListener('resize', calcToolsTop);
+    new ResizeObserver(calcToolsTop).observe(document.body);
   })();
 </script>
 </body>
