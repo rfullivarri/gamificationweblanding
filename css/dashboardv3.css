@@ -780,3 +780,102 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   background: #1a2042; color: #e8eaff; font-weight: 700;
 }
 .pc .pc-info .info-chip:hover{ background:#7d3cff; color:#fff; }
+
+/* ====== PCARD – FIXES RESPONSIVE (sin romper lo actual) ================== */
+
+/* ——— columnas y header de la lista ——— */
+.pc .pc-list{ overflow-x:hidden; }
+.pc .pc-row{ 
+  display:grid; 
+  grid-template-columns: 1fr minmax(54px,80px) minmax(170px, 1fr);
+  align-items:center; gap:14px;
+}
+.pc .pc-row .pc-xp{ text-align:right; font-weight:700; }
+.pc .pc-row .pc-right{ justify-self:stretch; }
+
+/* header (TAREA / XP / SEMANAL) siempre visible y consistente */
+.pc .pc-row.pc-label{
+  position:sticky; top:0; z-index:2;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  backdrop-filter:saturate(120%);
+  font-weight:800; letter-spacing:.3px; color:#e9ecff;
+  padding-block:12px;
+}
+
+/* ——— top-3 cards: título usa TODA la fila y el fuego no pisa la barra ——— */
+.pc .pc-tcard{ position:relative; }
+.pc .pc-tcard .pc-tname{
+  font-weight:800; line-height:1.25; margin:8px 0 6px 0;
+  /* deja espacio para el fuego de la derecha */
+  padding-right:72px;
+}
+.pc .pc-tcard .pc-thead{ 
+  position:absolute; right:12px; top:10px; display:flex; align-items:center; gap:6px;
+}
+.pc .pc-fire{ font-size:18px; }
+.pc .pc-streak{ font-weight:800; color:#ffcf8a; }
+
+/* barra de progreso: modo “compacto” (sin números dentro) por defecto en top-3 */
+.pc .pc-tcard .pc-progress{ margin-top:6px; }
+.pc .pc-tcard .pc-progress-label{ display:none; }
+
+/* ——— barras genéricas ——— */
+.pc .pc-progress{ 
+  position:relative; height:14px; border-radius:999px; 
+  background:rgba(255,255,255,.09); overflow:hidden;
+}
+.pc .pc-progress-fill{ height:100%; border-radius:inherit;
+  background:linear-gradient(90deg,#7d3cff,#b17eff);
+}
+.pc .pc-progress-label{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:12px; color:#1a1533;
+}
+
+/* ====== RESPONSIVE ======================================================== */
+
+/* <= 1280px: tipografías más chicas y barras sin texto para ganar aire */
+@media (max-width: 1280px){
+  .pc .pc-h4{ font-size:15px; }
+  .pc .pc-tcard .pc-tname{ font-size:18px; }
+  .pc .pc-chip{ font-size:12px; }
+  .pc .pc-row{ 
+    grid-template-columns: 1fr minmax(48px,68px) minmax(150px,1fr);
+    gap:12px;
+  }
+  .pc .pc-progress{ height:12px; }
+  .pc .pc-progress-label{ display:none; } /* <- quita “2/3🏆” dentro de la barra */
+}
+
+/* <= 1024px (típica notebook 13”): aún más compacto (sin desorden ni scroll) */
+@media (max-width: 1024px){
+  .pc .pc-tcard .pc-tname{ font-size:16px; padding-right:64px; }
+  .pc .pc-row{
+    grid-template-columns: 1fr minmax(42px,60px) minmax(130px,1fr);
+    gap:10px;
+  }
+  .pc .pc-row.pc-label{ font-size:13px; }
+  .pc .pc-progress{ height:10px; }
+}
+
+/* <= 768px (mobile): todo legible y sin solapes */
+@media (max-width: 768px){
+  .pc .pc-tcard .pc-tname{ font-size:15px; padding-right:58px; }
+  .pc .pc-chip{ font-size:11px; }
+  .pc .pc-row{
+    grid-template-columns: 1fr 52px 40%;
+    gap:10px;
+  }
+  .pc .pc-progress{ height:9px; }
+}
+
+/* ——— margen derecho que faltaba en el bloque de rachas ——— */
+.pc .pc-top3, 
+.pc .pc-morestreak,
+.pc .pc-section{ padding-right:6px; }
+
+/* ——— “fueguito xN” de top-3 con tamaño estable ——— */
+.pc .pc-thead .pc-streak{ font-size:13px; }
+
+/* ——— kills de scroll horizontal accidental ——— */
+.pc-card{ overflow-x:hidden; }
