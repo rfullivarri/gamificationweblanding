@@ -457,55 +457,54 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 }
 
 
+/* ===== InfoChip — TODAS las cards (menos Constancia) ===== */
 
-
-/* ===== InfoChip (compatible con tu util) ===== */
-
-/* El target donde se adjunta el chip/pop */
+/* Wrapper del título donde cuelgan chip + pop */
 .card-title-with-info{
-  position: relative;              /* el pop se posiciona relativo a este */
+  position: relative;
   display: flex; align-items: center; gap: 8px;
+  overflow: visible;                 /* que el pop no se recorte */
 }
 
-/* Botón chip (usa el texto 'i' o ℹ️ que pone tu util) */
+/* Botón chip (usa 'i') */
 .card-title-with-info .info-chip{
-  margin-left: auto;               /* se va a la derecha del título */
-  width: 26px; height: 26px;
+  margin-left: auto;                 /* a la derecha del título */
+  width: 22px; height: 22px;         /* más chico */
   border-radius: 50%;
   border: 1px solid rgba(122,134,255,.55);
-  background: #151a33;             /* sólido, nada de transparencia */
+  background: #151a33;               /* sólido */
   color: #e8eaff;
-  font: 700 14px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font: 700 12px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   display: grid; place-items: center;
   cursor: pointer;
-  z-index: 5;
   transition: transform .12s ease, background .12s ease, color .12s ease;
+  z-index: 5;
 }
 .card-title-with-info .info-chip:hover{ transform: scale(1.06); background:#7d3cff; color:#fff; }
 
-/* Variante: chip a la IZQUIERDA (cuando usás data-info-pos="left") */
+/* Variante: chip a la izquierda (si usás data-info-pos="left") */
 .card-title-with-info .info-chip.info-left{
-  order: -1;           /* aparece antes del título */
-  margin-left: 0;
-  margin-right: 6px;
+  order: -1; margin-right: 6px; margin-left: 0;
 }
 
-/* Globo (tu util agrega .info-pop, y le pone .show para abrir) */
+/* Pop: compacto, sólido y sin recortes */
 .card-title-with-info .info-pop{
-  position: absolute; top: 44px; right: 0;
-  display: none;                       /* <- clave: se muestra con .show */
-  max-width: 300px;
-  background: #0f1328;                 /* sólido para no mezclarse con el fondo */
+  position: absolute;
+  top: 36px; right: 0;               /* abre hacia la derecha por defecto */
+  display: none;
+  max-width: 260px;
+  background: #0f1328;
   border: 1px solid rgba(122,134,255,.28);
   color: #ecedff;
   padding: 12px 14px;
   border-radius: 12px;
   box-shadow: 0 10px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
-  z-index: 10;
+  z-index: 9999;
+  font-size: 13px; line-height: 1.35;
 }
 .card-title-with-info .info-pop.show{ display:block; }
 
-/* Flechita */
+/* Flechita cuando abre a la derecha */
 .card-title-with-info .info-pop::before{
   content:""; position:absolute; top:-8px; right:18px;
   border:8px solid transparent; border-bottom-color: rgba(122,134,255,.28);
@@ -513,5 +512,15 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .card-title-with-info .info-pop::after{
   content:""; position:absolute; top:-7px; right:19px;
   border:7px solid transparent; border-bottom-color:#0f1328;
+}
+
+/* Si el JS detecta overflow y pone .pop-left, abrimos hacia la izquierda */
+.card-title-with-info .info-pop.pop-left{ right:auto; left:0; }
+.card-title-with-info .info-pop.pop-left::before{ right:auto; left:18px; }
+.card-title-with-info .info-pop.pop-left::after { right:auto; left:19px; }
+
+/* Mobile: aún más compacto */
+@media (max-width: 768px){
+  .card-title-with-info .info-pop{ max-width: 220px; font-size:12px; }
 }
 
