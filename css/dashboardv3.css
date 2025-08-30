@@ -879,3 +879,120 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 /* ——— kills de scroll horizontal accidental ——— */
 .pc-card{ overflow-x:hidden; }
+
+/* === PATCH FINAL – PCARD compact + responsive (v1) ===================== */
+/* 1) Escalas tipográficas base dentro del bloque de constancia */
+.pc{
+  --pc-f-title: clamp(18px, 1.6vw, 22px);
+  --pc-f-strong: clamp(14px, 1.1vw, 16px);
+  --pc-f-body: clamp(13px, .95vw, 14px);
+  --pc-f-small: clamp(11px, .85vw, 13px);
+}
+
+/* ----------------------------------------------------------------------- */
+/* 2) Tarjetas TOP con racha (pc-tcard)                                    */
+/*    - Reservamos espacio a la derecha para el 🔥xN
+      - Barra slim sin texto
+      - Chips y títulos más compactos                                       */
+.pc .pc-tcard{
+  position: relative;
+  padding: 14px 16px 14px 16px;
+  border-radius: 14px;
+}
+
+/* Título de la tarea: usa todo el renglón y deja lugar al 🔥 */
+.pc .pc-tname{
+  font-size: var(--pc-f-title);
+  line-height: 1.2;
+  font-weight: 800;
+  margin: 4px 0 8px;
+  padding-right: 92px; /* reserva para el fuego y su xN */
+  word-break: break-word;
+}
+
+/* Chips compactos */
+.pc .pc-chips-inline{ gap: 8px; margin-top: 6px; }
+.pc .pc-chip{ font-size: var(--pc-f-small); padding: 6px 10px; }
+.pc .pc-xp-small{ font-size: var(--pc-f-small); }
+
+/* 🔥 xN fijo a la derecha, sin tocar la barra */
+.pc .pc-tcard .pc-fire{
+  position: absolute; right: 16px; top: 14px; font-size: 20px;
+}
+.pc .pc-tcard .pc-streak{
+  position: absolute; right: 20px; top: 40px;
+  font-weight: 800; font-size: 14px;
+}
+
+/* Barra slim y SIN texto dentro (para no duplicar info con 🔥xN) */
+.pc .pc-tcard .pc-progress{ height: 10px; margin-top: 6px; }
+.pc .pc-tcard .pc-progress-label{ display: none !important; }
+
+/* ----------------------------------------------------------------------- */
+/* 3) Lista inferior (pc-list)                                             */
+/*    - Grid de 3 columnas: TAREA | XP | PROGRESO
+      - Sin scroll horizontal
+      - Encabezado más chico                                                */
+.pc-list{ margin-top: 14px; }
+.pc-list, .pc-row{ width: 100%; }
+.pc-row{ 
+  display: grid;
+  grid-template-columns: 1fr 68px minmax(160px, 40%);
+  align-items: center;
+  gap: 12px;
+}
+.pc-row > *{ min-width: 0; }  /* evita overflow por textos largos */
+.pc-row .pc-xp{ text-align: right; font-weight: 800; }
+.pc-row .pc-right{ justify-self: end; width: 100%; }
+
+/* Encabezado compacto y visible (incluye “TAREA”) */
+.pc-row.pc-label{
+  font-size: var(--pc-f-strong);
+  letter-spacing: .3px;
+  opacity: .92;
+}
+.pc-row.pc-label > div:first-child{ text-transform: uppercase; }
+.pc-row.pc-label > div:first-child:empty::before{ content: "TAREA"; } /* por si viniera vacío */
+
+/* Barras de la lista: slim y sin texto para que no se mezclen con XP */
+.pc-list .pc-progress{ height: 10px; }
+.pc-list .pc-progress-label{ display: none !important; }
+
+/* No permitas que nada crezca más que la card */
+.pc-card *{ max-width: 100%; }
+
+/* ----------------------------------------------------------------------- */
+/* 4) Ajustes de márgenes/sangrías en la columna derecha (estabas corto)   */
+.pc .pc-section{ padding-right: 6px; }        /* aire global */
+.pc .pc-list{ padding-right: 4px; }
+
+/* ----------------------------------------------------------------------- */
+/* 5) Responsivo – pantallas medianas                                      */
+@media (max-width: 1024px){
+  .pc .pc-tname{ padding-right: 82px; font-size: clamp(16px, 1.4vw, 20px); }
+  .pc .pc-streak{ top: 38px; }
+  .pc .pc-tcard .pc-progress{ height: 9px; }
+
+  .pc-row{ grid-template-columns: 1fr 60px minmax(130px, 42%); gap: 10px; }
+  .pc-row.pc-label{ font-size: clamp(13px, 1vw, 14px); }
+  .pc-list .pc-progress{ height: 9px; }
+}
+
+/* ----------------------------------------------------------------------- */
+/* 6) Responsivo – pantallas chicas (13" y mobile landscape)               */
+@media (max-width: 768px){
+  .pc .pc-tname{
+    font-size: clamp(15px, 4.2vw, 18px);
+    padding-right: 74px;
+  }
+  .pc .pc-chip, .pc .pc-xp-small{ font-size: 12px; padding: 5px 8px; }
+  .pc .pc-tcard .pc-progress{ height: 8px; }
+
+  .pc-row{ grid-template-columns: 1fr 54px minmax(110px, 48%); gap: 8px; }
+  .pc-row.pc-label{ font-size: 12px; }
+  .pc-list .pc-progress{ height: 8px; }
+}
+
+/* ----------------------------------------------------------------------- */
+/* 7) Extra robustez: nunca scroll horizontal dentro del bloque            */
+.pc-card{ overflow-x: clip; }   /* tooltip sigue ok por ser position:fixed */
