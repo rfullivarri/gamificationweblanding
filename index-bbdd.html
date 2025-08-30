@@ -160,8 +160,8 @@
     --w-stat:         12%;
     --w-task:         38%;     /* ↓ bajé Task para darle aire a la derecha */
     --w-dificultad:   11%;     /* ↑ más ancho para el select */
-    --w-feedback:     12%;     /* ↑ más ancho para los 2 botones + eliminar */
-    --w-eliminar:     5%;
+    --w-feedback:     11%;     /* ↑ más ancho para los 2 botones + eliminar */
+    --w-eliminar:     6%;
   }
 
   /* ===== Overlay + Panel scrolleable ===== */
@@ -215,7 +215,7 @@
   /* ===== Barra 3: BARRA FIJA DE COLUMNAS (usamos ESTA, no thead) ===== */
   .bbdd-columns{
     display:grid !important;           /* aseguro que esté visible */
-    position:sticky; top:var(--columns-top, 123px); z-index:30;     /*///ACAAAAAAA*/
+    position:sticky; top:var(--columns-top, 107px); z-index:30;     /*///ACAAAAAAA*/
     grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar);
     gap:var(--col-gap);
     margin:6px 4px 0;                  /* menos margen lateral = más ancho útil */
@@ -228,13 +228,12 @@
   .is-stuck .bbdd-columns{ padding:6px 8px; }  /* modo compacto cuando tools pega */
 
   /* ===== Contenedor de la tabla ===== */
-  .bbdd-table-wrap{ margin:3px 3px 3px; position:relative; }
+  .bbdd-table-wrap{ margin:13px 3px 3px; position:relative; }
 
   /* ===== Tabla + anchos por colgroup (alineado con barra fija) ===== */
   #bbdd-table{
     width:100%; border-collapse:separate; border-spacing:0;
     table-layout: fixed; /* clave */
-    position:sticky; top:var(--columns-top, 137px); z-index:25;    /*///ACAAAAAAA*/
   }
   #bbdd-table col.col-pilar      { width: var(--w-pilar); }
   #bbdd-table col.col-rasgo      { width: var(--w-rasgo); }
