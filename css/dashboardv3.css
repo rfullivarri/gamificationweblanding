@@ -604,3 +604,28 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 /* Contenedor general: padding simétrico y sin scroll horizontal */
 .pc-card{ padding:14px; overflow-x:hidden; }
 
+/* ------------------------------ RESPONSIVE ---------------------------- */
+@media (max-width:1280px){
+  .pc .pc-row{
+    grid-template-columns: 1fr 56px minmax(130px,42%);
+  }
+  .pc .pc-progress{ height:10px } /* un pelín más alta para legibilidad */
+}
+@media (max-width:1024px){          /* notebooks 13" */
+  .pc .pc-tname{ font-size:clamp(11px,1vw,15px); padding-right:80px }
+  .pc .pc-streak{ top:32px }
+  .pc .pc-row{
+    grid-template-columns: 1fr 52px minmax(120px,46%);
+    gap:10px;
+  }
+  .pc .pc-row.pc-label{ font-size:.9em }
+}
+@media (max-width:768px){           /* mobile / landscape */
+  .pc .pc-tname{ font-size:clamp(15px,4.2vw,18px); padding-right:72px }
+  .pc .pc-row{
+    grid-template-columns: 1fr 48px minmax(110px,50%);
+    gap:8px;
+  }
+  .pc .pc-progress{ height:8px }
+}
+
