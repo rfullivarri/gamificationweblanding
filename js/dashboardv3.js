@@ -392,35 +392,58 @@ document.addEventListener("DOMContentLoaded", async () => {
           });
           tabs.appendChild(b);
         });
-    
+
+        // --- (venís de crear `const top = el('div','pc-topbar')` y `const tabs = el('div','pc-tabs')`) ---
+        // 1) ancla vacío donde va el chip (misma clase que usan las demás cards)
+        const infoAnchor = el('div', 'card-title-with-info');
+        infoAnchor.id = 'pc-constancy-info';
+        
+        // 2) arma la topbar: tabs + ancla para el chip
+        top.appendChild(tabs);
+        top.appendChild(infoAnchor);
+        root.appendChild(top);
+        
+        // 3) contenido del pop (podés editar el texto tranquilo)
         const infoHTML = `
-          <button type="button" class="info-chip" aria-label="Ayuda">i</button>
-          <div class="info-pop" role="tooltip">
-            <strong>¿Cómo leer?</strong><br/>
-            • 🔥 + <b>xN</b> = días de racha real.<br/>
-            • <b>XP</b> = experiencia total.<br/>
-            • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
-            • Si no hay máximo, usa valor por defecto del modo.<br/>
-            • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
-          </div>`;
-        const info = el('div','pc-info', infoHTML);
+          <strong>¿Cómo leer?</strong><br/>
+          • 🔥 + <b>xN</b> = días de racha real.<br/>
+          • <b>XP</b> = experiencia total.<br/>
+          • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
+          • Si no hay máximo, usa valor por defecto del modo.<br/>
+          • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
+        `;
         
-        /* lógica de apertura/cierre igual al resto */
-        {
-          const chip = info.querySelector('.info-chip');
-          const pop  = info.querySelector('.info-pop');
+        // 4) usa tu util v3 (position: fixed + viewport-safe)
+        attachInfoChip('#pc-constancy-info', infoHTML, 'right');
+    
+        // const infoHTML = `
+        //   <button type="button" class="info-chip" aria-label="Ayuda">i</button>
+        //   <div class="info-pop" role="tooltip">
+        //     <strong>¿Cómo leer?</strong><br/>
+        //     • 🔥 + <b>xN</b> = días de racha real.<br/>
+        //     • <b>XP</b> = experiencia total.<br/>
+        //     • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
+        //     • Si no hay máximo, usa valor por defecto del modo.<br/>
+        //     • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
+        //   </div>`;
+        // const info = el('div','pc-info', infoHTML);
         
-          const toggle = (e)=>{
-            e.stopPropagation();
-            const open = !pop.classList.contains('show');
-            document.querySelectorAll('.info-pop.show').forEach(p=>p.classList.remove('show'));
-            if (open) pop.classList.add('show');
-          };
-          chip.addEventListener('click', toggle);
-          document.addEventListener('click', ()=>pop.classList.remove('show'));
-          window.addEventListener('resize', ()=>pop.classList.remove('show'));
-        }
-        top.appendChild(tabs); top.appendChild(info); root.appendChild(top);
+        // /* lógica de apertura/cierre igual al resto */
+        // {
+        //   const chip = info.querySelector('.info-chip');
+        //   const pop  = info.querySelector('.info-pop');
+        
+        //   const toggle = (e)=>{
+        //     e.stopPropagation();
+        //     const open = !pop.classList.contains('show');
+        //     document.querySelectorAll('.info-pop.show').forEach(p=>p.classList.remove('show'));
+        //     if (open) pop.classList.add('show');
+        //   };
+        //   chip.addEventListener('click', toggle);
+        //   document.addEventListener('click', ()=>pop.classList.remove('show'));
+        //   window.addEventListener('resize', ()=>pop.classList.remove('show'));
+        // }
+        // top.appendChild(tabs); top.appendChild(info); root.appendChild(top);
     
         root.appendChild(buildSection('Body', groups.Body||[], mode));
         root.appendChild(buildSection('Mind', groups.Mind||[], mode));
