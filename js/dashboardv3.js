@@ -1086,100 +1086,110 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
 
 
 
-/* ========= InfoChip util ======================================================
-   Uso rápido (declarativo):
-   <h3 class="card-title" data-info="Tu texto..." data-info-pos="left"></h3>
+/* ========= InfoChip util v3 (fixed, viewport-safe) ===========================
+   Uso declarativo:
+     <h3 class="card-title" data-info="Texto..." data-info-pos="left"></h3>
 
    Uso por JS:
-   attachInfoChip('.xp-box h3', 'Qué es el XP...', 'right')
-*/
+     attachInfoChip('.xp-box h3', 'Qué es el XP...', 'right')
+
+   Cambios clave:
+   - El pop usa position: FIXED -> no lo recortan contenedores ni overflow:hidden.
+   - Colocación inteligente dentro del viewport (con margen).
+   - Misma API que tu versión anterior.
+============================================================================= */
 (function(){
-  // Crea un chip + popover y lo inserta al lado del elemento target
-  function _build(targetEl, text, pos){
+  const MARGIN = 10; // margen de resguardo contra los bordes de la ventana
+
+  function _build(targetEl, html, pos){
     if (!targetEl) return;
-    // wrapper para que el pop se posicione relativo
+
+    // contenedor lógico para estilos del chip
     targetEl.classList.add('card-title-with-info');
 
+    // botón chip
     const chip = document.createElement('button');
     chip.type = 'button';
-    chip.className = 'info-chip';
+    chip.className = 'info-chip' + ((pos||'right')==='left' ? ' info-left' : '');
     chip.setAttribute('aria-label','Información');
-    chip.textContent = 'i';
-    if ((pos||'right') === 'left') chip.classList.add('info-left');
+    chip.textContent = 'i'; // si preferís el circulito: 'ⓘ'
 
-    const pop  = document.createElement('div');
+    // pop
+    const pop = document.createElement('div');
     pop.className = 'info-pop';
-    pop.innerHTML = text; // podés pasar HTML simple (listas, <b>, etc.)
-    // inserto
+    pop.innerHTML = html;
+
     targetEl.appendChild(chip);
     targetEl.appendChild(pop);
 
-    // posicionamiento básico debajo del chip
-  
+    // coloca el pop usando coordenadas de viewport
     function place(){
-      // mostrar temporalmente para medir
-      pop.style.visibility = 'hidden';
+      // mostrar para medir
+      pop.style.position = 'fixed';
+      pop.style.display  = 'block';
       pop.classList.add('show');
-    
-      const chipRect = chip.getBoundingClientRect();
-      const parentRect = targetEl.getBoundingClientRect();
-    
-      // posición base: debajo del chip
-      let topPx  = (chipRect.bottom - parentRect.top) + 8; // 8px separador
-      let leftPx = chipRect.right - parentRect.left - pop.offsetWidth; // abrir hacia la derecha (right:0)
-    
-      // Medimos overflow contra el viewport
-      const popRect = pop.getBoundingClientRect();
-      const overflowRight = popRect.right > window.innerWidth - 8; // margen de seguridad
-      const overflowLeft  = popRect.left  < 8;
-    
-      // Si se pasa a la derecha, abrimos a la IZQUIERDA
-      pop.classList.toggle('pop-left', overflowRight && !overflowLeft);
-    
-      // Recalcular left si abrimos a la izquierda
-      if (pop.classList.contains('pop-left')){
-        leftPx = chipRect.left - parentRect.left; // pegado a la izquierda del chip
+
+      const r  = chip.getBoundingClientRect();
+      const pw = pop.offsetWidth;
+      const ph = pop.offsetHeight;
+
+      // base: debajo y alineado al borde derecho del chip
+      let left = Math.round(r.right - pw);
+      let top  = Math.round(r.bottom + MARGIN);
+
+      // clamp horizontal
+      if (left < MARGIN) left = MARGIN;
+      if (left + pw > window.innerWidth - MARGIN){
+        left = window.innerWidth - MARGIN - pw;
       }
-    
-      // Si por alguna razón queda muy arriba, empujamos un poco
-      if (topPx < 8) topPx = 8;
-    
-      pop.style.top  = `${topPx}px`;
-      pop.style.left = `${leftPx}px`;
-    
-      // volver a estado visible
-      pop.style.visibility = '';
+
+      // si no entra abajo, probá arriba
+      if (top + ph > window.innerHeight - MARGIN){
+        top = Math.max(MARGIN, r.top - ph - MARGIN);
+      }
+
+      pop.style.left = left + 'px';
+      pop.style.top  = top  + 'px';
     }
 
-    // abrir/cerrar
+    // abrir/cerrar con exclusión mutua
     const toggle = (e)=>{
       e.stopPropagation();
-      const show = !pop.classList.contains('show');
-      document.querySelectorAll('.info-pop.show').forEach(p=>p.classList.remove('show'));
-      if (show){ place(); pop.classList.add('show'); }
+      const wantShow = !pop.classList.contains('show');
+      document.querySelectorAll('.info-pop.show').forEach(p=>{
+        p.classList.remove('show'); p.style.display = 'none';
+      });
+      if (wantShow){ place(); }
     };
+
     chip.addEventListener('click', toggle);
     chip.addEventListener('mouseenter', place);
-    window.addEventListener('resize', ()=>pop.classList.remove('show'));
-    document.addEventListener('click', ()=>pop.classList.remove('show'));
+
+    // cerrar en resize / click fuera
+    window.addEventListener('resize', ()=>{
+      pop.classList.remove('show'); pop.style.display='none';
+    });
+    document.addEventListener('click', (e)=>{
+      if (!e.target.closest('.info-pop') && !e.target.closest('.info-chip')){
+        pop.classList.remove('show'); pop.style.display='none';
+      }
+    });
   }
 
   // Declarativo: cualquier elemento con data-info
   function initInfoChips(){
     document.querySelectorAll('[data-info]').forEach(el=>{
-      // evitar duplicados si re-inicializamos
       if (el.dataset.infoInit === '1') return;
       el.dataset.infoInit = '1';
       _build(el, el.dataset.info, (el.dataset.infoPos||'right'));
     });
   }
 
-  // API pública para usar desde tu código
+  // API pública
   window.attachInfoChip = function(selector, text, position){
     const el = document.querySelector(selector);
     _build(el, text, (position||'right'));
   };
 
-  // auto-init al cargar
   document.addEventListener('DOMContentLoaded', initInfoChips);
 })();
