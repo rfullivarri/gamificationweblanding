@@ -1083,3 +1083,75 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
 //   if (!r.ok) throw new Error('Worker refresh-pull failed: ' + r.status);
 //   return r.json(); // { ok:true, email, key, source: 'webapp->worker' }
 // }
+
+
+
+/* ========= InfoChip util ======================================================
+   Uso rápido (declarativo):
+   <h3 class="card-title" data-info="Tu texto..." data-info-pos="left"></h3>
+
+   Uso por JS:
+   attachInfoChip('.xp-box h3', 'Qué es el XP...', 'right')
+*/
+(function(){
+  // Crea un chip + popover y lo inserta al lado del elemento target
+  function _build(targetEl, text, pos){
+    if (!targetEl) return;
+    // wrapper para que el pop se posicione relativo
+    targetEl.classList.add('card-title-with-info');
+
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'info-chip';
+    chip.setAttribute('aria-label','Información');
+    chip.textContent = 'i';
+    if ((pos||'right') === 'left') chip.classList.add('info-left');
+
+    const pop  = document.createElement('div');
+    pop.className = 'info-pop';
+    pop.innerHTML = text; // podés pasar HTML simple (listas, <b>, etc.)
+    // inserto
+    targetEl.appendChild(chip);
+    targetEl.appendChild(pop);
+
+    // posicionamiento básico debajo del chip
+    function place(){
+      const r = chip.getBoundingClientRect();
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const scrollX = window.scrollX || document.documentElement.scrollLeft;
+      pop.style.top  = (r.bottom + 8 + scrollY - targetEl.getBoundingClientRect().top - scrollY) + 'px';
+      pop.style.left = ( (pos==='left') ? 0 : Math.max(0, r.left - targetEl.getBoundingClientRect().left + scrollX - 14) ) + 'px';
+    }
+
+    // abrir/cerrar
+    const toggle = (e)=>{
+      e.stopPropagation();
+      const show = !pop.classList.contains('show');
+      document.querySelectorAll('.info-pop.show').forEach(p=>p.classList.remove('show'));
+      if (show){ place(); pop.classList.add('show'); }
+    };
+    chip.addEventListener('click', toggle);
+    chip.addEventListener('mouseenter', place);
+    window.addEventListener('resize', ()=>pop.classList.remove('show'));
+    document.addEventListener('click', ()=>pop.classList.remove('show'));
+  }
+
+  // Declarativo: cualquier elemento con data-info
+  function initInfoChips(){
+    document.querySelectorAll('[data-info]').forEach(el=>{
+      // evitar duplicados si re-inicializamos
+      if (el.dataset.infoInit === '1') return;
+      el.dataset.infoInit = '1';
+      _build(el, el.dataset.info, (el.dataset.infoPos||'right'));
+    });
+  }
+
+  // API pública para usar desde tu código
+  window.attachInfoChip = function(selector, text, position){
+    const el = document.querySelector(selector);
+    _build(el, text, (position||'right'));
+  };
+
+  // auto-init al cargar
+  document.addEventListener('DOMContentLoaded', initInfoChips);
+})();
