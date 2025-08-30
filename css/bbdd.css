@@ -450,4 +450,22 @@ html,body{
   border-radius: 10px;
 }
 
+/* Overlay de fondo: blur fuerte tipo glass */
+.bbdd-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 28, .55);          /* capa oscura */
+  backdrop-filter: blur(16px) saturate(1.1); /* BLUR potente */
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  z-index: 9999;
+}
 
+/* Panel centrado y con bordes suaves */
+.bbdd-panel{
+  background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
+  border: 1px solid rgba(122,134,255,.18);
+  border-radius: 14px;                  /* curvitas coherentes */
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+}
