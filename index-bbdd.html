@@ -159,9 +159,9 @@
     --w-rasgo:        12%;
     --w-stat:         12%;
     --w-task:         38%;     /* ↓ bajé Task para darle aire a la derecha */
-    --w-dificultad:   10%;     /* ↑ más ancho para el select */
+    --w-dificultad:   11%;     /* ↑ más ancho para el select */
     --w-feedback:     12%;     /* ↑ más ancho para los 2 botones + eliminar */
-    --w-eliminar:     6%;
+    --w-eliminar:     5%;
   }
 
   /* ===== Overlay + Panel scrolleable ===== */
@@ -215,7 +215,7 @@
   /* ===== Barra 3: BARRA FIJA DE COLUMNAS (usamos ESTA, no thead) ===== */
   .bbdd-columns{
     display:grid !important;           /* aseguro que esté visible */
-    position:sticky; top:var(--columns-top) + 6px); z-index:30;
+    position:sticky; top:var(--columns-top, 113px); z-index:30;
     grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar);
     gap:var(--col-gap);
     margin:6px 4px 0;                  /* menos margen lateral = más ancho útil */
@@ -258,7 +258,7 @@
 
   /* Spinner */
   #table-spinner{
-    position:absolute; inset:0; display:none; z-index:50;
+    position:absolute; inset:0; display:true; z-index:80;
     align-items:center; justify-content:center; gap:12px;
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     background: rgba(10,12,24,.45); color:#ecedff; font-weight:600;
