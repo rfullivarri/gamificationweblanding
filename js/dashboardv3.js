@@ -1116,11 +1116,38 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
 
     // posicionamiento básico debajo del chip
     function place(){
-      const r = chip.getBoundingClientRect();
-      const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const scrollX = window.scrollX || document.documentElement.scrollLeft;
-      pop.style.top  = (r.bottom + 8 + scrollY - targetEl.getBoundingClientRect().top - scrollY) + 'px';
-      pop.style.left = ( (pos==='left') ? 0 : Math.max(0, r.left - targetEl.getBoundingClientRect().left + scrollX - 14) ) + 'px';
+      // mostrar temporalmente para medir
+      pop.style.visibility = 'hidden';
+      pop.classList.add('show');
+    
+      const chipRect = chip.getBoundingClientRect();
+      const parentRect = targetEl.getBoundingClientRect();
+    
+      // posición base: debajo del chip
+      let topPx  = (chipRect.bottom - parentRect.top) + 8; // 8px separador
+      let leftPx = chipRect.right - parentRect.left - pop.offsetWidth; // abrir hacia la derecha (right:0)
+    
+      // Medimos overflow contra el viewport
+      const popRect = pop.getBoundingClientRect();
+      const overflowRight = popRect.right > window.innerWidth - 8; // margen de seguridad
+      const overflowLeft  = popRect.left  < 8;
+    
+      // Si se pasa a la derecha, abrimos a la IZQUIERDA
+      pop.classList.toggle('pop-left', overflowRight && !overflowLeft);
+    
+      // Recalcular left si abrimos a la izquierda
+      if (pop.classList.contains('pop-left')){
+        leftPx = chipRect.left - parentRect.left; // pegado a la izquierda del chip
+      }
+    
+      // Si por alguna razón queda muy arriba, empujamos un poco
+      if (topPx < 8) topPx = 8;
+    
+      pop.style.top  = `${topPx}px`;
+      pop.style.left = `${leftPx}px`;
+    
+      // volver a estado visible
+      pop.style.visibility = '';
     }
 
     // abrir/cerrar
