@@ -112,5 +112,18 @@
     });
   })();
 </script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const overlay = document.getElementById('bbdd-overlay');
+    const backBtn = document.getElementById('bbdd-back');
+    
+    if (overlay && backBtn) {
+      backBtn.addEventListener('click', () => {
+        overlay.classList.add('hidden');   // oculta el overlay
+        // opcional: limpiar tabla/spinner si querés
+      });
+    }
+  });
+</script>
 </body>
 </html>
