@@ -19,7 +19,7 @@
         <button id="bbdd-confirm" class="btn primary">Confirmar cambios ✓</button>
       </header>
 
-      <section class="bbdd-tip gj-info">
+      <section class="bbdd-tip gj-info collapsed" id="bbdd-tip">
         <b>📌 IMPORTANTE – Cómo deben ser tus Tasks</b><br/>
         ✔️ Que puedas completarlas en un solo día.<br/>
         ✔️ Deben ser claras, específicas y medibles.<br/>
@@ -30,6 +30,10 @@
           <span>✨ Mejorar: pulir esta misma task</span>
           <span>🔁 Modificar: proponer una distinta manteniendo Pilar/Rasgo/Stat/Dificultad</span>
         </div>
+      
+        <!-- Botón de colapsar/expandir -->
+        <button type="button" class="tip-toggle btn ghost small" aria-expanded="false">Mostrar guía</button>
+        <span class="tip-fade" aria-hidden="true"></span>
       </section>
 
       <section class="bbdd-tools">
@@ -44,7 +48,7 @@
       
         <div class="right">
           <button id="bbdd-ai" class="btn ghost" title="Enviar a IA">✨ AI (Coming Soon)</button>
-          <div id="ai-sparkle" class="ai-sparkle" style="display:none;">
+          <div id="ai-sparkle" class="ai-sparkle" style="display:none;"></div>
         </div>
       </section>
 
