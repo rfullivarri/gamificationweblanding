@@ -394,9 +394,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     
         const infoHTML = `
-          <div class="info-chip" title="Ayuda">ⓘ</div>
-          <div class="pc-info-bubble">
-            <b>Cómo leer:</b><br/>
+          <button type="button" class="info-chip" aria-label="Ayuda">i</button>
+          <div class="info-pop" role="tooltip">
+            <strong>¿Cómo leer?</strong><br/>
             • 🔥 + <b>xN</b> = días de racha real.<br/>
             • <b>XP</b> = experiencia total.<br/>
             • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
@@ -404,6 +404,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
           </div>`;
         const info = el('div','pc-info', infoHTML);
+        
+        /* lógica de apertura/cierre igual al resto */
+        {
+          const chip = info.querySelector('.info-chip');
+          const pop  = info.querySelector('.info-pop');
+        
+          const toggle = (e)=>{
+            e.stopPropagation();
+            const open = !pop.classList.contains('show');
+            document.querySelectorAll('.info-pop.show').forEach(p=>p.classList.remove('show'));
+            if (open) pop.classList.add('show');
+          };
+          chip.addEventListener('click', toggle);
+          document.addEventListener('click', ()=>pop.classList.remove('show'));
+          window.addEventListener('resize', ()=>pop.classList.remove('show'));
+        }
         top.appendChild(tabs); top.appendChild(info); root.appendChild(top);
     
         root.appendChild(buildSection('Body', groups.Body||[], mode));
