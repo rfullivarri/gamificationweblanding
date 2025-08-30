@@ -116,146 +116,71 @@
     });
   })();
 </script>
-
+  
 <style id="bbdd-hotfix">
-  /* ====== LAYOUT GENERAL ====== */
+  /* ——— contenedor scrolleable ——— */
+  .bbdd-panel{
+    width:min(1200px,100%);
+    height:min(96dvh,100dvh);
+    overflow:auto;                         /* el panel es el scroller */
+    border-radius:14px; border:1px solid rgba(122,134,255,.18);
+    background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
+    box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .bbdd-header{
+    position:sticky; top:0; z-index:30;   /* 1) header siempre fijo */
+    display:flex; align-items:center; gap:12px;
+    padding:12px 16px;
+    background: linear-gradient(180deg, rgba(26,31,68,.95), rgba(18,22,45,.92));
+    border-bottom:1px solid rgba(122,134,255,.20);
+  }
+  .bbdd-tip{                                /* IMPORTANTE: NO sticky */
+    margin:12px 16px 8px; padding:12px 14px;
+    border:1px solid rgba(122,134,255,.18);
+    border-radius:12px;
+    background: linear-gradient(180deg, rgba(28,34,74,.6), rgba(20,24,52,.6));
+  }
+
+  /* 2) tools sticky debajo del header cuando el tip ya salió */
+  .bbdd-tools{
+    position:sticky; top:var(--tools-top, 56px); z-index:25;
+    display:grid; grid-template-columns:1fr 1fr 1fr; align-items:center;
+    gap:12px; padding:8px 16px;
+    background: linear-gradient(180deg, rgba(26,31,68,.94), rgba(20,24,52,.94));
+    border-bottom:1px solid rgba(122,134,255,.18);
+    transition: padding .15s ease, box-shadow .15s ease;
+  }
+  /* 3) thead sticky debajo de tools */
+  .bbdd-table-wrap{ margin:12px 16px 16px; }
+  #bbdd-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  #bbdd-table thead th{
+    position:sticky; top:var(--thead-top, 100px); z-index:20;
+    padding:8px 10px;
+    background: linear-gradient(180deg, rgba(44,52,106,.95), rgba(26,31,68,.95));
+    color:#dbe0ff; border-bottom:1px solid rgba(122,134,255,.22);
+    text-align:left; white-space:nowrap; font-weight:600;
+    transition: padding .15s ease;
+  }
+  #bbdd-table tbody td{ padding:6px 10px; border-bottom:1px solid rgba(122,134,255,.10); }
+
+  /* —— modo compacto cuando tools está pegado (más filas visibles) —— */
+  .is-stuck .bbdd-tools{ padding:6px 12px; box-shadow: 0 6px 12px rgba(0,0,0,.25); }
+  .is-stuck #bbdd-table thead th{ padding:6px 8px; }
+
+  /* overlay (fuera de foco) */
   .bbdd-overlay{
-    position:fixed; inset:0; z-index:9999;
-    display:flex; align-items:center; justify-content:center;
+    position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
     padding:clamp(8px,2vh,24px);
     background: rgba(8,12,28,.55);
     backdrop-filter: blur(16px) saturate(1.08);
     -webkit-backdrop-filter: blur(16px) saturate(1.08);
   }
-  .bbdd-panel{
-    width:min(1200px,100%);
-    height:min(96dvh,100dvh);              /* ocupa casi toda la altura de viewport */
-    max-height:96dvh;
-    display:grid;
-    grid-template-rows: auto /* header */
-                         auto /* tip */
-                         auto /* tools */
-                         1fr  /* tabla */
-                         auto /* footer */;
-    overflow:hidden;
-    border-radius:14px; border:1px solid rgba(122,134,255,.18);
-    background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
-    box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-
-  /* ====== HEADER STICKY ====== */
-  .bbdd-header{
-    position:sticky; top:0; z-index:10;
-    display:flex; align-items:center; gap:12px;
-    padding:12px 16px;
-    background: linear-gradient(180deg, rgba(26,31,68,.94), rgba(18,22,45,.90));
-    border-bottom:1px solid rgba(122,134,255,.20);
-  }
-  .bbdd-header h1{ font-size:16px; margin:0; }
-  .bbdd-header .spacer{ flex:1; }
-
-  /* ====== TIP COLAPSABLE (por defecto colapsado) ====== */
-  .bbdd-tip{
-    position:relative;
-    margin:12px 16px 0;
-    padding:12px 14px 36px; /* espacio para el toggle */
-    border:1px solid rgba(122,134,255,.18);
-    border-radius:12px;
-    background: linear-gradient(180deg, rgba(28,34,74,.6), rgba(20,24,52,.6));
-    overflow:auto;
-  }
-  .bbdd-tip.collapsed{
-    max-height:88px;                /* ocupa poco alto por defecto */
-    overflow:hidden;
-  }
-  .bbdd-tip .legend{ display:flex; gap:12px; margin-top:10px; opacity:.9; font-size:.9rem; }
-  .bbdd-tip .tip-fade{
-    position:absolute; left:0; right:0; bottom:0; height:38px;
-    background: linear-gradient(to bottom, transparent, rgba(12,16,35,.96));
-    pointer-events:none; display:none;
-  }
-  .bbdd-tip.collapsed .tip-fade{ display:block; }
-
-  .tip-toggle{
-    position:absolute; right:10px; bottom:8px;
-    font-size:12px; padding:4px 8px; line-height:1;
-  }
-
-  /* ====== TOOLS STICKY ====== */
-  .bbdd-tools{
-    position:sticky; top:var(--tools-top, 56px); z-index:9;
-    display:grid; grid-template-columns: 1fr 1fr 1fr; align-items:center;
-    gap:12px; padding:8px 16px;
-    background: linear-gradient(180deg, rgba(26,31,68,.92), rgba(20,24,52,.92));
-    border-bottom:1px solid rgba(122,134,255,.18);
-  }
-  .bbdd-tools .left{ display:flex; align-items:center; gap:12px; }
-  .bbdd-tools .center{ display:flex; justify-content:center; }
-  .bbdd-tools .right{ display:flex; justify-content:flex-end; align-items:center; gap:10px; }
-
-  /* ====== TABLA: ocupa todo el resto y scrollea ====== */
-  .bbdd-table-wrap{
-    min-height:0;            /* permite que 1fr funcione */
-    overflow:auto;
-    margin:12px 16px 16px;
-    border-radius:12px;
-    position:relative;
-  }
-  #bbdd-table{ width:100%; border-collapse:separate; border-spacing:0; }
-
-  /* header sticky siempre visible al scrollear */
-  #bbdd-table thead th{
-    position:sticky; top:0; z-index:5;
-    padding:8px 10px;
-    background: linear-gradient(180deg, rgba(44,52,106,.92), rgba(26,31,68,.94));
-    color:#dbe0ff;
-    border-bottom:1px solid rgba(122,134,255,.22);
-    text-align:left; font-weight:600; white-space:nowrap;
-  }
-  /* filas un poco más compactas para ver más tareas */
-  #bbdd-table tbody td{
-    padding:6px 10px; border-bottom:1px solid rgba(122,134,255,.10);
-  }
-
-  /* Spinner centrado sobre la tabla */
-  #table-spinner{
-    position:absolute; inset:0; display:none; z-index:6;
-    align-items:center; justify-content:center; gap:12px;
-    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-    background: rgba(10,12,24,.45); color:#ecedff; font-weight:600;
-  }
-  .bbdd-table-wrap.table-loading #table-spinner{ display:flex; }
-  .bbdd-table-wrap.table-loading #bbdd-table{ filter:blur(1px); opacity:.6; pointer-events:none; }
-
-  /* ===== Scrollbar oscuro (WebKit) ===== */
-  .bbdd-table-wrap::-webkit-scrollbar{ width:10px; height:10px; }
-  .bbdd-table-wrap::-webkit-scrollbar-thumb{
-    background: rgba(122,134,255,.28); border-radius:10px; border:2px solid transparent; background-clip: padding-box;
-  }
-  .bbdd-table-wrap::-webkit-scrollbar-track{ background:transparent; }
-
-  /* ===== FOOTER ===== */
-  .bbdd-footer{
-    display:flex; align-items:center; gap:12px;
-    padding:10px 16px; border-top:1px solid rgba(122,134,255,.18);
-    background: linear-gradient(180deg, rgba(20,24,52,.88), rgba(16,20,44,.88));
-  }
-  .bbdd-footer .spacer{ flex:1; }
-
-  /* ===== Botones pequeños reutilizados ===== */
-  .btn.small{ font-size:12px; padding:6px 10px; }
-
-  /* ===== MOBILE: pantalla completa ===== */
   @media (max-width:768px){
     .bbdd-overlay{ align-items:stretch; padding:0; }
-    .bbdd-panel{
-      width:100%; height:100dvh; max-height:100dvh; border-radius:0;
-      grid-template-rows: auto auto auto 1fr auto;
-    }
-    .bbdd-tools{ position:sticky; top:0; } /* menos offset */
+    .bbdd-panel{ width:100%; height:100dvh; border-radius:0; }
+    .bbdd-tools{ top:var(--tools-top, 52px); }
   }
 </style>
-
 <script>
   (function(){
     const btn = document.getElementById('bbdd-back');
@@ -299,5 +224,44 @@
     new ResizeObserver(calcToolsTop).observe(document.body);
   })();
 </script>
+  
+<script>
+/* Calcula offsets y activa "modo compacto" cuando tools queda pegado */
+(function(){
+  const panel = document.querySelector('.bbdd-panel');
+  const header = document.querySelector('.bbdd-header');
+  const tools  = document.querySelector('.bbdd-tools');
+
+  function recalcOffsets(){
+    const hH = header ? header.getBoundingClientRect().height : 56;
+    const hT = tools  ? tools.getBoundingClientRect().height  : 44;
+    // tools se pega justo debajo del header
+    document.documentElement.style.setProperty('--tools-top', hH + 'px');
+    // thead se pega justo debajo de tools
+    document.documentElement.style.setProperty('--thead-top', (hH + hT) + 'px');
+  }
+
+  // Sentinel: detecta si tools está "stuck" (pegado)
+  const sentinel = document.createElement('div');
+  sentinel.style.height = '1px';
+  tools.before(sentinel);
+
+  const io = new IntersectionObserver(([e])=>{
+    // cuando el sentinel deja de ser visible, tools está pegado
+    const stuck = !e.isIntersecting;
+    panel.classList.toggle('is-stuck', stuck);
+  }, {root: panel, threshold: 1.0});
+
+  function init(){
+    recalcOffsets();
+    io.observe(sentinel);
+  }
+
+  new ResizeObserver(recalcOffsets).observe(document.body);
+  window.addEventListener('load', init);
+  window.addEventListener('resize', recalcOffsets);
+})();
+</script>
+
 </body>
 </html>
