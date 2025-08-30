@@ -761,3 +761,64 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .gj-constancy-card .streak-item,
 .gj-constancy-card .task-table { margin-inline: 0; }  /* equilibra márgenes izq/der */
 
+
+/* === OVERRIDE: que entre TODO sin scroll ni recortes === */
+
+/* 1) Base más compacta */
+.gj-constancy-card {
+  --fs-xxs: clamp(.6rem, .55rem + .18cqw, .72rem);
+  --fs-xs:  clamp(.7rem,  .64rem + .22cqw, .84rem);
+  --fs-sm:  clamp(.82rem, .74rem + .28cqw, .98rem);
+  --fs-md:  clamp(.92rem, .84rem + .30cqw, 1.06rem);
+}
+.gj-constancy-card .chip { padding: .3em .55em; }
+.gj-constancy-card .progress { height: clamp(8px, 6px + .35cqw, 11px); }
+
+/* 2) Tabla: sin ancho mínimo que fuerce scroll */
+.gj-constancy-card .task-table { overflow-x: visible; }
+.gj-constancy-card .task-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(120px, 30%);
+  gap: .5rem .75rem;
+  align-items: center;
+}
+.gj-constancy-card .task-row > * { min-width: 0; }
+.gj-constancy-card .task-row .name { 
+  word-break: break-word; 
+  overflow-wrap: anywhere;
+  font-size: var(--fs-sm);
+}
+.gj-constancy-card .task-row .xp {
+  font-size: var(--fs-xxs);
+  font-weight: 700;
+  white-space: nowrap;
+  padding: .1em .4em;
+  border-radius: 8px;
+  background: var(--xp-bg);
+  color: var(--xp-text);
+}
+
+/* 3) “Modo 2 renglones” AUTOMÁTICO en cards angostas:
+      la barra baja y ocupa todo el ancho */
+@container (max-width: 1024px) {
+  .gj-constancy-card .task-row {
+    grid-template-columns: minmax(0,1fr) auto;   /* solo 2 columnas arriba */
+    grid-auto-rows: auto;
+  }
+  .gj-constancy-card .task-row .weekly {
+    grid-column: 1 / -1;       /* barra a lo ancho abajo */
+    margin-top: .25rem;
+  }
+  .gj-constancy-card .task-row .weekly .progress { 
+    height: clamp(8px, 6px + .3cqw, 10px);
+  }
+}
+
+/* 4) Rachas (arriba): más compactas y sin “Stat:” cuando falte aire */
+@container (max-width: 1100px) {
+  .gj-constancy-card .chip.stat { display: none; }
+  .gj-constancy-card .streak-item { padding: .6rem .8rem; gap: .5rem; }
+  .gj-constancy-card .streak-item .title { font-size: var(--fs-xs); }
+  .gj-constancy-card h2.section-title { font-size: var(--fs-sm); }
+}
+
