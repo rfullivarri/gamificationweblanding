@@ -457,70 +457,73 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 }
 
 
-/* ===== InfoChip — TODAS las cards (menos Constancia) ===== */
 
-/* Wrapper del título donde cuelgan chip + pop */
+/* ===== InfoChip v3: chip más chico + pop "global" (fixed) ===== */
+:root{
+  --info-chip-size: 24px;                 /* bajé un toque el tamaño */
+  --info-pop-z: 99999;
+  --info-pop-bg: #0f1328;
+  --info-pop-brd: rgba(122,134,255,.30);
+  --info-pop-fg: #ecedff;
+}
+
 .card-title-with-info{
   position: relative;
   display: flex; align-items: center; gap: 8px;
-  overflow: visible;                 /* que el pop no se recorte */
 }
-
-/* Botón chip (usa 'i') */
 .card-title-with-info .info-chip{
-  margin-left: auto;                 /* a la derecha del título */
-  width: 22px; height: 22px;         /* más chico */
+  margin-left: auto;
+  width: var(--info-chip-size); height: var(--info-chip-size);
   border-radius: 50%;
   border: 1px solid rgba(122,134,255,.55);
-  background: #151a33;               /* sólido */
+  background: #151a33;
   color: #e8eaff;
-  font: 700 12px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font: 700 13px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   display: grid; place-items: center;
   cursor: pointer;
   transition: transform .12s ease, background .12s ease, color .12s ease;
-  z-index: 5;
 }
 .card-title-with-info .info-chip:hover{ transform: scale(1.06); background:#7d3cff; color:#fff; }
 
-/* Variante: chip a la izquierda (si usás data-info-pos="left") */
-.card-title-with-info .info-chip.info-left{
-  order: -1; margin-right: 6px; margin-left: 0;
-}
+/* Variante con el chip a la IZQUIERDA (si usás data-info-pos="left" o clase .info-left) */
+.card-title-with-info .info-chip.info-left{ order:-1; margin-left:0; margin-right:6px; }
 
-/* Pop: compacto, sólido y sin recortes */
-.card-title-with-info .info-pop{
-  position: absolute;
-  top: 36px; right: 0;               /* abre hacia la derecha por defecto */
-  display: none;
-  max-width: 260px;
-  background: #0f1328;
-  border: 1px solid rgba(122,134,255,.28);
-  color: #ecedff;
+/* El globo ahora es FIXED (no lo recortan los contenedores) */
+.info-pop{
+  position: fixed;                        /* <— la clave */
+  left: 0; top: 0;                        /* se setean por JS al abrir */
+  display: none;                          /* se muestra con .show */
+  max-width: min(340px, 86vw);
+  background: var(--info-pop-bg);
+  border: 1px solid var(--info-pop-brd);
+  color: var(--info-pop-fg);
   padding: 12px 14px;
   border-radius: 12px;
-  box-shadow: 0 10px 28px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.03);
-  z-index: 9999;
-  font-size: 13px; line-height: 1.35;
+  box-shadow: 0 14px 36px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.03);
+  z-index: var(--info-pop-z);
+  font-size: 13px; line-height: 1.4;
 }
-.card-title-with-info .info-pop.show{ display:block; }
+.info-pop.show{ display:block; }
 
-/* Flechita cuando abre a la derecha */
-.card-title-with-info .info-pop::before{
-  content:""; position:absolute; top:-8px; right:18px;
-  border:8px solid transparent; border-bottom-color: rgba(122,134,255,.28);
-}
-.card-title-with-info .info-pop::after{
-  content:""; position:absolute; top:-7px; right:19px;
-  border:7px solid transparent; border-bottom-color:#0f1328;
-}
+/* tipografía interna */
+.info-pop strong{ display:block; margin:0 0 6px; font-size:14px; }
+.info-pop ul{ margin:0; padding-left: 1.1em; }
 
-/* Si el JS detecta overflow y pone .pop-left, abrimos hacia la izquierda */
-.card-title-with-info .info-pop.pop-left{ right:auto; left:0; }
-.card-title-with-info .info-pop.pop-left::before{ right:auto; left:18px; }
-.card-title-with-info .info-pop.pop-left::after { right:auto; left:19px; }
+/* versión un toque más compacta si querés usarla en alguno: */
+.info-pop.compact{ font-size:12.5px; }
 
-/* Mobile: aún más compacto */
-@media (max-width: 768px){
-  .card-title-with-info .info-pop{ max-width: 220px; font-size:12px; }
+/* opcional: flechita simple (no imprescindible) */
+.info-pop::after{
+  content:"";
+  position: fixed;                        /* igual que el globo */
+  width: 10px; height: 10px;
+  background: var(--info-pop-bg);
+  border-left: 1px solid var(--info-pop-brd);
+  border-top: 1px solid var(--info-pop-brd);
+  transform: rotate(45deg);
+  z-index: calc(var(--info-pop-z) + 1);
+  /* la posiciona el JS con --arrow-left / --arrow-top */
+  left: var(--arrow-left, -1000px);
+  top:  var(--arrow-top,  -1000px);
 }
 
