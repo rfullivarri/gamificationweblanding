@@ -42,9 +42,22 @@
       <div class="dashboard-columns">
         <!-- IZQUIERDA -->
         <section class="left-column">
+          <!-- XP + Level -->
           <div class="xp-box">
-            <h3>🏆 Total XP: <span id="xp-actual">0</span></h3>
-            <h3>🎯 Level: <span id="nivel-actual">0</span></h3>
+            <div class="card-title">
+              <button class="info-chip" aria-controls="info-xp" aria-expanded="false" title="Ayuda">ⓘ</button>
+              <h3>🏆 Total XP: <span id="xp-actual">0</span> · 🎯 Level: <span id="nivel-actual">0</span></h3>
+            </div>
+            <div class="info-pop" id="info-xp" role="tooltip" hidden>
+              <strong>¿Qué ves acá?</strong>
+              <ul>
+                <li>🏆 <b>XP</b> = experiencia total acumulada.</li>
+                <li>🎯 <b>Level</b> sube al alcanzar el umbral de XP.</li>
+                <li>📊 La barra muestra el <b>progreso al próximo nivel</b>.</li>
+                <li>💡 Tip: cada hábito completado suma XP. ¡Pequeños pasos, gran avance!</li>
+              </ul>
+              <button class="info-close" aria-label="Cerrar">✕</button>
+            </div>
             <div class="progress-bar"><div id="bar-nivel" class="bar-fill nivel"></div></div>
             <p>✨ Te faltan <span id="xp-faltante">0</span> XP para el próximo nivel</p>
           </div>
@@ -53,34 +66,53 @@
             <img id="avatar" class="avatar-img" src="" alt="Avatar">
           </div>
 
+          <!-- Daily Energy -->
           <div class="energy-box">
-            <h3>💠 Daily Energy</h3>
-          
+            <div class="card-title">
+              <button class="info-chip" aria-controls="info-energy" aria-expanded="false" title="Ayuda">ⓘ</button>
+              <h3>💠 Daily Energy</h3>
+            </div>
+            <div class="info-pop" id="info-energy" role="tooltip" hidden>
+              <strong>¿Qué es Daily Energy?</strong>
+              <ul>
+                <li>🫀 <b>HP</b> → ligado a Body.</li>
+                <li>🏵️ <b>Mood</b> → ligado a Soul.</li>
+                <li>🧠 <b>Focus</b> → ligado a Mind.</li>
+                <li>🔋 Se cargan según tus actividades diarias (últimos 7 días).</li>
+                <li>💡 Mantenerlas altas te motiva y da constancia.</li>
+              </ul>
+              <button class="info-close" aria-label="Cerrar">✕</button>
+            </div>
             <div class="energy-meter">
               <span class="energy-label">HP</span>
-              <div class="energy-track">
-                <div id="bar-hp" class="bar-fill hp"></div>
-              </div>
+              <div class="energy-track"><div id="bar-hp" class="bar-fill hp"></div></div>
             </div>
-          
             <div class="energy-meter">
               <span class="energy-label">Mood</span>
-              <div class="energy-track">
-                <div id="bar-mood" class="bar-fill mood"></div>
-              </div>
+              <div class="energy-track"><div id="bar-mood" class="bar-fill mood"></div></div>
             </div>
-          
             <div class="energy-meter">
               <span class="energy-label">Focus</span>
-              <div class="energy-track">
-                <div id="bar-focus" class="bar-fill focus"></div>
-              </div>
+              <div class="energy-track"><div id="bar-focus" class="bar-fill focus"></div></div>
             </div>
           </div>
           
+          <!-- Daily Cultivation -->
           <div class="daily-cultivation-section">
             <div class="daily-cultivation-header">
-              <h3>🪴 Daily Cultivation</h3>
+              <div class="card-title">
+                <h3>🪴 Daily Cultivation</h3>
+                <button class="info-chip" aria-controls="info-cultivation" aria-expanded="false" title="Ayuda">ⓘ</button>
+              </div>
+              <div class="info-pop" id="info-cultivation" role="tooltip" hidden>
+                <strong>¿Qué es Daily Cultivation?</strong>
+                <ul>
+                  <li>📈 Muestra los <b>puntos de XP</b> que ganaste cada día del mes.</li>
+                  <li>📊 Te ayuda a ver que el progreso <b>no siempre es lineal</b>.</li>
+                  <li>💡 Está bien tener altibajos, lo importante es la constancia.</li>
+                </ul>
+                <button class="info-close" aria-label="Cerrar">✕</button>
+              </div>
               <label for="month-select">Mes:</label>
               <select id="month-select"></select>
             </div>
@@ -104,14 +136,39 @@
             <a id="edit-bbdd-warning" href="gamificationweblanding/index-bbdd.html" class="dashboard-button" data-keep-email>Editar Base(Beta)</a>
           </div>
 
+          <!-- Radar -->
           <div class="radar-section">
-            <h3>🧿 Radar Chart</h3>
-            <div id="radarChartContainer">
-              <canvas id="radarChart"></canvas>
+            <div class="card-title">
+              <button class="info-chip" aria-controls="info-radar" aria-expanded="false" title="Ayuda">ⓘ</button>
+              <h3>🧿 Radar Chart</h3>
             </div>
+            <div class="info-pop" id="info-radar" role="tooltip" hidden>
+              <strong>¿Qué es el Radar Chart?</strong>
+              <ul>
+                <li>📊 Muestra tus <b>rasgos principales</b> en Body, Mind y Soul.</li>
+                <li>🧭 Cada punto refleja XP acumulada en ese rasgo.</li>
+                <li>💡 Sirve para ver tu <b>balance general</b> y detectar desequilibrios.</li>
+              </ul>
+              <button class="info-close" aria-label="Cerrar">✕</button>
+            </div>
+            <div id="radarChartContainer"><canvas id="radarChart"></canvas></div>
           </div>
+
+          <!-- Emotion Chart -->
           <div class="emotion-box">
-            <h3>💗 Emotion Chart</h3>
+            <div class="card-title">
+              <button class="info-chip" aria-controls="info-emotion" aria-expanded="false" title="Ayuda">ⓘ</button>
+              <h3>💗 Emotion Chart</h3>
+            </div>
+            <div class="info-pop" id="info-emotion" role="tooltip" hidden>
+              <strong>¿Qué es el Emotion Chart?</strong>
+              <ul>
+                <li>💗 Registra tus <b>emociones diarias</b>.</li>
+                <li>📅 Te permite ver cómo <b>fuiste sintiéndote</b> a lo largo del tiempo.</li>
+                <li>💡 Detectar patrones emocionales ayuda a mejorar tu Journey.</li>
+              </ul>
+              <button class="info-close" aria-label="Cerrar">✕</button>
+            </div>
             <div class="emotion-legend">
               <span><span class="color-box" style="background-color:#2ECC71;"></span>Calma</span>
               <span><span class="color-box" style="background-color:#F1C40F;"></span>Felicidad</span>
@@ -130,8 +187,6 @@
         <section class="right-column">
           <!-- 🔥 DOPAMINE PILLAR CARD (columna 3) -->
           <div id="pillar-card-root" class="pc-card"></div>
-          <!-- Fin bloque constancia -->
-
           <div id="rewardsContainer"></div>
         </section>
       </div>
@@ -172,7 +227,6 @@
       let email = (url.searchParams.get('email') || localStorage.getItem('gj_email') || '').trim().toLowerCase();
       if (!email) return;
 
-      // Mantener email en navegaciones internas marcadas
       document.querySelectorAll('a[data-keep-email]').forEach(a => {
         const u = new URL(a.getAttribute('href'), location.origin);
         u.searchParams.set('email', email);
