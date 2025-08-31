@@ -215,7 +215,7 @@
   /* ===== Barra 3: BARRA FIJA DE COLUMNAS (usamos ESTA, no thead) ===== */
   .bbdd-columns{
     display:grid !important;           /* aseguro que esté visible */
-    position:sticky; top:var(--columns-top, 107px); z-index:23;     /*///ACAAAAAAA*/
+    position:sticky; top:var(--columns-top, 100px); z-index:30;     /*///ACAAAAAAA*/
     grid-template-columns: var(--w-pilar) var(--w-rasgo) var(--w-stat) var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar);
     gap:var(--col-gap);
     margin:6px 4px 0;                  /* menos margen lateral = más ancho útil */
@@ -282,20 +282,33 @@
       tip.classList.toggle('collapsed', collapsed);
       if (btn) btn.setAttribute('aria-expanded', String(!collapsed));
       if (btn) btn.textContent = collapsed ? 'Mostrar guía' : 'Ocultar guía';
-      calcToolsTop(); // por si cambia la altura
+      calcToolsTop(); // recalcular todo al cambiar altura del TIP
     }
     btn?.addEventListener('click', () => setTip(!tip.classList.contains('collapsed')));
-    // inicia colapsada
-    if (tip) setTip(true);
+    if (tip) setTip(true); // inicia colapsada
 
     // —— Mantener el toolbar justo debajo del header
     function calcToolsTop(){
       const header = document.querySelector('.bbdd-header');
       const top = header ? header.getBoundingClientRect().height : 56;
       document.documentElement.style.setProperty('--tools-top', top + 'px');
+      calcColumnsTop(); // recalcular también la barra de columnas
     }
+
+    // —— Mantener la barra de columnas justo debajo del toolbar
+    function calcColumnsTop(){
+      const header = document.querySelector('.bbdd-header');
+      const tools  = document.querySelector('.bbdd-tools');
+      const hHeader = header ? header.getBoundingClientRect().height : 56;
+      const hTools  = tools  ? tools.getBoundingClientRect().height  : 44;
+      const CLEARANCE = 4; // px de aire entre toolbar y columnas (ajustable)
+      document.documentElement.style.setProperty('--columns-top', (hHeader + hTools + CLEARANCE) + 'px');
+    }
+
+    // —— Eventos de recalculo
     window.addEventListener('load', calcToolsTop);
     window.addEventListener('resize', calcToolsTop);
+    window.addEventListener('orientationchange', calcToolsTop);
     new ResizeObserver(calcToolsTop).observe(document.body);
   })();
 </script>
