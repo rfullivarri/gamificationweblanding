@@ -10,6 +10,8 @@
   <!-- Libs de charts ANTES de tu JS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#7d3cff">
 </head>
 <body>
   <div class="dashboard-root">
@@ -189,5 +191,14 @@
       });
     });
   </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .then(r => console.log('[SW] registrado', r.scope))
+          .catch(e => console.error('[SW] error', e));
+      });
+    }
+</script>
 </body>
 </html>
