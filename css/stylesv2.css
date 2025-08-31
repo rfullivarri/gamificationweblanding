@@ -58,62 +58,74 @@ body > *{ position:relative; z-index:1; }
 .btn:hover{background:var(--accent-2)} .btn:active{transform:translateY(1px)}
 .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink)}
 
-/* HERO */
-.hero{padding:48px 18px}
-.hero-grid{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}
-.hero h1{font-size:42px;line-height:1.1;margin:0 0 10px}
-.grad{background:linear-gradient(90deg,#c4b5fd,#7c3aed);-webkit-background-clip:text;background-clip:text;color:transparent}
-.sub{color:var(--muted)}
-.cta{display:flex; gap:12px; margin-top:16px; flex-wrap:wrap}
-.tiny{font-size:12px;color:var(--muted);margin-top:8px}
-.hero-media{text-align:center}
-.hero-img{
-  width:100%; max-width:520px; aspect-ratio: 4/3; object-fit: cover; border-radius:16px;
-  border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.35);
-}
+/* ===== HERO ===== */
+.hero{ padding:48px 18px; }
 
-/* === HERO LAYOUT === */
 .hero-grid{
+  max-width:1080px;
+  margin:0 auto;
   display:grid;
-  grid-template-columns: 1.15fr 1fr; /* texto | imagen */
-  gap: 40px;
+  /* texto | imagen (ancha de nuevo) */
+  grid-template-columns: 1.1fr clamp(560px, 40vw, 720px);
+  gap:40px;
   align-items:center;
 }
 
-/* contenedor de la imagen */
+.hero h1{ font-size:42px; line-height:1.1; margin:0 0 10px; }
+.grad{ background:linear-gradient(90deg,#c4b5fd,#7c3aed); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.sub{ color:var(--muted); }
+.cta{ display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
+.tiny{ font-size:12px; color:var(--muted); margin-top:8px; }
+
+/* Contenedor imagen: pegada a la derecha y con ancho fijo generoso */
 .hero-media{
+  width: clamp(560px, 40vw, 720px);
+  margin-left:auto;
   display:flex;
   justify-content:flex-end;
+  text-align:center;
 }
 
-/* imagen principal en formato CUADRADO */
+/* IMAGEN – recorte SOLO vertical (no se hace más “finita”) */
 .hero-img{
-  width: 520px;              /* desktop */
-  max-width: 100%;
-  aspect-ratio: 1 / 1;       /* ⬅️ cuadrada siempre */
-  object-fit: cover;         /* recorta si hace falta */
-  object-position: 50% 10%;  /* ⬅️ foco arriba (prioriza la esfera) */
-  border-radius: 16px;
+  width:100%;
+  /* altura menor que el ancho → fuerza recorte arriba/abajo */
+  height: clamp(640px, 46vw, 900px);
+  object-fit: cover;
+  object-position: 50% 10%;  /* foco alto → la esfera queda completa */
+  border-radius:16px;
+  border:1px solid var(--line);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
   display:block;
-  box-shadow: 0 20px 60px rgba(0,0,0,.35);
 }
 
-/* --- Responsivo --- */
-@media (max-width: 1100px){
-  .hero-grid{ grid-template-columns: 1fr; gap: 24px; }
-  .hero-media{ justify-content:center; }
+/* ===== RESPONSIVE ===== */
+@media (max-width:1100px){
+  .hero-grid{
+    grid-template-columns: 1fr;   /* apila */
+    gap:24px;
+  }
+  .hero-media{
+    width:100%;
+    justify-content:center;
+    margin-left:0;
+  }
   .hero-img{
-    width: 92vw;           /* ancho relativo en móvil/tablet */
-    max-width: 540px;      /* tope visual */
-    aspect-ratio: 1 / 1;
-    object-position: 50% 8%; /* ajusta el foco aún más arriba */
-    margin: 0 auto;
+    width:92vw;
+    max-width:540px;
+    /* alto controlado para seguir recortando solo vertical */
+    height: min(92vw, 560px);
+    object-position: 50% 8%;
+    margin:0 auto;
   }
 }
 
-/* opcional: estrecha aún más en móviles chicos */
-@media (max-width: 420px){
-  .hero-img{ width: 88vw; object-position: 50% 6%; }
+@media (max-width:420px){
+  .hero-img{
+    width:88vw;
+    height: min(88vw, 520px);
+    object-position: 50% 6%;
+  }
 }
 
 
