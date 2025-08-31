@@ -3,16 +3,15 @@
 html,body{height:100%;margin:0}
 body{
   font-family:"Rubik",system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
-  background:
-    radial-gradient(1200px 800px at 20% -10%, #1a2340 0%, rgba(26,35,64,0) 60%),
-    radial-gradient(1000px 700px at 120% 0%, #321a63 0%, rgba(50,26,99,0) 60%),
-    #0b0f19;
+  background: linear-gradient(180deg,#0A0D18 0%, #0B0F1E 100%);
   color:#fff;
+  margin:0;
 }
+
 .dashboard-root{
   position: relative;
   min-height: 100vh;
-  background: linear-gradient(180deg,#0A0D18 0%, #0B0F1E 100%);
+  background: transparent;   /* ← antes tenía un linear-gradient aquí */
   color:#fff;
   overflow-x:hidden;
 }
@@ -22,17 +21,19 @@ body{
   content:"";
   position: fixed;
   inset:0;
-  z-index:-1;
+  z-index: 0;                 /* ← clave: el glow queda detrás, pero visible */
   pointer-events:none;
   background:
     radial-gradient(1100px 800px at 100% 0%,
       rgba(124,77,255,.20), rgba(124,77,255,0) 70%) no-repeat,
     radial-gradient(1200px 900px at -10% 0%,
-      rgba(50,26,99,.25), rgba(50,26,99,0) 70%) no-repeat,
+      rgba(50,26,99,.22), rgba(50,26,99,0) 70%) no-repeat,
     linear-gradient(180deg,#0A0D18 0%, #0B0F1E 100%);
   background-position: top right, top left, center;
   background-size: 1100px 800px, 1200px 900px, cover;
 }
+/* que todo el contenido viva por encima del glow fijo */
+.dashboard-root > *{ position: relative; z-index: 1; }
 
 /* HEADER */
 header{
