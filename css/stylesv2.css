@@ -71,6 +71,33 @@ body > *{ position:relative; z-index:1; }
   width:100%; max-width:520px; aspect-ratio: 4/3; object-fit: cover; border-radius:16px;
   border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.35);
 }
+/* HERO media */
+.hero-media{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+}
+
+/* Imagen principal del hero */
+.hero-img{
+  width: 460px;              /* ancho en desktop */
+  height: 560px;             /* alto fijo para composición */
+  object-fit: cover;         /* recorta si hace falta */
+  object-position: 50% 12%;  /* ⬅️ foco arriba: prioriza la esfera */
+  border-radius: 16px;
+  display:block;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+
+/* Responsivo */
+@media (max-width: 1100px){
+  .hero-img{ width: 420px; height: 520px; object-position: 50% 10%; }
+}
+@media (max-width: 900px){
+  .hero-media{ justify-content:center; }
+  .hero-img{ width: 100%; height: auto; object-fit: contain; object-position:center top; }
+}
+
 
 /* SECTIONS */
 section{padding:36px 18px}
