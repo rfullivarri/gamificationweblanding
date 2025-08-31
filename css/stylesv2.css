@@ -58,6 +58,7 @@ body > *{ position:relative; z-index:1; }
 .btn:hover{background:var(--accent-2)} .btn:active{transform:translateY(1px)}
 .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink)}
 
+
 /* ===== HERO ===== */
 .hero{ padding:48px 18px; }
 
@@ -65,8 +66,7 @@ body > *{ position:relative; z-index:1; }
   max-width:1080px;
   margin:0 auto;
   display:grid;
-  /* texto | imagen (ancha de nuevo) */
-  grid-template-columns: 1.1fr clamp(560px, 40vw, 720px);
+  grid-template-columns: 1.1fr 1fr; /* texto | imagen */
   gap:40px;
   align-items:center;
 }
@@ -77,22 +77,19 @@ body > *{ position:relative; z-index:1; }
 .cta{ display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
 .tiny{ font-size:12px; color:var(--muted); margin-top:8px; }
 
-/* Contenedor imagen: pegada a la derecha y con ancho fijo generoso */
+/* Contenedor imagen */
 .hero-media{
-  width: clamp(560px, 40vw, 720px);
-  margin-left:auto;
   display:flex;
   justify-content:flex-end;
   text-align:center;
 }
 
-/* IMAGEN – recorte SOLO vertical (no se hace más “finita”) */
+/* Imagen CUADRADA 1:1, ancho generoso, recorte arriba/abajo */
 .hero-img{
-  width: 100%;
-  max-width: 520px;          /* mantiene ancho generoso */
-  aspect-ratio: 1 / 1;       /* cuadrada */
-  object-fit: cover;
-  object-position: 50% 12%;  /* ⬅️ foco alto → la esfera completa, se pierde parte del niño */
+  width: 520px;              /* ancho fijo en desktop */
+  aspect-ratio: 1 / 1;       /* cuadrada siempre */
+  object-fit: cover;         /* recorta arriba/abajo */
+  object-position: 50% 12%;  /* foco alto: esfera completa, menos niño */
   border-radius: 16px;
   border: 1px solid var(--line);
   box-shadow: 0 20px 60px rgba(0,0,0,.35);
@@ -102,18 +99,14 @@ body > *{ position:relative; z-index:1; }
 /* ===== RESPONSIVE ===== */
 @media (max-width:1100px){
   .hero-grid{
-    grid-template-columns: 1fr;   /* apila */
+    grid-template-columns: 1fr; /* apila */
     gap:24px;
   }
-  .hero-media{
-    width:100%;
-    justify-content:center;
-    margin-left:0;
-  }
+  .hero-media{ justify-content:center; }
   .hero-img{
-    width: 92vw;
-    max-width: 540px;
-    aspect-ratio: 1 / 1;   /* sigue cuadrada en móvil */
+    width: 92vw;           /* ocupa casi todo el ancho */
+    max-width: 540px;      /* tope */
+    aspect-ratio: 1 / 1;   /* sigue cuadrada */
     object-position: 50% 10%;
     margin: 0 auto;
   }
@@ -121,11 +114,13 @@ body > *{ position:relative; z-index:1; }
 
 @media (max-width:420px){
   .hero-img{
-    width:88vw;
-    height: min(88vw, 520px);
-    object-position: 50% 6%;
+    width: 88vw;
+    max-width: 400px;
+    aspect-ratio: 1 / 1;
+    object-position: 50% 8%;
   }
 }
+
 
 
 /* SECTIONS */
