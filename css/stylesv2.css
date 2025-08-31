@@ -88,15 +88,15 @@ body > *{ position:relative; z-index:1; }
 
 /* IMAGEN – recorte SOLO vertical (no se hace más “finita”) */
 .hero-img{
-  width:100%;
-  /* altura menor que el ancho → fuerza recorte arriba/abajo */
-  height: clamp(640px, 46vw, 900px);
+  width: 100%;
+  max-width: 520px;          /* mantiene ancho generoso */
+  aspect-ratio: 1 / 1;       /* cuadrada */
   object-fit: cover;
-  object-position: 50% 10%;  /* foco alto → la esfera queda completa */
-  border-radius:16px;
-  border:1px solid var(--line);
-  box-shadow:0 20px 60px rgba(0,0,0,.35);
-  display:block;
+  object-position: 50% 12%;  /* ⬅️ foco alto → la esfera completa, se pierde parte del niño */
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  display: block;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -111,12 +111,11 @@ body > *{ position:relative; z-index:1; }
     margin-left:0;
   }
   .hero-img{
-    width:92vw;
-    max-width:540px;
-    /* alto controlado para seguir recortando solo vertical */
-    height: min(92vw, 560px);
-    object-position: 50% 8%;
-    margin:0 auto;
+    width: 92vw;
+    max-width: 540px;
+    aspect-ratio: 1 / 1;   /* sigue cuadrada en móvil */
+    object-position: 50% 10%;
+    margin: 0 auto;
   }
 }
 
