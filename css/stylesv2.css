@@ -59,73 +59,55 @@ body > *{ position:relative; z-index:1; }
 .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink)}
 
 
-/* ===== HERO (VERSIÓN FINAL CUADRADA) ===== */
-.hero{ padding:48px 18px; }
+/* ====== HERO CUADRADO (contenedor e imagen) ====== */
+
+/* tamaño del cuadro (ajustá 520/560 a gusto) */
+:root{ --heroSize: 560px; }
 
 .hero-grid{
   max-width:1080px;
   margin:0 auto;
   display:grid;
-  grid-template-columns: 1.1fr 560px;   /* ← columna de imagen fija */
+  grid-template-columns: 1.1fr var(--heroSize); /* texto | cuadro */
   gap:40px;
   align-items:center;
 }
 
-.hero h1{ font-size:42px; line-height:1.1; margin:0 0 10px; }
-.grad{ background:linear-gradient(90deg,#c4b5fd,#7c3aed); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.sub{ color:var(--muted); }
-.cta{ display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
-.tiny{ font-size:12px; color:var(--muted); margin-top:8px; }
-
-/* Contenedor imagen (misma medida que la columna) */
+/* CONTENEDOR CUADRADO */
 .hero .hero-media{
-  width:560px;
+  width: var(--heroSize);
+  height: var(--heroSize);        /* ← cuadrado real */
+  aspect-ratio: 1 / 1;
+  position: relative;
+  overflow: hidden;               /* recorte dentro del cuadro */
   margin-left:auto;
-  display:flex;
-  justify-content:flex-end;
-}
-
-/* Imagen CUADRADA 1:1 – recorte SOLO vertical, foco en la esfera */
-.hero .hero-img{
-  width:100% !important;     /* gana a cualquier regla vieja */
-  aspect-ratio: 1 / 1;       /* cuadrada real */
-  object-fit: cover;
-  object-position: 50% 12%;  /* ↑ prioriza la esfera; ajusta 8–15% si querés */
   border-radius:16px;
   border:1px solid var(--line);
   box-shadow:0 20px 60px rgba(0,0,0,.35);
   display:block;
 }
 
-/* ===== RESPONSIVE ===== */
+/* IMAGEN DENTRO DEL CUADRADO */
+.hero .hero-img{
+  position: absolute;
+  inset: 0;                       /* ocupa todo el contenedor */
+  width:100%;
+  height:100%;
+  object-fit: cover;              /* recorte solo vertical/horizontal según haga falta */
+  object-position: 50% 12%;       /* foco alto → prioriza la esfera (mover 8–15%) */
+  display:block;
+}
+
+/* ====== RESPONSIVE ====== */
 @media (max-width:1100px){
-  .hero-grid{
-    grid-template-columns: 1fr;   /* apila */
-    gap:24px;
-  }
-  .hero .hero-media{
-    width:100%;
-    justify-content:center;
-    margin-left:0;
-  }
-  .hero .hero-img{
-    width:92vw !important;
-    max-width:540px;
-    aspect-ratio:1 / 1;
-    object-position:50% 10%;
-    margin:0 auto;
-  }
+  :root{ --heroSize: min(92vw, 540px); }  /* cuadro más chico */
+  .hero-grid{ grid-template-columns: 1fr; gap:24px; } /* apila */
+  .hero .hero-media{ margin-left:0; }
 }
 
 @media (max-width:420px){
-  .hero .hero-img{
-    width:88vw !important;
-    max-width:400px;
-    aspect-ratio:1 / 1;
-    object-position:50% 8%;
-  }
+  :root{ --heroSize: min(88vw, 400px); }
 }
-
 
 /* SECTIONS */
 section{padding:36px 18px}
