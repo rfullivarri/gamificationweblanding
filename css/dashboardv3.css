@@ -946,3 +946,78 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .gj-constancy-card, .gj-constancy-card *{ box-sizing:border-box; }
 .gj-constancy-card .task-table{ overflow-x:clip; }
 
+
+
+
+//==========INTENTO 100000 RESPONSIVE============
+/* ===== Lista de Tareas (tarjeta con columnas: TAREA | XP | SEMANA) ===== */
+/* Ajustá el selector raíz a tu tarjeta si difiere */
+.card-tasks, .tasks-card { overflow-x: hidden; }
+
+/* Cada fila como grid: [tarea][xp][progreso] */
+.tasks-row{
+  display: grid;
+  grid-template-columns: 1fr max-content 160px; /* texto flexible | XP angosto | barra fija */
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+/* Columna Tarea: que nunca fuerce scroll */
+.tasks-row .col-task{
+  min-width: 0;                   /* clave para que el grid permita encoger */
+  white-space: normal;            /* permitir salto de línea */
+  word-break: break-word;         /* cortar palabras largas */
+  hyphens: auto;                  /* guiones automáticos (si el idioma lo permite) */
+  font-size: clamp(13px, 1.6vw, 15px);
+  line-height: 1.25;
+}
+
+/* Columna XP: que ocupe lo mínimo y no empuje al resto */
+.tasks-row .col-xp{
+  font-weight: 700;
+  white-space: nowrap;
+  font-size: clamp(12px, 1.4vw, 14px);
+}
+
+/* Columna Progreso: ancho fijo, que pueda encoger un poco sin romper */
+.tasks-row .col-progress{
+  min-width: 120px;               /* no menos de esto */
+  max-width: 220px;
+}
+
+/* La barrita interna (si tiene padding grande, achicar) */
+.tasks-row .col-progress .progress{
+  width: 100%;
+  min-height: 8px;
+}
+
+/* ===== Breakpoints: si falta ancho, el progreso baja a 2ª línea ===== */
+
+/* 1) Tablet angosta: reducimos el ancho del progreso */
+@media (max-width: 780px){
+  .tasks-row{ grid-template-columns: 1fr max-content 140px; gap: 10px; }
+}
+
+/* 2) Móvil / contenedor estrecho:
+      - 1ª línea: [Tarea][XP]
+      - 2ª línea (debajo): [Progreso] ocupando todo el ancho */
+@media (max-width: 640px){
+  .tasks-row{
+    grid-template-columns: 1fr max-content;
+    grid-template-rows: auto auto;
+    gap: 8px 10px;
+  }
+  .tasks-row .col-progress{
+    grid-column: 1 / -1;          /* ocupa toda la fila */
+    min-width: 0;                 /* permite que se adapte al contenedor */
+  }
+}
+
+/* 3) Muy angosto: tipografía un toque más chica y paddings compactos */
+@media (max-width: 420px){
+  .tasks-row{ padding: 8px 10px; gap: 6px 8px; }
+  .tasks-row .col-task{ font-size: clamp(12px, 3.5vw, 14px); }
+  .tasks-row .col-xp{   font-size: clamp(11px, 3.2vw, 13px); }
+}
+
