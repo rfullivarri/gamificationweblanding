@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <title>Login — Gamification Journey</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#7d3cff">
   <style>
     :root{
       --bg:#0b0f19; --card:#121829; --ink:#e8ecf1; --muted:#9aa3b2;
@@ -250,5 +252,14 @@
       }
     });
   </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .then(r => console.log('[SW] registrado', r.scope))
+          .catch(e => console.error('[SW] error', e));
+      });
+    }
+</script>
 </body>
 </html>
