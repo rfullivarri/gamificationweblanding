@@ -21,10 +21,38 @@
   </div>
 
   <!-- HEADER -->
-  <header>
+   <!-- <header>-->
+   <!--   <div class="logo">🎮 Gamification Life Journey</div>-->
+   <!--   <div class="menu-toggle" id="menu-toggle">☰</div>-->
+   <!-- </header>-->-->
+  
+    <header style="display:flex;align-items:center;justify-content:space-between;">
     <div class="logo">🎮 Gamification Life Journey</div>
-    <div class="menu-toggle" id="menu-toggle">☰</div>
+  
+    <div style="display:flex;align-items:center;gap:16px;">
+      <!-- 🔔 CAMPANITA -->
+      <button id="gj-noti-btn" aria-label="Notificaciones" style="font-size:20px;position:relative;background:none;border:none;cursor:pointer;">
+        🔔
+        <span id="gj-noti-badge" style="display:none;position:absolute;top:-6px;right:-6px;
+          min-width:18px;height:18px;border-radius:9px;padding:0 5px;
+          background:#7d3cff;color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;">0</span>
+      </button>
+  
+      <!-- menú hamburguesa -->
+      <div class="menu-toggle" id="menu-toggle">☰</div>
+    </div>
   </header>
+
+  <!-- 🔽 DROPDOWN DE NOTIFICACIONES -->
+  <div id="gj-noti-dropdown" style="display:none;position:absolute;right:16px;top:56px;width:320px;max-height:60vh;overflow:auto;
+    background:#141418;border:1px solid #2a2a33;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:999;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #23232b;">
+      <strong>Notificaciones</strong>
+      <button id="gj-noti-markall" style="font-size:12px;">Marcar todo</button>
+    </div>
+    <ul id="gj-noti-list" style="list-style:none;margin:0;padding:0;"></ul>
+  </div>
+    
  
   <!-- MENÚ HAMBURGUESA -->
   <nav id="dashboard-menu">
