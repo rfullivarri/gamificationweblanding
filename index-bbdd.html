@@ -271,6 +271,128 @@
     .bbdd-panel{ width:100%; height:100dvh; border-radius:0; }
     .bbdd-tools{ top:var(--tools-top, 52px); }
   }
+
+  /* ===== THEME: Blur del Dashboard para BBDD ===== */
+:root{
+  /* Tintes y opacidades del glass */
+  --glass-blur: 22px;
+  --glass-sat: 1.08;
+  --glass-tint-1: rgba(22, 24, 38, .72);   /* grafito translúcido */
+  --glass-tint-2: rgba(16, 18, 32, .68);
+  --glass-tint-3: rgba(32, 28, 62, .22);   /* violeta muy sutil para bordes/lines */
+  --glass-edge:  rgba(0, 0, 0, .55);       /* borde negro lateral */
+  --ink-strong:  #E7E9FF;
+  --ink-soft:    #B9BFEA;
+  --chip-bg:     rgba(44, 48, 78, .28);
+  --chip-ring:   rgba(122,134,255,.22);
+  --cta:         #7C4DFF;                  /* violeta del Dashboard */
+  --cta-glow:    rgba(124,77,255,.28);
+}
+
+/* Overlay: blur + oscurecido, igual que dashboard */
+.bbdd-overlay{
+  background: radial-gradient(1200px 800px at 20% -10%,
+               rgba(124,77,255,.10), transparent 60%),
+               linear-gradient(180deg, rgba(6,8,16,.60), rgba(6,8,16,.70));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+}
+
+/* Panel con “glass” y bordes negros laterales como el layout principal */
+.bbdd-panel{
+  background: linear-gradient(180deg, var(--glass-tint-1), var(--glass-tint-2));
+  border: 1px solid var(--glass-tint-3);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.03),
+    inset 1px 0 0 rgba(255,255,255,.02),
+    0 30px 90px rgba(0,0,0,.55);
+}
+/* bordes negros a los costados (se “siente” que el blur viene de atrás) */
+.bbdd-panel::before,
+.bbdd-panel::after{
+  content:""; position:fixed; top:0; bottom:0; width:10px; z-index:-1;
+  background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.45));
+}
+.bbdd-panel::before{ left:0; }
+.bbdd-panel::after { right:0; }
+
+/* Header/Toolbar/Columns con gradiente menos azulado, más glass */
+.bbdd-header{
+  background: linear-gradient(180deg,
+    rgba(30, 32, 52, .85), rgba(18, 20, 36, .80));
+  border-bottom: 1px solid var(--glass-tint-3);
+  color: var(--ink-strong);
+}
+.bbdd-tools{
+  background: linear-gradient(180deg,
+    rgba(28, 30, 50, .82), rgba(18, 20, 36, .78));
+  border-bottom: 1px solid var(--glass-tint-3);
+}
+.bbdd-columns{
+  background: linear-gradient(180deg,
+    rgba(36, 38, 66, .86), rgba(24, 26, 44, .84));
+  border-bottom: 1px solid var(--glass-tint-3);
+  color: var(--ink-strong);
+}
+
+/* Tip / chips con vidrio fino */
+.bbdd-tip{
+  background: linear-gradient(180deg,
+    rgba(32, 34, 60, .52), rgba(20, 22, 40, .50));
+  border: 1px solid var(--glass-tint-3);
+  color: var(--ink-soft);
+}
+.bbdd-tip .legend span{
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-ring);
+  color: var(--ink-soft);
+}
+
+/* Inputs, selects y celdas “glass” */
+#bbdd-table tbody td,
+.input,
+select,
+.btn.ghost{
+  background: linear-gradient(180deg,
+    rgba(24, 26, 44, .72), rgba(18, 20, 36, .70));
+  border: 1px solid rgba(120,130,190,.16);
+  color: var(--ink-strong);
+}
+#bbdd-table tbody tr:hover td{
+  background: linear-gradient(180deg,
+    rgba(30, 32, 54, .78), rgba(22, 24, 44, .76));
+  border-color: rgba(140,150,210,.22);
+}
+
+/* Botón primario con tono del dashboard */
+.btn.primary{
+  background: linear-gradient(180deg, #845CFF, #6E46F9);
+  box-shadow: 0 8px 28px var(--cta-glow);
+  color: #fff;
+}
+
+/* Scrollbar en vidrio oscuro (fina y más integrada) */
+.bbdd-panel::-webkit-scrollbar,
+#table-wrap::-webkit-scrollbar{ width: 10px; height: 10px; }
+.bbdd-panel::-webkit-scrollbar-thumb,
+#table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(190,198,255,.18);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.bbdd-panel::-webkit-scrollbar-track,
+#table-wrap::-webkit-scrollbar-track{ background: transparent; }
+
+/* Divisor de filas más tenue (azul menos saturado) */
+#bbdd-table tbody td{
+  border-bottom: 1px solid rgba(120,130,190,.12);
+}
+
+/* Pequeño brillo violeta en headers cuando la toolbar está pegada */
+.is-stuck .bbdd-columns{
+  box-shadow: 0 0 0 1px rgba(130,120,220,.10) inset;
+}
 </style>
   
 <script>
