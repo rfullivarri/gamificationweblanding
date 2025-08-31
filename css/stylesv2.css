@@ -59,14 +59,14 @@ body > *{ position:relative; z-index:1; }
 .btn.ghost{background:transparent; border:1px solid var(--line); color:var(--ink)}
 
 
-/* ===== HERO ===== */
+/* ===== HERO (VERSIÓN FINAL CUADRADA) ===== */
 .hero{ padding:48px 18px; }
 
 .hero-grid{
   max-width:1080px;
   margin:0 auto;
   display:grid;
-  grid-template-columns: 1.1fr 1fr; /* texto | imagen */
+  grid-template-columns: 1.1fr 560px;   /* ← columna de imagen fija */
   gap:40px;
   align-items:center;
 }
@@ -77,50 +77,54 @@ body > *{ position:relative; z-index:1; }
 .cta{ display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; }
 .tiny{ font-size:12px; color:var(--muted); margin-top:8px; }
 
-/* Contenedor imagen */
-.hero-media{
+/* Contenedor imagen (misma medida que la columna) */
+.hero .hero-media{
+  width:560px;
+  margin-left:auto;
   display:flex;
   justify-content:flex-end;
-  text-align:center;
 }
 
-/* Imagen CUADRADA 1:1, ancho generoso, recorte arriba/abajo */
-.hero-img{
-  width: 520px;              /* ancho fijo en desktop */
-  aspect-ratio: 1 / 1;       /* cuadrada siempre */
-  object-fit: cover;         /* recorta arriba/abajo */
-  object-position: 50% 12%;  /* foco alto: esfera completa, menos niño */
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  box-shadow: 0 20px 60px rgba(0,0,0,.35);
-  display: block;
+/* Imagen CUADRADA 1:1 – recorte SOLO vertical, foco en la esfera */
+.hero .hero-img{
+  width:100% !important;     /* gana a cualquier regla vieja */
+  aspect-ratio: 1 / 1;       /* cuadrada real */
+  object-fit: cover;
+  object-position: 50% 12%;  /* ↑ prioriza la esfera; ajusta 8–15% si querés */
+  border-radius:16px;
+  border:1px solid var(--line);
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+  display:block;
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width:1100px){
   .hero-grid{
-    grid-template-columns: 1fr; /* apila */
+    grid-template-columns: 1fr;   /* apila */
     gap:24px;
   }
-  .hero-media{ justify-content:center; }
-  .hero-img{
-    width: 92vw;           /* ocupa casi todo el ancho */
-    max-width: 540px;      /* tope */
-    aspect-ratio: 1 / 1;   /* sigue cuadrada */
-    object-position: 50% 10%;
-    margin: 0 auto;
+  .hero .hero-media{
+    width:100%;
+    justify-content:center;
+    margin-left:0;
+  }
+  .hero .hero-img{
+    width:92vw !important;
+    max-width:540px;
+    aspect-ratio:1 / 1;
+    object-position:50% 10%;
+    margin:0 auto;
   }
 }
 
 @media (max-width:420px){
-  .hero-img{
-    width: 88vw;
-    max-width: 400px;
-    aspect-ratio: 1 / 1;
-    object-position: 50% 8%;
+  .hero .hero-img{
+    width:88vw !important;
+    max-width:400px;
+    aspect-ratio:1 / 1;
+    object-position:50% 8%;
   }
 }
-
 
 
 /* SECTIONS */
