@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#7d3cff">
   <title>Confirmacion BBDD & Daily Quest</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -500,6 +502,15 @@ select,
     window.addEventListener('resize', rerender);
     window.addEventListener('orientationchange', rerender);
   })();
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(r => console.log('[SW] registrado', r.scope))
+        .catch(e => console.error('[SW] error', e));
+    });
+  }
 </script>
 
 </body>
