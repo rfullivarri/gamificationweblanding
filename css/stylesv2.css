@@ -62,6 +62,22 @@ body > *{ position:relative; z-index:1; }
 
 /* ====== HERO CUADRADO (contenedor e imagen) ====== */
 
+/* ===== TITULO H1 ===== */
+.hero h1{
+  font-size:56px;      /* más grande, real H1 */
+  line-height:1.1;
+  font-weight:900;
+  margin:0 0 16px;
+}
+
+.hero h1 .grad{
+  background: linear-gradient(90deg,#c4b5fd,#7c3aed);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
+}
+
 /* tamaño del cuadro (ajustá 520/560 a gusto) */
 :root{ --heroSize: 480px; }
 
@@ -74,14 +90,6 @@ body > *{ position:relative; z-index:1; }
   align-items:center;
 }
 
-/* H1 gradiente */
-.hero h1 .grad{
-  background: linear-gradient(90deg,#c4b5fd,#7c3aed);
-  -webkit-background-clip:text;
-  background-clip:text;
-  -webkit-text-fill-color:transparent;
-  color:transparent;
-}
 
 /* CONTENEDOR CUADRADO */
 .hero .hero-media{
