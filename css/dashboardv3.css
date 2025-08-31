@@ -1021,3 +1021,91 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   .tasks-row .col-xp{   font-size: clamp(11px, 3.2vw, 13px); }
 }
 
+
+/* ===== Header layout (logo | campanita | menú) ===== */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+header .menu-toggle { cursor: pointer; }
+
+/* ===== Campanita ===== */
+#gj-noti-btn {
+  position: relative;
+  background: none;
+  border: 0;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: inherit;
+}
+#gj-noti-btn:focus { outline: 2px solid rgba(125,60,255,.4); outline-offset: 2px; }
+
+/* Badge (contador) */
+#gj-noti-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  display: none;            /* se muestra por JS si hay no leídas */
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #fff;
+  background: #7d3cff;
+  box-shadow: 0 0 0 2px rgba(10,10,14,.8);
+}
+
+
+
+
+
+/* =============================== Dropdown de notificaciones ===== */
+#gj-noti-dropdown {
+  position: absolute;
+  right: 16px;
+  top: 56px;
+  width: 320px;
+  max-height: 60vh;
+  overflow: auto;
+  background: #141418;
+  border: 1px solid #2a2a33;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  z-index: 999;
+  display: none;            /* toggleado por JS */
+  animation: noti-drop .12s ease-out;
+}
+@keyframes noti-drop {
+  from { transform: translateY(-6px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+#gj-noti-dropdown .dropdown-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; border-bottom: 1px solid #23232b;
+}
+#gj-noti-dropdown .dropdown-header button {
+  font-size: 12px; padding: 6px 10px; border-radius: 8px; border: 1px solid #2a2a33;
+  background: #1a1a22; color: #ddd; cursor: pointer;
+}
+#gj-noti-dropdown .dropdown-header button:hover { background: #20202a; }
+
+#gj-noti-list { list-style: none; margin: 0; padding: 0; }
+#gj-noti-list li {
+  padding: 10px 12px; border-bottom: 1px solid #23232b;
+}
+#gj-noti-list li:last-child { border-bottom: 0; }
+#gj-noti-list li.unread { background: #191926; } /* no leída */
+#gj-noti-list li .title { font-weight: 600; margin-bottom: 2px; }
+#gj-noti-list li .meta  { font-size: 12px; opacity: .8; }
+
+/* Responsive: en pantallas chicas el dropdown ocupa más ancho */
+@media (max-width: 480px) {
+  #gj-noti-dropdown { right: 8px; width: calc(100vw - 16px); }
+}
+
