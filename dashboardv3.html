@@ -228,5 +228,63 @@
       });
     }
 </script>
+//=================NOTIFICACIONES===========================
+<script>
+(function(){
+  const KEY = 'gj_notifications_v1';
+  const getList = () => JSON.parse(localStorage.getItem(KEY) || '[]');
+  const setList = (l) => localStorage.setItem(KEY, JSON.stringify(l));
+  const addNoti = (n) => { const l = getList(); l.unshift(n); setList(l); };
+
+  function render(){
+    const list = getList();
+    const unread = list.filter(x=>!x.read).length;
+
+    const badge = document.getElementById('gj-noti-badge');
+    if (badge){
+      badge.textContent = unread;
+      badge.style.display = unread > 0 ? 'inline-flex' : 'none';
+    }
+
+    const ul = document.getElementById('gj-noti-list');
+    if (!ul) return;
+    ul.innerHTML = list.map(x => `
+      <li style="padding:10px 12px;border-bottom:1px solid #23232b;${x.read ? '' : 'background:#191926;'}">
+        <div style="font-weight:600;margin-bottom:2px;">${x.title}</div>
+        <div style="font-size:12px;opacity:.8;">${new Date(x.ts).toLocaleString()} — ${x.type}</div>
+      </li>
+    `).join('') || `<li style="padding:12px;opacity:.7;">Sin notificaciones</li>`;
+  }
+
+  if (!localStorage.getItem(KEY)) {
+    addNoti({ id:'evt_'+Date.now(), type:'BBDD_OK', title:'Confirmaste tu BBDD', ts: Date.now(), read:false });
+  }
+
+  const btn = document.getElementById('gj-noti-btn');
+  const dd  = document.getElementById('gj-noti-dropdown');
+  btn?.addEventListener('click', () => {
+    dd.style.display = dd.style.display === 'none' || dd.style.display === '' ? 'block' : 'none';
+  });
+
+  document.getElementById('gj-noti-markall')?.addEventListener('click', () => {
+    setList(getList().map(x => ({...x, read:true})));
+    render();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (e.target === dd || e.target === btn || dd.contains(e.target)) return;
+    dd.style.display = 'none';
+  });
+
+  // Para probar rápido desde consola:
+  // window.gjNotify({type:'MISSION', title:'Misión desbloqueada'})
+  window.gjNotify = function(n){
+    addNoti({ id:'evt_'+Date.now(), ts: Date.now(), read:false, ...n });
+    render();
+  };
+
+  render();
+})();
+</script>
 </body>
 </html>
