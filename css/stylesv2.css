@@ -4,15 +4,42 @@
   --low:#b63a3a; --chill:#2f9d66; --flow:#2f6bb6; --evolve:#7d3cff;
 }
 *{box-sizing:border-box}
-html,body{height:100%;margin:0}
+html,body{height:100%;margin:0;}
+
 body{
   font-family:'Rubik',system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
-  background:
-    radial-gradient(1200px 800px at 20% -10%, #1a2340 0%, rgba(26,35,64,0) 60%),
-    radial-gradient(1000px 700px at 120% 0%, #321a63 0%, rgba(50,26,99,0) 60%),
-    var(--bg);
+  background:#0b0f19;   /* fondo base sólido */
   color:var(--ink);
+  position:relative;
+  min-height:100vh;
+  overflow-x:hidden;
 }
+
+/* Gradientes fijos (compatibles iOS) */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+
+  background:
+    radial-gradient(1200px 800px at 20% 10%,
+      rgba(208,124,255,.20), rgba(208,124,255,0) 70%) no-repeat,
+    radial-gradient(1000px 700px at 100% 0%,
+      rgba(50,26,99,.20), rgba(50,26,99,0) 70%) no-repeat,
+    linear-gradient(180deg,#0A0D18 0%, #0B0F1E 100%);
+
+  background-position: top left, top right, center;
+  background-size: 1100px 800px, 1200px 900px, cover;
+
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Todo el contenido por encima del glow */
+body > *{ position:relative; z-index:1; }
+
 
 /* NAV */
 .nav{
