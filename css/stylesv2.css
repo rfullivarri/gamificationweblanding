@@ -41,6 +41,7 @@ body::before{
 body > *{ position:relative; z-index:1; }
 
 
+
 /* NAV */
 .nav{
   width:100%; background:rgba(18,24,41,.6); border-bottom:1px solid var(--line);
@@ -62,7 +63,7 @@ body > *{ position:relative; z-index:1; }
 /* ====== HERO CUADRADO (contenedor e imagen) ====== */
 
 /* tamaño del cuadro (ajustá 520/560 a gusto) */
-:root{ --heroSize: 560px; }
+:root{ --heroSize: 480px; }
 
 .hero-grid{
   max-width:1080px;
@@ -71,6 +72,15 @@ body > *{ position:relative; z-index:1; }
   grid-template-columns: 1.1fr var(--heroSize); /* texto | cuadro */
   gap:40px;
   align-items:center;
+}
+
+/* H1 gradiente */
+.hero h1 .grad{
+  background: linear-gradient(90deg,#c4b5fd,#7c3aed);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  color:transparent;
 }
 
 /* CONTENEDOR CUADRADO */
