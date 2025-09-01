@@ -113,7 +113,7 @@ function render(){
       <td>${feedbackButtons(row[5]||"")}</td>
       <td class="row-actions">
         <span class="handle" title="Arrastrar">⋮⋮</span>
-        <button class="mini" data-act="del">Eliminar</button>
+        <button class="mini" data-act="del">X</button>
       </td>
     `;
     tr.addEventListener("input", onRowInput);
