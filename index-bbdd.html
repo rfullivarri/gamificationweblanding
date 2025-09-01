@@ -397,6 +397,74 @@ select,
 .is-stuck .bbdd-columns{
   box-shadow: 0 0 0 1px rgba(130,120,220,.10) inset;
 }
+  
+/* =============================
+   BBDD – OVERRIDES RESPONSIVE
+   (VA AL FINAL DE ESTE <style>)
+   ============================= */
+
+/* ======= MOBILE (≤768px) ======= */
+@media (max-width: 768px){
+
+  /* Mostrar solo: Tasks (4) | Dificultad (5) | Feedback (6)
+     -> Colapsamos 1,2,3 y 7 mediante COLGROUP (ancho 0) */
+  #bbdd-table col.col-pilar,
+  #bbdd-table col.col-rasgo,
+  #bbdd-table col.col-stat,
+  #bbdd-table col.col-eliminar{
+    width: 0 !important;
+  }
+
+  /* Repartimos el ancho entre las visibles */
+  #bbdd-table col.col-task       { width: 64% !important; }
+  #bbdd-table col.col-dificultad { width: 18% !important; }
+  #bbdd-table col.col-feedback   { width: 18% !important; }
+
+  /* Barra fija: mantener 7 pistas pero colapsar 1,2,3 y 7 */
+  .bbdd-columns{
+    /* 0 0 0 | Tasks | Dificultad | Feedback | 0 */
+    grid-template-columns: 0 0 0 1fr 0.28fr 0.28fr 0 !important;
+  }
+  .bbdd-columns > div:nth-child(1),
+  .bbdd-columns > div:nth-child(2),
+  .bbdd-columns > div:nth-child(3),
+  .bbdd-columns > div:nth-child(7){
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    pointer-events: none !important;
+  }
+
+  /* Evitar solape en la celda de Tasks (sin tocar el DOM) */
+  #bbdd-table { table-layout: fixed !important; }
+}
+
+/* ======= DESKTOP (≥769px) ======= */
+@media (min-width: 769px){
+
+  /* Restaurar anchos normales del colgroup */
+  #bbdd-table col.col-pilar      { width: var(--w-pilar) !important; }
+  #bbdd-table col.col-rasgo      { width: var(--w-rasgo) !important; }
+  #bbdd-table col.col-stat       { width: var(--w-stat) !important; }
+  #bbdd-table col.col-task       { width: var(--w-task) !important; }
+  #bbdd-table col.col-dificultad { width: var(--w-dificultad) !important; }
+  #bbdd-table col.col-feedback   { width: var(--w-feedback) !important; }
+  #bbdd-table col.col-eliminar   { width: var(--w-eliminar) !important; }
+
+  /* Barra fija completa (7 pistas) */
+  .bbdd-columns{
+    grid-template-columns:
+      var(--w-pilar) var(--w-rasgo) var(--w-stat)
+      var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar) !important;
+  }
+  .bbdd-columns > div{
+    visibility: visible !important;
+    height: auto !important;
+    pointer-events: auto !important;
+  }
+}
 </style>
   
 <script>
