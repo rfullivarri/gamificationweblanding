@@ -337,3 +337,58 @@ html,body{
       var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar) !important;
   }
 }
+
+/* === MOBILE (≤768px) — solo 3 columnas visibles y sin scroll horizontal === */
+@media (max-width:768px){
+
+  /* 0) Evitar movimiento lateral */
+  .bbdd-panel,
+  #table-wrap{ overflow-x: hidden !important; }
+  #bbdd-table{ width:100% !important; table-layout: fixed !important; }
+
+  /* 1) Colapsar columnas 1,2,3 y 7 (ancho 0) */
+  #bbdd-table col.col-pilar,
+  #bbdd-table col.col-rasgo,
+  #bbdd-table col.col-stat,
+  #bbdd-table col.col-eliminar{ width:0 !important; }
+
+  /* 2) OJO: además de colapsar el colgroup, ocultamos celdas/th para que
+        su contenido NO empuje y no genere scroll horizontal */
+  #bbdd-table thead th:nth-child(1),
+  #bbdd-table thead th:nth-child(2),
+  #bbdd-table thead th:nth-child(3),
+  #bbdd-table thead th:nth-child(7),
+  #bbdd-table tbody td:nth-child(1),
+  #bbdd-table tbody td:nth-child(2),
+  #bbdd-table tbody td:nth-child(3),
+  #bbdd-table tbody td:nth-child(7){
+    padding:0 !important;
+    border:0 !important;
+    width:0 !important; max-width:0 !important;
+    overflow:hidden !important; white-space:nowrap !important;
+    font-size:0 !important;   /* evita “fantasmas” de texto */
+  }
+
+  /* 3) Reparto de ancho SOLO entre las visibles (ajustá acá):
+        - Más aire a Feedback, menos a Dificultad */
+  #bbdd-table col.col-task       { width:62% !important; }
+  #bbdd-table col.col-dificultad { width:16% !important; } /* ↓ antes 18% */
+  #bbdd-table col.col-feedback   { width:22% !important; } /* ↑ antes 18% */
+
+  /* 4) Barra fija de títulos: mismas proporciones y bordes como la toolbar */
+  .bbdd-columns{
+    grid-template-columns: 0 0 0 62% 16% 22% 0 !important;
+    border-radius: 8px !important;         /* como la toolbar */
+    margin: 6px 12px 0 !important;         /* alinear con padding lateral */
+  }
+}
+
+/* === DESKTOP (≥769px) — todo vuelve a la normalidad === */
+@media (min-width:769px){
+  .bbdd-columns{
+    grid-template-columns:
+      var(--w-pilar) var(--w-rasgo) var(--w-stat)
+      var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar) !important;
+    border-radius: 8px; /* si querés que también acá se parezca a la toolbar */
+  }
+}
