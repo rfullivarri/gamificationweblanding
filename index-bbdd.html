@@ -126,9 +126,9 @@
     }
 
     // Botón "Volver" del header (si existe)
-    document.getElementById('btn-back')?.addEventListener('click', (e) => {
-      e.preventDefault(); goBack();
-    });
+    //document.getElementById('btn-back')?.addEventListener('click', (e) => {
+    //  e.preventDefault(); goBack();
+    //});
 
     // Botón "Cerrar" del footer (si existe)
     document.getElementById('close-modal')?.addEventListener('click', (e) => {
@@ -142,18 +142,31 @@
   (function(){
     const btn = document.getElementById('bbdd-back');
     if(!btn) return;
+
     btn.addEventListener('click', function(e){
       e.preventDefault();
+
+      const ref = document.referrer || "";
+      const sameOrigin = ref && new URL(ref, location.origin).origin === location.origin;
+
+      // 1) Preferir volver por historial si venimos del dashboard (misma origin)
+      if (sameOrigin && history.length > 1) {
+        history.back();
+        return;
+      }
+
+      // 2) Fallback: ir al dashboard preservando email si lo tenemos
       const u = new URL(location.href);
-      const email = (u.searchParams.get('email') || localStorage.getItem('gj_email') || '').trim().toLowerCase();
-      const cameFromDash = document.referrer && /dashboard/i.test(document.referrer);
-      if (cameFromDash && history.length > 1) { history.back(); return; }
+      const email = (u.searchParams.get('email') || localStorage.getItem('gj_email') || "").trim().toLowerCase();
+
       const dash = new URL('dashboardv3.html', location.origin);
       if (email) dash.searchParams.set('email', email);
-      location.href = dash.toString();
+
+      location.assign(dash.toString());
     });
   })();
 </script>
+  
 <style id="bbdd-hotfix">
   /* ===== Variables (una sola fuente de verdad) ===== */
   :root{
@@ -245,6 +258,7 @@
   #bbdd-table col.col-task       { width: var(--w-task); }
   #bbdd-table col.col-dificultad { width: var(--w-dificultad); }
   #bbdd-table col.col-feedback   { width: var(--w-feedback); }
+  #bbdd-table col.col-eliminar { width: var(--w-eliminar); }
 
   /* Ocultamos el THEAD real (accesibilidad sí, visual no) */
   #bbdd-table thead{
@@ -262,7 +276,7 @@
 
   /* Spinner */
   #table-spinner{
-    position:absolute; inset:0; display:true; z-index:80;
+    position:absolute; inset:0; display:none; z-index:80;
     align-items:center; justify-content:center; gap:12px;
     backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
     background: rgba(10,12,24,.45); color:#ecedff; font-weight:600;
