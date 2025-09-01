@@ -372,6 +372,130 @@ function closeOverlay(){
 }
 
 
+// /* ====== Init ====== */
+// async function init(){
+//   if(!email){
+//     alert("No se detectó tu email. Abrí esta página desde el Dashboard (menú → Editar Base).");
+//     return;
+//   }
+
+//   // Modo: modal o página
+//   if(window.BBDD_MODE==="modal"){ openOverlay(); }
+//   else { qs("#bbdd-overlay").classList.remove("hidden"); }
+
+//   // listeners UI
+//   qs("#bbdd-back").addEventListener("click", (e)=> {
+//     e.preventDefault();
+  
+//     if (window.BBDD_MODE === "modal") { 
+//       closeOverlay(); 
+//       return; 
+//     }
+  
+//     // En “page/web”: priorizar &back= si existe; si no, ir al dashboard con email
+//     const u = new URL(location.href);
+//     const back = u.searchParams.get('back');
+//     if (back) { 
+//       location.href = decodeURIComponent(back); 
+//       return; 
+//     }
+  
+//     const dash = new URL(DASHBOARD_URL);
+//     if (email) dash.searchParams.set('email', email);
+//     location.href = dash.toString();
+//   });
+//   qs("#close-modal").addEventListener("click", closeOverlay);
+//   qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
+//   qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
+//   qs("#search").addEventListener("input", onFilter);
+
+//   // Botón AI global (opcional)
+//   const aiBtn = document.getElementById("bbdd-ai");
+//   if (aiBtn) {
+//     aiBtn.addEventListener("click", ()=>{
+//       const marcadas = state.rows.filter(r => r[5]==="improve" || r[5]==="replace");
+//       if(!marcadas.length){
+//         alert("Seleccioná al menos una task con feedback🪄 o 🔁");
+//         return;
+//       }
+//       console.log("Tasks seleccionadas para AI:", marcadas);
+//     });
+//   }
+
+//   // Cerrar con ESC (confirma si hay cambios)
+//   document.addEventListener("keydown", (e)=>{
+//     if(e.key==="Escape"){
+//       const doClose = () => {
+//         if(window.BBDD_MODE==="modal") closeOverlay();
+//         else history.back();
+//       };
+//       if(state.dirty){
+//         if(confirm("Tenés cambios sin guardar. ¿Cerrar igualmente?")) doClose();
+//       } else {
+//         doClose();
+//       }
+//     }
+//   });
+
+//   // Atajo: Ctrl/⌘ + V para pegar filas (si no estás escribiendo en un input/textarea/select)
+//   document.addEventListener("keydown", async (e)=>{
+//     const isPaste = (e.key.toLowerCase() === "v") && (e.ctrlKey || e.metaKey);
+//     if (!isPaste) return;
+
+//     const tag = (document.activeElement?.tagName || "").toLowerCase();
+//     const isEditingField = ["input","textarea","select"].includes(tag);
+//     if (isEditingField) return; // dejá que el navegador pegue dentro del campo
+
+//     e.preventDefault();
+//     try {
+//       await pasteFromClipboard();
+//     } catch (err) {
+//       toast("No pude leer el portapapeles. Probá habilitar permisos.", false);
+//     }
+//   });
+//   }
+
+//   // load data
+//   setTableLoading(true);
+//   try{
+//     const { rows } = await apiGetBBDD(email);
+  
+//     // ⬇️ FILTRO ESTRICTO: conservar solo filas con Tasks (col 3) no vacía
+//     const fetched = (rows || []).filter(r => (r?.[3] ?? '').toString().trim() !== '');
+  
+//     // extendemos con slot para feedback
+//     state.rows = fetched.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
+  
+//     // el hash debe calcularse sobre lo que realmente quedó
+//     state.origHash = hashRows(fetched);
+  
+//     render();
+//   }catch(err){
+//     toast("Error cargando BBDD: " + err.message, false);
+//   } finally { setTableLoading(false); }
+// }
+// //   setTableLoading(true);
+// //   try{
+// //     const { rows } = await apiGetBBDD(email);
+// //     // extendemos con slot para feedback
+// //     state.rows = rows.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
+// //     state.origHash = hashRows(rows);
+// //     render();
+// //   }catch(err){
+// //     toast("Error cargando BBDD: " + err.message, false);
+// //   } finally {  setTableLoading(false);}
+// // }
+
+// if(document.readyState!=="loading") init();
+// else document.addEventListener("DOMContentLoaded", init);
+
+// /* ====== Exponer helper para abrir modal desde el dashboard ====== */
+// window.openBBDD = function(emailParam){
+//   if(emailParam) localStorage.setItem("gj_email", emailParam);
+//   window.BBDD_MODE = "modal";
+//   init();
+// };
+
 /* ====== Init ====== */
 async function init(){
   if(!email){
@@ -380,36 +504,40 @@ async function init(){
   }
 
   // Modo: modal o página
-  if(window.BBDD_MODE==="modal"){ openOverlay(); }
-  else { qs("#bbdd-overlay").classList.remove("hidden"); }
+  if (window.BBDD_MODE === "modal") { 
+    openOverlay(); 
+  } else { 
+    qs("#bbdd-overlay").classList.remove("hidden"); 
+  }
 
-  // listeners UI
+  // ── Listeners UI ───────────────────────────────────────────────
   qs("#bbdd-back").addEventListener("click", (e)=> {
     e.preventDefault();
-  
-    if (window.BBDD_MODE === "modal") { 
-      closeOverlay(); 
-      return; 
+
+    if (window.BBDD_MODE === "modal") {
+      closeOverlay();
+      return;
     }
-  
+
     // En “page/web”: priorizar &back= si existe; si no, ir al dashboard con email
     const u = new URL(location.href);
-    const back = u.searchParams.get('back');
-    if (back) { 
-      location.href = decodeURIComponent(back); 
-      return; 
+    const back = u.searchParams.get("back");
+    if (back) {
+      location.href = decodeURIComponent(back);
+      return;
     }
-  
+
     const dash = new URL(DASHBOARD_URL);
-    if (email) dash.searchParams.set('email', email);
+    if (email) dash.searchParams.set("email", email);
     location.href = dash.toString();
   });
+
   qs("#close-modal").addEventListener("click", closeOverlay);
-  qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
+  qs("#bbdd-confirm").addEventListener("click", ()=> doConfirm().catch(e=>toast(e.message,false)));
   qs("#add-row").addEventListener("click", ()=>{ state.rows.push(["","","","","",""]); markDirty(); render(); });
   qs("#search").addEventListener("input", onFilter);
 
-  // Botón AI global (opcional)
+  // Botón AI (opcional)
   const aiBtn = document.getElementById("bbdd-ai");
   if (aiBtn) {
     aiBtn.addEventListener("click", ()=>{
@@ -422,75 +550,64 @@ async function init(){
     });
   }
 
-  // Cerrar con ESC (confirma si hay cambios)
+  // Cerrar con ESC
   document.addEventListener("keydown", (e)=>{
-    if(e.key==="Escape"){
+    if (e.key === "Escape") {
       const doClose = () => {
-        if(window.BBDD_MODE==="modal") closeOverlay();
+        if (window.BBDD_MODE === "modal") closeOverlay();
         else history.back();
       };
-      if(state.dirty){
-        if(confirm("Tenés cambios sin guardar. ¿Cerrar igualmente?")) doClose();
+      if (state.dirty) {
+        if (confirm("Tenés cambios sin guardar. ¿Cerrar igualmente?")) doClose();
       } else {
         doClose();
       }
     }
   });
 
-  // Atajo: Ctrl/⌘ + V para pegar filas (si no estás escribiendo en un input/textarea/select)
+  // Atajo: Ctrl/⌘+V para pegar filas (si no estás editando un campo)
   document.addEventListener("keydown", async (e)=>{
     const isPaste = (e.key.toLowerCase() === "v") && (e.ctrlKey || e.metaKey);
     if (!isPaste) return;
 
     const tag = (document.activeElement?.tagName || "").toLowerCase();
     const isEditingField = ["input","textarea","select"].includes(tag);
-    if (isEditingField) return; // dejá que el navegador pegue dentro del campo
+    if (isEditingField) return; // dejar pegar dentro del campo
 
     e.preventDefault();
-    try {
-      await pasteFromClipboard();
-    } catch (err) {
-      toast("No pude leer el portapapeles. Probá habilitar permisos.", false);
-    }
+    try { await pasteFromClipboard(); }
+    catch { toast("No pude leer el portapapeles. Probá habilitar permisos.", false); }
   });
-  
 
-  // load data
+  // ── Carga de datos ─────────────────────────────────────────────
   setTableLoading(true);
   try{
     const { rows } = await apiGetBBDD(email);
-  
-    // ⬇️ FILTRO ESTRICTO: conservar solo filas con Tasks (col 3) no vacía
-    const fetched = (rows || []).filter(r => (r?.[3] ?? '').toString().trim() !== '');
-  
-    // extendemos con slot para feedback
-    state.rows = fetched.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
-  
-    // el hash debe calcularse sobre lo que realmente quedó
-    state.origHash = hashRows(fetched);
-  
-    render();
-  }catch(err){
-    toast("Error cargando BBDD: " + err.message, false);
-  } finally { setTableLoading(false); }
-//   setTableLoading(true);
-//   try{
-//     const { rows } = await apiGetBBDD(email);
-//     // extendemos con slot para feedback
-//     state.rows = rows.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
-//     state.origHash = hashRows(rows);
-//     render();
-//   }catch(err){
-//     toast("Error cargando BBDD: " + err.message, false);
-//   } finally {  setTableLoading(false);}
-// }
 
-if(document.readyState!=="loading") init();
+    // Filtro estricto: conservar solo filas con Tasks (col 3) no vacía
+    const fetched = (rows || []).filter(r => (r?.[3] ?? "").toString().trim() !== "");
+
+    // Extender con slot de feedback
+    state.rows = fetched.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
+
+    // Hash calculado sobre lo realmente renderizado
+    state.origHash = hashRows(fetched);
+
+    render();
+  } catch(err){
+    toast("Error cargando BBDD: " + err.message, false);
+  } finally {
+    setTableLoading(false);
+  }
+}
+
+// Bootstrap
+if (document.readyState !== "loading") init();
 else document.addEventListener("DOMContentLoaded", init);
 
 /* ====== Exponer helper para abrir modal desde el dashboard ====== */
 window.openBBDD = function(emailParam){
-  if(emailParam) localStorage.setItem("gj_email", emailParam);
+  if (emailParam) localStorage.setItem("gj_email", emailParam);
   window.BBDD_MODE = "modal";
   init();
 };
