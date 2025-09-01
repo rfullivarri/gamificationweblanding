@@ -1205,9 +1205,38 @@ header .menu-toggle { cursor: pointer; }
   word-break: normal;
   hyphens: auto;
 }
+
+/*****CHIPS DE STAT Y EXP**************/
+/* Contenedor de chips */
+.pc .pc-chips,
+.pc .pc-chips-inline{
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;   /* que bajen a la línea de abajo si no entra */
+  width: 100%;
+}
+
+/* Chip base: no se reduce por debajo de su contenido */
+.pc .pc-chip{
+  background: var(--pc-chip);
+  color: #dbe2ff;
+  border: 1px solid var(--pc-border-2);
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  /* 👇 claves para que el fondo siempre cubra la palabra */
+  flex: 0 0 auto;            /* no shrink */
+  min-width: max-content;    /* ancho = contenido */
+  white-space: nowrap;       /* evita salto entre “Stat:” y el valor */
+}
+
+/* Si querés que el chip de Stat pueda estirarse a todo el ancho de la fila */
 .pc .pc-chip.pc-stat{
-  flex:1 1 100%;
-  width:100%;
-  justify-content:flex-start;
-  white-space:nowrap;
+  flex: 1 0 auto;            /* puede crecer, pero no se achica */
+  min-width: max-content;    /* aun estirado, nunca baja del contenido */
 }
