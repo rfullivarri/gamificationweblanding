@@ -102,10 +102,12 @@
     </div>
   </div>
   <script>
-    // Configuración de modo:
-    // - Si se incluye en el dashboard, setear window.BBDD_MODE="modal" y llamar window.openBBDD(email)
-    // - Si se quiere como página independiente, usar query ?email= y window.BBDD_MODE="page"
-    window.BBDD_MODE = window.BBDD_MODE || (matchMedia("(max-width: 768px)").matches ? "page" : "modal");
+    // Mismo comportamiento que desktop: usamos modal salvo que haya ?email=
+    (function () {
+      const q = new URLSearchParams(location.search);
+      const hasEmail = q.has('email') && q.get('email').trim() !== '';
+      window.BBDD_MODE = hasEmail ? "page" : "modal";
+    })();
   </script>
   <script src="js/bbdd.js"></script>
   <script>
