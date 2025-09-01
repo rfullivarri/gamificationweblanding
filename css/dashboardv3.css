@@ -1129,3 +1129,41 @@ header .menu-toggle { cursor: pointer; }
   #gj-noti-dropdown { right: 8px; width: calc(100vw - 16px); }
 }
 
+/*********************LISTA DE LA CARD DE CONSTACIA********************************/
+/* 1) Habilito container queries en la lista */
+.pc .pc-list{
+  container-type: inline-size; /* mide el ancho real de la lista */
+}
+
+/* 2) Layout por defecto: 3 columnas (ya lo tenés así) */
+.pc .pc-row{
+  display:grid;
+  grid-template-columns: 1fr 90px var(--pc-progress-w-list);
+  grid-template-areas: "name xp progress";
+  column-gap:12px;
+  align-items:center;
+  overflow:hidden;              /* nada se sale */
+}
+.pc .pc-row > :first-child{ grid-area:name; }
+.pc .pc-xp{ grid-area:xp; }
+.pc .pc-right{ grid-area:progress; display:flex; justify-content:flex-end; }
+.pc .pc-right .pc-progress{ width:var(--pc-progress-w-list); max-width:100%; }
+
+/* 3) Cuando el contenedor es angosto (p.ej. notebooks 11–12") 
+      —> la barra baja y ocupa 100% */
+@container (max-width: 860px){
+  .pc .pc-row{
+    grid-template-columns: 1fr 90px;
+    grid-template-areas:
+      "name xp"
+      "progress progress";
+    row-gap:6px;
+    align-items:start;
+  }
+  .pc .pc-right{
+    justify-content:stretch;     /* estira la barra */
+  }
+  .pc .pc-right .pc-progress{
+    width:100%;
+  }
+}
