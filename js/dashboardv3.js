@@ -292,10 +292,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           const c = el('div','pc-tcard');
           c.appendChild(el('div','pc-thead','<span class="pc-fire">🔥</span><span class="pc-streak">x'+t.streak+'</span>'));
     
+          // // Chips XP + Stat en línea
+          // const chips = el('div','pc-chips-inline');
+          // chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
+          // if(t.stat) chips.appendChild(el('span','pc-chip','Stat: ' + esc(t.stat)));
+          // c.appendChild(chips);
+
           // Chips XP + Stat en línea
           const chips = el('div','pc-chips-inline');
           chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
-          if(t.stat) chips.appendChild(el('span','pc-chip','Stat: ' + esc(t.stat)));
+          if (t.stat) {chips.appendChild(el('span','pc-chip pc-stat','Stat: ' + esc(t.stat)) // 👈 clase extra
+            );}
           c.appendChild(chips);
     
           // Nombre tarea
