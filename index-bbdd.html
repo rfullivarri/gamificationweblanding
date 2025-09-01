@@ -136,9 +136,35 @@
     });
   })();
 </script>
+<script>
+(function(){
+  const btn = document.getElementById('bbdd-back');
+  if(!btn) return;
+
+  function smartBack(){
+    const u = new URL(location.href);
+    const email = (u.searchParams.get('email') || localStorage.getItem('gj_email') || '').trim().toLowerCase();
+    const cameFromDash = document.referrer && /dashboard.*\.html/i.test(document.referrer);
+
+    // 1) Si venís del dashboard, probá volver por history:
+    if (cameFromDash && history.length > 1) { history.back(); return; }
+
+    // 2) Si hay &back= usalo:
+    const backURL = u.searchParams.get('back');
+    if (backURL) { location.href = decodeURIComponent(backURL); return; }
+
+    // 3) Fallback: ir al dashboard con email si lo tenemos
+    const dash = new URL('dashboardv3.html', location.origin);
+    if (email) dash.searchParams.set('email', email);
+    location.href = dash.toString();
+  }
+
+  btn.addEventListener('click', (e) => { e.preventDefault(); smartBack(); });
+})();
+</script>
   
 
-<script>
+<!-- <script>
   (function(){
     const btn = document.getElementById('bbdd-back');
     if(!btn) return;
@@ -165,7 +191,7 @@
       location.assign(dash.toString());
     });
   })();
-</script>
+</script> -->
   
 <style id="bbdd-hotfix">
   /* ===== Variables (una sola fuente de verdad) ===== */
