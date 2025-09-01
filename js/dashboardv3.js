@@ -754,7 +754,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const label = document.createElement("div");
         label.className = "month-label";
         label.textContent = (month !== currentMonth)
-          ? labelDate.toLocaleString("es-ES", { month: "long" })
+          ? labelDate.toLocaleString("es-ES", { month: "short" })
           : "";
         currentMonth = month;
         label.style.width = `5px`;
