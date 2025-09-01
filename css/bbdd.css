@@ -379,7 +379,7 @@ html,body{
   .bbdd-columns{
     grid-template-columns: 0 0 0 62% 16% 22% 0 !important;
     border-radius: 8px !important;         /* como la toolbar */
-    margin: 6px 12px 0 !important;         /* alinear con padding lateral */
+    margin: 6px 6px 0 !important;         /* alinear con padding lateral */
   }
 }
 
