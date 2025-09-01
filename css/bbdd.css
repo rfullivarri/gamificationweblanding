@@ -401,7 +401,6 @@ html,body{
 #table-spinner{
   position: absolute;
   inset: 0;
-  display: none;
   align-items: center;
   justify-content: center;
   gap: 12px;
@@ -584,64 +583,81 @@ html,body{
   #table-spinner{ border-radius: 14px; }
 }
 
-/* (opcional) scrollbar más discreto en todos los tamaños */
-.bbdd-panel::-webkit-scrollbar,
-.bbdd-table-wrap::-webkit-scrollbar{ width: 8px; height: 8px; }
-.bbdd-panel::-webkit-scrollbar-thumb,
-.bbdd-table-wrap::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,.14);
-  border-radius: 10px;
-}
+   /* (opcional) scrollbar más discreto en todos los tamaños */
+   .bbdd-panel::-webkit-scrollbar,
+   .bbdd-table-wrap::-webkit-scrollbar{ width: 8px; height: 8px; }
+   .bbdd-panel::-webkit-scrollbar-thumb,
+   .bbdd-table-wrap::-webkit-scrollbar-thumb{
+     background: rgba(255,255,255,.14);
+     border-radius: 10px;
+   }
+   
+   /* Overlay de fondo: blur fuerte tipo glass */
+   .bbdd-overlay{
+     position: fixed;
+     inset: 0;
+     background: rgba(8, 12, 28, .55);          /* capa oscura */
+     backdrop-filter: blur(16px) saturate(1.1); /* BLUR potente */
+     -webkit-backdrop-filter: blur(16px) saturate(1.1);
+     display:flex; align-items:center; justify-content:center;
+     padding:24px;
+     z-index: 9999;
+   }
+   
+   /* Panel centrado y con bordes suaves */
+   .bbdd-panel{
+     background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
+     border: 1px solid rgba(122,134,255,.18);
+     border-radius: 14px;                  /* curvitas coherentes */
+     box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+   }
 
-/* Overlay de fondo: blur fuerte tipo glass */
-.bbdd-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(8, 12, 28, .55);          /* capa oscura */
-  backdrop-filter: blur(16px) saturate(1.1); /* BLUR potente */
-  -webkit-backdrop-filter: blur(16px) saturate(1.1);
-  display:flex; align-items:center; justify-content:center;
-  padding:24px;
-  z-index: 9999;
-}
 
-/* Panel centrado y con bordes suaves */
-.bbdd-panel{
-  background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
-  border: 1px solid rgba(122,134,255,.18);
-  border-radius: 14px;                  /* curvitas coherentes */
-  box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
-}
-
-/====================MOVIL MENOS COLUMNAS PARA MSOTRAR================
-/* ===== MOBILE: mostrar SOLO Tasks(4), Dificultad(5) y Feedback(6) ===== */
-
-/* Ocultar Pilares(1), Rasgo(2), Stats(3) y Acciones/X(7) */
-#bbdd-table thead th:nth-child(1),
-#bbdd-table thead th:nth-child(2),
-#bbdd-table thead th:nth-child(3),
-#bbdd-table thead th:nth-child(7),
-#bbdd-table tbody td:nth-child(1),
-#bbdd-table tbody td:nth-child(2),
-#bbdd-table tbody td:nth-child(3),
-#bbdd-table tbody td:nth-child(7){
-  display:none;
-}
-
-/* Barra fija de columnas: esconder 1,2,3 y 7; dejar 3 columnas visibles */
-.bbdd-columns > div:nth-child(1),
-.bbdd-columns > div:nth-child(2),
-.bbdd-columns > div:nth-child(3),
-.bbdd-columns > div:nth-child(7){
-  display:none;
-}
-.bbdd-columns{
-  grid-template-columns: 1fr 0.45fr 0.45fr; /* Tasks | Dificultad | Feedback */
-}
-
-/* Evitar solape en Tasks */
-#bbdd-table tbody td:nth-child(4){
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+   /* === MOBILE: mostrar SOLO Tasks(4), Dificultad(5), Feedback(6) sin romper el DOM === */
+   /* 1) Mantener colgroup pero colapsar 1,2,3 y 7 a ancho 0 */
+   #bbdd-table col.col-pilar,
+   #bbdd-table col.col-rasgo,
+   #bbdd-table col.col-stat,
+   #bbdd-table col.col-eliminar {
+     width: 0 !important;
+   }
+   
+   /* 2) Mantener las celdas como table-cell, pero invisibles y sin ancho */
+   #bbdd-table thead th:nth-child(1),
+   #bbdd-table thead th:nth-child(2),
+   #bbdd-table thead th:nth-child(3),
+   #bbdd-table thead th:nth-child(7),
+   #bbdd-table tbody td:nth-child(1),
+   #bbdd-table tbody td:nth-child(2),
+   #bbdd-table tbody td:nth-child(3),
+   #bbdd-table tbody td:nth-child(7) {
+     padding: 0 !important;
+     border: 0 !important;
+     width: 0 !important;
+     max-width: 0 !important;
+     overflow: hidden !important;
+     white-space: nowrap !important;
+     font-size: 0 !important;   /* evita “fantasmas” de texto */
+   }
+   
+   /* 3) Barra fija de columnas: conservar 7 tracks pero colapsar 1,2,3 y 7 */
+   .bbdd-columns{
+     /* 0 0 0 | Tasks | Dificultad | Feedback | 0 */
+     grid-template-columns: 0 0 0 1fr 0.45fr 0.45fr 0 !important;
+   }
+   .bbdd-columns > div:nth-child(1),
+   .bbdd-columns > div:nth-child(2),
+   .bbdd-columns > div:nth-child(3),
+   .bbdd-columns > div:nth-child(7){
+     padding: 0 !important; margin: 0 !important; border: 0 !important;
+     height: 0 !important; overflow: hidden !important;
+     opacity: 0 !important; pointer-events: none !important;
+   }
+   
+   /* 4) Evitar solape del texto de Tasks */
+   #bbdd-table tbody td:nth-child(4){
+     white-space: nowrap;
+     overflow: hidden;
+     text-overflow: ellipsis;
+   }
+   
