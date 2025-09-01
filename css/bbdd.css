@@ -663,22 +663,15 @@ html,body{
 
 
 /=============MOVIL====================================
-/* =========================
+/* =============================
    BBDD – OVERRIDES FINALES
-   (pegar al FINAL del CSS)
-   ========================= */
+   (PEGAR AL FINAL DEL CSS)
+   ============================= */
 
 /* ======= MOBILE (≤768px) ======= */
 @media (max-width: 768px){
 
-  /* thead en mobile: sin sticky para simplificar y ganar alto útil */
-  #bbdd-table thead th{
-    position: static !important;
-    background: transparent !important;
-    box-shadow: none !important;
-  }
-
-  /* Colapsar columnas 1,2,3 y 7 sin sacarlas del DOM (el JS sigue feliz) */
+  /* 1) Colapsar columnas 1,2,3 y 7 sin sacarlas del DOM */
   #bbdd-table col.col-pilar,
   #bbdd-table col.col-rasgo,
   #bbdd-table col.col-stat,
@@ -700,13 +693,13 @@ html,body{
     max-width: 0 !important;
     overflow: hidden !important;
     white-space: nowrap !important;
-    font-size: 0 !important; /* evita “fantasmas” de texto */
+    font-size: 0 !important; /* evita que se filtre texto */
   }
 
-  /* Barra fija de columnas: conservar 7 tracks, colapsar 1,2,3 y 7 */
+  /* 2) Barra fija .bbdd-columns: 7 tracks, colapsar 1,2,3 y 7 */
   .bbdd-columns{
     /* 0 0 0 | Tasks | Dificultad | Feedback | 0 */
-    grid-template-columns: 0 0 0 1fr 0.50fr 0.50fr 0 !important;
+    grid-template-columns: 0 0 0 1fr 0.5fr 0.5fr 0 !important;
   }
   .bbdd-columns > div:nth-child(1),
   .bbdd-columns > div:nth-child(2),
@@ -717,14 +710,14 @@ html,body{
     opacity: 0 !important; pointer-events: none !important;
   }
 
-  /* Evitar solape del texto de Tasks visible */
+  /* 3) Que Tasks no se solape al achicarse */
   #bbdd-table tbody td:nth-child(4){
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  /* El scroll general vive en el panel; la tabla no genera scroll propio */
+  /* 4) Scroll general del panel en mobile (la tabla no scrollea adentro) */
   .bbdd-panel{ height: 100vh; max-height: 100vh; overflow: auto !important; }
   #table-wrap{ overflow: visible !important; max-height: none !important; }
 }
@@ -732,7 +725,7 @@ html,body{
 /* ======= DESKTOP (≥769px) ======= */
 @media (min-width: 769px){
 
-  /* Restaurar anchos originales por colgroup */
+  /* Restaurar anchos del colgroup */
   #bbdd-table col.col-pilar      { width: var(--w-pilar) !important; }
   #bbdd-table col.col-rasgo      { width: var(--w-rasgo) !important; }
   #bbdd-table col.col-stat       { width: var(--w-stat) !important; }
@@ -741,7 +734,7 @@ html,body{
   #bbdd-table col.col-feedback   { width: var(--w-feedback) !important; }
   #bbdd-table col.col-eliminar   { width: var(--w-eliminar) !important; }
 
-  /* Restaurar celdas 1,2,3 y 7 (por si vinieron de mobile) */
+  /* Volver a mostrar celdas 1,2,3 y 7 normales */
   #bbdd-table thead th:nth-child(1),
   #bbdd-table thead th:nth-child(2),
   #bbdd-table thead th:nth-child(3),
@@ -759,27 +752,19 @@ html,body{
     font-size: inherit !important;
   }
 
-  /* Barra fija de columnas completa (7 tracks normales) */
+  /* Barra fija completa (7 pistas) */
   .bbdd-columns{
     grid-template-columns:
       var(--w-pilar) var(--w-rasgo) var(--w-stat)
       var(--w-task) var(--w-dificultad) var(--w-feedback) var(--w-eliminar) !important;
   }
-  .bbdd-columns > div{ 
+  .bbdd-columns > div{
     opacity: 1 !important; height: auto !important; pointer-events: auto !important;
   }
 
-  /* Sticky del thead dentro del wrapper en desktop */
-  #bbdd-table thead th{
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 3;
-  }
-
-  /* El scroll de la tabla vive en el wrapper (no en el panel) */
+  /* El scroll de la tabla vuelve al wrapper en desktop */
   #table-wrap{
     overflow: auto !important;
     max-height: var(--table-max, 60vh) !important;
   }
 }
-
