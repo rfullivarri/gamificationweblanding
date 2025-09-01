@@ -367,141 +367,7 @@ html,body{
 
 /*******************************************************************************/
 
-//=======MOVIL===================================/
-/* ====== MOBILE FIX (hasta 768px) ====== */
-@media (max-width: 768px){
-
-  /* que el overlay/panel pueda scrollear todo el contenido */
-  .bbdd-overlay{
-    align-items: stretch;            /* panel ocupa alto completo */
-    padding: 0;
-  }
-  .bbdd-panel{
-    height: 100vh;                   /* usar toda la pantalla */
-    max-height: 100vh;
-    overflow: auto;                  /* scroll general del panel */
-    border-radius: 14px;
-  }
-
-  /* header compacta */
-  .bbdd-header{
-    position: sticky; top: 0; z-index: 20;  /* queda fija arriba */
-    padding: 12px 14px;
-  }
-  .bbdd-header h1{ font-size: 16px; }
-
-  /* tarjeta "IMPORTANTE" más compacta */
-  .gj-info{
-    margin: 12px 12px;
-    padding: 12px;
-    border-radius: 14px;
-    font-size: 14px;
-  }
-
-  /* barra de herramientas en columnas (btn + filtro + AI) */
-  .bbdd-tools{
-    grid-template-columns: 1fr;      /* una sola columna */
-    gap: 8px;
-    padding: 8px 12px;
-  }
-  .bbdd-tools .left,
-  .bbdd-tools .center,
-  .bbdd-tools .right{
-    justify-self: stretch;
-  }
-
-  /* >>> La tabla NO tiene scroll interno en mobile */
-  .bbdd-table-wrap{
-    max-height: none;                /* quita límite de alto */
-    overflow: visible;               /* el scroll lo maneja el panel */
-    border-radius: 14px;             /* mantiene curvitas */
-  }
-
-  /* el header sticky de la tabla puede molestar; lo desactivamos en mobile */
-  #bbdd-table thead th{
-    position: static;
-    background: transparent;
-    box-shadow: none;
-  }
-
-  /* spinner centrado igual funciona, pero dentro del wrap */
-  #table-spinner{
-    position: sticky;                /* permanece visible al cargar */
-    top: 0;
-    border-radius: 14px;
-    margin: 0 12px;
-  }
-
-  /* inputs/botones un poco más grandes para dedo */
-  .input, select{ padding: 10px 12px; border-radius: 12px; }
-  .btn{ padding: 10px 12px; border-radius: 12px; }
-
-  /* curvitas consistentes para no “cuadrar” las puntas */
-  .bbdd-table{ border-radius: 14px; overflow: hidden; }
-  #table-spinner{ border-radius: 14px; }
-}
-
-/* (opcional) scrollbar más discreto en todos los tamaños */
-.bbdd-panel::-webkit-scrollbar,
-.bbdd-table-wrap::-webkit-scrollbar{ width: 8px; height: 8px; }
-.bbdd-panel::-webkit-scrollbar-thumb,
-.bbdd-table-wrap::-webkit-scrollbar-thumb{
-  background: rgba(255,255,255,.14);
-  border-radius: 10px;
-}
-
-/* Overlay de fondo: blur fuerte tipo glass */
-.bbdd-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(8, 12, 28, .55);          /* capa oscura */
-  backdrop-filter: blur(16px) saturate(1.1); /* BLUR potente */
-  -webkit-backdrop-filter: blur(16px) saturate(1.1);
-  display:flex; align-items:center; justify-content:center;
-  padding:24px;
-  z-index: 9999;
-}
-
-/* Panel centrado y con bordes suaves */
-.bbdd-panel{
-  background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
-  border: 1px solid rgba(122,134,255,.18);
-  border-radius: 14px;                  /* curvitas coherentes */
-  box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
-}
-
-/====================MOVIL MENOS COLUMNAS PARA MSOTRAR================
-/* ===== MOBILE: mostrar SOLO Tasks(4), Dificultad(5) y Feedback(6) ===== */
-
-/* Ocultar Pilares(1), Rasgo(2), Stats(3) y Acciones/X(7) */
-#bbdd-table thead th:nth-child(1),
-#bbdd-table thead th:nth-child(2),
-#bbdd-table thead th:nth-child(3),
-#bbdd-table thead th:nth-child(7),
-#bbdd-table tbody td:nth-child(1),
-#bbdd-table tbody td:nth-child(2),
-#bbdd-table tbody td:nth-child(3),
-#bbdd-table tbody td:nth-child(7){
-  display:none;
-}
-
-/* Barra fija de columnas: esconder 1,2,3 y 7; dejar 3 columnas visibles */
-.bbdd-columns > div:nth-child(1),
-.bbdd-columns > div:nth-child(2),
-.bbdd-columns > div:nth-child(3),
-.bbdd-columns > div:nth-child(7){
-  display:none;
-}
-.bbdd-columns{
-  grid-template-columns: 1fr 0.45fr 0.45fr; /* Tasks | Dificultad | Feedback */
-}
-
-/* Evitar solape en Tasks */
-#bbdd-table tbody td:nth-child(4){
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
+//aca estaba movil antes==================================================================
 
 
 //===============================ULTIMO ARREGLO====================
@@ -642,3 +508,140 @@ html,body{
   background-clip: padding-box;
 }
 #table-wrap::-webkit-scrollbar-track{ background: transparent; }
+
+
+//=======MOVIL===================================/
+/* ====== MOBILE FIX (hasta 768px) ====== */
+@media (max-width: 768px){
+
+  /* que el overlay/panel pueda scrollear todo el contenido */
+  .bbdd-overlay{
+    align-items: stretch;            /* panel ocupa alto completo */
+    padding: 0;
+  }
+  .bbdd-panel{
+    height: 100vh;                   /* usar toda la pantalla */
+    max-height: 100vh;
+    overflow: auto;                  /* scroll general del panel */
+    border-radius: 14px;
+  }
+
+  /* header compacta */
+  .bbdd-header{
+    position: sticky; top: 0; z-index: 20;  /* queda fija arriba */
+    padding: 12px 14px;
+  }
+  .bbdd-header h1{ font-size: 16px; }
+
+  /* tarjeta "IMPORTANTE" más compacta */
+  .gj-info{
+    margin: 12px 12px;
+    padding: 12px;
+    border-radius: 14px;
+    font-size: 14px;
+  }
+
+  /* barra de herramientas en columnas (btn + filtro + AI) */
+  .bbdd-tools{
+    grid-template-columns: 1fr;      /* una sola columna */
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .bbdd-tools .left,
+  .bbdd-tools .center,
+  .bbdd-tools .right{
+    justify-self: stretch;
+  }
+
+  /* >>> La tabla NO tiene scroll interno en mobile */
+  .bbdd-table-wrap{
+    max-height: none;                /* quita límite de alto */
+    overflow: visible;               /* el scroll lo maneja el panel */
+    border-radius: 14px;             /* mantiene curvitas */
+  }
+
+  /* el header sticky de la tabla puede molestar; lo desactivamos en mobile */
+  #bbdd-table thead th{
+    position: static;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  /* spinner centrado igual funciona, pero dentro del wrap */
+  #table-spinner{
+    position: sticky;                /* permanece visible al cargar */
+    top: 0;
+    border-radius: 14px;
+    margin: 0 12px;
+  }
+
+  /* inputs/botones un poco más grandes para dedo */
+  .input, select{ padding: 10px 12px; border-radius: 12px; }
+  .btn{ padding: 10px 12px; border-radius: 12px; }
+
+  /* curvitas consistentes para no “cuadrar” las puntas */
+  .bbdd-table{ border-radius: 14px; overflow: hidden; }
+  #table-spinner{ border-radius: 14px; }
+}
+
+/* (opcional) scrollbar más discreto en todos los tamaños */
+.bbdd-panel::-webkit-scrollbar,
+.bbdd-table-wrap::-webkit-scrollbar{ width: 8px; height: 8px; }
+.bbdd-panel::-webkit-scrollbar-thumb,
+.bbdd-table-wrap::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.14);
+  border-radius: 10px;
+}
+
+/* Overlay de fondo: blur fuerte tipo glass */
+.bbdd-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 12, 28, .55);          /* capa oscura */
+  backdrop-filter: blur(16px) saturate(1.1); /* BLUR potente */
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  z-index: 9999;
+}
+
+/* Panel centrado y con bordes suaves */
+.bbdd-panel{
+  background: linear-gradient(180deg, rgba(18,22,45,.86), rgba(12,16,35,.80));
+  border: 1px solid rgba(122,134,255,.18);
+  border-radius: 14px;                  /* curvitas coherentes */
+  box-shadow: 0 24px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/====================MOVIL MENOS COLUMNAS PARA MSOTRAR================
+/* ===== MOBILE: mostrar SOLO Tasks(4), Dificultad(5) y Feedback(6) ===== */
+
+/* Ocultar Pilares(1), Rasgo(2), Stats(3) y Acciones/X(7) */
+#bbdd-table thead th:nth-child(1),
+#bbdd-table thead th:nth-child(2),
+#bbdd-table thead th:nth-child(3),
+#bbdd-table thead th:nth-child(7),
+#bbdd-table tbody td:nth-child(1),
+#bbdd-table tbody td:nth-child(2),
+#bbdd-table tbody td:nth-child(3),
+#bbdd-table tbody td:nth-child(7){
+  display:none;
+}
+
+/* Barra fija de columnas: esconder 1,2,3 y 7; dejar 3 columnas visibles */
+.bbdd-columns > div:nth-child(1),
+.bbdd-columns > div:nth-child(2),
+.bbdd-columns > div:nth-child(3),
+.bbdd-columns > div:nth-child(7){
+  display:none;
+}
+.bbdd-columns{
+  grid-template-columns: 1fr 0.45fr 0.45fr; /* Tasks | Dificultad | Feedback */
+}
+
+/* Evitar solape en Tasks */
+#bbdd-table tbody td:nth-child(4){
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
