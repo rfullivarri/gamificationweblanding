@@ -1197,13 +1197,13 @@ header .menu-toggle { cursor: pointer; }
 
   display: block;
   overflow: hidden;
-  max-height: calc(2 * 1.12em); /* exactamente 2 líneas de alto */
+  /*max-height: calc(2 * 1.12em); /* exactamente 2 líneas de alto */
   text-overflow: clip;
 
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: normal;
-  hyphens: auto;
+  white-space: nowrap;
+  /*overflow-wrap: anywhere;*/
+  /*word-break: normal;*/
+  /*hyphens: auto;*/
 }
 
 /*****CHIPS DE STAT Y EXP**************/
