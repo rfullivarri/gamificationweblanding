@@ -555,7 +555,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   top:  var(--arrow-top,  -1000px);
 }
 
-//=========================================================================
+/*=========================================================================
 /* ===== PCARD — info chip igual al resto y overlay por fuera ===== */
 .pc-card{ overflow: visible; }                 /* el pop puede “salirse” de la card */
 
@@ -632,7 +632,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 
 
-//=========================================================================================================
+/*========================================================================================================
 
 /* === SCOPE: sólo afecta adentro de .gj-constancy-card === */
 .gj-constancy-card {
@@ -949,7 +949,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 
 
-//==========INTENTO 100000 RESPONSIVE============
+/*========INTENTO 100000 RESPONSIVE============
 /* ===== Lista de Tareas (tarjeta con columnas: TAREA | XP | SEMANA) ===== */
 /* Ajustá el selector raíz a tu tarjeta si difiere */
 .card-tasks, .tasks-card { overflow-x: hidden; }
