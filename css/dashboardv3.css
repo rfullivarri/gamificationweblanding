@@ -1167,3 +1167,29 @@ header .menu-toggle { cursor: pointer; }
     width:100%;
   }
 }
+
+
+/* Título en Top-3: 2 líneas, sin '…', usando todo el ancho útil */
+.pc .pc-tname{
+  grid-column: 1 / 2;
+  grid-row: 1;
+  margin: 0 2px 0;
+
+  font-weight: 800;
+  font-size: 13px;         /* bajá acá si sigue ajustado (12px) */
+  line-height: 1.12;
+
+  min-width: 0;
+  padding-right: 7px;      /* separación del 🔥 */
+
+  /* SIN ellipsis multi-línea */
+  display: block;          
+  overflow: hidden;
+  max-height: calc(2 * 1.12em); /* 2 líneas exactas */
+  text-overflow: clip;
+
+  white-space: normal;
+  overflow-wrap: anywhere;  /* permite cortes amables */
+  word-break: normal;
+  hyphens: auto;
+}
