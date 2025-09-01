@@ -1170,26 +1170,44 @@ header .menu-toggle { cursor: pointer; }
 
 
 /* Título en Top-3: 2 líneas, sin '…', usando todo el ancho útil */
+/* Contenedor Top-Card */
+.pc .pc-tcard{
+  display:grid;
+  grid-template-columns: minmax(0,1fr) var(--pc-right-col-w); /* 👈 clave */
+  gap:12px;
+  align-items:start;
+  padding:10px;
+  border-radius:12px;
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--pc-border-2);
+}
+
+/* Título de la tarea */
 .pc .pc-tname{
   grid-column: 1 / 2;
   grid-row: 1;
   margin: 0 2px 0;
 
   font-weight: 800;
-  font-size: 13px;         /* bajá acá si sigue ajustado (12px) */
+  font-size: 13px;             /* bajá a 12px si aún empuja */
   line-height: 1.12;
 
-  min-width: 0;
-  padding-right: 7px;      /* separación del 🔥 */
+  min-width: 0;                 /* 👈 permite encoger hasta el borde del fuego */
+  padding-right: 9px;           /* respiro frente al 🔥 */
 
-  /* SIN ellipsis multi-línea */
-  display: block;          
+  display: block;
   overflow: hidden;
-  max-height: calc(2 * 1.12em); /* 2 líneas exactas */
+  max-height: calc(2 * 1.12em); /* exactamente 2 líneas de alto */
   text-overflow: clip;
 
   white-space: normal;
-  overflow-wrap: anywhere;  /* permite cortes amables */
+  overflow-wrap: anywhere;
   word-break: normal;
   hyphens: auto;
+}
+.pc .pc-chip.pc-stat{
+  flex:1 1 100%;
+  width:100%;
+  justify-content:flex-start;
+  white-space:nowrap;
 }
