@@ -471,46 +471,37 @@ html,body{
 }
 
 /====================MOVIL MENOS COLUMNAS PARA MSOTRAR================
-/* ===== Mostrar solo Tasks, Dificultad y Feedback en mobile ===== */
-  /* Ocultar columnas Pilares (1), Rasgo (2), Stats (3) y Eliminar (7) */
-  #bbdd-table col.col-pilar,
-  #bbdd-table col.col-rasgo,
-  #bbdd-table col.col-stat,
-  #bbdd-table col.col-eliminar {
-    display: none;
-  }
+/* ===== MOBILE: mostrar SOLO Tasks(4), Dificultad(5) y Feedback(6) ===== */
 
-  #bbdd-table th:nth-child(1),
-  #bbdd-table th:nth-child(2),
-  #bbdd-table th:nth-child(3),
-  #bbdd-table th:nth-child(7),
-  #bbdd-table td:nth-child(1),
-  #bbdd-table td:nth-child(2),
-  #bbdd-table td:nth-child(3),
-  #bbdd-table td:nth-child(7) {
-    display: none;
-  }
+/* Ocultar Pilares(1), Rasgo(2), Stats(3) y Acciones/X(7) */
+#bbdd-table thead th:nth-child(1),
+#bbdd-table thead th:nth-child(2),
+#bbdd-table thead th:nth-child(3),
+#bbdd-table thead th:nth-child(7),
+#bbdd-table tbody td:nth-child(1),
+#bbdd-table tbody td:nth-child(2),
+#bbdd-table tbody td:nth-child(3),
+#bbdd-table tbody td:nth-child(7){
+  display:none;
+}
 
-  /* Barra de nombres de columnas: ocultar también Pilares, Rasgo, Stats y Eliminar */
-  .bbdd-columns > div:nth-child(1),
-  .bbdd-columns > div:nth-child(2),
-  .bbdd-columns > div:nth-child(3),
-  .bbdd-columns > div:nth-child(7) {
-    display: none;
-  }
+/* Barra fija de columnas: esconder 1,2,3 y 7; dejar 3 columnas visibles */
+.bbdd-columns > div:nth-child(1),
+.bbdd-columns > div:nth-child(2),
+.bbdd-columns > div:nth-child(3),
+.bbdd-columns > div:nth-child(7){
+  display:none;
+}
+.bbdd-columns{
+  grid-template-columns: 1fr 0.45fr 0.45fr; /* Tasks | Dificultad | Feedback */
+}
 
-  /* Redistribuir el grid de columnas visibles */
-  .bbdd-columns {
-    grid-template-columns: 60% 20% 20%; /* Tasks | Dificultad | Feedback */
-  }
-
-  /* Ajuste para que Tasks no se solape */
-  #bbdd-table td:nth-child(4) {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
+/* Evitar solape en Tasks */
+#bbdd-table tbody td:nth-child(4){
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
 
 //===============================ULTIMO ARREGLO====================
