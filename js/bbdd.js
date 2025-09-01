@@ -237,7 +237,9 @@ function onDrop(e){
 /*====HELPERS=====*/
 function setTableLoading(on){
   qs("#table-wrap").classList.toggle("table-loading", on);
-  qs("#table-spinner").style.display = on ? "block" : "none";
+  const spin = qs("#table-spinner");
+  if (!spin) return;
+  spin.style.display = on ? "" : "none"; // deja que el CSS ponga display:flex
 }
 
 function aiLoading(on){
@@ -382,9 +384,25 @@ async function init(){
   else { qs("#bbdd-overlay").classList.remove("hidden"); }
 
   // listeners UI
-  qs("#bbdd-back").addEventListener("click", ()=> {
-    if(window.BBDD_MODE==="modal") closeOverlay();
-    else history.back();
+  qs("#bbdd-back").addEventListener("click", (e)=> {
+    e.preventDefault();
+  
+    if (window.BBDD_MODE === "modal") { 
+      closeOverlay(); 
+      return; 
+    }
+  
+    // En “page/web”: priorizar &back= si existe; si no, ir al dashboard con email
+    const u = new URL(location.href);
+    const back = u.searchParams.get('back');
+    if (back) { 
+      location.href = decodeURIComponent(back); 
+      return; 
+    }
+  
+    const dash = new URL(DASHBOARD_URL);
+    if (email) dash.searchParams.set('email', email);
+    location.href = dash.toString();
   });
   qs("#close-modal").addEventListener("click", closeOverlay);
   qs("#bbdd-confirm").addEventListener("click", ()=>doConfirm().catch(e=>toast(e.message,false)));
@@ -441,14 +459,31 @@ async function init(){
   setTableLoading(true);
   try{
     const { rows } = await apiGetBBDD(email);
+  
+    // ⬇️ FILTRO ESTRICTO: conservar solo filas con Tasks (col 3) no vacía
+    const fetched = (rows || []).filter(r => (r?.[3] ?? '').toString().trim() !== '');
+  
     // extendemos con slot para feedback
-    state.rows = rows.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
-    state.origHash = hashRows(rows);
+    state.rows = fetched.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
+  
+    // el hash debe calcularse sobre lo que realmente quedó
+    state.origHash = hashRows(fetched);
+  
     render();
   }catch(err){
     toast("Error cargando BBDD: " + err.message, false);
-  } finally {  setTableLoading(false);}
-}
+  } finally { setTableLoading(false); }
+//   setTableLoading(true);
+//   try{
+//     const { rows } = await apiGetBBDD(email);
+//     // extendemos con slot para feedback
+//     state.rows = rows.map(r => [ r[0]||"", r[1]||"", r[2]||"", r[3]||"", r[4]||"", "" ]);
+//     state.origHash = hashRows(rows);
+//     render();
+//   }catch(err){
+//     toast("Error cargando BBDD: " + err.message, false);
+//   } finally {  setTableLoading(false);}
+// }
 
 if(document.readyState!=="loading") init();
 else document.addEventListener("DOMContentLoaded", init);
