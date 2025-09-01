@@ -367,10 +367,9 @@ html,body{
 
 /*******************************************************************************/
 
-//aca estaba movil antes==================================================================
 
 
-//===============================ULTIMO ARREGLO====================
+/*==============================ULTIMO ARREGLO====================
 /* ========== BBDD – FIX LAYOUT/SCROLL/STICKY (OVERRIDES) ========== */
 
 /* 1) El panel es un contenedor flex de columna y controla el overflow */
@@ -509,7 +508,7 @@ html,body{
 #table-wrap::-webkit-scrollbar-track{ background: transparent; }
 
 
-//=======MOVIL===================================/
+/*=======MOVIL===================================/
 /* ====== MOBILE FIX (hasta 768px) ====== */
 @media (max-width: 768px){
 
@@ -662,7 +661,7 @@ html,body{
    }
 
 
-/=============MOVIL====================================
+/*=============MOVIL====================================
 /* =============================
    BBDD – OVERRIDES FINALES
    (PEGAR AL FINAL DEL CSS)
