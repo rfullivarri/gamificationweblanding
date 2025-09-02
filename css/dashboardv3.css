@@ -61,9 +61,10 @@ header{
 #dashboard-menu a{display:block;padding:12px 18px;color:#fff;text-decoration:none}
 #dashboard-menu a:hover{background:#501c88}
 
+
 /* —— dots para guiar —— */
 #menu-toggle,
-#edit-bbdd-menu {
+#li-edit-bbdd {
   position: relative; /* necesario para anclar el puntito */
 }
 
@@ -83,10 +84,11 @@ header{
   right: -2px;
 }
 
-#edit-bbdd-menu > .dot {
+#li-edit-bbdd > .dot {
   top: 6px;
   right: -12px;
 }
+
 
 /* bolita girando escondida por defecto */
 #refresh-kv .spinner {
