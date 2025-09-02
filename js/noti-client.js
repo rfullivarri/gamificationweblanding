@@ -1,14 +1,16 @@
-// /js/noti-client.js  (no usa API key; solo GET)
-// Si querés poder cambiar la URL sin tocar JS, poné un <meta name="gj-worker-base">
+// /js/noti-client.js  (solo GET, sin API key)
 (function () {
   const WORKER_BASE =
     document.querySelector('meta[name="gj-worker-base"]')?.content ||
     'https://gamificationnotifications.rfullivarri22.workers.dev';
 
   const KEY = 'gj_notifications_v1';
+  const LAST_SEEN_KEY = 'gj_notifications_last_seen_ts';
 
   const getList = () => JSON.parse(localStorage.getItem(KEY) || '[]');
   const setList = (l) => localStorage.setItem(KEY, JSON.stringify(l));
+  const getLastSeen = () => Number(localStorage.getItem(LAST_SEEN_KEY) || 0);
+  const setLastSeen = (ts) => localStorage.setItem(LAST_SEEN_KEY, String(ts));
 
   function getEmail() {
     return localStorage.getItem('gj_email') ||
@@ -17,7 +19,8 @@
 
   function render() {
     const list = getList();
-    const unread = list.filter(x => !x.read).length;
+    const lastSeen = getLastSeen();
+    const unread = list.filter(x => x.ts > lastSeen).length;
 
     const badge = document.getElementById('gj-noti-badge');
     if (badge) {
@@ -28,7 +31,7 @@
     const ul = document.getElementById('gj-noti-list');
     if (!ul) return;
     ul.innerHTML = list.map(x => `
-      <li class="${x.read ? '' : 'unread'}" style="padding:10px 12px;border-bottom:1px solid #23232b;${x.read?'':'background:#191926;'}">
+      <li style="padding:10px 12px;border-bottom:1px solid #23232b;${x.ts>lastSeen?'background:#191926;':''}">
         <div style="font-weight:600;margin-bottom:2px;">${x.title}</div>
         <div style="font-size:12px;opacity:.8;">${new Date(x.ts).toLocaleString()} — ${x.type}</div>
       </li>
@@ -45,30 +48,37 @@
     render();
   }
 
-  // Por ahora "marcar leído" solo local (no metas API_KEY en el front).
-  function markAllReadLocal() {
-    const list = getList().map(x => ({ ...x, read: true }));
-    setList(list);
-    render();
-  }
-
   function wireUI() {
     const btn = document.getElementById('gj-noti-btn');
     const dd  = document.getElementById('gj-noti-dropdown');
+
     btn?.addEventListener('click', () => {
-      dd.style.display = (dd.style.display === 'block') ? 'none' : 'block';
+      const open = dd.style.display === 'block';
+      dd.style.display = open ? 'none' : 'block';
+      if (!open) {
+        // al abrir, se marcan como “vistos”
+        const list = getList();
+        const newest = list.length ? Math.max(...list.map(x=>x.ts||0)) : Date.now();
+        setLastSeen(newest);
+        render();
+      }
     });
-    document.getElementById('gj-noti-markall')?.addEventListener('click', markAllReadLocal);
+
+    document.getElementById('gj-noti-markall')?.addEventListener('click', () => {
+      const list = getList();
+      const newest = list.length ? Math.max(...list.map(x=>x.ts||0)) : Date.now();
+      setLastSeen(newest);
+      render();
+    });
+
     document.addEventListener('click', (e) => {
       if (e.target === dd || e.target === btn || dd.contains(e.target)) return;
       dd.style.display = 'none';
     });
   }
 
-  // API pública mínima
   window.Noti = {
     init({ autoSync = true } = {}) { render(); wireUI(); if (autoSync) sync(); },
-    sync,
-    render
+    sync, render
   };
 })();
