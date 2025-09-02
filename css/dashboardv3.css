@@ -61,6 +61,33 @@ header{
 #dashboard-menu a{display:block;padding:12px 18px;color:#fff;text-decoration:none}
 #dashboard-menu a:hover{background:#501c88}
 
+/* —— dots para guiar —— */
+#menu-toggle,
+#edit-bbdd-menu {
+  position: relative; /* necesario para anclar el puntito */
+}
+
+.dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffc107;                 /* amarillo */
+  box-shadow: 0 0 0 2px rgba(0,0,0,.5);
+  z-index: 50;
+}
+
+/* posiciones */
+#menu-toggle > .dot {
+  top: -2px;
+  right: -2px;
+}
+
+#edit-bbdd-menu > .dot {
+  top: 6px;
+  right: -12px;
+}
+
 /* bolita girando escondida por defecto */
 #refresh-kv .spinner {
   width: 1em;
