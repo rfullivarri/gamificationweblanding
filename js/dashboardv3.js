@@ -206,20 +206,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     const editFormEl = document.getElementById("edit-form");
     if (dailyQuest) dailyQuest.href = data.daily_form_url      || "#";
     if (editFormEl) editFormEl.href = data.daily_form_edit_url || "#";
+    
 
-    // 4) WARNING
+    // 4) WARNING + PUNTITOS NOTIFICACION
+    // 4.1) ====PUNTITOS EN MENUS===================
+    function setDot(el, on, color = '#ffc107') {
+      if (!el) return;
+      let dot = el.querySelector(':scope > .dot');
+      if (on) {
+        if (!dot) { 
+          dot = document.createElement('span');
+          dot.className = 'dot';
+          el.appendChild(dot);
+        }
+        dot.style.background = color;
+        if (el.id === 'menu-toggle')    { dot.style.top = '-2px'; dot.style.right = '-2px'; }
+        if (el.id === 'edit-bbdd-menu') { dot.style.top = '6px';  dot.style.right = '-12px'; }
+      } else if (dot) {
+        dot.remove();
+      }
+    }
+
+    // 4.2) Se crep BBDD (Posiblemente Obsoleto)
     if (data.estado !== "PROCESADO ✅") {
       const warningContainer = document.getElementById("journey-warning");
       if (warningContainer) warningContainer.style.display = "block";
     }
 
-    // 4.1) CONFIRMAR BBDD
-    if (data.confirmacionbbdd !== "SI") {
-      const bbddWarning = document.getElementById("bbdd-warning");
-      if (bbddWarning) bbddWarning.style.display = "block";
-    }
+    // 4.3) CONFIRMAR BBDD PUNTITO
+    const needsBBDD = String(data.confirmacionbbdd || '').toUpperCase() !== 'SI';
 
-    // 4.2) Primer render listo: ocultamos el spinner global
+    // ocultamos warning viejo
+    document.getElementById('bbdd-warning')?.style.setProperty('display','none');
+    
+    // llamamos a setDot
+    setDot(document.getElementById('menu-toggle'), needsBBDD, '#ffc107');
+    setDot(document.getElementById('edit-bbdd-menu'), needsBBDD, '#ffc107');
+
+    
+    // 4.3bis) CONFIRMAR BBDD (OLD)
+    // if (data.confirmacionbbdd !== "SI") {
+    //   const bbddWarning = document.getElementById("bbdd-warning");
+    //   if (bbddWarning) bbddWarning.style.display = "block";
+    // }
+
+    // 4.4) Primer render listo: ocultamos el spinner global
     // Dejo un frame para que el DOM pinte antes de ocultar
     await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
     hideSpinner();
