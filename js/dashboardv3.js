@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         dot.style.background = color;
         if (el.id === 'menu-toggle')    { dot.style.top = '-2px'; dot.style.right = '-2px'; }
-        if (el.id === 'li-bbdd-menu') { dot.style.top = '6px';  dot.style.right = '-12px'; }
+        if (el.id === 'li-edit-bbdd') { dot.style.top = '6px';  dot.style.right = '-12px'; }
       } else if (dot) {
         dot.remove();
       }
@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // llamamos a setDot
     setDot(document.getElementById('menu-toggle'), needsBBDD, '#ffc107');
-    setDot(document.getElementById('li-bbdd-menu'), needsBBDD, '#ffc107');
+    setDot(document.getElementById('li-edit-bbdd'), needsBBDD, '#ffc107');
 
     
     // 4.3bis) CONFIRMAR BBDD (OLD)
