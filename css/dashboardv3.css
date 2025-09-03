@@ -84,12 +84,12 @@ header{
   right: -2px;
 }
 
-#li-edit-bbdd > .dot { top: 10px; right: 10px; }   /* en lugar de right:-12px */
-/* #li-edit-bbdd > .dot {
-  top: 6px;
-  right: -12px;
-} */
-
+/* #li-edit-bbdd > .dot { top: 10px; right: 10px; }   /* en lugar de right:-12px */ */
+#li-edit-bbdd > .dot {
+  top: 50%;
+  right: 10px;              /* ajusta la distancia horizontal del borde derecho */
+  transform: translateY(-50%);
+}
 
 /* bolita girando escondida por defecto */
 #refresh-kv .spinner {
