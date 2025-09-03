@@ -267,7 +267,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE (v2 con lógica actual/max)
     const PCARD = (() => {
       const MODE_TIER = { LOW: 1, CHILL: 2, FLOW: 3, EVOL: 4 };
-      const PILLAR_MAP = { 'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul' };
+      // const PILLAR_MAP = { 'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul' };
+      const PILLAR_MAP = Object.freeze({'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul','BODY':'Body','MIND':'Mind','SOUL':'Soul','CUERPO':'Body','MENTE':'Mind','ALMA':'Soul'});
     
       const esc = (s='') => s.toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
       const el  = (tag, cls, html) => { const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; };
