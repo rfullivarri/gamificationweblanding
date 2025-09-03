@@ -214,14 +214,23 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!el) return;
       let dot = el.querySelector(':scope > .dot');
       if (on) {
-        if (!dot) { 
+        if (!dot) {
           dot = document.createElement('span');
           dot.className = 'dot';
           el.appendChild(dot);
         }
         dot.style.background = color;
-        if (el.id === 'menu-toggle')    { dot.style.top = '-2px'; dot.style.right = '-2px'; }
-        if (el.id === 'li-edit-bbdd') { dot.style.top = '6px';  dot.style.right = '-12px'; }
+    
+        // Solo posicionamos la hamburguesa por JS.
+        // El <li> usa el CSS (#li-edit-bbdd > .dot { top:10px; right:10px })
+        if (el.id === 'menu-toggle') {
+          dot.style.top = '-2px';
+          dot.style.right = '-2px';
+        } else {
+          // IMPORTANTE: no fuerces top/right aquí para dejar actuar al CSS
+          dot.style.top = '';
+          dot.style.right = '';
+        }
       } else if (dot) {
         dot.remove();
       }
