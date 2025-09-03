@@ -254,10 +254,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     
     // 4.3bis) CONFIRMAR BBDD (OLD)
-    // if (data.confirmacionbbdd !== "SI") {
-    //   const bbddWarning = document.getElementById("bbdd-warning");
-    //   if (bbddWarning) bbddWarning.style.display = "block";
-    // }
+    if (data.confirmacionbbdd !== "SI") {
+      const bbddWarning = document.getElementById("bbdd-warning");
+      if (bbddWarning) bbddWarning.style.display = "block";
+    }
 
     // 4.4) Primer render listo: ocultamos el spinner global
     // Dejo un frame para que el DOM pinte antes de ocultar
