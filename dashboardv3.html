@@ -134,12 +134,32 @@
           </div>
 
           <!-- AVISO: Falta confirmar BBDD -->
-          <div id="bbdd-warning" class="warning-container" style="display:none;">
+<!--           <div id="bbdd-warning" class="warning-container" style="display:none;">
             <p class="warning-text">⚙️ Te falta confirmar tu base de datos. Abrí el menú (☰) → “Editar Base”, revisala y presioná “Confirmar Edicion”.</p>
              <!--<a id="edit-bbdd-warning" href="#" class="dashboard-button">Editar Base</a>-->
-            <a id="edit-bbdd-warning" href="gamificationweblanding/index-bbdd.html" class="dashboard-button" data-keep-email>Editar Base</a>
+<!--             <a id="edit-bbdd-warning" href="gamificationweblanding/index-bbdd.html" class="dashboard-button" data-keep-email>Editar Base</a>
+          </div> --> -->
+      
+          <!-- AVISO: Falta confirmar BBDD 2-->
+          <div id="bbdd-warning" class="alert-card" style="display:none;">
+            <div class="alert-row">
+              <span class="alert-dot" aria-hidden="true"></span>
+              <div class="alert-text">
+                <strong>Confirmá tu base</strong>
+                <span class="muted">Abrí el menú (≡) →</span>
+              </div>
+              <!-- mantiene data-keep-email para autopasar el mail -->
+              <a id="edit-bbdd-warning"
+                 href="gamificationweblanding/index-bbdd.html"
+                 class="chip"
+                 data-keep-email>Editar Base</a>
+            </div>
+           <p class="alert-hint">
+              Revisá y tocá <b>Confirmar edición</b> para generar tu Daily Quest.
+            </p>
           </div>
 
+          
           <!-- Radar -->
           <div class="radar-section">
             <div class="card-title"
