@@ -1,5 +1,5 @@
 // Cambiá la versión para invalidar caché cuando actualices assets
-const CACHE = 'gj-v1';
+const CACHE = 'gj-v2';
 
 // Precaché de la “app shell”
 const APP_SHELL = [
@@ -9,13 +9,13 @@ const APP_SHELL = [
   './offline.html',
 
   // CSS
-  './css/Loginv2.css',
-  './css/Dashboardv3.css',
+  './css/loginv2.css',
+  './css/dashboardv3.css',
   './css/bbdd.css',
 
   // JS
-  './js/Loginv2.js',
-  './js/Dashboardv3.js',
+  './js/loginv2.js',
+  './js/dashboardv3.js',
   './js/scheduler-controller.js',
   './js/scheduler-modal.js',
   './js/scheduler-api.js',
