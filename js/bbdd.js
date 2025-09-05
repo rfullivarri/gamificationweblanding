@@ -54,6 +54,7 @@ let state = {
   origHash: null,
   dirty: false,
   filter: "",
+  aiUpdated: new Set(),
 };
 
 
@@ -104,6 +105,7 @@ function render(){
     const tr = document.createElement("tr");
     tr.draggable = true;
     tr.dataset.index = realIdx; // << índice REAL en state.rows
+    if (state.aiUpdated.has(realIdx)) tr.classList.add("ai-updated");
     tr.innerHTML = `
       <td>${selectPilar(row[0])}</td>
       <td>${selectRasgo(row[1], row[0])}</td>
@@ -216,6 +218,16 @@ function onRowClick(e){
   // eliminar fila
   if(t.dataset.act === "del"){
     state.rows.splice(idx,1);
+  
+    // Reindexar el set de aiUpdated
+    const next = new Set();
+    for (const i of state.aiUpdated) {
+      if (i < idx) next.add(i);
+      else if (i > idx) next.add(i - 1);
+      // si i === idx, la fila borrada desaparece del set
+    }
+    state.aiUpdated = next;
+  
     markDirty(); render();
   }
 }
@@ -228,8 +240,24 @@ function onDrop(e){
   e.preventDefault();
   const to = Number(e.currentTarget.dataset.index);
   if(dragIndex===null || to===dragIndex) return;
+
+  // mover la fila
   const [item] = state.rows.splice(dragIndex,1);
   state.rows.splice(to,0,item);
+
+  // mover también la marca aiUpdated si corresponde
+  const moved = state.aiUpdated.has(dragIndex);
+  const next = new Set();
+  for (const i of state.aiUpdated) {
+    if (i === dragIndex) continue;         // se reubicará
+    // corregir índices que quedaron entre medio
+    if (dragIndex < to)       next.add(i > dragIndex && i <= to ? i - 1 : i);
+    else if (dragIndex > to)  next.add(i >= to && i < dragIndex ? i + 1 : i);
+    else                      next.add(i);
+  }
+  if (moved) next.add(to);
+  state.aiUpdated = next;
+
   dragIndex = null;
   markDirty(); render();
 }
@@ -243,7 +271,9 @@ function setTableLoading(on){
 }
 
 function aiLoading(on){
-  qs("#ai-sparkle").style.display = on ? "block" : "none";
+  const wrap = qs("#table-wrap");
+  if(!wrap) return;
+  wrap.classList.toggle("ai-loading", !!on);
 }
 
 
@@ -267,6 +297,7 @@ async function doSave(){
   await apiSaveBBDD(email, rows);
   state.origHash = hashRows(rows);
   state.dirty = false;
+  state.aiUpdated.clear();
   toast("✅ Guardado");
   render();
 }
@@ -306,7 +337,8 @@ async function doConfirm(){
     // 3) Confirmar (marca F/G y dispara BOBO)
     try {
       await apiConfirmBBDD(email);
-      state.dirty = false;    
+      state.dirty = false;
+      state.aiUpdated.clear();
       render();             
       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
     } catch (err) {
@@ -432,6 +464,7 @@ function aiApplyResults(idxs, results) {
     if (newTask) {
       state.rows[rowIndex][3] = newTask;  // pegar Task
       state.rows[rowIndex][5] = "";       // limpiar feedback
+      state.aiUpdated.add(rowIndex);
     }
   }
 }
