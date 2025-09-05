@@ -273,6 +273,21 @@ html,body{
   font-size:22px; 
   animation: twinkle 1.2s ease-in-out infinite;
 }
+/* Overlay AI dentro de la tabla */
+#ai-sparkle {
+  position: absolute;
+  inset: 0;                  /* ocupa todo el contenedor padre */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(3px);
+  background: rgba(0,0,0,0.4); /* oscurece parejo */
+  z-index: 20;
+}
+
+#table-wrap.ai-loading #ai-sparkle {
+  display: flex; /* cuando activamos la clase .ai-loading */
+}
 @keyframes twinkle {
   0%,100% { transform: translateY(0) scale(1); opacity: .8; }
   50%     { transform: translateY(-4px) scale(1.15); opacity: 1; }
@@ -283,6 +298,13 @@ tr.ai-updated td{
   outline: 2px solid #b084f5;
   box-shadow: 0 0 0 2px rgba(176,132,245,.15) inset;
   background: rgba(176,132,245,.06);
+}
+/* Highlight para tasks tocadas por la AI */
+input.ai-updated {
+  outline: 2px solid #a86bfa;   /* violeta lila */
+  box-shadow: 0 0 8px #a86bfa;  /* glow suave */
+  border-radius: 6px;           /* mismo redondeo que ya tiene */
+  transition: outline 0.3s, box-shadow 0.3s;
 }
 
 
