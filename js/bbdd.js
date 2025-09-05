@@ -399,9 +399,8 @@ function aiBuildSelection() {
 
 // 2) POST al Worker de AI
 async function aiSendBatch(email, batch) {
-  // Worker de AI (proxy → GAS WebApp)
-  const AI_API = "https://gamificationaicuratetask.rfullivarri22.workers.dev/";
-  const url = AI_API; // usa el worker de AI directamente
+  const AI_API = "https://gamificationaicuratetask.rfullivarri22.workers.dev/"; // ok que esté acá
+  const url = AI_API;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
