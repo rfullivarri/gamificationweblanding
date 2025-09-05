@@ -105,9 +105,6 @@ function render(){
     const tr = document.createElement("tr");
     tr.draggable = true;
     tr.dataset.index = realIdx; // << índice REAL en state.rows
-    if (state.aiUpdated.has(realIdx)) {
-      tr.querySelector('input[data-col="3"]').classList.add("ai-updated");
-    }
     tr.innerHTML = `
       <td>${selectPilar(row[0])}</td>
       <td>${selectRasgo(row[1], row[0])}</td>
@@ -120,6 +117,9 @@ function render(){
         <button class="mini" data-act="del">X</button>
       </td>
     `;
+    if (state.aiUpdated.has(realIdx)) {
+      tr.querySelector('input[data-col="3"]').classList.add("ai-updated");
+    }
     tr.addEventListener("input", onRowInput);
     tr.addEventListener("click", onRowClick);
     tr.addEventListener("dragstart", onDragStart);
