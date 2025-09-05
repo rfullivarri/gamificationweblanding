@@ -257,6 +257,35 @@ html,body{
 @keyframes gj-spin{ to{ transform: rotate(360deg); } }
 #table-spinner .txt{ font-weight:600; opacity:.95; }
 
+/* overlay IA (mismo layout que #table-spinner) */
+#ai-spinner{
+  position:absolute; inset:0; display:none; z-index:80;
+  align-items:center; justify-content:center; gap:12px;
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  background: rgba(10,12,24,.45); color:#ece6ff; font-weight:600;
+}
+
+/* encendido por clase del wrapper (igual lógica que table-loading) */
+.bbdd-table-wrap.ai-loading #ai-spinner { display:flex; }
+
+/* animación simple de chispas */
+#ai-spinner .sparkles { 
+  font-size:22px; 
+  animation: twinkle 1.2s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%,100% { transform: translateY(0) scale(1); opacity: .8; }
+  50%     { transform: translateY(-4px) scale(1.15); opacity: 1; }
+}
+
+/* filas que la IA modificó (resaltado lila) */
+tr.ai-updated td{
+  outline: 2px solid #b084f5;
+  box-shadow: 0 0 0 2px rgba(176,132,245,.15) inset;
+  background: rgba(176,132,245,.06);
+}
+
+
 /* --- Footer --- */
 .bbdd-footer{
   padding:12px 16px; display:flex; align-items:center; gap:10px;
