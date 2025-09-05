@@ -288,6 +288,30 @@ html,body{
 #table-wrap.ai-loading #ai-sparkle {
   display: flex; /* cuando activamos la clase .ai-loading */
 }
+
+.ai-sparkle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20,20,40,0.85);
+  padding: 16px 28px;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #fff;
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: none;
+}
+
+.bbdd-table-wrap.ai-loading {
+  position: relative; /* <- importante */
+}
+
+.bbdd-table-wrap.ai-loading .ai-sparkle {
+  display: block;
+}
 @keyframes twinkle {
   0%,100% { transform: translateY(0) scale(1); opacity: .8; }
   50%     { transform: translateY(-4px) scale(1.15); opacity: 1; }
