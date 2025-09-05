@@ -182,24 +182,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 3) ENLACES
     //    a) Base que viene del WebApp (aceptamos dos nombres de campo)
-    const editorBase = data.bbdd_editor_url || data["bbdd editor url"] || "";
-    const editorURL  = editorBase ? new URL(editorBase) : null;
-    if (editorURL) editorURL.searchParams.set("email", email); // << agregamos ?email=
+    // const editorBase = data.bbdd_editor_url || data["bbdd editor url"] || "";
+    // const editorURL  = editorBase ? new URL(editorBase) : null;
+    // if (editorURL) editorURL.searchParams.set("email", email); // << agregamos ?email=
 
-    //    b) Setear el botón clásico por id (como ya tenías)
-    const editBbdd = document.getElementById("edit-bbdd");
-    if (editBbdd) editBbdd.href = editorURL ? editorURL.toString() : "#";
+    // //    b) Setear el botón clásico por id (como ya tenías)
+    // const editBbdd = document.getElementById("edit-bbdd");
+    // if (editBbdd) editBbdd.href = editorURL ? editorURL.toString() : "#";
 
-    //    c) Y además TODOS los links marcados con data-link="editar-base"
-    document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
-      const finalURL = editorURL ? editorURL.toString() : "#";
-      a.setAttribute("href", finalURL);
-      // Forzamos navegación en la misma pestaña (a prueba de handlers/caches)
-      a.addEventListener("click", (ev) => {
-        ev.preventDefault();
-        window.location.href = finalURL;
-      });
-    });
+    // //    c) Y además TODOS los links marcados con data-link="editar-base"
+    // document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
+    //   const finalURL = editorURL ? editorURL.toString() : "#";
+    //   a.setAttribute("href", finalURL);
+    //   // Forzamos navegación en la misma pestaña (a prueba de handlers/caches)
+    //   a.addEventListener("click", (ev) => {
+    //     ev.preventDefault();
+    //     window.location.href = finalURL;
+    //   });
+    // });
 
     //    d) Resto de enlaces como ya tenías
     const dailyQuest = document.getElementById("daily-quest");
