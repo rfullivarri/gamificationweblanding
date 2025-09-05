@@ -372,6 +372,112 @@ function closeOverlay(){
 }
 
 
+
+
+/* ====== AI wiring ====== */
+
+// 1) Tomar selección con feedback y construir batch + mapa de índices reales
+function aiBuildSelection() {
+  const idxs = [];   // índices reales en state.rows
+  const batch = [];  // [[Pilar,Rasgo,Stat,Task,Dificultad,Acción], ...]
+  state.rows.forEach((r, i) => {
+    const fb = (r[5] || "").toLowerCase(); // "improve" | "replace"
+    if (fb === "improve" || fb === "replace") {
+      idxs.push(i);
+      batch.push([
+        normPilar(r[0] || ""),
+        cleanRasgo(r[1] || ""),
+        (r[2] || ""),
+        (r[3] || ""),
+        normDiff(r[4] || ""),
+        fb
+      ]);
+    }
+  });
+  return { idxs, batch };
+}
+
+// 2) POST al Worker de AI
+async function aiSendBatch(email, batch) {
+  // Worker de AI (proxy → GAS WebApp)
+  const AI_API = "https://gamificationaicuratetask.rfullivarri22.workers.dev/";
+  const url = AI_API; // usa el worker de AI directamente
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, batch })
+  });
+
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error("Respuesta no es JSON"); }
+
+  if (!res.ok) {
+    throw new Error(data?.error || `Error ${res.status}`);
+  }
+  if (!data?.results || !Array.isArray(data.results)) {
+    throw new Error("Respuesta sin 'results'`);
+  }
+  return data.results; // [[Pilar,Rasgo,Stat,NuevaTask,Dificultad,Acción], ...]
+}
+
+// 3) Aplicar resultados a state.rows según índices
+function aiApplyResults(idxs, results) {
+  if (idxs.length !== results.length) {
+    throw new Error("Desfase resultados vs selección");
+  }
+  for (let k = 0; k < idxs.length; k++) {
+    const rowIndex = idxs[k];
+    const resultRow = results[k];
+    const newTask = (resultRow?.[3] || "").toString().trim();
+    if (newTask) {
+      state.rows[rowIndex][3] = newTask;  // pegar Task
+      state.rows[rowIndex][5] = "";       // limpiar feedback
+    }
+  }
+}
+
+// 4) Orquestador con chunking (para muchas filas)
+async function aiRunForSelection() {
+  const { idxs, batch } = aiBuildSelection();
+  if (!idxs.length) {
+    alert("Seleccioná al menos una fila con 🪄 o 🔁");
+    return;
+  }
+
+  // UI loading
+  aiLoading(true);
+  setTableLoading(true);
+
+  try {
+    const CHUNK = 20; // podés subirlo si querés, 20–30 es sano
+    for (let start = 0; start < batch.length; start += CHUNK) {
+      const end = Math.min(start + CHUNK, batch.length);
+      const sliceIdxs = idxs.slice(start, end);
+      const sliceBatch = batch.slice(start, end);
+
+      const results = await aiSendBatch(email, sliceBatch);
+      aiApplyResults(sliceIdxs, results);
+      render(); // ver el progreso por tandas
+    }
+
+    markDirty(); // hay cambios locales sin guardar
+    toast("✅ Tareas generadas por AI. Revisá y guardá cuando estés conforme.");
+
+  } catch (err) {
+    console.error(err);
+    toast("Error al generar con AI: " + err.message, false);
+  } finally {
+    aiLoading(false);
+    setTableLoading(false);
+  }
+}
+
+
+
+
+
+
 /* ====== Init ====== */
 async function init(){
   if(!email){
@@ -416,15 +522,21 @@ async function init(){
   // Botón AI (opcional)
   const aiBtn = document.getElementById("bbdd-ai");
   if (aiBtn) {
-    aiBtn.addEventListener("click", ()=>{
-      const marcadas = state.rows.filter(r => r[5]==="improve" || r[5]==="replace");
-      if(!marcadas.length){
-        alert("Seleccioná al menos una task con feedback🪄 o 🔁");
-        return;
-      }
-      console.log("Tasks seleccionadas para AI:", marcadas);
+    aiBtn.addEventListener("click", () => {
+      aiRunForSelection().catch(e => toast(e.message, false));
     });
   }
+  // const aiBtn = document.getElementById("bbdd-ai");
+  // if (aiBtn) {
+  //   aiBtn.addEventListener("click", ()=>{
+  //     const marcadas = state.rows.filter(r => r[5]==="improve" || r[5]==="replace");
+  //     if(!marcadas.length){
+  //       alert("Seleccioná al menos una task con feedback🪄 o 🔁");
+  //       return;
+  //     }
+  //     console.log("Tasks seleccionadas para AI:", marcadas);
+  //   });
+  // }
 
   // Cerrar con ESC
   document.addEventListener("keydown", (e)=>{
