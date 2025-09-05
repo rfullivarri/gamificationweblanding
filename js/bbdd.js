@@ -416,7 +416,7 @@ async function aiSendBatch(email, batch) {
     throw new Error(data?.error || `Error ${res.status}`);
   }
   if (!data?.results || !Array.isArray(data.results)) {
-    throw new Error("Respuesta sin 'results'`);
+    throw new Error("Respuesta sin 'results'");
   }
   return data.results; // [[Pilar,Rasgo,Stat,NuevaTask,Dificultad,Acción], ...]
 }
