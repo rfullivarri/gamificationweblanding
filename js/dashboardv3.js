@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               warn.style.display = 'none';
               // opcional: apagá dots si querés
               setDot(document.getElementById('menu-toggle'), false);
-              setDot(document.getElementById('li-scheduler'), false);
+              setDot(document.getElementById('open-scheduler'), false);
             });
           }
         } else {
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         // Dots amarillos en menú y opción "Programar Daily Quest"
         setDot(document.getElementById('menu-toggle'), true, '#ffc107');
-        setDot(document.getElementById('li-scheduler'), true, '#ffc107');
+        setDot(document.getElementById('open-scheduler'), true, '#ffc107');
       }
     } catch {}
 
