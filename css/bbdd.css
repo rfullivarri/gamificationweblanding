@@ -257,39 +257,63 @@ html,body{
 @keyframes gj-spin{ to{ transform: rotate(360deg); } }
 #table-spinner .txt{ font-weight:600; opacity:.95; }
 
-/* overlay IA (mismo layout que #table-spinner) */
-#ai-spinner{
+/* AI El wrapper debe ser posicionable para el overlay */
+#table-wrap,
+.bbdd-table-wrap { position: relative; }
+
+/* Overlay IA ocupando todo el área de la tabla */
+#ai-sparkle {
+  position: absolute;
+  inset: 0;
+  display: none;                 /* se enciende con .ai-loading */
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background: rgba(10,12,24,.45);
+  z-index: 80;                   /* > #table-spinner (z:6) */
+  font-weight: 600;
+  color: #ece6ff;
+}
+
+/* Cuando activás la clase desde JS */
+.bbdd-table-wrap.ai-loading #ai-sparkle,
+#table-wrap.ai-loading #ai-sparkle { display: flex; }
+
+
+/* /* overlay IA (mismo layout que #table-spinner) */
+/* #ai-spinner{
   position:absolute; inset:0; display:none; z-index:80;
   align-items:center; justify-content:center; gap:12px;
   backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   background: rgba(10,12,24,.45); color:#ece6ff; font-weight:600;
 }
-
+ */
 /* encendido por clase del wrapper (igual lógica que table-loading) */
 .bbdd-table-wrap.ai-loading #ai-spinner { display:flex; }
 
 /* animación simple de chispas */
-#ai-spinner .sparkles { 
+/* #ai-spinner .sparkles { 
   font-size:22px; 
   animation: twinkle 1.2s ease-in-out infinite;
-}
+} */
 /* Overlay AI dentro de la tabla */
-#ai-sparkle {
-  position: absolute;
+/* #ai-sparkle {
+/*   position: absolute;
   inset: 0;                  /* ocupa todo el contenedor padre */
   display: none;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(3px);
   background: rgba(0,0,0,0.4); /* oscurece parejo */
-  z-index: 20;
-}
+  z-index: 20; */
+} */
 
-#table-wrap.ai-loading #ai-sparkle {
+/* #table-wrap.ai-loading #ai-sparkle {
   display: flex; /* cuando activamos la clase .ai-loading */
-}
+} */
 
-.ai-sparkle {
+/* .ai-sparkle {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -304,14 +328,14 @@ html,body{
   z-index: 2000;
   display: none;
 }
-
-.bbdd-table-wrap.ai-loading {
+ */
+/* .bbdd-table-wrap.ai-loading {
   position: relative; /* <- importante */
 }
-
-.bbdd-table-wrap.ai-loading .ai-sparkle {
+ */
+/* .bbdd-table-wrap.ai-loading .ai-sparkle {
   display: block;
-}
+} */ */
 @keyframes twinkle {
   0%,100% { transform: translateY(0) scale(1); opacity: .8; }
   50%     { transform: translateY(-4px) scale(1.15); opacity: 1; }
