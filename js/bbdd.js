@@ -481,7 +481,7 @@ async function aiRunForSelection() {
 
   // UI loading
   aiLoading(true);
-  setTableLoading(true);
+ //setTableLoading(true);
 
   try {
     const CHUNK = 20; // podés subirlo si querés, 20–30 es sano
