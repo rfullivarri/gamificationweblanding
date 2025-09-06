@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       avatar_url:         dataRaw.avatar_url ?? dataRaw.links?.avatar_url ?? "",
       daily_form_url:     dataRaw.daily_form_url ?? dataRaw.links?.daily_form ?? "",
       daily_form_edit_url:dataRaw.daily_form_edit_url ?? dataRaw.links?.daily_form_edit ?? "",
-      dashboard_url:      dataRaw.dashboard_url ?? dataRaw.links?.user_dashboard ?? "",
+      user_profile:      dataRaw.user_profile ?? dataRaw.links?.user_profile ?? "",
       bbdd_editor_url:    dataRaw.bbdd_editor_url ?? dataRaw.links?.bbdd_editor ?? "",
     
       // Otros que ya usás tal cual
@@ -77,6 +77,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       daily_cultivation:  dataRaw.daily_cultivation ?? [],
       daily_emotion:      dataRaw.daily_emotion ?? [],
       bbdd:               dataRaw.bbdd ?? [],
+
+      // Habitos Logrados (para Radar)
+      habitos_logrados:      dataRaw.habitos_logrados ?? [],
+      habitos_by_rasgo:      dataRaw.habitos_agg_by_rasgo ?? null,
     };
 
 
@@ -569,22 +573,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   
     // 🧿 RADAR DE RASGOS
-    function calcularXPporRasgoDesdeBBDD(bbdd) {
+    function calcularXPporRasgoDesdeBBDD(bbdd, habitos_logrados, habitos_by_rasgo) {
       const xpPorRasgo = {};
-      bbdd.forEach(row => {
-        const rasgo = row["rasgo"];
-        const exp = Number(row["exp"]) || 0;
+    
+      // 1) Suma desde BBDD (lo que ya tenías)
+      (bbdd || []).forEach(row => {
+        const rasgo = row && row.rasgo;
+        const exp   = Number(row && row.exp) || 0;
         if (!rasgo) return;
-        if (!xpPorRasgo[rasgo]) xpPorRasgo[rasgo] = 0;
-        xpPorRasgo[rasgo] += exp;
+        xpPorRasgo[rasgo] = (xpPorRasgo[rasgo] || 0) + exp;
       });
-      const labels = Object.keys(xpPorRasgo);
-      const values = labels.map(r => xpPorRasgo[r]);
+    
+      // 2) Suma desde Hábitos Logrados
+      //    a) si vino el agregado del backend, úsalo directo (más barato)
+      if (habitos_by_rasgo && typeof habitos_by_rasgo === 'object') {
+        for (const r in habitos_by_rasgo) {
+          const exp = Number(habitos_by_rasgo[r]) || 0;
+          if (!r) continue;
+          xpPorRasgo[r] = (xpPorRasgo[r] || 0) + exp;
+        }
+      } else {
+        //    b) si no vino el agregado, sumar desde la lista A:G
+        (habitos_logrados || []).forEach(h => {
+          const rasgo = h && h.rasgo;
+          const exp   = Number(h && h.exp) || 0;
+          if (!rasgo) return;
+          xpPorRasgo[rasgo] = (xpPorRasgo[rasgo] || 0) + exp;
+        });
+      }
+    
+      // 3) Salida ordenada (desc por XP) para que el radar sea estable
+      const entries = Object.entries(xpPorRasgo).sort((a,b)=> b[1]-a[1]);
+      const labels  = entries.map(([r]) => r);
+      const values  = entries.map(([,v]) => v);
       return { labels, values };
     }
   
+    // const radarCanvas = document.getElementById("radarChart");
+    // const radarData = data.bbdd ? calcularXPporRasgoDesdeBBDD(data.bbdd) : { labels: [], values: [] };
+
     const radarCanvas = document.getElementById("radarChart");
-    const radarData = data.bbdd ? calcularXPporRasgoDesdeBBDD(data.bbdd) : { labels: [], values: [] };
+    const radarData = calcularXPporRasgoDesdeBBDD(
+      data.bbdd,
+      data.habitos_logrados,
+      data.habitos_by_rasgo
+    );
   
     new Chart(radarCanvas, {
       type: "radar",
@@ -612,7 +645,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         scales: {
           r: {
             suggestedMin: 0,
-            suggestedMax: Math.max(...radarData.values, 10),
+            // suggestedMax: Math.max(...radarData.values, 10),
+            suggestedMax: Math.max(10, ...(radarData.values || [])),
             pointLabels: {
               color: "#ffffff",
               font: { family: "'Rubik', sans-serif", size: 13 }
