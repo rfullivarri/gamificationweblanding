@@ -158,6 +158,55 @@ document.addEventListener("DOMContentLoaded", async () => {
         estado:     s.estado     ?? 'ACTIVO'
       }
     };
+
+
+    
+    // —— AVISO de programación (una sola vez por usuario/dispositivo)
+    try {
+      const hasDailyForm = !!window.GJ_CTX.linkPublico;
+      const sched = window.GJ_CTX.scheduler || {};
+      const schedOk = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
+    
+      const onceKey = `gj_sched_hint_shown:${(email||'').toLowerCase()}`;
+      const yaMostrado = localStorage.getItem(onceKey) === '1';
+    
+      if (hasDailyForm && !schedOk && !yaMostrado) {
+        // Mostrar banner + botón
+        const warn = document.getElementById('scheduler-warning');
+        if (warn) {
+          warn.style.display = 'block';
+    
+          const btn = document.getElementById('btn-programar-dq');
+          if (btn) {
+            btn.addEventListener('click', (e)=>{
+              e.preventDefault();
+              // abrí tu modal del Scheduler con prefill
+              const p = window.GJ_CTX.scheduler;
+              window.openSchedulerModal?.({
+                canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
+                hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
+                linkPublico: window.GJ_CTX.linkPublico
+              });
+              // marcamos como visto para no insistir
+              localStorage.setItem(onceKey, '1');
+              warn.style.display = 'none';
+              // opcional: apagá dots si querés
+              setDot(document.getElementById('menu-toggle'), false);
+              setDot(document.getElementById('li-scheduler'), false);
+            });
+          }
+        } else {
+          // si no hay contenedor, no molestamos de nuevo
+          localStorage.setItem(onceKey, '1');
+        }
+    
+        // Dots amarillos en menú y opción "Programar Daily Quest"
+        setDot(document.getElementById('menu-toggle'), true, '#ffc107');
+        setDot(document.getElementById('li-scheduler'), true, '#ffc107');
+      }
+    } catch {}
+
+    
     
     // Cache (y por si el controller cae al LS)
     try {
