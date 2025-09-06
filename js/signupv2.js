@@ -108,15 +108,15 @@ document.addEventListener("DOMContentLoaded", () => {
             body: new URLSearchParams({ image: base64 })
           });
           const data = await response.json();
-          const finalUrl = data?.data?.url || "https://i.imgur.com/EELiQop.jpg";
+          const finalUrl = data?.data?.url || "https://i.ibb.co/Mxf30SX5/Whats-App-Image-2025-07-29-at-10-17-40.jpg";
           enviarFormulario(finalUrl);
         } catch (error) {
-          enviarFormulario("https://i.imgur.com/EELiQop.jpg"); // fallback
+          enviarFormulario("https://i.ibb.co/Mxf30SX5/Whats-App-Image-2025-07-29-at-10-17-40.jpg"); // fallback
         }
       };
       reader.readAsDataURL(avatarFile);
     } else {
-      enviarFormulario("https://i.imgur.com/EELiQop.jpg");
+      enviarFormulario("https://i.ibb.co/Mxf30SX5/Whats-App-Image-2025-07-29-at-10-17-40.jpg");
     }
   });
 
