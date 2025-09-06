@@ -199,10 +199,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           // si no hay contenedor, no molestamos de nuevo
           localStorage.setItem(onceKey, '1');
         }
-    
+        
         // Dots amarillos en menú y opción "Programar Daily Quest"
         setDot(document.getElementById('menu-toggle'), true, '#ffc107');
         setDot(document.getElementById('open-scheduler'), true, '#ffc107');
+      }
+      // Si ya hay scheduler activo, aseguramos que no queden DOTs prendidos
+      if (schedOk) {
+        setDot(document.getElementById('menu-toggle'), false);
+        setDot(document.getElementById('open-scheduler'), false);
       }
     } catch {}
 
