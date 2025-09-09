@@ -47,7 +47,7 @@
     label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
     input[type="email"]{
       width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
-      background:#0f1526; color:var(--ink); outline:none; text-align:center;
+      background:#0f1526; color:#e8ecf1; outline:none; text-align:center;
     }
     input::placeholder{color:#7f8aa3}
     .actions{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
@@ -56,7 +56,7 @@
       background:var(--accent); color:#fff; cursor:pointer; transition:.2s background,.05s transform;
     }
     .btn:hover{background:var(--accent-2)} .btn:active{transform:translateY(1px)}
-    .btn.secondary{background:transparent; border:1px solid var(--line); color:var(--ink)}
+    .btn.secondary{background:transparent; border:1px solid var(--line); color:#e8ecf1}
     .status{margin-top:10px; color:var(--muted); font-size:13px; text-align:center; min-height:20px}
 
     /* SPINNER */
@@ -67,7 +67,7 @@
     }
     @keyframes spin{to{transform:rotate(360deg)}}
 
-    /* MODAL */
+    /* MODAL (base) */
     .modal{position:fixed; inset:0; display:none; place-items:center; padding:20px; background:var(--overlay); z-index:100}
     .modal.visible{display:grid}
     .modal-card{
@@ -85,13 +85,6 @@
     .pill{display:inline-block; font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:#cfd6ec}
     .callout{margin-top:10px; padding:10px 12px; border:1px dashed var(--line); border-radius:12px; color:#cdd6f4; background:rgba(125,60,255,.08)}
     .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:14px}
-    .help{margin-top:10px; font-size:13px; color:#aab2c5}
-    .help-steps{margin:8px 0 0; padding-left:18px}
-    .help-steps li{margin:4px 0}
-    .row-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px}
-    .copybox{display:flex; gap:6px; align-items:center; margin-top:8px}
-    .copycode{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#0f1526; padding:6px 8px; border-radius:8px; border:1px solid var(--line); color:#cfd6ec; max-width:100%; overflow:auto}
-    .btn.ghost{background:transparent;border:1px solid var(--line);color:#cfd6ec}
     .hint{font-size:12px;color:#aab2c5;margin-top:6px}
   </style>
 </head>
@@ -105,7 +98,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Entrar al Dashboard</h1>
-      <p class="sub">Ingresa tu correo. Si tu base ya está lista te llevo directo al <strong>Dashboard</strong>. Si no, te muestro los pasos y espero con vos 👀.</p>
+      <p class="sub">Ingresá tu correo. Si tu base ya está lista te llevo directo al <strong>Dashboard</strong>. Si no, te muestro los pasos y espero con vos 👀.</p>
 
       <form id="loginForm" novalidate>
         <div class="field">
@@ -121,30 +114,28 @@
     </div>
   </div>
 
-  <!-- MODAL -->
-  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="modalTitle">
+  <!-- MODAL AWAIT -->
+  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
     <div class="modal-card">
       <button id="closeModal" class="close" title="Volver al login">✕</button>
-      <h2 id="modalTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
+      <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
       <div class="modal-body">
         <p>
           Estamos creando tu espacio. En unos minutos te llegará un
           <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
-          Después hacé <strong>login</strong>, <strong>confirmá tu BBDD</strong> y <strong>programá tu Daily&nbsp;Quest</strong>.
         </p>
 
-        <div class="row-actions">
-          <button id="installBtn" class="btn ghost" type="button" style="display:none">Instalar app</button>
-          <button id="copyLinkBtn" class="btn ghost" type="button">Copiar link del portal</button>
+        <!-- Flujo visual en chips -->
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px">
+          <span class="pill">Login</span><span>→</span>
+          <span class="pill">Confirmá BBDD</span><span>→</span>
+          <span class="pill">Programá Daily&nbsp;Quest</span>
         </div>
-        <div id="installHelp" class="help" style="display:none">
-          <strong>¿iPhone/iPad?</strong>
-          <ol class="help-steps">
-            <li>Abrí esta página en <span class="pill">Safari</span>.</li>
-            <li>Tocá <span class="pill">Compartir</span>.</li>
-            <li>Elegí <span class="pill">Agregar a pantalla de inicio</span>.</li>
-          </ol>
-          <div class="hint">En Android verás la opción <span class="pill">Instalar app</span>.</div>
+
+        <!-- Chips compactos -->
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 6px">
+          <button id="installChip" type="button" class="pill" style="display:none">Instalar app</button>
+          <button id="copyPortalChip" type="button" class="pill" title="Copiar link con await=1">Copiar link del portal</button>
         </div>
 
         <div class="callout">
@@ -155,6 +146,23 @@
         <a id="signupBtn" href="signupv2.html" class="btn secondary">Crear cuenta</a>
         <a href="indexv2.html" class="btn secondary">Volver al inicio</a>
         <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL NOT-FOUND -->
+  <section id="notFoundModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="nfTitle">
+    <div class="modal-card">
+      <button id="closeNF" class="close" title="Cerrar">✕</button>
+      <h2 id="nfTitle" class="modal-title">❌ No encontramos tu cuenta</h2>
+      <div class="modal-body">
+        <p>
+          No hay un usuario registrado con ese correo. Creá tu cuenta en un minuto y empezá tu Journey.
+        </p>
+      </div>
+      <div class="modal-actions">
+        <a id="signupNF" class="btn" href="signupv2.html">Crear cuenta</a>
+        <button id="backNF" class="btn secondary" type="button">Volver</button>
       </div>
     </div>
   </section>
@@ -171,24 +179,33 @@
       const $status = document.getElementById('status');
       $status.innerHTML = spinning ? `${msg} <span class="spinner"></span>` : msg;
     }
-    function showModal(){ const m=document.getElementById('awaitModal'); m.classList.add('visible'); m.setAttribute('aria-hidden','false'); }
-    function hideModal(){ const m=document.getElementById('awaitModal'); m.classList.remove('visible'); m.setAttribute('aria-hidden','true'); }
-    function disable(el,v){ el.disabled=!!v; el.style.opacity=v?.7:1; }
-    const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isAndroid = () => /android/i.test(navigator.userAgent);
+    function showModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.add('visible'); m.setAttribute('aria-hidden','false'); }
+    function hideModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.remove('visible'); m.setAttribute('aria-hidden','true'); }
+    function disable(el,v){ el.disabled = !!v; el.style.opacity = v ? 0.7 : 1; }
 
+    const UA = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(UA);
+    const isAndroid = /Android/i.test(UA);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    /* ================== CHECKER ================== */
     async function checkStatus(email){
       const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`, {cache:'no-store'});
-      // Interpretaciones robustas:
       if (res.status === 404) return { ok:false, notFound:true };
       let data = {};
-      try { data = await res.json(); } catch { }
-      // si la API devuelve algún campo útil, lo normalizamos
+      try { data = await res.json(); } catch { data = {}; }
       if (data && data.notFound) return { ok:false, notFound:true };
       return data;
     }
+    function isReady(d){ return d && d.ok && (d.has_url || d.ready); }
+    function isNotFound(d){ 
+      if (!d) return false; 
+      if (d.notFound === true) return true; 
+      const m = (d.message||d.error||d.reason||'').toString().toLowerCase();
+      return /no existe|not found|no encontrado/.test(m);
+    }
 
-    /* ================== LOGIN ================== */
+    /* ================== LOGIN FLOW ================== */
     let pollTimer=null, lastEmail="";
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
@@ -198,36 +215,33 @@
       lastEmail=email;
 
       if(!CHECK_ENDPOINT || CHECK_ENDPOINT.startsWith("PON_AQUI")) {
-        showModal(); return; // sin checker → solo esperamos
+        showModal('awaitModal'); return;
       }
 
       disable($goBtn,true); setStatus('Chequeando estado…', true);
       try{
         const data = await checkStatus(email);
 
-        // 🛑 Usuario no existe
-        if (data && data.notFound) {
-          setStatus('Ese usuario no existe. Creá tu cuenta para empezar.');
-          hideModal();
-          document.getElementById('signupBtn').focus();
+        if (isNotFound(data)){
+          setStatus('Ese correo no está registrado.');
+          hideModal('awaitModal');
+          showModal('notFoundModal');
+          document.getElementById('signupNF').focus();
           return;
         }
 
-        // ✅ Ya hay portal listo → entrar directo
-        if(data && data.ok && (data.has_url || data.ready)){
+        if (isReady(data)){
           setStatus('Listo, entrando…', true);
           window.location.href = `${DASHBOARD}?email=${encodeURIComponent(email)}`;
           return;
         }
 
-        // 🕒 Aún procesando → esperar con popup + polling
         setStatus('Tu base está en proceso. Te avisamos acá.');
-        showModal(); startPolling();
+        showModal('awaitModal'); startPolling();
 
       }catch(_){
-        // fallback conservador
         setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
-        showModal(); startPolling();
+        showModal('awaitModal'); startPolling();
       }finally{
         disable($goBtn,false);
       }
@@ -238,51 +252,46 @@
       pollTimer=setInterval(async ()=>{
         try{
           const data = await checkStatus(lastEmail);
-          if (data && data.notFound) {
-            stopPolling();
-            hideModal();
-            setStatus('Ese usuario no existe. Creá tu cuenta para empezar.');
+          if (isNotFound(data)){
+            stopPolling(); hideModal('awaitModal');
+            setStatus('Ese correo no está registrado.');
+            showModal('notFoundModal');
             return;
           }
-          if(data && data.ok && (data.has_url || data.ready)){
-            stopPolling(); hideModal();
+          if (isReady(data)){
+            stopPolling(); hideModal('awaitModal');
             window.location.href = `${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`;
           }
-        }catch(_){/* noop */}
+        }catch(_){}
       }, POLL_MS);
     }
     function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
 
-    // Botones del modal
-    document.getElementById('closeModal').addEventListener('click', ()=>{
-      stopPolling(); hideModal(); setStatus('Listo para intentar de nuevo.');
-    });
+    // Cierres / acciones modales
+    document.getElementById('closeModal').addEventListener('click', ()=>{ stopPolling(); hideModal('awaitModal'); setStatus('Listo para intentar de nuevo.'); });
     document.getElementById('retryBtn').addEventListener('click', async ()=>{
       if(!lastEmail) return;
       const $btn = document.getElementById('retryBtn');
-      const original = $btn.textContent;
-      $btn.innerHTML = `Reintentando <span class="spinner"></span>`;
-      disable($btn,true);
+      const t = $btn.textContent;
+      $btn.innerHTML = `Reintentando <span class="spinner"></span>`; disable($btn,true);
       try{
         const data = await checkStatus(lastEmail);
-        if (data && data.notFound) {
-          stopPolling(); hideModal(); setStatus('Ese usuario no existe. Creá tu cuenta para empezar.'); return;
-        }
-        if(data && data.ok && (data.has_url || data.ready)){
-          stopPolling(); hideModal();
-          window.location.href=`${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`;
-        }
+        if (isNotFound(data)){ stopPolling(); hideModal('awaitModal'); setStatus('Ese correo no está registrado.'); showModal('notFoundModal'); return; }
+        if (isReady(data)){ stopPolling(); hideModal('awaitModal'); window.location.href=`${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`; }
       }catch(_){}
-      finally{ $btn.textContent = original; disable($btn,false); }
+      finally{ $btn.textContent = t; disable($btn,false); }
     });
 
-    // Modo “forzar popup” (cuando llega desde el correo con await=1)
+    document.getElementById('closeNF').addEventListener('click', ()=> hideModal('notFoundModal'));
+    document.getElementById('backNF').addEventListener('click', ()=> hideModal('notFoundModal'));
+
+    // Modo “forzar popup” desde el mail (await=1)
     (function boot(){
       const force = qs('await');
       const pre = qs('email');
       if (pre) document.getElementById('email').value = pre;
       if (force === '1') {
-        showModal();
+        showModal('awaitModal');
         if (pre && CHECK_ENDPOINT && !CHECK_ENDPOINT.startsWith("PON_AQUI")){
           lastEmail = pre.toLowerCase();
           startPolling();
@@ -290,49 +299,61 @@
       }
     })();
 
-    // Enter directo en el input de email
+    // Enter directo
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter' && document.activeElement === document.getElementById('email')){
         e.preventDefault(); document.getElementById('goBtn').click();
       }
     });
 
-    /* ================== PWA: Instalar / Ayuda iOS ================== */
+    /* ================== PWA: Instalar / Copy link ================== */
+    const $installChip = document.getElementById('installChip');
+    const $copyPortalChip = document.getElementById('copyPortalChip');
     let deferredPrompt = null;
+
+    // Android/Chromium
     window.addEventListener('beforeinstallprompt', (e) => {
+      if (isStandalone) return;
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('installBtn').style.display = 'inline-block';
+      if ($installChip && isAndroid) $installChip.style.display = 'inline-block';
     });
 
-    document.getElementById('installBtn').addEventListener('click', async ()=>{
-      // Android/desktop con prompt disponible
-      if (deferredPrompt) {
+    if ($installChip){
+      $installChip.addEventListener('click', async ()=>{
+        if (isIOS){
+          setStatus('En iPhone: abrí Safari, tocá Compartir y elegí “Agregar a pantalla de inicio”.');
+          return;
+        }
+        if (!deferredPrompt) return;
         deferredPrompt.prompt();
-        try { await deferredPrompt.userChoice; } catch (_) {}
+        try { await deferredPrompt.userChoice; } catch {}
         deferredPrompt = null;
-        return;
-      }
-      // iOS → mostrar ayuda visual
-      if (isIOS()) {
-        document.getElementById('installHelp').style.display = 'block';
-        return;
-      }
-      // Fallback genérico
-      alert('Si tu navegador lo permite, usá “Instalar app / Agregar a la pantalla de inicio”.');
-    });
+        $installChip.style.display = 'none';
+      });
+    }
 
-    // Copiar link del portal (útil en desktop para abrir luego en el móvil)
-    document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
-      try {
-        await navigator.clipboard.writeText(location.href.split('#')[0]);
-        document.getElementById('copyLinkBtn').textContent = 'Link copiado ✓';
-        setTimeout(()=>{ document.getElementById('copyLinkBtn').textContent = 'Copiar link del portal'; }, 1500);
-      } catch (_) {
-        // fallback simple
-        prompt('Copiá este link:', location.href.split('#')[0]);
-      }
-    });
+    function buildPortalUrlForMobile(){
+      const base = `${location.origin}${location.pathname}`;
+      const email = (document.getElementById('email').value||'').trim().toLowerCase();
+      const params = new URLSearchParams({ await:'1' });
+      if (email) params.set('email', email);
+      return `${base}?${params.toString()}`;
+    }
+
+    if ($copyPortalChip){
+      $copyPortalChip.addEventListener('click', async ()=>{
+        const url = buildPortalUrlForMobile();
+        try{
+          await navigator.clipboard.writeText(url);
+          const old = $copyPortalChip.textContent;
+          $copyPortalChip.textContent = 'Copiado ✓';
+          setTimeout(()=> $copyPortalChip.textContent = old, 1400);
+        }catch{
+          prompt('Copiá este link:', url);
+        }
+      });
+    }
   </script>
 
   <!-- SW -->
