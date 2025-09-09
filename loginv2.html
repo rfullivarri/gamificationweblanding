@@ -164,6 +164,74 @@
     .step.is-green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.20), 0 10px 28px rgba(105,219,124,.09); }
     .step.is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,92,.22),  0 10px 28px rgba(255,190,92,.10); }
     .chip-note { font-size:11px; color:#aab2c5; text-align:center; margin-top:4px; }
+
+    
+    /* ===== FIXES ===== */
+    /* Fondo del overlay con blur (se mantiene) */
+    .modal{
+      background: rgba(8,10,16,.55);
+      backdrop-filter: blur(4px);
+    }
+    
+    /* Tarjeta del modal: opaca (no se ve atrás), sin blur interno */
+    .modal-card{
+      background:#121829;               /* ← opaco */
+      backdrop-filter:none;              /* ← sin blur adentro */
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      box-shadow:0 22px 80px rgba(0,0,0,.6);
+    }
+    
+    /* Próximos pasos: grilla 3 iguales en desktop, 1 por fila en mobile */
+    .steps-row{
+      display:grid; gap:10px; margin:12px 0;
+      grid-template-columns: 1fr;        /* mobile */
+    }
+    @media (min-width:680px){
+      .steps-row{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    }
+    
+    /* Chip de paso: estilo “ghost” como Copiar link (borde blanco, sin colores) */
+    .step{
+      display:flex; align-items:center; justify-content:center;
+      padding:12px 14px; border-radius:999px;
+      background:transparent;                           /* ← sin glass */
+      border:1px solid rgba(255,255,255,.28);           /* ← borde blanco suave */
+      color:#e8ecf1; font-weight:800; text-align:center;
+      box-shadow:none;                                   /* ← sin glow */
+    }
+    /* Sin brillos por “color” */
+    .step.is-blue,
+    .step.is-green,
+    .step.is-amber{ box-shadow:none; }
+    
+    /* Chips de acción (instalar / copiar) */
+    .pill-btn{
+      border:1px solid rgba(255,255,255,.22);
+      background:transparent;                            /* ghost por defecto */
+      color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
+    }
+    
+    /* Violeta para destacar (Instalar app y Crear cuenta) */
+    .pill-btn.accent{ background:#7d3cff; border-color:#7d3cff; color:#fff; }
+    .pill-btn.accent:hover{ background:#5c28c2; }
+    
+    /* Copiar link: ghost */
+    #copyLinkBtn{ background:transparent; }
+    
+    /* Ocultar botón Instalar por defecto: lo muestra JS (iOS/Android) */
+    #installBtn{ display:none; }
+    
+    /* Ayuda iOS: oculta por defecto; solo al tocar Instalar en iPhone */
+    #installHelp{
+      display:none;
+      margin:8px 0 0; padding:10px 12px;
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:12px; color:#cfd6ec;
+    }
+    
+    /* Nota chiquita debajo de “Copiar link” */
+    .chip-note{ font-size:12px; color:#aab2c5; text-align:center; margin-top:4px; }
   </style>
 </head>
 <body>
@@ -229,7 +297,7 @@
           <button id="installBtn"  type="button" class="pill-btn accent">Instalar app</button>
           <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link</button>
         </div>
-        <div class="chipe-note">Usá “Copiar link” para abrirlo en tu móvil.</div>
+        <div class="chip-note">Usá “Copiar link” para abrirlo en tu móvil.</div>
   
         <!-- Ayuda iOS (se muestra al tocar Instalar app en iPhone) -->
         <div id="installHelp">
