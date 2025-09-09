@@ -186,30 +186,30 @@
     <div class="container">
       <h2>Lo que desbloqueás</h2>
       <p class="section-sub">Herramientas que te dan claridad y momentum.</p>
-
+  
       <div class="cards grid-3">
         <article class="card">
-          <h3>Daily Form</h3>
-          <p>Checklist por pilar y registro de emoción. 100% conectado a tu archivo.</p>
+          <h3>📝 Daily Form</h3>
+          <p>Checklist por pilar y emoción diaria. 100% conectado a tu archivo.</p>
         </article>
         <article class="card">
-          <h3>XP & Nivel</h3>
+          <h3>⭐ XP & Nivel</h3>
           <p>Progreso con datos reales. Barra de nivel y XP faltante al siguiente nivel.</p>
         </article>
         <article class="card">
-          <h3>Constancia semanal</h3>
+          <h3>📆 Constancia semanal</h3>
           <p>Rachas C1S–C4S por tarea: cuántas semanas seguidas cumplís cada umbral.</p>
         </article>
         <article class="card">
-          <h3>Misiones & Rewards</h3>
+          <h3>🎯 Misiones & Rewards</h3>
           <p>Misiones vinculadas a rachas. Bonos de XP al cumplir objetivos.</p>
         </article>
         <article class="card">
-          <h3>Emotion Heatmap</h3>
+          <h3>🗺️ Emotion Heatmap</h3>
           <p>Mapa tipo GitHub con tu estado emocional a lo largo del tiempo.</p>
         </article>
         <article class="card">
-          <h3>PWA & Recordatorios</h3>
+          <h3>📱 PWA & Recordatorios</h3>
           <p>Funciona como app. Elegí horario de envío del Daily Form por mail.</p>
         </article>
       </div>
@@ -217,7 +217,7 @@
   </section>
 
   <!-- TRUST BAR / LOGOS -->
-  <section class="trust section-pad">
+<!--   <section class="trust section-pad">
     <div class="container narrow">
       <h2>Quiénes ya nos eligen</h2>
       <p class="section-sub">Profesionales, estudiantes y equipos que quieren ordenar su crecimiento personal.</p>
@@ -229,27 +229,38 @@
         <div class="logo-ph">LOGO</div>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <!-- TESTIMONIOS -->
   <section class="testimonials section-pad" id="testimonials">
     <div class="container">
       <h2>Testimonios</h2>
       <p class="section-sub">Lo que dicen quienes ya empezaron su Journey.</p>
-
-      <div class="testi-scroller">
-        <figure class="testi">
-          <blockquote>“Por primera vez pude sostener hábitos 6 semanas seguidas. El mapa y las misiones me ordenaron.”</blockquote>
-          <figcaption>Lucía • Diseñadora</figcaption>
-        </figure>
-        <figure class="testi">
-          <blockquote>“Ver el heatmap emocional cambió mi perspectiva. Empecé a ajustar mis tareas según energía real.”</blockquote>
-          <figcaption>Diego • Dev</figcaption>
-        </figure>
-        <figure class="testi">
-          <blockquote>“Me sirvió para salir del bajón sin culpa. Empecé en Low y ahora estoy en Flow con objetivos claros.”</blockquote>
-          <figcaption>Caro • Estudiante</figcaption>
-        </figure>
+  
+      <div class="slider" id="testi-slider" aria-roledescription="carousel">
+        <div class="slider-track">
+          <figure class="testi" role="group" aria-label="1 de 3">
+            <blockquote>“Por primera vez sostuve hábitos 6 semanas. El mapa y las misiones me ordenaron.”</blockquote>
+            <figcaption>Lucía • Diseñadora</figcaption>
+          </figure>
+          <figure class="testi" role="group" aria-label="2 de 3">
+            <blockquote>“El heatmap emocional me cambió la mirada. Ajusto tareas por energía real.”</blockquote>
+            <figcaption>Diego • Dev</figcaption>
+          </figure>
+          <figure class="testi" role="group" aria-label="3 de 3">
+            <blockquote>“Empecé en Low y pasé a Flow con objetivos claros, sin culpa.”</blockquote>
+            <figcaption>Caro • Estudiante</figcaption>
+          </figure>
+        </div>
+  
+        <button class="slider-btn prev" aria-label="Anterior">‹</button>
+        <button class="slider-btn next" aria-label="Siguiente">›</button>
+  
+        <div class="slider-dots" role="tablist" aria-label="Seleccionar testimonio">
+          <button class="dot" role="tab" aria-selected="true" aria-controls="slide-1"><span class="visually-hidden">1</span></button>
+          <button class="dot" role="tab" aria-selected="false" aria-controls="slide-2"><span class="visualmente-hidden">2</span></button>
+          <button class="dot" role="tab" aria-selected="false" aria-controls="slide-3"><span class="visually-hidden">3</span></button>
+        </div>
       </div>
     </div>
   </section>
@@ -297,5 +308,43 @@
       <a href="#faq">FAQ</a>
     </nav>
   </footer>
-</body>
+    <script>
+    /* Carrusel simple y accesible */
+    (function(){
+      const root = document.getElementById('testi-slider');
+      if(!root) return;
+    
+      const track = root.querySelector('.slider-track');
+      const slides = Array.from(track.children);
+      const prev = root.querySelector('.slider-btn.prev');
+      const next = root.querySelector('.slider-btn.next');
+      const dots = Array.from(root.querySelectorAll('.dot'));
+      let index = 0, autoplay = true, timer = null, interval = 4000;
+    
+      function go(i){
+        index = (i + slides.length) % slides.length;
+        track.style.transform = `translateX(-${index*100}%)`;
+        dots.forEach((d,j)=> d.setAttribute('aria-selected', j===index ? 'true' : 'false'));
+      }
+    
+      function play(){ stop(); timer = setInterval(()=>go(index+1), interval); }
+      function stop(){ if(timer){ clearInterval(timer); timer=null; } }
+    
+      prev.addEventListener('click', ()=>{ go(index-1); });
+      next.addEventListener('click', ()=>{ go(index+1); });
+      dots.forEach((d,i)=> d.addEventListener('click', ()=> go(i)));
+    
+      root.addEventListener('mouseenter', ()=>{ autoplay=false; stop(); });
+      root.addEventListener('mouseleave', ()=>{ if(!autoplay) { autoplay=true; play(); } });
+    
+      // teclado
+      root.addEventListener('keydown', (e)=>{
+        if(e.key==='ArrowLeft') go(index-1);
+        if(e.key==='ArrowRight') go(index+1);
+      });
+    
+      go(0); play();
+    })();
+    </script>
+  </body>
 </html>
