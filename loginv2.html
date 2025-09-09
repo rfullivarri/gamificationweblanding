@@ -167,62 +167,49 @@
     backdrop-filter: blur(10px);               /* glass suave encima del sólido */
   }
       
-    /* === Próximos pasos → cards iguales === */
-    .steps-title{ 
-      text-align:center; 
-      margin:8px 0 12px; 
-      font-weight:900; 
+    /* === Próximos pasos → cards iguales (rectangulares, glassy y simples) === */
+    .steps-title{
+      text-align:center;
+      margin:8px 0 12px;
+      font-weight:900;
       color:#cfd6ec;
     }
     
     .steps-row{
-      display:grid; 
-      gap:14px; 
+      display:grid;
+      gap:14px;
       margin:10px 0 14px;
       grid-template-columns:1fr;                 /* mobile */
     }
     @media (min-width:720px){
-      .steps-row{ grid-template-columns:repeat(3,1fr); }  /* 3 en línea desktop */
+      .steps-row{ grid-template-columns:repeat(3,1fr); } /* 3 en línea en desktop */
     }
     
+    /* Card de paso (NO botón) */
     .step{
       display:flex; align-items:center; justify-content:center;
-      min-height:72px;                           /* alto parejo */
-      padding:16px;
-      border-radius:16px;
-      text-align:center; font-weight:900; letter-spacing:.2px;
-      color:#e8ecf1;
+      height:60px;                               /* alto parejo, más compacto */
+      padding:0 16px;                            /* menos panza */
+      border-radius:12px;                        /* curvita corta (no pastilla) */
+      cursor:default;                            /* no parece botón */
+      text-align:center; font-weight:900; letter-spacing:.2px; color:#e8ecf1;
     
-      /* misma estética que tus cards (Body/Mind/Soul) */
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.20);    /* borde “blanco” sutil (como Copiar link) */
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.06),
-        0 12px 28px rgba(0,0,0,.35);
-      transition: .15s ease;
+      /* glassy sutil y translúcido */
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      backdrop-filter:blur(4px);
+    
+      /* borde “blanco” suave como Copiar link */
+      border:1px solid rgba(255,255,255,.20);
+    
+      /* bisel MUY leve para evitar efecto plástico */
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      transition:.15s ease;
     }
-    .step:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.28); }
-    
-    /* halo de color MUY sutil (opcional) */
-    .step.is-blue  { box-shadow: inset 0 0 0 1px rgba(92,162,255,.16),  0 12px 28px rgba(0,0,0,.35); }
-    .step.is-green { box-shadow: inset 0 0 0 1px rgba(105,219,124,.16), 0 12px 28px rgba(0,0,0,.35); }
-    .step.is-amber { box-shadow: inset 0 0 0 1px rgba(255,190,92,.18),  0 12px 28px rgba(0,0,0,.35); }
-    
+    .step:hover{
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.30);
+    }
 
-    
-    /* Chip de paso: estilo “ghost” como Copiar link (borde blanco, sin colores) */
-    .step{
-      display:flex; align-items:center; justify-content:center;
-      padding:12px 14px; border-radius:999px;
-      background:transparent;                           /* ← sin glass */
-      border:1px solid rgba(255,255,255,.28);           /* ← borde blanco suave */
-      color:#e8ecf1; font-weight:800; text-align:center;
-      box-shadow:none;                                   /* ← sin glow */
-    }
-    /* Sin brillos por “color” */
-    .step.is-blue,
-    .step.is-green,
-    .step.is-amber{ box-shadow:none; }
     
     /* Chips de acción (instalar / copiar) */
     .pill-btn{
