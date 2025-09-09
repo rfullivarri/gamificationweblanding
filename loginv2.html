@@ -82,12 +82,17 @@
     .close:hover{border-color:#fff; color:#fff}
     .modal-title{margin:0 0 6px; font-weight:900; font-size:20px}
     .modal-body{color:var(--muted); font-size:14px; line-height:1.6}
-    .steps{margin:12px 0 4px; padding-left:16px}
-    .steps li{margin:6px 0}
-    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#0f1526; padding:2px 6px; border-radius:6px; border:1px solid var(--line); color:#cfd6ec}
     .pill{display:inline-block; font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:#cfd6ec}
     .callout{margin-top:10px; padding:10px 12px; border:1px dashed var(--line); border-radius:12px; color:#cdd6f4; background:rgba(125,60,255,.08)}
     .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:14px}
+    .help{margin-top:10px; font-size:13px; color:#aab2c5}
+    .help-steps{margin:8px 0 0; padding-left:18px}
+    .help-steps li{margin:4px 0}
+    .row-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px}
+    .copybox{display:flex; gap:6px; align-items:center; margin-top:8px}
+    .copycode{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#0f1526; padding:6px 8px; border-radius:8px; border:1px solid var(--line); color:#cfd6ec; max-width:100%; overflow:auto}
+    .btn.ghost{background:transparent;border:1px solid var(--line);color:#cfd6ec}
+    .hint{font-size:12px;color:#aab2c5;margin-top:6px}
   </style>
 </head>
 <body>
@@ -100,7 +105,7 @@
   <div class="wrap">
     <div class="card">
       <h1>Entrar al Dashboard</h1>
-      <p class="sub">Ingresa tu correo. Si tu base ya está lista te llevo directo a tu <strong>Dashboard</strong>. Si no, te muestro el roadmap y espero con vos 👀.</p>
+      <p class="sub">Ingresa tu correo. Si tu base ya está lista te llevo directo al <strong>Dashboard</strong>. Si no, te muestro los pasos y espero con vos 👀.</p>
 
       <form id="loginForm" novalidate>
         <div class="field">
@@ -123,18 +128,27 @@
       <h2 id="modalTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
       <div class="modal-body">
         <p>
-          Estamos <strong>generando tu base de datos con IA</strong>. Apenas esté lista te llegará un
-          <span class="pill">pergamino digital</span> (un mail) con el link a tu Sheet. Seguí estos pasos:
+          Estamos creando tu espacio. En unos minutos te llegará un
+          <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
+          Después hacé <strong>login</strong>, <strong>confirmá tu BBDD</strong> y <strong>programá tu Daily&nbsp;Quest</strong>.
         </p>
-        <ol class="steps">
-          <li>Abrilo desde una <strong>PC</strong> y aceptá permisos (activa los <em>triggers</em>).</li>
-          <li>Buscá el botón <strong>⚙️ Gamification</strong> dentro del Sheet (arriba en la barra de menú) para aceptar los persmios.</li>
-          <li>Volvé a este login y entrá con tu correo.</li>
-          <li>En el Dashboard, tocá <span class="kbd">Editar Base</span> para ajustar tus tareas por Pilar (Cuerpo / Mente / Alma).</li>
-          <li>Presioná <span class="kbd">Confirmar Edicion</span>. Así se genera y guarda tu <strong>Daily Quest</strong>.</li>
-        </ol>
+
+        <div class="row-actions">
+          <button id="installBtn" class="btn ghost" type="button" style="display:none">Instalar app</button>
+          <button id="copyLinkBtn" class="btn ghost" type="button">Copiar link del portal</button>
+        </div>
+        <div id="installHelp" class="help" style="display:none">
+          <strong>¿iPhone/iPad?</strong>
+          <ol class="help-steps">
+            <li>Abrí esta página en <span class="pill">Safari</span>.</li>
+            <li>Tocá <span class="pill">Compartir</span>.</li>
+            <li>Elegí <span class="pill">Agregar a pantalla de inicio</span>.</li>
+          </ol>
+          <div class="hint">En Android verás la opción <span class="pill">Instalar app</span>.</div>
+        </div>
+
         <div class="callout">
-          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida. Este cuadro se cierra solo cuando tu base esté lista ✅.
+          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
         </div>
       </div>
       <div class="modal-actions">
@@ -146,11 +160,12 @@
   </section>
 
   <script>
-    // ⚙️ Endpoints
-    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec"; // opcional si querés polling cuando el usuario escribe su email
+    /* ================== CONFIG ================== */
+    const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec";
     const POLL_MS = 10000;
+    const DASHBOARD = "dashboardv3.html";
 
-    // Utils
+    /* ================== UTILS ================== */
     function qs(n){ const p=new URLSearchParams(location.search); return (p.get(n)||"").trim(); }
     function setStatus(msg, spinning=false){
       const $status = document.getElementById('status');
@@ -158,15 +173,22 @@
     }
     function showModal(){ const m=document.getElementById('awaitModal'); m.classList.add('visible'); m.setAttribute('aria-hidden','false'); }
     function hideModal(){ const m=document.getElementById('awaitModal'); m.classList.remove('visible'); m.setAttribute('aria-hidden','true'); }
-    function disable(el,v){ el.disabled=v; el.style.opacity=v?.7:1; }
+    function disable(el,v){ el.disabled=!!v; el.style.opacity=v?.7:1; }
+    const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isAndroid = () => /android/i.test(navigator.userAgent);
 
     async function checkStatus(email){
       const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`, {cache:'no-store'});
-      if(!res.ok) throw new Error('Error consultando estado');
-      return res.json();
+      // Interpretaciones robustas:
+      if (res.status === 404) return { ok:false, notFound:true };
+      let data = {};
+      try { data = await res.json(); } catch { }
+      // si la API devuelve algún campo útil, lo normalizamos
+      if (data && data.notFound) return { ok:false, notFound:true };
+      return data;
     }
 
-    // Login normal con verificación (como antes)
+    /* ================== LOGIN ================== */
     let pollTimer=null, lastEmail="";
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
       e.preventDefault();
@@ -176,21 +198,34 @@
       lastEmail=email;
 
       if(!CHECK_ENDPOINT || CHECK_ENDPOINT.startsWith("PON_AQUI")) {
-        // Si no configuraste checker, solo mostramos popup
-        showModal(); return;
+        showModal(); return; // sin checker → solo esperamos
       }
 
       disable($goBtn,true); setStatus('Chequeando estado…', true);
       try{
         const data = await checkStatus(email);
-        if(data.ok && data.has_url){
-          setStatus('Listo, entrando…', true);
-          window.location.href = `dashboardv3.html?email=${encodeURIComponent(email)}`;
-        }else{
-          setStatus('Tu base está en proceso. Te avisamos acá.');
-          showModal(); startPolling();
+
+        // 🛑 Usuario no existe
+        if (data && data.notFound) {
+          setStatus('Ese usuario no existe. Creá tu cuenta para empezar.');
+          hideModal();
+          document.getElementById('signupBtn').focus();
+          return;
         }
+
+        // ✅ Ya hay portal listo → entrar directo
+        if(data && data.ok && (data.has_url || data.ready)){
+          setStatus('Listo, entrando…', true);
+          window.location.href = `${DASHBOARD}?email=${encodeURIComponent(email)}`;
+          return;
+        }
+
+        // 🕒 Aún procesando → esperar con popup + polling
+        setStatus('Tu base está en proceso. Te avisamos acá.');
+        showModal(); startPolling();
+
       }catch(_){
+        // fallback conservador
         setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
         showModal(); startPolling();
       }finally{
@@ -203,9 +238,15 @@
       pollTimer=setInterval(async ()=>{
         try{
           const data = await checkStatus(lastEmail);
-          if(data.ok && data.has_url){
+          if (data && data.notFound) {
+            stopPolling();
+            hideModal();
+            setStatus('Ese usuario no existe. Creá tu cuenta para empezar.');
+            return;
+          }
+          if(data && data.ok && (data.has_url || data.ready)){
             stopPolling(); hideModal();
-            window.location.href = `dashboardv3.html?email=${encodeURIComponent(lastEmail)}`;
+            window.location.href = `${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`;
           }
         }catch(_){/* noop */}
       }, POLL_MS);
@@ -217,21 +258,25 @@
       stopPolling(); hideModal(); setStatus('Listo para intentar de nuevo.');
     });
     document.getElementById('retryBtn').addEventListener('click', async ()=>{
-      if(!lastEmail) return; // si vino desde el Form sin email, no hay reintento
+      if(!lastEmail) return;
       const $btn = document.getElementById('retryBtn');
       const original = $btn.textContent;
       $btn.innerHTML = `Reintentando <span class="spinner"></span>`;
       disable($btn,true);
       try{
         const data = await checkStatus(lastEmail);
-        if(data.ok && data.has_url){ stopPolling(); hideModal(); window.location.href=`dashboardv3.html?email=${encodeURIComponent(lastEmail)}`; }
+        if (data && data.notFound) {
+          stopPolling(); hideModal(); setStatus('Ese usuario no existe. Creá tu cuenta para empezar.'); return;
+        }
+        if(data && data.ok && (data.has_url || data.ready)){
+          stopPolling(); hideModal();
+          window.location.href=`${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`;
+        }
       }catch(_){}
       finally{ $btn.textContent = original; disable($btn,false); }
     });
 
-    // 🚀 NUEVO: modo “forzar popup” desde el Google Form
-    // - Si la URL trae ?await=1 → mostramos el popup apenas carga, sin verificar nada.
-    // - Si también viene ?email=, lo prellenamos y habilitamos polling (opcional).
+    // Modo “forzar popup” (cuando llega desde el correo con await=1)
     (function boot(){
       const force = qs('await');
       const pre = qs('email');
@@ -240,18 +285,57 @@
         showModal();
         if (pre && CHECK_ENDPOINT && !CHECK_ENDPOINT.startsWith("PON_AQUI")){
           lastEmail = pre.toLowerCase();
-          startPolling(); // si llegó con email, de una hacemos polling
+          startPolling();
         }
       }
     })();
 
-    // Enter directo
+    // Enter directo en el input de email
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter' && document.activeElement === document.getElementById('email')){
         e.preventDefault(); document.getElementById('goBtn').click();
       }
     });
+
+    /* ================== PWA: Instalar / Ayuda iOS ================== */
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('installBtn').style.display = 'inline-block';
+    });
+
+    document.getElementById('installBtn').addEventListener('click', async ()=>{
+      // Android/desktop con prompt disponible
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        try { await deferredPrompt.userChoice; } catch (_) {}
+        deferredPrompt = null;
+        return;
+      }
+      // iOS → mostrar ayuda visual
+      if (isIOS()) {
+        document.getElementById('installHelp').style.display = 'block';
+        return;
+      }
+      // Fallback genérico
+      alert('Si tu navegador lo permite, usá “Instalar app / Agregar a la pantalla de inicio”.');
+    });
+
+    // Copiar link del portal (útil en desktop para abrir luego en el móvil)
+    document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(location.href.split('#')[0]);
+        document.getElementById('copyLinkBtn').textContent = 'Link copiado ✓';
+        setTimeout(()=>{ document.getElementById('copyLinkBtn').textContent = 'Copiar link del portal'; }, 1500);
+      } catch (_) {
+        // fallback simple
+        prompt('Copiá este link:', location.href.split('#')[0]);
+      }
+    });
   </script>
+
+  <!-- SW -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -260,6 +344,6 @@
           .catch(e => console.error('[SW] error', e));
       });
     }
-</script>
+  </script>
 </body>
 </html>
