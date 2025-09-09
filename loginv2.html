@@ -8,17 +8,10 @@
   <meta name="theme-color" content="#7d3cff">
   <style>
     :root{
-      --bg:#0b0f19;
-      --card:#121829;
-      --ink:#e8ecf1;
-      --muted:#9aa3b2;
-      --accent:#7d3cff;
-      --accent-2:#5c28c2;
-      --line:rgba(255,255,255,.14);
-      --ring:rgba(125,60,255,.35);
-      --overlay:rgba(6,10,20,.58);
+      --bg:#0b0f19; --card:#121829; --ink:#e8ecf1; --muted:#9aa3b2;
+      --accent:#7d3cff; --accent-2:#5c28c2; --line:rgba(255,255,255,.14);
+      --overlay:rgba(3,5,10,.65);
     }
-  
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
     body{
@@ -31,167 +24,130 @@
       display:flex;flex-direction:column;
     }
   
-    /* NAVBAR */
+    /* NAV */
     .nav{
-      width:100%;
-      background:rgba(18,24,41,.45);
-      border-bottom:1px solid var(--line);
-      backdrop-filter: blur(8px);
-      display:flex; align-items:center; justify-content:center;
+      width:100%; background:rgba(18,24,41,.6); border-bottom:1px solid var(--line);
+      backdrop-filter: blur(6px); display:flex; align-items:center; justify-content:center;
       padding:12px 16px; position:sticky; top:0; z-index:40;
     }
     .nav a{color:#fff; text-decoration:none; font-weight:900}
     .nav a:hover{text-decoration:underline}
   
-    /* CONTENIDO */
+    /* CARD LOGIN */
     .wrap{flex:1; display:grid; place-items:center; padding:24px}
     .card{
-      width:100%; max-width:540px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid var(--line);
-      border-radius:20px; padding:26px;
-      backdrop-filter: blur(10px);
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.06),
-        0 18px 60px rgba(0,0,0,.35);
+      width:100%; max-width:520px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--line); border-radius:18px; padding:24px; backdrop-filter: blur(6px);
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
     }
-    h1{margin:0 0 8px; font-size:28px; font-weight:900; text-align:center}
+    h1{margin:0 0 8px; font-size:26px; font-weight:900; text-align:center}
     .sub{margin:0 0 18px; color:var(--muted); text-align:center; line-height:1.55}
-  
     .field{margin:14px 0 6px}
     label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
     input[type="email"]{
       width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
       background:#0f1526; color:#e8ecf1; outline:none; text-align:center;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
-    }
-    input[type="email"]:focus{
-      border-color: var(--ring);
-      box-shadow: 0 0 0 3px rgba(125,60,255,.20);
     }
     input::placeholder{color:#7f8aa3}
-  
     .actions{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
     .btn{
       appearance:none; border:0; border-radius:12px; padding:12px 16px; font-weight:800;
-      background:linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
-      color:#fff; cursor:pointer; transition:.2s background,.05s transform,.2s box-shadow;
-      box-shadow: 0 8px 26px rgba(125,60,255,.22);
+      background:var(--accent); color:#fff; cursor:pointer; transition:.2s background,.05s transform;
     }
-    .btn:hover{filter:brightness(1.05)}
-    .btn:active{transform:translateY(1px)}
-    .btn.secondary{
-      background:transparent; border:1px solid var(--line); color:#e8ecf1;
-      box-shadow:none;
-    }
+    .btn:hover{background:var(--accent-2)} .btn:active{transform:translateY(1px)}
+    .btn.secondary{background:transparent; border:1px solid var(--line); color:#e8ecf1}
     .status{margin-top:10px; color:var(--muted); font-size:13px; text-align:center; min-height:20px}
   
-    /* SPINNER */
-    .spinner{
-      width:18px;height:18px;border-radius:50%;
+    /* Spinner */
+    .spinner{ width:18px;height:18px;border-radius:50%;
       border:3px solid rgba(255,255,255,.2); border-top-color:#fff;
       animation:spin .9s linear infinite; display:inline-block; vertical-align:middle; margin-left:8px;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
+    } @keyframes spin{to{transform:rotate(360deg)}}
   
-    /* MODAL (base) */
-    .modal{
-      position:fixed; inset:0; display:none; place-items:center; padding:20px;
-      background:var(--overlay);
-      backdrop-filter: blur(10px);
-      z-index:100;
-    }
+    /* MODAL base */
+    .modal{position:fixed; inset:0; display:none; place-items:center; padding:20px; background:var(--overlay); z-index:100}
     .modal.visible{display:grid}
-  
     .modal-card{
-      width:100%; max-width:760px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid var(--line);
-      border-radius:22px; padding:22px 22px 18px; position:relative;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,.06),
-        0 28px 80px rgba(0,0,0,.55);
-      backdrop-filter: blur(10px);
+      width:100%; max-width:740px;
+      background:rgba(18,24,41,.68);
+      backdrop-filter: blur(14px) saturate(110%);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:18px; padding:20px 20px 16px; position:relative;
+      box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.04);
     }
     .close{
-      position:absolute; top:12px; right:12px; width:40px; height:40px; border-radius:12px;
+      position:absolute; top:10px; right:10px; width:38px; height:38px; border-radius:10px;
       display:grid; place-items:center; cursor:pointer; border:1px solid var(--line);
       color:#cfd6ec; background:transparent;
     }
     .close:hover{border-color:#fff; color:#fff}
-    .modal-title{margin:0 0 10px; font-weight:900; font-size:22px}
-    .modal-body{color:var(--muted); font-size:14px; line-height:1.6}
-    .pill{
-      display:inline-block; font-size:12px; padding:4px 10px; border-radius:999px;
-      border:1px solid var(--line); color:#cfd6ec; background:rgba(255,255,255,.04);
-    }
+    .modal-title{margin:0 0 6px; font-weight:900; font-size:22px}
+    .modal-body{color:#cbd3e3; font-size:14px; line-height:1.6}
+    .pill{display:inline-block; font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:#cfd6ec}
   
-    .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:16px}
-    .hint{font-size:12px;color:#aab2c5;margin-top:6px}
-  
-    /* ---------- Steps visuales (compactos, homogéneos) ---------- */
-    .steps-title{
-      text-align:center; margin:12px 0 10px;
-      font-weight:900; color:#cfd6ec; letter-spacing:.2px;
-    }
-    .steps-row{
-      display:flex; justify-content:center; align-items:center; flex-wrap:wrap;
-      gap:12px; margin:6px auto 14px; max-width:560px;
-    }
-    .step{
-      flex: 0 1 180px;              /* mismo ancho visual */
-      text-align:center; font-weight:900;
-      padding:10px 16px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.22);
-      background:linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.02));
-      color:#e9edf6;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.06),
-        0 10px 26px rgba(0,0,0,.35);
-    }
-    .step.is-blue  { box-shadow: inset 0 0 0 2px rgba(120,170,255,.22), 0 10px 26px rgba(120,170,255,.10); }
-    .step.is-green { box-shadow: inset 0 0 0 2px rgba(120,219,150,.24), 0 10px 26px rgba(120,219,150,.10); }
-    .step.is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,120,.24), 0 10px 26px rgba(255,190,120,.10); }
-    .step-arrow{
-      opacity:.55; font-weight:800; padding:0 4px; user-select:none;
-    }
-  
-    /* ---------- Chips de acción (pequeños y discretos) ---------- */
-    .section-subtitle{
-      text-align:center; margin:8px 0 6px; color:#cfd6ec; font-weight:900; letter-spacing:.2px;
-    }
-    .action-chips{
-      display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0 10px;
-    }
-    .pill-btn{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
-    }
-    .pill-btn:disabled{ opacity:.5; cursor:default }
-    #installHelp{
-      display:none; margin:6px auto 0; max-width:560px;
-      border:1px dashed var(--line); border-radius:12px; padding:10px 12px; color:#cfd6ec;
-    }
-    #installHelp strong{ color:#e8ecf1 }
-    #installHelp ol{ margin:6px 0 0; padding-left:18px; }
-    #installHelp li{ margin:4px 0 }
-  
-    /* ---------- Callout con borde lila (tipo “card” lateral) ---------- */
+    /* Tip con borde lila (arriba) */
     .callout{
-      position:relative; padding:14px 12px 14px 20px;
-      margin-top:12px; border:1px solid rgba(255,255,255,.10);
-      border-radius:14px; background:rgba(125,60,255,.08);
+      position:relative; margin:12px 0 6px; padding:12px 12px 12px 18px;
+      border:1px dashed var(--line); border-radius:12px; color:#d7dcf0;
+      background:rgba(125,60,255,.08);
     }
     .callout::before{
       content:""; position:absolute; left:10px; top:10px; bottom:10px; width:4px; border-radius:4px;
       background:linear-gradient(180deg, #7d3cff 0%, rgba(125,60,255,.25) 100%);
     }
   
-    /* Oculto por defecto: el JS lo muestra si corresponde (Android/Chromium) */
-    #installBtn{ display:none; }
+    /* Títulos de secciones del modal */
+    .steps-title,.section-subtitle{
+      text-align:center; font-weight:900; color:#dde3f4;
+    }
+    .steps-title{ margin:14px 0 10px; }
+    .section-subtitle{ margin:14px 0 8px; }
+  
+    /* Próximos pasos – pills glass pequeñas, todas iguales */
+    .steps-row{
+      display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:nowrap;
+    }
+    @media (max-width:720px){ .steps-row{flex-wrap:wrap} }
+    .arrow{opacity:.45; font-weight:800}
+  
+    .step{
+      min-width:200px; text-align:center; font-weight:800; letter-spacing:.1px;
+      padding:10px 16px; border-radius:999px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.18);
+      color:#e9edf6;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.06),
+        0 10px 28px rgba(0,0,0,.35);
+    }
+    .step.blue  { box-shadow: inset 0 0 0 2px rgba(92,162,255,.22),  0 10px 28px rgba(92,162,255,.10); }
+    .step.green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.22), 0 10px 28px rgba(105,219,124,.10); }
+    .step.amber { box-shadow: inset 0 0 0 2px rgba(255,190,92,.22),  0 10px 28px rgba(255,190,92,.10); }
+  
+    /* Chips de acción */
+    .action-chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0 6px }
+    .pill-btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
+    }
+    .pill-btn.accent{ background:linear-gradient(180deg, #7d3cff, #5c28c2); border-color:#6b37e8 }
+    .micro-hint{ font-size:11px; color:#a9b1c6; text-align:center; margin-top:2px }
+  
+    /* Footer acciones del modal */
+    .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:16px}
+    .modal-actions .btn{ border-radius:999px; padding:10px 14px }
+    .modal-actions .btn.secondary{ border-color:var(--line) }
+  
+    /* iOS help */
+    #installHelp{
+      display:none; margin:6px auto 4px; max-width:560px;
+      border:1px dashed var(--line); border-radius:12px; padding:10px 12px; color:#cfd6ec;
+    }
+    #installHelp strong{ color:#e8ecf1 }
+    #installHelp ol{ margin:6px 0 0; padding-left:18px }
+    #installHelp li{ margin:4px 0 }
   </style>
 </head>
 <body>
@@ -226,36 +182,43 @@
   </div>
 
   <!-- MODAL AWAIT -->
-  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="awaitTitle">
+  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
     <div class="modal-card">
-      <button id="closeModal" class="close" title="Volver al login" aria-label="Cerrar">✕</button>
+      <button id="closeModal" class="close" title="Volver al login">✕</button>
+  
       <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
-
-      <!-- Cuerpo -->
+  
       <div class="modal-body">
         <p>
           Estamos creando tu espacio. En unos minutos te llegará un
           <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
         </p>
-
-        <!-- Flujo visual en chips -->
-        <h3 class="steps-title">Próximos pasos</h3>
-        <div class="steps-row" role="list">
-          <span class="step is-blue" role="listitem">Login</span>
-          <span class="step-arrow" aria-hidden="true">→</span>
-          <span class="step is-green" role="listitem">Confirmá BBDD</span>
-          <span class="step-arrow" aria-hidden="true">→</span>
-          <span class="step is-amber" role="listitem">Programá Daily&nbsp;Quest</span>
+  
+        <!-- TIP arriba -->
+        <div class="callout">
+          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
         </div>
-
+  
+        <!-- Próximos pasos -->
+        <h3 class="steps-title">Próximos pasos</h3>
+        <div class="steps-row">
+          <span class="step blue">Login</span>
+          <span class="arrow">→</span>
+          <span class="step green">Confirmar BBDD</span>
+          <span class="arrow">→</span>
+          <span class="step amber">Programar Daily&nbsp;Quest</span>
+        </div>
+  
+        <!-- Mientras tanto -->
         <h4 class="section-subtitle">Mientras tanto</h4>
         <div class="action-chips">
-          <button id="installBtn" type="button" class="pill-btn" style="display:none">Instalar app</button>
-          <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link del portal</button>
+          <button id="installBtn"  type="button" class="pill-btn accent">Instalar app</button>
+          <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link</button>
         </div>
-
+        <div class="micro-hint">Usá “Copiar link” para abrirlo en tu móvil.</div>
+  
         <!-- Ayuda iOS (se muestra al tocar Instalar app en iPhone) -->
-        <div id="installHelp" class="ios-help" style="display:none">
+        <div id="installHelp">
           <strong>iPhone (Safari)</strong>
           <ol>
             <li>Tocá <em>Compartir</em> (icono ↑).</li>
@@ -263,18 +226,11 @@
             <li>Confirmá el nombre y guardá.</li>
           </ol>
         </div>
-
-        <!-- Tip (con borde lila) -->
-        <div class="callout">
-          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
-        </div>
       </div>
-
-      <!-- Acciones -->
+  
       <div class="modal-actions">
-        <a id="signupBtn" href="signupv2.html" class="btn secondary">Crear cuenta</a>
-        <a href="indexv2.html" class="btn secondary">Volver al inicio</a>
-        <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
+        <a id="signupBtn" class="pill-btn accent"   href="signupv2.html">Crear cuenta</a>
+        <a                 class="pill-btn"         href="indexv2.html">Volver al inicio</a>
       </div>
     </div>
   </section>
@@ -401,19 +357,40 @@
     function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
   
     // Cierres / acciones modales
-    document.getElementById('closeModal')?.addEventListener('click', ()=>{ stopPolling(); hideModal('awaitModal'); setStatus('Listo para intentar de nuevo.'); });
-    document.getElementById('retryBtn')?.addEventListener('click', async ()=>{
-      if(!lastEmail) return;
-      const $btn = document.getElementById('retryBtn');
-      const t = $btn.textContent;
-      $btn.innerHTML = `Reintentando <span class="spinner"></span>`; disable($btn,true);
-      try{
-        const data = await checkStatus(lastEmail);
-        if (isNotFound(data)){ stopPolling(); hideModal('awaitModal'); setStatus('Ese correo no está registrado.'); showModal('notFoundModal'); return; }
-        if (isReady(data)){ stopPolling(); hideModal('awaitModal'); window.location.href=`${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`; }
-      }catch(_){}
-      finally{ $btn.textContent = t; disable($btn,false); }
-    });
+    document.getElementById('closeModal')
+      .addEventListener('click', ()=>{
+        stopPolling();
+        hideModal('awaitModal');
+        setStatus('Listo para intentar de nuevo.');
+      });
+    
+    // El botón "Reintentar" ya no se usa; si existe en alguna versión, lo manejamos igual.
+    const retry = document.getElementById('retryBtn'); // <- ojo: 'retryBtn' con B mayúscula
+    if (retry){
+      retry.addEventListener('click', async ()=>{
+        if(!lastEmail) return;
+        const t = retry.textContent;
+        retry.innerHTML = `Reintentando <span class="spinner"></span>`;
+        retry.disabled = true;
+        try{
+          const data = await checkStatus(lastEmail);
+          if (isNotFound(data)){
+            stopPolling(); hideModal('awaitModal');
+            setStatus('Ese correo no está registrado.');
+            showModal('notFoundModal');
+            return;
+          }
+          if (isReady(data)){
+            stopPolling(); hideModal('awaitModal');
+            window.location.href = `${DASHBOARD}?email=${encodeURIComponent(lastEmail)}`;
+          }
+        }catch(_){/* noop */}
+        finally{
+          retry.textContent = t;
+          retry.disabled = false;
+        }
+      });
+    }
   
     document.getElementById('closeNF')?.addEventListener('click', ()=> hideModal('notFoundModal'));
     document.getElementById('backNF')?.addEventListener('click', ()=> hideModal('notFoundModal'));
