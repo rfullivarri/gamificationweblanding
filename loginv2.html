@@ -110,25 +110,6 @@
       background:linear-gradient(180deg, #7d3cff 0%, rgba(125,60,255,.25) 100%);
     }
   
-    /* —— Próximos pasos: look más sutil, mismo tamaño —— */
-    .steps-title{ text-align:center; margin:6px 0 10px; font-weight:900; color:#cfd6ec }
-    .steps-row{
-      display:grid; gap:10px; margin:8px 0 6px;
-      grid-template-columns: 1fr;            /* mobile */
-    }
-    @media (min-width: 680px){
-      .steps-row{ grid-template-columns: repeat(3, 1fr); } /* 3 en línea en desktop */
-    }
-    .step{
-      display:flex; align-items:center; justify-content:center;
-      padding:12px 14px; border-radius: 999px;
-      background:linear-gradient(180deg, var(--chip-glass-from), var(--chip-glass-to));
-      border:1px solid rgba(255,255,255,.22);
-      color:#e8ecf1; font-weight:800; text-align:center;
-      box-shadow:
-        inset 0 0 0 1px rgba(255,255,255,.06),
-        0 10px 28px rgba(0,0,0,.35);
-    }
     /* glow sutil por paso */
     .is-blue  { box-shadow: inset 0 0 0 2px rgba(92,162,255,.18),  0 10px 28px rgba(92,162,255,.08); }
     .is-green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.20), 0 10px 28px rgba(105,219,124,.09); }
@@ -175,21 +156,59 @@
     
     /* Tarjeta del modal: opaca (no se ve atrás), sin blur interno */
     .modal-card{
-      background:#121829;               /* ← opaco */
-      backdrop-filter:none;              /* ← sin blur adentro */
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:18px;
-      box-shadow:0 22px 80px rgba(0,0,0,.6);
+    width:100%; max-width:760px;
+    /* fondo sólido + leve glass, ya NO se transparenta el contenido de atrás */
+    background: rgba(18,24,41,.94);            /* <- sólido */
+    border:1px solid var(--line); 
+    border-radius:18px; 
+    padding:20px 22px 18px; 
+    position:relative;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    backdrop-filter: blur(10px);               /* glass suave encima del sólido */
+  }
+      
+    /* === Próximos pasos → cards iguales === */
+    .steps-title{ 
+      text-align:center; 
+      margin:8px 0 12px; 
+      font-weight:900; 
+      color:#cfd6ec;
     }
     
-    /* Próximos pasos: grilla 3 iguales en desktop, 1 por fila en mobile */
     .steps-row{
-      display:grid; gap:10px; margin:12px 0;
-      grid-template-columns: 1fr;        /* mobile */
+      display:grid; 
+      gap:14px; 
+      margin:10px 0 14px;
+      grid-template-columns:1fr;                 /* mobile */
     }
-    @media (min-width:680px){
-      .steps-row{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+    @media (min-width:720px){
+      .steps-row{ grid-template-columns:repeat(3,1fr); }  /* 3 en línea desktop */
     }
+    
+    .step{
+      display:flex; align-items:center; justify-content:center;
+      min-height:72px;                           /* alto parejo */
+      padding:16px;
+      border-radius:16px;
+      text-align:center; font-weight:900; letter-spacing:.2px;
+      color:#e8ecf1;
+    
+      /* misma estética que tus cards (Body/Mind/Soul) */
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.20);    /* borde “blanco” sutil (como Copiar link) */
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.06),
+        0 12px 28px rgba(0,0,0,.35);
+      transition: .15s ease;
+    }
+    .step:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.28); }
+    
+    /* halo de color MUY sutil (opcional) */
+    .step.is-blue  { box-shadow: inset 0 0 0 1px rgba(92,162,255,.16),  0 12px 28px rgba(0,0,0,.35); }
+    .step.is-green { box-shadow: inset 0 0 0 1px rgba(105,219,124,.16), 0 12px 28px rgba(0,0,0,.35); }
+    .step.is-amber { box-shadow: inset 0 0 0 1px rgba(255,190,92,.18),  0 12px 28px rgba(0,0,0,.35); }
+    
+
     
     /* Chip de paso: estilo “ghost” como Copiar link (borde blanco, sin colores) */
     .step{
@@ -232,6 +251,12 @@
     
     /* Nota chiquita debajo de “Copiar link” */
     .chip-note{ font-size:12px; color:#aab2c5; text-align:center; margin-top:4px; }
+    /* Botón violeta de la app para cualquier chip con .accent */
+    .pill-btn.accent{ background:#7d3cff; border-color:#7d3cff; color:#fff; }
+    .pill-btn.accent:hover{ background:#5c28c2; }
+    
+    /* Copiar link: ghost con borde blanco (ya lo tenés, lo dejo explícito) */
+#copyLinkBtn{ background:transparent; border:1px solid rgba(255,255,255,.22); color:#e8ecf1; }
   </style>
 </head>
 <body>
