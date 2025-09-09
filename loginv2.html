@@ -121,6 +121,50 @@
     
     /* Oculto por defecto: lo muestra el JS si corresponde */
     #installChip{ display:none; }
+
+    /* ---------- Steps visuales ---------- */
+    .steps-title{ text-align:center; margin:14px 0 8px; font-weight:900; color:#cfd6ec }
+    .steps-row{
+      display:flex; justify-content:center; align-items:center; flex-wrap:wrap;
+      gap:12px; margin:6px 0 14px;
+    }
+    .step{
+      flex:1 1 220px; text-align:center; font-weight:800;
+      padding:10px 16px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.28);
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 28px rgba(0,0,0,.35);
+    }
+    .step.is-blue  { box-shadow: inset 0 0 0 2px rgba(92,162,255,.22),  0 10px 30px rgba(92,162,255,.10); }
+    .step.is-green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.24), 0 10px 30px rgba(105,219,124,.11); }
+    .step.is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,92,.26),  0 10px 30px rgba(255,190,92,.12); }
+    .step-arrow{ opacity:.55; font-weight:700 }
+    
+    /* ---------- Chips de acción ---------- */
+    .section-subtitle{ text-align:center; margin:6px 0 8px; color:#cfd6ec; font-weight:900 }
+    .action-chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0 6px }
+    .pill-btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
+    }
+    .pill-btn:disabled{ opacity:.5; cursor:default }
+    
+    /* ---------- Callout con borde lila ---------- */
+    .callout{ position:relative; padding:12px 12px 12px 18px; }
+    .callout::before{
+      content:""; position:absolute; left:10px; top:10px; bottom:10px; width:4px; border-radius:4px;
+      background:linear-gradient(180deg, #7d3cff 0%, rgba(125,60,255,.25) 100%);
+    }
+    
+    /* ---------- Ayuda iOS compacta ---------- */
+    #installHelp{
+      display:none; margin:8px auto 4px; max-width:560px;
+      border:1px dashed var(--line); border-radius:12px; padding:10px 12px; color:#cfd6ec;
+    }
+    #installHelp strong{ color:#e8ecf1 }
+    #installHelp ol{ margin:6px 0 0; padding-left:18px; }
+    #installHelp li{ margin:4px 0 }
   </style>
 </head>
 <body>
@@ -133,80 +177,91 @@
   <div class="wrap">
     <div class="card">
       <h1>Entrar al Dashboard</h1>
-      <p class="sub">Ingresá tu correo. Si tu base ya está lista te llevo directo al <strong>Dashboard</strong>. Si no, te muestro los pasos y espero con vos 👀.</p>
+      <p class="sub">
+        Ingresá tu correo. Si tu base ya está lista te llevo directo al
+        <strong>Dashboard</strong>. Si no, te muestro los pasos y espero con vos 👀.
+      </p>
 
       <form id="loginForm" novalidate>
         <div class="field">
           <label for="email">Correo</label>
           <input id="email" name="email" type="email" placeholder="tu@email.com" required />
         </div>
+
         <div class="actions">
           <button id="goBtn" class="btn" type="submit">Continuar</button>
           <a class="btn secondary" href="indexv2.html">Volver al inicio</a>
         </div>
+
         <div id="status" class="status"></div>
       </form>
     </div>
   </div>
 
   <!-- MODAL AWAIT -->
-  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
-  <div class="modal-card">
-    <button id="closeModal" class="close" title="Volver al login">✕</button>
-    <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
-
-    <div class="modal-body">
-      <p>
-        Estamos creando tu espacio. En unos minutos te llegará un
-        <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
-      </p>
-
-      <!-- Próximos pasos -->
-      <div class="section-subtitle" style="text-align:center">Próximos pasos</div>
-      <div class="flow">
-        <span class="chip login"><span class="emo">🔑</span> Login</span>
-        <span class="arrow">→</span>
-        <span class="chip bbdd"><span class="emo">📚</span> Confirmá BBDD</span>
-        <span class="arrow">→</span>
-        <span class="chip quest"><span class="emo">🎯</span> Programá Daily&nbsp;Quest</span>
-      </div>
-
-      <!-- Mientras tanto… -->
-      <div class="section-subtitle" style="text-align:center; margin-top:12px">Mientras tanto</div>
-      <div class="cta-row">
-        <!-- El JS lo muestra en Android/Chromium cuando hay prompt -->
-        <button id="installChip" type="button" class="cta primary">Instalar app</button>
-
-        <!-- Siempre disponible: link mínimo (await=1 & email) para abrir desde el móvil -->
-        <button id="copyPortalChip" type="button" class="cta ghost" title="Copiar link del portal">Copiar link del portal</button>
-
-        <!-- Ayuda compacta (texto neutro, no dinámico) -->
-        <span class="cta muted">Android: tocá “Instalar app”. iPhone (Safari): Compartir → Agregar a inicio.</span>
-      </div>
-
-      <div class="callout">
-        Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <a id="signupBtn" href="signupv2.html" class="btn secondary">Crear cuenta</a>
-      <a href="indexv2.html" class="btn secondary">Volver al inicio</a>
-      <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
-    </div>
-  </div>
-</section>
-
-  <!-- MODAL NOT-FOUND -->
-  <section id="notFoundModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="nfTitle">
+  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="awaitTitle">
     <div class="modal-card">
-      <button id="closeNF" class="close" title="Cerrar">✕</button>
-      <h2 id="nfTitle" class="modal-title">❌ No encontramos tu cuenta</h2>
+      <button id="closeModal" class="close" title="Volver al login" aria-label="Cerrar">✕</button>
+      <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
+
+      <!-- Cuerpo -->
       <div class="modal-body">
         <p>
-          No hay un usuario registrado con ese correo. Creá tu cuenta en un minuto y empezá tu Journey.
+          Estamos creando tu espacio. En unos minutos te llegará un
+          <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
         </p>
+
+        <!-- Flujo visual en chips -->
+        <h3 class="steps-title">Próximos pasos</h3>
+        <div class="steps-row" role="list">
+          <span class="step is-blue" role="listitem">Login</span>
+          <span class="step-arrow" aria-hidden="true">→</span>
+          <span class="step is-green" role="listitem">Confirmá BBDD</span>
+          <span class="step-arrow" aria-hidden="true">→</span>
+          <span class="step is-amber" role="listitem">Programá Daily&nbsp;Quest</span>
+        </div>
+
+        <h4 class="section-subtitle">Mientras tanto</h4>
+        <div class="action-chips">
+          <button id="installBtn" type="button" class="pill-btn" style="display:none">Instalar app</button>
+          <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link del portal</button>
+        </div>
+
+        <!-- Ayuda iOS (se muestra al tocar Instalar app en iPhone) -->
+        <div id="installHelp" class="ios-help" style="display:none">
+          <strong>iPhone (Safari)</strong>
+          <ol>
+            <li>Tocá <em>Compartir</em> (icono ↑).</li>
+            <li>Elegí <em>Agregar a inicio</em>.</li>
+            <li>Confirmá el nombre y guardá.</li>
+          </ol>
+        </div>
+
+        <!-- Tip (con borde lila) -->
+        <div class="callout">
+          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
+        </div>
       </div>
+
+      <!-- Acciones -->
+      <div class="modal-actions">
+        <a id="signupBtn" href="signupv2.html" class="btn secondary">Crear cuenta</a>
+        <a href="indexv2.html" class="btn secondary">Volver al inicio</a>
+        <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL NOT-FOUND -->
+  <section id="notFoundModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="nfTitle">
+    <div class="modal-card">
+      <button id="closeNF" class="close" title="Cerrar" aria-label="Cerrar">✕</button>
+      <h2 id="nfTitle" class="modal-title">❌ No encontramos tu cuenta</h2>
+
+      <div class="modal-body">
+        <p>No hay un usuario registrado con ese correo. Creá tu cuenta en un minuto y empezá tu Journey.</p>
+      </div>
+
       <div class="modal-actions">
         <a id="signupNF" class="btn" href="signupv2.html">Crear cuenta</a>
         <button id="backNF" class="btn secondary" type="button">Volver</button>
@@ -219,22 +274,23 @@
     const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec";
     const POLL_MS = 10000;
     const DASHBOARD = "dashboardv3.html";
-
+  
     /* ================== UTILS ================== */
     function qs(n){ const p=new URLSearchParams(location.search); return (p.get(n)||"").trim(); }
     function setStatus(msg, spinning=false){
       const $status = document.getElementById('status');
+      if (!$status) return;
       $status.innerHTML = spinning ? `${msg} <span class="spinner"></span>` : msg;
     }
     function showModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.add('visible'); m.setAttribute('aria-hidden','false'); }
     function hideModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.remove('visible'); m.setAttribute('aria-hidden','true'); }
-    function disable(el,v){ el.disabled = !!v; el.style.opacity = v ? 0.7 : 1; }
-
+    function disable(el,v){ if(!el) return; el.disabled = !!v; el.style.opacity = v ? 0.7 : 1; }
+  
     const UA = navigator.userAgent || '';
     const isIOS = /iPhone|iPad|iPod/i.test(UA);
     const isAndroid = /Android/i.test(UA);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
+  
     /* ================== CHECKER ================== */
     async function checkStatus(email){
       const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`, {cache:'no-store'});
@@ -245,13 +301,13 @@
       return data;
     }
     function isReady(d){ return d && d.ok && (d.has_url || d.ready); }
-    function isNotFound(d){ 
-      if (!d) return false; 
-      if (d.notFound === true) return true; 
+    function isNotFound(d){
+      if (!d) return false;
+      if (d.notFound === true) return true;
       const m = (d.message||d.error||d.reason||'').toString().toLowerCase();
       return /no existe|not found|no encontrado/.test(m);
     }
-
+  
     /* ================== LOGIN FLOW ================== */
     let pollTimer=null, lastEmail="";
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
@@ -260,32 +316,35 @@
       const email = (document.getElementById('email').value||"").trim().toLowerCase();
       if(!email || !email.includes('@')){ setStatus('Ingresá un correo válido.'); return; }
       lastEmail=email;
-
+  
       if(!CHECK_ENDPOINT || CHECK_ENDPOINT.startsWith("PON_AQUI")) {
         showModal('awaitModal'); return;
       }
-
+  
       disable($goBtn,true); setStatus('Chequeando estado…', true);
       try{
         const data = await checkStatus(email);
-
+  
+        // Usuario no existe
         if (isNotFound(data)){
           setStatus('Ese correo no está registrado.');
           hideModal('awaitModal');
           showModal('notFoundModal');
-          document.getElementById('signupNF').focus();
+          const $f = document.getElementById('signupNF'); if ($f) $f.focus();
           return;
         }
-
+  
+        // Listo → entrar
         if (isReady(data)){
           setStatus('Listo, entrando…', true);
           window.location.href = `${DASHBOARD}?email=${encodeURIComponent(email)}`;
           return;
         }
-
+  
+        // En proceso → esperar
         setStatus('Tu base está en proceso. Te avisamos acá.');
         showModal('awaitModal'); startPolling();
-
+  
       }catch(_){
         setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
         showModal('awaitModal'); startPolling();
@@ -293,7 +352,7 @@
         disable($goBtn,false);
       }
     });
-
+  
     function startPolling(){
       stopPolling();
       pollTimer=setInterval(async ()=>{
@@ -313,10 +372,10 @@
       }, POLL_MS);
     }
     function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
-
+  
     // Cierres / acciones modales
-    document.getElementById('closeModal').addEventListener('click', ()=>{ stopPolling(); hideModal('awaitModal'); setStatus('Listo para intentar de nuevo.'); });
-    document.getElementById('retryBtn').addEventListener('click', async ()=>{
+    document.getElementById('closeModal')?.addEventListener('click', ()=>{ stopPolling(); hideModal('awaitModal'); setStatus('Listo para intentar de nuevo.'); });
+    document.getElementById('retryBtn')?.addEventListener('click', async ()=>{
       if(!lastEmail) return;
       const $btn = document.getElementById('retryBtn');
       const t = $btn.textContent;
@@ -328,12 +387,16 @@
       }catch(_){}
       finally{ $btn.textContent = t; disable($btn,false); }
     });
-
-    document.getElementById('closeNF').addEventListener('click', ()=> hideModal('notFoundModal'));
-    document.getElementById('backNF').addEventListener('click', ()=> hideModal('notFoundModal'));
-
+  
+    document.getElementById('closeNF')?.addEventListener('click', ()=> hideModal('notFoundModal'));
+    document.getElementById('backNF')?.addEventListener('click', ()=> hideModal('notFoundModal'));
+  
     // Modo “forzar popup” desde el mail (await=1)
     (function boot(){
+      // En iOS mostramos de entrada el botón Instalar (abre ayuda)
+      const $installBtn = document.getElementById('installBtn');
+      if (isIOS && $installBtn) $installBtn.style.display = 'inline-block';
+  
       const force = qs('await');
       const pre = qs('email');
       if (pre) document.getElementById('email').value = pre;
@@ -345,41 +408,47 @@
         }
       }
     })();
-
+  
     // Enter directo
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter' && document.activeElement === document.getElementById('email')){
         e.preventDefault(); document.getElementById('goBtn').click();
       }
     });
-
+  
     /* ================== PWA: Instalar / Copy link ================== */
-    const $installChip = document.getElementById('installChip');
-    const $copyPortalChip = document.getElementById('copyPortalChip');
+    const $installBtn = document.getElementById('installBtn');
+    const $copyLinkBtn = document.getElementById('copyLinkBtn');
+    const $installHelp = document.getElementById('installHelp');
     let deferredPrompt = null;
-
-    // Android/Chromium
+  
+    // Android/Chromium: habilita el botón cuando hay prompt
     window.addEventListener('beforeinstallprompt', (e) => {
-      if (isStandalone) return;
+      if (isStandalone) return;         // si ya está instalada, no sugerimos
       e.preventDefault();
       deferredPrompt = e;
-      if ($installChip && isAndroid) $installChip.style.display = 'inline-block';
+      if ($installBtn) $installBtn.style.display = 'inline-block';
     });
-
-    if ($installChip){
-      $installChip.addEventListener('click', async ()=>{
-        if (isIOS){
-          setStatus('En iPhone: abrí Safari, tocá Compartir y elegí “Agregar a pantalla de inicio”.');
-          return;
-        }
-        if (!deferredPrompt) return;
+  
+    // Click en “Instalar app”
+    $installBtn?.addEventListener('click', async ()=>{
+      if (deferredPrompt) {
+        // Android/desktop compatibles
         deferredPrompt.prompt();
         try { await deferredPrompt.userChoice; } catch {}
         deferredPrompt = null;
-        $installChip.style.display = 'none';
-      });
-    }
-
+        return;
+      }
+      if (isIOS) {
+        // iOS → mostrar ayuda compacta en el mismo modal
+        if ($installHelp) $installHelp.style.display = 'block';
+        return;
+      }
+      // Fallback genérico
+      alert('Si tu navegador lo permite, usá “Instalar app / Agregar a la pantalla de inicio”.');
+    });
+  
+    // Construye un link portable con await=1 (+ email si está cargado)
     function buildPortalUrlForMobile(){
       const base = `${location.origin}${location.pathname}`;
       const email = (document.getElementById('email').value||'').trim().toLowerCase();
@@ -387,22 +456,21 @@
       if (email) params.set('email', email);
       return `${base}?${params.toString()}`;
     }
-
-    if ($copyPortalChip){
-      $copyPortalChip.addEventListener('click', async ()=>{
-        const url = buildPortalUrlForMobile();
-        try{
-          await navigator.clipboard.writeText(url);
-          const old = $copyPortalChip.textContent;
-          $copyPortalChip.textContent = 'Copiado ✓';
-          setTimeout(()=> $copyPortalChip.textContent = old, 1400);
-        }catch{
-          prompt('Copiá este link:', url);
-        }
-      });
-    }
+  
+    // Copiar link del portal
+    $copyLinkBtn?.addEventListener('click', async ()=>{
+      const url = buildPortalUrlForMobile();
+      try{
+        await navigator.clipboard.writeText(url);
+        const old = $copyLinkBtn.textContent;
+        $copyLinkBtn.textContent = 'Copiado ✓';
+        setTimeout(()=> $copyLinkBtn.textContent = old, 1400);
+      }catch{
+        prompt('Copiá este link:', url);
+      }
+    });
   </script>
-
+  
   <!-- SW -->
   <script>
     if ('serviceWorker' in navigator) {
