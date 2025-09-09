@@ -8,10 +8,17 @@
   <meta name="theme-color" content="#7d3cff">
   <style>
     :root{
-      --bg:#0b0f19; --card:#121829; --ink:#e8ecf1; --muted:#9aa3b2;
-      --accent:#7d3cff; --accent-2:#5c28c2; --line:rgba(255,255,255,.14);
-      --overlay:rgba(0,0,0,.7);
+      --bg:#0b0f19;
+      --card:#121829;
+      --ink:#e8ecf1;
+      --muted:#9aa3b2;
+      --accent:#7d3cff;
+      --accent-2:#5c28c2;
+      --line:rgba(255,255,255,.14);
+      --ring:rgba(125,60,255,.35);
+      --overlay:rgba(6,10,20,.58);
     }
+  
     *{box-sizing:border-box}
     html,body{height:100%;margin:0}
     body{
@@ -23,42 +30,63 @@
       color:var(--ink);
       display:flex;flex-direction:column;
     }
-
+  
     /* NAVBAR */
     .nav{
-      width:100%; background:rgba(18,24,41,.6); border-bottom:1px solid var(--line);
-      backdrop-filter: blur(6px);
-      display:flex; align-items:center; justify-content:center; padding:12px 16px;
-      position:sticky; top:0; z-index:40;
+      width:100%;
+      background:rgba(18,24,41,.45);
+      border-bottom:1px solid var(--line);
+      backdrop-filter: blur(8px);
+      display:flex; align-items:center; justify-content:center;
+      padding:12px 16px; position:sticky; top:0; z-index:40;
     }
     .nav a{color:#fff; text-decoration:none; font-weight:900}
     .nav a:hover{text-decoration:underline}
-
+  
     /* CONTENIDO */
     .wrap{flex:1; display:grid; place-items:center; padding:24px}
     .card{
-      width:100%; max-width:520px; background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border:1px solid var(--line); border-radius:18px; padding:24px; backdrop-filter: blur(6px);
-      box-shadow:0 20px 60px rgba(0,0,0,.35);
+      width:100%; max-width:540px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:20px; padding:26px;
+      backdrop-filter: blur(10px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 18px 60px rgba(0,0,0,.35);
     }
-    h1{margin:0 0 8px; font-size:26px; font-weight:900; text-align:center}
+    h1{margin:0 0 8px; font-size:28px; font-weight:900; text-align:center}
     .sub{margin:0 0 18px; color:var(--muted); text-align:center; line-height:1.55}
+  
     .field{margin:14px 0 6px}
     label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
     input[type="email"]{
       width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
       background:#0f1526; color:#e8ecf1; outline:none; text-align:center;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+    }
+    input[type="email"]:focus{
+      border-color: var(--ring);
+      box-shadow: 0 0 0 3px rgba(125,60,255,.20);
     }
     input::placeholder{color:#7f8aa3}
+  
     .actions{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
     .btn{
       appearance:none; border:0; border-radius:12px; padding:12px 16px; font-weight:800;
-      background:var(--accent); color:#fff; cursor:pointer; transition:.2s background,.05s transform;
+      background:linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%);
+      color:#fff; cursor:pointer; transition:.2s background,.05s transform,.2s box-shadow;
+      box-shadow: 0 8px 26px rgba(125,60,255,.22);
     }
-    .btn:hover{background:var(--accent-2)} .btn:active{transform:translateY(1px)}
-    .btn.secondary{background:transparent; border:1px solid var(--line); color:#e8ecf1}
+    .btn:hover{filter:brightness(1.05)}
+    .btn:active{transform:translateY(1px)}
+    .btn.secondary{
+      background:transparent; border:1px solid var(--line); color:#e8ecf1;
+      box-shadow:none;
+    }
     .status{margin-top:10px; color:var(--muted); font-size:13px; text-align:center; min-height:20px}
-
+  
     /* SPINNER */
     .spinner{
       width:18px;height:18px;border-radius:50%;
@@ -66,105 +94,104 @@
       animation:spin .9s linear infinite; display:inline-block; vertical-align:middle; margin-left:8px;
     }
     @keyframes spin{to{transform:rotate(360deg)}}
-
+  
     /* MODAL (base) */
-    .modal{position:fixed; inset:0; display:none; place-items:center; padding:20px; background:var(--overlay); z-index:100}
+    .modal{
+      position:fixed; inset:0; display:none; place-items:center; padding:20px;
+      background:var(--overlay);
+      backdrop-filter: blur(10px);
+      z-index:100;
+    }
     .modal.visible{display:grid}
+  
     .modal-card{
-      width:100%; max-width:720px; background:var(--card); border:1px solid var(--line);
-      border-radius:16px; padding:18px 18px 16px; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.55);
+      width:100%; max-width:760px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:22px; padding:22px 22px 18px; position:relative;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 28px 80px rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
     }
     .close{
-      position:absolute; top:10px; right:10px; width:38px; height:38px; border-radius:10px;
+      position:absolute; top:12px; right:12px; width:40px; height:40px; border-radius:12px;
       display:grid; place-items:center; cursor:pointer; border:1px solid var(--line);
       color:#cfd6ec; background:transparent;
     }
     .close:hover{border-color:#fff; color:#fff}
-    .modal-title{margin:0 0 6px; font-weight:900; font-size:20px}
+    .modal-title{margin:0 0 10px; font-weight:900; font-size:22px}
     .modal-body{color:var(--muted); font-size:14px; line-height:1.6}
-    .pill{display:inline-block; font-size:12px; padding:3px 8px; border-radius:999px; border:1px solid var(--line); color:#cfd6ec}
-    .callout{margin-top:10px; padding:10px 12px; border:1px dashed var(--line); border-radius:12px; color:#cdd6f4; background:rgba(125,60,255,.08)}
-    .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:14px}
-    .hint{font-size:12px;color:#aab2c5;margin-top:6px}
-
-    /* —— VISUAL UPGRADE: chips de pasos + CTAs compactos —— */
-    .section-subtitle{margin:8px 0 6px; font-weight:800; font-size:13px; letter-spacing:.2px; color:#cfd6ec; opacity:.9}
-    
-    .flow{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; margin:10px 0 6px}
-    .sep{opacity:.45}
-    
-    /* Chips “llamativos” de pasos */
-    .chip{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 12px; border-radius:999px; font-weight:800; font-size:13px;
-      border:1px solid rgba(255,255,255,.18); box-shadow:0 6px 22px rgba(0,0,0,.25);
+    .pill{
+      display:inline-block; font-size:12px; padding:4px 10px; border-radius:999px;
+      border:1px solid var(--line); color:#cfd6ec; background:rgba(255,255,255,.04);
     }
-    .chip .emo{font-size:15px; line-height:1}
-    
-    /* Paletas por paso */
-    .chip.login{    background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);}
-    .chip.bbdd{     background:linear-gradient(180deg, #22c55e 0%, #15803d 100%);}
-    .chip.quest{    background:linear-gradient(180deg, #f59e0b 0%, #b45309 100%);}
-    .chip.login, .chip.bbdd, .chip.quest{ color:#fff; border-color:rgba(255,255,255,.12); }
-    
-    .arrow{opacity:.6; font-weight:900}
-    
-    /* CTA compactos (menos invasivos) */
-    .cta-row{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:14px 0 4px}
-    .cta{border-radius:999px; padding:8px 12px; font-weight:800; font-size:12px; border:1px solid var(--line)}
-    .cta.primary{ background:#7d3cff; border-color:#7d3cff; color:#fff }
-    .cta.ghost{ background:transparent; color:#cfd6ec }
-    .cta.muted{ background:transparent; color:#aab2c5; border-style:dashed }
-    
-    /* Tip menos protagonista */
-    .callout{margin-top:12px}
-    
-    /* Oculto por defecto: lo muestra el JS si corresponde */
-    #installChip{ display:none; }
-
-    /* ---------- Steps visuales ---------- */
-    .steps-title{ text-align:center; margin:14px 0 8px; font-weight:900; color:#cfd6ec }
+  
+    .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:16px}
+    .hint{font-size:12px;color:#aab2c5;margin-top:6px}
+  
+    /* ---------- Steps visuales (compactos, homogéneos) ---------- */
+    .steps-title{
+      text-align:center; margin:12px 0 10px;
+      font-weight:900; color:#cfd6ec; letter-spacing:.2px;
+    }
     .steps-row{
       display:flex; justify-content:center; align-items:center; flex-wrap:wrap;
-      gap:12px; margin:6px 0 14px;
+      gap:12px; margin:6px auto 14px; max-width:560px;
     }
     .step{
-      flex:1 1 220px; text-align:center; font-weight:800;
+      flex: 0 1 180px;              /* mismo ancho visual */
+      text-align:center; font-weight:900;
       padding:10px 16px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.28);
-      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 10px 28px rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.22);
+      background:linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.02));
+      color:#e9edf6;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.06),
+        0 10px 26px rgba(0,0,0,.35);
     }
-    .step.is-blue  { box-shadow: inset 0 0 0 2px rgba(92,162,255,.22),  0 10px 30px rgba(92,162,255,.10); }
-    .step.is-green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.24), 0 10px 30px rgba(105,219,124,.11); }
-    .step.is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,92,.26),  0 10px 30px rgba(255,190,92,.12); }
-    .step-arrow{ opacity:.55; font-weight:700 }
-    
-    /* ---------- Chips de acción ---------- */
-    .section-subtitle{ text-align:center; margin:6px 0 8px; color:#cfd6ec; font-weight:900 }
-    .action-chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0 6px }
+    .step.is-blue  { box-shadow: inset 0 0 0 2px rgba(120,170,255,.22), 0 10px 26px rgba(120,170,255,.10); }
+    .step.is-green { box-shadow: inset 0 0 0 2px rgba(120,219,150,.24), 0 10px 26px rgba(120,219,150,.10); }
+    .step.is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,120,.24), 0 10px 26px rgba(255,190,120,.10); }
+    .step-arrow{
+      opacity:.55; font-weight:800; padding:0 4px; user-select:none;
+    }
+  
+    /* ---------- Chips de acción (pequeños y discretos) ---------- */
+    .section-subtitle{
+      text-align:center; margin:8px 0 6px; color:#cfd6ec; font-weight:900; letter-spacing:.2px;
+    }
+    .action-chips{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0 10px;
+    }
     .pill-btn{
       border:1px solid var(--line);
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
       color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
     }
     .pill-btn:disabled{ opacity:.5; cursor:default }
-    
-    /* ---------- Callout con borde lila ---------- */
-    .callout{ position:relative; padding:12px 12px 12px 18px; }
-    .callout::before{
-      content:""; position:absolute; left:10px; top:10px; bottom:10px; width:4px; border-radius:4px;
-      background:linear-gradient(180deg, #7d3cff 0%, rgba(125,60,255,.25) 100%);
-    }
-    
-    /* ---------- Ayuda iOS compacta ---------- */
     #installHelp{
-      display:none; margin:8px auto 4px; max-width:560px;
+      display:none; margin:6px auto 0; max-width:560px;
       border:1px dashed var(--line); border-radius:12px; padding:10px 12px; color:#cfd6ec;
     }
     #installHelp strong{ color:#e8ecf1 }
     #installHelp ol{ margin:6px 0 0; padding-left:18px; }
     #installHelp li{ margin:4px 0 }
+  
+    /* ---------- Callout con borde lila (tipo “card” lateral) ---------- */
+    .callout{
+      position:relative; padding:14px 12px 14px 20px;
+      margin-top:12px; border:1px solid rgba(255,255,255,.10);
+      border-radius:14px; background:rgba(125,60,255,.08);
+    }
+    .callout::before{
+      content:""; position:absolute; left:10px; top:10px; bottom:10px; width:4px; border-radius:4px;
+      background:linear-gradient(180deg, #7d3cff 0%, rgba(125,60,255,.25) 100%);
+    }
+  
+    /* Oculto por defecto: el JS lo muestra si corresponde (Android/Chromium) */
+    #installBtn{ display:none; }
   </style>
 </head>
 <body>
