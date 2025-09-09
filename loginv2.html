@@ -86,6 +86,41 @@
     .callout{margin-top:10px; padding:10px 12px; border:1px dashed var(--line); border-radius:12px; color:#cdd6f4; background:rgba(125,60,255,.08)}
     .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:14px}
     .hint{font-size:12px;color:#aab2c5;margin-top:6px}
+
+    /* —— VISUAL UPGRADE: chips de pasos + CTAs compactos —— */
+    .section-subtitle{margin:8px 0 6px; font-weight:800; font-size:13px; letter-spacing:.2px; color:#cfd6ec; opacity:.9}
+    
+    .flow{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:center; margin:10px 0 6px}
+    .sep{opacity:.45}
+    
+    /* Chips “llamativos” de pasos */
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px; font-weight:800; font-size:13px;
+      border:1px solid rgba(255,255,255,.18); box-shadow:0 6px 22px rgba(0,0,0,.25);
+    }
+    .chip .emo{font-size:15px; line-height:1}
+    
+    /* Paletas por paso */
+    .chip.login{    background:linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);}
+    .chip.bbdd{     background:linear-gradient(180deg, #22c55e 0%, #15803d 100%);}
+    .chip.quest{    background:linear-gradient(180deg, #f59e0b 0%, #b45309 100%);}
+    .chip.login, .chip.bbdd, .chip.quest{ color:#fff; border-color:rgba(255,255,255,.12); }
+    
+    .arrow{opacity:.6; font-weight:900}
+    
+    /* CTA compactos (menos invasivos) */
+    .cta-row{display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:14px 0 4px}
+    .cta{border-radius:999px; padding:8px 12px; font-weight:800; font-size:12px; border:1px solid var(--line)}
+    .cta.primary{ background:#7d3cff; border-color:#7d3cff; color:#fff }
+    .cta.ghost{ background:transparent; color:#cfd6ec }
+    .cta.muted{ background:transparent; color:#aab2c5; border-style:dashed }
+    
+    /* Tip menos protagonista */
+    .callout{margin-top:12px}
+    
+    /* Oculto por defecto: lo muestra el JS si corresponde */
+    #installChip{ display:none; }
   </style>
 </head>
 <body>
@@ -116,39 +151,51 @@
 
   <!-- MODAL AWAIT -->
   <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
-    <div class="modal-card">
-      <button id="closeModal" class="close" title="Volver al login">✕</button>
-      <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
-      <div class="modal-body">
-        <p>
-          Estamos creando tu espacio. En unos minutos te llegará un
-          <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
-        </p>
+  <div class="modal-card">
+    <button id="closeModal" class="close" title="Volver al login">✕</button>
+    <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
 
-        <!-- Flujo visual en chips -->
-        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 6px">
-          <span class="pill">Login</span><span>→</span>
-          <span class="pill">Confirmá BBDD</span><span>→</span>
-          <span class="pill">Programá Daily&nbsp;Quest</span>
-        </div>
+    <div class="modal-body">
+      <p>
+        Estamos creando tu espacio. En unos minutos te llegará un
+        <span class="pill">pergamino digital</span> (un “mail”) para confirmar tu usuario.
+      </p>
 
-        <!-- Chips compactos -->
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 6px">
-          <button id="installChip" type="button" class="pill" style="display:none">Instalar app</button>
-          <button id="copyPortalChip" type="button" class="pill" title="Copiar link con await=1">Copiar link del portal</button>
-        </div>
-
-        <div class="callout">
-          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
-        </div>
+      <!-- Próximos pasos -->
+      <div class="section-subtitle" style="text-align:center">Próximos pasos</div>
+      <div class="flow">
+        <span class="chip login"><span class="emo">🔑</span> Login</span>
+        <span class="arrow">→</span>
+        <span class="chip bbdd"><span class="emo">📚</span> Confirmá BBDD</span>
+        <span class="arrow">→</span>
+        <span class="chip quest"><span class="emo">🎯</span> Programá Daily&nbsp;Quest</span>
       </div>
-      <div class="modal-actions">
-        <a id="signupBtn" href="signupv2.html" class="btn secondary">Crear cuenta</a>
-        <a href="indexv2.html" class="btn secondary">Volver al inicio</a>
-        <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
+
+      <!-- Mientras tanto… -->
+      <div class="section-subtitle" style="text-align:center; margin-top:12px">Mientras tanto</div>
+      <div class="cta-row">
+        <!-- El JS lo muestra en Android/Chromium cuando hay prompt -->
+        <button id="installChip" type="button" class="cta primary">Instalar app</button>
+
+        <!-- Siempre disponible: link mínimo (await=1 & email) para abrir desde el móvil -->
+        <button id="copyPortalChip" type="button" class="cta ghost" title="Copiar link del portal">Copiar link del portal</button>
+
+        <!-- Ayuda compacta (texto neutro, no dinámico) -->
+        <span class="cta muted">Android: tocá “Instalar app”. iPhone (Safari): Compartir → Agregar a inicio.</span>
+      </div>
+
+      <div class="callout">
+        Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
       </div>
     </div>
-  </section>
+
+    <div class="modal-actions">
+      <a id="signupBtn" href="signupv2.html" class="btn secondary">Crear cuenta</a>
+      <a href="indexv2.html" class="btn secondary">Volver al inicio</a>
+      <button id="retryBtn" class="btn secondary" type="button">Reintentar ahora</button>
+    </div>
+  </div>
+</section>
 
   <!-- MODAL NOT-FOUND -->
   <section id="notFoundModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="nfTitle">
