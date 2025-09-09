@@ -27,6 +27,14 @@ body::before{
   background-size: 1100px 800px, 1200px 900px, cover;
   transform: translateZ(0);
 }
+/* Destello lila central */
+body::after{
+  content:"";
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(800px 500px at 50% 18%, rgba(167,139,250,.28), transparent 65%);
+  mix-blend-mode:screen; /* suma luz sin lavar el fondo */
+}
 body > *{ position:relative; z-index:1; }
 
 /* ==== LAYOUT ==== */
@@ -187,4 +195,36 @@ section h2{font-size:32px;margin:0 0 8px;text-align:center}
 @media (max-width:480px){
   .logo-row{ grid-template-columns:repeat(2,1fr); }
   .hero h1{ font-size:32px; }
+}
+
+/* ==== SLIDER (Testimonios) ==== */
+.slider{ position:relative; overflow:hidden; border-radius:16px; }
+.slider-track{ display:flex; transition:transform .5s ease; }
+.slider .testi{ min-width:100%; box-sizing:border-box; margin:0; padding:22px; 
+  border:1px solid var(--line); border-radius:16px;
+  background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  backdrop-filter: blur(8px);
+}
+.slider .testi blockquote{ margin:0 0 10px; color:#e8ecf1; font-weight:600; }
+.slider .testi figcaption{ color:#9aa3b2; }
+
+.slider-btn{
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(255,255,255,.06); border:1px solid var(--line);
+  color:#fff; width:40px; height:40px; border-radius:10px; cursor:pointer;
+  display:grid; place-items:center;
+}
+.slider-btn:hover{ background:rgba(255,255,255,.1); }
+.slider-btn.prev{ left:8px; }
+.slider-btn.next{ right:8px; }
+
+.slider-dots{ display:flex; gap:8px; justify-content:center; margin-top:12px; }
+.dot{
+  width:10px; height:10px; border-radius:50%;
+  background:rgba(255,255,255,.25); border:0; cursor:pointer;
+}
+.dot[aria-selected="true"]{ background:#fff; }
+
+.visually-hidden{
+  position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); border:0;
 }
