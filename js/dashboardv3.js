@@ -163,20 +163,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // —— AVISO de programación (hasta que se programe al menos una vez)
     try {
-      const sched = window.GJ_CTX.scheduler || {};
+      const sched = (window.GJ_CTX && window.GJ_CTX.scheduler) || {};
       const schedOk = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
     
-      // bandera de “forzar” llegada desde BBDD en la primera confirmación
-      const force =
-        (window.GJ_FORCE_SCHED_HINT === true) ||
-        (localStorage.getItem('gj_force_sched_hint') === '1');
+      // bandera “forzada” que dejó BBDD al confirmar con estado=primera
+      const forceKey = `gj_force_scheduler_banner:${(email||'').toLowerCase()}`;
+      const forced = localStorage.getItem(forceKey) === '1' || window.GJ_FORCE_SCHED_HINT === true;
     
       // “para siempre”: si alguna vez programó, no volvemos a mostrar
       const configuredKey = `gj_sched_configured:${(email||'').toLowerCase()}`;
       const yaProgramado = localStorage.getItem(configuredKey) === '1';
     
-      // condición para mostrar: (forzado o NO OK) y NO programado previamente
-      if (!yaProgramado && (force || !schedOk)) {
+      const setDotSafe = (window.setDotSafe || window.setDot || function(){});
+    
+      // condición para mostrar: (forzado o no OK) y no programado previamente
+      if (!yaProgramado && (forced || !schedOk)) {
         const warn = document.getElementById('scheduler-warning');
         if (warn) {
           warn.style.display = 'block';
@@ -185,35 +186,33 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (btn) {
             btn.addEventListener('click', (e)=>{
               e.preventDefault();
-              const p = window.GJ_CTX.scheduler || {};
+              const p = window.GJ_CTX?.scheduler || {};
               window.openSchedulerModal?.({
                 canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
                 hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
-                linkPublico: window.GJ_CTX.linkPublico // solo para prefill visual
+                linkPublico: window.GJ_CTX?.linkPublico || ''
               });
-              // NO marcamos nada en localStorage acá: solo al guardar efectivamente
-              // Si querés ocultar el banner al click (sin marcar “configurado” aún):
+              // si querés ocultarlo apenas abre el modal, descomentalo:
               // warn.style.display = 'none';
-            });
+            }, { once:true });
           }
     
           // encender dots
-          setDot(document.getElementById('menu-toggle'), true, '#ffc107');
-          setDot(document.getElementById('open-scheduler'), true, '#ffc107');
+          setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
+          setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
     
-          // limpiar la bandera de forzado (ya usada)
+          // limpiamos la bandera de “forzado” (ya cumplió su función)
           try {
+            localStorage.removeItem(forceKey);
             delete window.GJ_FORCE_SCHED_HINT;
-            localStorage.removeItem('gj_force_sched_hint');
           } catch {}
         }
       }
     
-      // si YA está programado, aseguramos dots apagados
+      // si YA está programado, aseguramos dots apagados y banner oculto
       if (schedOk || yaProgramado) {
-        setDot(document.getElementById('menu-toggle'), false);
-        setDot(document.getElementById('open-scheduler'), false);
-        // opcional: ocultar el banner si quedó visible
+        setDotSafe(document.getElementById('menu-toggle'), false);
+        setDotSafe(document.getElementById('open-scheduler'), false);
         const warn = document.getElementById('scheduler-warning');
         if (warn) warn.style.display = 'none';
       }
