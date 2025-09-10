@@ -161,17 +161,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     
-    // —— AVISO de programación (una sola vez por usuario/dispositivo)
+    // —— AVISO de programación (hasta que se programe al menos una vez)
     try {
-      const hasDailyForm = !!window.GJ_CTX.linkPublico;
       const sched = window.GJ_CTX.scheduler || {};
       const schedOk = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
     
-      const onceKey = `gj_sched_hint_shown:${(email||'').toLowerCase()}`;
-      const yaMostrado = localStorage.getItem(onceKey) === '1';
+      // bandera de “forzar” llegada desde BBDD en la primera confirmación
+      const force =
+        (window.GJ_FORCE_SCHED_HINT === true) ||
+        (localStorage.getItem('gj_force_sched_hint') === '1');
     
-      if (hasDailyForm && !schedOk && !yaMostrado) {
-        // Mostrar banner + botón
+      // “para siempre”: si alguna vez programó, no volvemos a mostrar
+      const configuredKey = `gj_sched_configured:${(email||'').toLowerCase()}`;
+      const yaProgramado = localStorage.getItem(configuredKey) === '1';
+    
+      // condición para mostrar: (forzado o NO OK) y NO programado previamente
+      if (!yaProgramado && (force || !schedOk)) {
         const warn = document.getElementById('scheduler-warning');
         if (warn) {
           warn.style.display = 'block';
@@ -180,34 +185,37 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (btn) {
             btn.addEventListener('click', (e)=>{
               e.preventDefault();
-              // abrí tu modal del Scheduler con prefill
-              const p = window.GJ_CTX.scheduler;
+              const p = window.GJ_CTX.scheduler || {};
               window.openSchedulerModal?.({
                 canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
                 hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
-                linkPublico: window.GJ_CTX.linkPublico
+                linkPublico: window.GJ_CTX.linkPublico // solo para prefill visual
               });
-              // marcamos como visto para no insistir
-              localStorage.setItem(onceKey, '1');
-              warn.style.display = 'none';
-              // opcional: apagá dots si querés
-              setDot(document.getElementById('menu-toggle'), false);
-              setDot(document.getElementById('open-scheduler'), false);
+              // NO marcamos nada en localStorage acá: solo al guardar efectivamente
+              // Si querés ocultar el banner al click (sin marcar “configurado” aún):
+              // warn.style.display = 'none';
             });
           }
-        } else {
-          // si no hay contenedor, no molestamos de nuevo
-          localStorage.setItem(onceKey, '1');
+    
+          // encender dots
+          setDot(document.getElementById('menu-toggle'), true, '#ffc107');
+          setDot(document.getElementById('open-scheduler'), true, '#ffc107');
+    
+          // limpiar la bandera de forzado (ya usada)
+          try {
+            delete window.GJ_FORCE_SCHED_HINT;
+            localStorage.removeItem('gj_force_sched_hint');
+          } catch {}
         }
-        
-        // Dots amarillos en menú y opción "Programar Daily Quest"
-        setDot(document.getElementById('menu-toggle'), true, '#ffc107');
-        setDot(document.getElementById('open-scheduler'), true, '#ffc107');
       }
-      // Si ya hay scheduler activo, aseguramos que no queden DOTs prendidos
-      if (schedOk) {
+    
+      // si YA está programado, aseguramos dots apagados
+      if (schedOk || yaProgramado) {
         setDot(document.getElementById('menu-toggle'), false);
         setDot(document.getElementById('open-scheduler'), false);
+        // opcional: ocultar el banner si quedó visible
+        const warn = document.getElementById('scheduler-warning');
+        if (warn) warn.style.display = 'none';
       }
     } catch {}
 
