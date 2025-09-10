@@ -308,9 +308,6 @@ const setDotSafe = (typeof window !== 'undefined' && typeof window.setDot === 'f
   : _localSetDot;
 
 
-
-
-
 /* ====== Actions ====== */
 function currentVisibleRows(){
   // devuelve matriz A-E (ignora feedback para guardar)
@@ -374,52 +371,46 @@ async function doConfirm(){
       state.aiUpdated.clear();
       render();
       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
-    
-      // === UI Onboarding (optimista estricta): solo si estado === "primera" ===
+
+      // === Onboarding (optimista estricta): si es PRIMERA vez, forzar UI en caliente
       const isFirst = String(estado || '').toLowerCase() === 'primera';
-    
       if (isFirst) {
+        // 1) Ocultar banners de BBDD si están visibles
+        ['journey-warning','bbdd-warning'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+
+        // 2) Apagar dots de BBDD (usa polyfill si existe; si no, intenta setDot)
+        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('menu-toggle'), false);
+        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('li-edit-bbdd'), false);
+
+        // 3) Mostrar banner de Programar Daily + encender dots
+        const warn = document.getElementById('scheduler-warning');
+        if (warn) warn.style.display = 'block';
+        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('menu-toggle'), true, '#ffc107');
+        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('open-scheduler'), true, '#ffc107');
+
+        // 4) Señal one-shot para que, si recargan/navegan, el dashboard lo muestre igual
         try {
-          // 1) Ocultar banners de BBDD si están visibles
-          ['journey-warning','bbdd-warning'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el && getComputedStyle(el).display !== 'none') el.style.display = 'none';
-          });
-    
-          // 2) Apagar dots de BBDD en menú (usa polyfill seguro)
-          setDotSafe(document.getElementById('menu-toggle'), false);
-          setDotSafe(document.getElementById('li-edit-bbdd'), false);
-    
-          // 3) Mostrar banner de Programar Daily + dots (no marcamos "visto" acá)
-          const warn = document.getElementById('scheduler-warning');
-          if (warn && getComputedStyle(warn).display === 'none') {
-            warn.style.display = 'block';
-          }
-          setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
-          setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
-    
-          // ⚠️ NO grabamos gj_sched_hint_shown acá: solo al hacer click en "Programar"
-        } catch (uiErr) {
-          console.warn('[BBDD UI] hint scheduler fallo suave:', uiErr);
-        }
+          localStorage.setItem(`gj_force_scheduler_banner:${(email||'').toLowerCase()}`, '1');
+        } catch {}
       }
-    
+
     } catch (err) {
-      toast("❌ Error en confirmación: " + err.message, false);
+      toast("Error en confirmación: " + err.message, false);
       return;
     }
 
-    // 4) Cerrar / volver
+    // 4) Cerrar / volver (sin navegar para que el banner quede visible en el dashboard)
     setTimeout(()=>{
       if(window.BBDD_MODE==="modal"){
-        closeOverlay();
-        if(confirm("¿Volver al Dashboard?")){
-          location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
-        }
+        closeOverlay();    // el dashboard ya está detrás y con el banner mostrado
       } else {
-        location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+        // Si preferís navegar igualmente, podés reactivar esta línea:
+        // location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
       }
-    }, 400);
+    }, 300);
 
   } finally {
     // END loading UI (se ejecuta SIEMPRE, incluso si hubo return/throw)
@@ -428,6 +419,125 @@ async function doConfirm(){
     btn.removeAttribute("aria-busy");
   }
 }
+
+
+// /* ====== Actions ====== */
+// function currentVisibleRows(){
+//   // devuelve matriz A-E (ignora feedback para guardar)
+//   return state.rows.map(r => [ normPilar(r[0]), cleanRasgo(r[1]), (r[2]||""),(r[3]||""), normDiff(r[4]) ]);
+// }
+
+// async function doSave(){
+//   const rows = currentVisibleRows()
+//     .filter(r => r.some(v => (v||"").toString().trim()!=="")); // quita filas totalmente vacías
+
+//   // validaciones mínimas
+//   for(const r of rows){
+//     if(!["Body","Mind","Soul"].includes(r[0])) return toast("Pilar inválido. Usá Body/Mind/Soul.", false);
+//     if(!r[3]) return toast("La columna 'Tasks' no puede estar vacía.", false);
+//   }
+
+//   await apiSaveBBDD(email, rows);
+//   state.origHash = hashRows(rows);
+//   state.dirty = false;
+//   state.aiUpdated.clear();
+//   toast("✅ Guardado");
+//   render();
+// }
+
+// async function doConfirm(){
+//   const btn = document.querySelector("#bbdd-confirm");
+//   // START loading UI
+//   btn.disabled = true;
+//   btn.classList.add("loading");
+//   btn.setAttribute("aria-busy", "true");
+
+//   try {
+//     // 1) Construir A–E desde el estado actual (normalizado)
+//     const rows = currentVisibleRows().filter(r =>
+//       r.some(v => (v||"").toString().trim()!=="")
+//     );
+
+//     // 2) Guardar en servidor (decide estado y escribe Setup!E14)
+//     let saveRes;
+//     try {
+//       saveRes = await apiSaveBBDD(email, rows); // { ok, estado, ... }
+//     } catch (err) {
+//       toast("Error al guardar: " + err.message, false);
+//       return; // <- el finally re-activa el botón
+//     }
+
+//     const estado = (saveRes && saveRes.estado) || "constante";
+//     if (estado === "constante"){
+//       toast("✅ No hubo cambios (estado: constante)");
+//       state.dirty = false;
+//       // No re-render masivo aquí para no perder foco; sólo ocultá el dot:
+//       const dot = document.querySelector("#dirty-indicator");
+//       if (dot) dot.classList.add("hidden");
+//       return; // <- no confirm → no BOBO
+//     }
+
+//     // 3) Confirmar (marca F/G y dispara BOBO)
+//     try {
+//       await apiConfirmBBDD(email);
+//       state.dirty = false;
+//       state.aiUpdated.clear();
+//       render();
+//       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
+    
+//       // === UI Onboarding (optimista estricta): solo si estado === "primera" ===
+//       const isFirst = String(estado || '').toLowerCase() === 'primera';
+    
+//       if (isFirst) {
+//         try {
+//           // 1) Ocultar banners de BBDD si están visibles
+//           ['journey-warning','bbdd-warning'].forEach(id => {
+//             const el = document.getElementById(id);
+//             if (el && getComputedStyle(el).display !== 'none') el.style.display = 'none';
+//           });
+    
+//           // 2) Apagar dots de BBDD en menú (usa polyfill seguro)
+//           setDotSafe(document.getElementById('menu-toggle'), false);
+//           setDotSafe(document.getElementById('li-edit-bbdd'), false);
+    
+//           // 3) Mostrar banner de Programar Daily + dots (no marcamos "visto" acá)
+//           const warn = document.getElementById('scheduler-warning');
+//           if (warn && getComputedStyle(warn).display === 'none') {
+//             warn.style.display = 'block';
+//           }
+//           setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
+//           setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
+    
+//           // ⚠️ NO grabamos gj_sched_hint_shown acá: solo al hacer click en "Programar"
+//         } catch (uiErr) {
+//           console.warn('[BBDD UI] hint scheduler fallo suave:', uiErr);
+//         }
+//       }
+    
+//     } catch (err) {
+//       toast("❌ Error en confirmación: " + err.message, false);
+//       return;
+//     }
+
+//     // 4) Cerrar / volver
+//     setTimeout(()=>{
+//       if(window.BBDD_MODE==="modal"){
+//         closeOverlay();
+//         if(confirm("¿Volver al Dashboard?")){
+//           location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+//         }
+//       } else {
+//         location.href = `${DASHBOARD_URL}?email=${encodeURIComponent(email)}`;
+//       }
+//     }, 400);
+
+//   } finally {
+//     // END loading UI (se ejecuta SIEMPRE, incluso si hubo return/throw)
+//     btn.disabled = false;
+//     btn.classList.remove("loading");
+//     btn.removeAttribute("aria-busy");
+//   }
+// }
 
 /* ====== Clipboard paste ====== */
 async function pasteFromClipboard(){
