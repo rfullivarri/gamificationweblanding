@@ -163,53 +163,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // —— AVISO de programación (hasta que se programe al menos una vez)
     try {
-      const sched = (window.GJ_CTX && window.GJ_CTX.scheduler) || {};
-      const schedOk = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
+      const emailLC = String(email || '').toLowerCase();
+      const sched    = (window.GJ_CTX && window.GJ_CTX.scheduler) || {};
+      const schedOk  = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
     
-      // bandera “forzada” que dejó BBDD al confirmar con estado=primera
-      const forceKey = `gj_force_scheduler_banner:${(email||'').toLowerCase()}`;
-      const forced = localStorage.getItem(forceKey) === '1' || window.GJ_FORCE_SCHED_HINT === true;
+      // setDot seguro
+      const setDotSafe = window.setDotSafe || window.setDot || function(){};
     
-      // “para siempre”: si alguna vez programó, no volvemos a mostrar
-      const configuredKey = `gj_sched_configured:${(email||'').toLowerCase()}`;
-      const yaProgramado = localStorage.getItem(configuredKey) === '1';
+      // “ya programó al menos una vez” (no mostrar más)
+      const configuredKey = `gj_sched_configured:${emailLC}`;
+      const yaProgramado  = localStorage.getItem(configuredKey) === '1';
     
-      const setDotSafe = (window.setDotSafe || window.setDot || function(){});
+      // forzado one–shot (lo deja BBDD al confirmar "primera")
+      const forceKey = `gj_force_scheduler_banner:${emailLC}`;
+      const forced   = (localStorage.getItem(forceKey) === '1') || (window.GJ_FORCE_SCHED_HINT === true);
     
-      // condición para mostrar: (forzado o no OK) y no programado previamente
-      if (!yaProgramado && (forced || !schedOk)) {
+      function showSchedulerBanner() {
+        // ocultar avisos de BBDD si estuvieran
+        ['journey-warning','bbdd-warning'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+        // mostrar aviso de Programar
         const warn = document.getElementById('scheduler-warning');
-        if (warn) {
-          warn.style.display = 'block';
-    
-          const btn = document.getElementById('btn-programar-dq');
-          if (btn) {
-            btn.addEventListener('click', (e)=>{
-              e.preventDefault();
-              const p = window.GJ_CTX?.scheduler || {};
-              window.openSchedulerModal?.({
-                canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
-                hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
-                linkPublico: window.GJ_CTX?.linkPublico || ''
-              });
-              // si querés ocultarlo apenas abre el modal, descomentalo:
-              // warn.style.display = 'none';
-            }, { once:true });
-          }
-    
-          // encender dots
-          setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
-          setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
-    
-          // limpiamos la bandera de “forzado” (ya cumplió su función)
-          try {
-            localStorage.removeItem(forceKey);
-            delete window.GJ_FORCE_SCHED_HINT;
-          } catch {}
-        }
+        if (warn) warn.style.display = 'block';
+        // dots ON
+        setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
+        setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
       }
     
-      // si YA está programado, aseguramos dots apagados y banner oculto
+      function consumeForce() {
+        try { localStorage.removeItem(forceKey); } catch {}
+        try { delete window.GJ_FORCE_SCHED_HINT; } catch {}
+      }
+    
+      // (A) Señal persistida si hubo navegación desde BBDD (mismo tab)
+      const onboarding = sessionStorage.getItem('gj_onboarding');
+      if (!yaProgramado && onboarding === 'primera') {
+        sessionStorage.removeItem('gj_onboarding');
+        showSchedulerBanner();
+        consumeForce();
+      }
+    
+      // (B) Lógica normal: si no hay scheduler OK o viene forzado → mostrar
+      if (!yaProgramado && (forced || !schedOk)) {
+        showSchedulerBanner();
+        consumeForce();
+      }
+    
+      // (C) Mensaje en caliente si BBDD está abierta como overlay/otra pestaña
+      try {
+        const bc = new BroadcastChannel('gj_onboarding');
+        bc.onmessage = (ev) => {
+          const msg = ev && ev.data || {};
+          if (msg.type === 'bbdd-confirmed' && String(msg.estado || '').toLowerCase() === 'primera') {
+            if (!yaProgramado) showSchedulerBanner();
+            consumeForce();
+          }
+        };
+      } catch {}
+    
+      // (D) Si YA está programado, asegurá dots off y ocultar banner
       if (schedOk || yaProgramado) {
         setDotSafe(document.getElementById('menu-toggle'), false);
         setDotSafe(document.getElementById('open-scheduler'), false);
