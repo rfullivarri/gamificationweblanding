@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // —— AVISO de programación (hasta que se programe al menos una vez)
     try {
-      const emailLC = String(email || '').toLowerCase();
+      const emailLC  = String(email || '').toLowerCase();
       const sched    = (window.GJ_CTX && window.GJ_CTX.scheduler) || {};
       const schedOk  = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
     
@@ -174,9 +174,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const configuredKey = `gj_sched_configured:${emailLC}`;
       const yaProgramado  = localStorage.getItem(configuredKey) === '1';
     
-      // forzado one–shot (lo deja BBDD al confirmar "primera")
-      const forceKey = `gj_force_scheduler_banner:${emailLC}`;
-      const forced   = (localStorage.getItem(forceKey) === '1') || (window.GJ_FORCE_SCHED_HINT === true);
+      // Forzado one–shot (lo deja BBDD al confirmar "primera") + señal de navegación
+      const forceKey   = `gj_force_scheduler_banner:${emailLC}`;
+      const forcedLS   = (localStorage.getItem(forceKey) === '1') || (window.GJ_FORCE_SCHED_HINT === true);
+      const forcedSS   = (sessionStorage.getItem('gj_onboarding') || '').toLowerCase() === 'primera';
+      const forced     = forcedLS || forcedSS;
     
       function showSchedulerBanner() {
         // ocultar avisos de BBDD si estuvieran
@@ -194,36 +196,50 @@ document.addEventListener("DOMContentLoaded", async () => {
     
       function consumeForce() {
         try { localStorage.removeItem(forceKey); } catch {}
+        try { sessionStorage.removeItem('gj_onboarding'); } catch {}
         try { delete window.GJ_FORCE_SCHED_HINT; } catch {}
       }
     
-      // (A) Señal persistida si hubo navegación desde BBDD (mismo tab)
-      const onboarding = sessionStorage.getItem('gj_onboarding');
-      if (!yaProgramado && onboarding === 'primera') {
-        sessionStorage.removeItem('gj_onboarding');
+      // (A) Listener “en caliente” desde BBDD (postMessage entre páginas/iframe)
+      (function attachOnboardingListener(){
+        function handleMsg(ev){
+          const d = ev && ev.data || {};
+          if (d.kind === 'GJ_ONBOARD' && d.step === 'BBDD_CONFIRMED' &&
+              String(d.estado||'').toLowerCase() === 'primera') {
+            if (!yaProgramado) showSchedulerBanner();
+            consumeForce();
+          }
+        }
+        window.addEventListener('message', handleMsg);
+      })();
+    
+      // (B) Señal persistida si hubo navegación desde BBDD (mismo tab)
+      if (!yaProgramado && forcedSS) {
         showSchedulerBanner();
         consumeForce();
       }
     
-      // (B) Lógica normal: si no hay scheduler OK o viene forzado → mostrar
+      // (C) Lógica normal: si no hay scheduler OK o viene forzado → mostrar
       if (!yaProgramado && (forced || !schedOk)) {
         showSchedulerBanner();
-        consumeForce();
+        // si vino forzado por LS/SS, consúmelo para no repetir
+        if (forced) consumeForce();
       }
     
-      // (C) Mensaje en caliente si BBDD está abierta como overlay/otra pestaña
+      // (D) Mensaje alternativo por BroadcastChannel (si lo usás)
       try {
         const bc = new BroadcastChannel('gj_onboarding');
         bc.onmessage = (ev) => {
           const msg = ev && ev.data || {};
-          if (msg.type === 'bbdd-confirmed' && String(msg.estado || '').toLowerCase() === 'primera') {
+          if (msg.type === 'bbdd-confirmed' &&
+              String(msg.estado || '').toLowerCase() === 'primera') {
             if (!yaProgramado) showSchedulerBanner();
             consumeForce();
           }
         };
       } catch {}
     
-      // (D) Si YA está programado, asegurá dots off y ocultar banner
+      // (E) Si YA está programado, asegurá dots off y ocultar banner
       if (schedOk || yaProgramado) {
         setDotSafe(document.getElementById('menu-toggle'), false);
         setDotSafe(document.getElementById('open-scheduler'), false);
