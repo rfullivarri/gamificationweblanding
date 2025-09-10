@@ -83,6 +83,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       habitos_by_rasgo:      dataRaw.habitos_agg_by_rasgo ?? null,
     };
 
+    window.GJ_DATA = data;
+    document.dispatchEvent(new CustomEvent('gj:data-ready', { detail: { data } }));
+
 
     // ========== SCHEDULER — Exponer contexto para el modal ==========
     function pick(...vals){
