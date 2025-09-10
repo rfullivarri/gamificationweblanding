@@ -266,6 +266,42 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   font-size:.92rem; opacity:.9;
 }
 
+/* Unifica layout/altura de ambos avisos */
+.alert-card {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 16px;
+  min-height: 84px;          /* <- fuerza mismo alto “grande” */
+  box-sizing: border-box;
+}
+
+/* El texto ocupa el espacio elástico */
+.alert-card .alert-text { flex: 1 1 auto; }
+
+/* El botón siempre activo (a veces viene con reglas que lo apagan) */
+#scheduler-warning .chip,
+#btn-programar-dq {
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: auto !important;
+}
+
+/* Solo apagado si realmente está disabled */
+#scheduler-warning .chip[disabled],
+#btn-programar-dq[disabled] {
+  opacity: .5 !important;
+  pointer-events: none !important;
+}
+/* evita que el botón se encoja y que corte línea */
+.alert-card .chip { 
+  flex: 0 0 auto; 
+  white-space: nowrap; 
+}
+
+/* ya lo tenés, pero por las dudas: el dot nunca se estira */
+.alert-dot { flex: 0 0 10px; }
 
 /* BOTONES CENTRALES */
 .dashboard-links{display:flex;justify-content:center;gap:16px;margin:12px 0 6px}
