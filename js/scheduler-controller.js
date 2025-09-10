@@ -143,6 +143,11 @@ export function attachSchedulerModal() {
         modal.setNotice(`❌ Error al guardar: ${resp.message || 'desconocido'}`);
         return;
       }
+      // marcar que YA programó al menos una vez (no mostrar más el banner)
+      try {
+        const configuredKey = `gj_sched_configured:${(ctx.email||'').toLowerCase()}`;
+        localStorage.setItem(configuredKey, '1');
+      } catch {}
   
       modal.setNotice(`✅ Programación guardada. Se enviará ${v.frecuencia==='CUSTOM' && v.dias ? `${v.dias} a las ${v.hora}` : `todos los días a las ${v.hora}`}.`);
       // === UI optimista: esconder banner y dots de “Programar Daily” ===
