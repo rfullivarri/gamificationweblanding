@@ -372,28 +372,25 @@ async function doConfirm(){
       render();
       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
 
-      // === Onboarding (optimista estricta): si es PRIMERA vez, forzar UI en caliente
+      // === UI Onboarding: si es PRIMERA vez, avisar al dashboard de forma inmediata ===
       const isFirst = String(estado || '').toLowerCase() === 'primera';
       if (isFirst) {
-        // 1) Ocultar banners de BBDD si están visibles
-        ['journey-warning','bbdd-warning'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.style.display = 'none';
-        });
-
-        // 2) Apagar dots de BBDD (usa polyfill si existe; si no, intenta setDot)
-        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('menu-toggle'), false);
-        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('li-edit-bbdd'), false);
-
-        // 3) Mostrar banner de Programar Daily + encender dots
-        const warn = document.getElementById('scheduler-warning');
-        if (warn) warn.style.display = 'block';
-        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('menu-toggle'), true, '#ffc107');
-        (window.setDotSafe || window.setDot || (()=>{}))(document.getElementById('open-scheduler'), true, '#ffc107');
-
-        // 4) Señal one-shot para que, si recargan/navegan, el dashboard lo muestre igual
         try {
-          localStorage.setItem(`gj_force_scheduler_banner:${(email||'').toLowerCase()}`, '1');
+          // 1) Mensaje en caliente (si el dashboard está abierto detrás)
+          try {
+            const bc = new BroadcastChannel('gj_onboarding');
+            bc.postMessage({ type: 'bbdd-confirmed', estado: 'primera', email });
+            bc.close();
+          } catch {}
+      
+          // 2) Señal para navegación en el mismo tab (el dashboard la lee al cargar)
+          try { sessionStorage.setItem('gj_onboarding', 'primera'); } catch {}
+      
+          // 3) Forzado one–shot legacy por si el dashboard aún no tenía el canal
+          try {
+            const key = `gj_force_scheduler_banner:${String(email||'').toLowerCase()}`;
+            localStorage.setItem(key, '1');
+          } catch {}
         } catch {}
       }
 
