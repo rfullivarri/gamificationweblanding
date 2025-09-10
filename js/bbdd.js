@@ -41,7 +41,7 @@ function normDiff(v){
   const k = (v||"").toString().trim().toLowerCase();
   return map[k] || (v||"").toString().trim();
 }
-function toast(msg, ok=true){
+function toast(msg, ok=true, ms=3200){
   const el = qs("#status-msg");
   el.textContent = msg;
   el.style.color = ok ? "#9ff7cc" : "#ff8a9b";
@@ -278,6 +278,37 @@ function aiLoading(on){
   wrap.classList.toggle("ai-loading", !!on);
 }
 
+/* === Polyfill/bridge: setDot seguro si el dashboard no está cargado === */
+function _localSetDot(el, on, color = '#ffc107') {
+  if (!el) return;
+  let dot = el.querySelector(':scope > .dot');
+  if (on) {
+    if (!dot) {
+      dot = document.createElement('span');
+      dot.className = 'dot';
+      el.appendChild(dot);
+    }
+    dot.style.background = color;
+    // posición especial sólo para la hamburguesa
+    if (el.id === 'menu-toggle') {
+      dot.style.top = '-2px';
+      dot.style.right = '-2px';
+    } else {
+      dot.style.top = '';
+      dot.style.right = '';
+    }
+  } else if (dot) {
+    dot.remove();
+  }
+}
+
+/* Usa window.setDot si existe; si no, usa el local para que no falle */
+const setDotSafe = (typeof window !== 'undefined' && typeof window.setDot === 'function')
+  ? window.setDot
+  : _localSetDot;
+
+
+
 
 
 /* ====== Actions ====== */
@@ -341,39 +372,40 @@ async function doConfirm(){
       await apiConfirmBBDD(email);
       state.dirty = false;
       state.aiUpdated.clear();
-      render();             
+      render();
       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
+    
       // === UI Onboarding (optimista estricta): solo si estado === "primera" ===
       const isFirst = String(estado || '').toLowerCase() === 'primera';
-      
+    
       if (isFirst) {
-        // 1) Ocultar banners de BBDD si están visibles
-        ['journey-warning','bbdd-warning'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el && getComputedStyle(el).display !== 'none') el.style.display = 'none';
-        });
-        // Apagar dots de BBDD en menú
-        setDot(document.getElementById('menu-toggle'), false);
-        setDot(document.getElementById('li-edit-bbdd'), false);
-      
-        // 2) Mostrar banner de Programar Daily + dots
-        const warn = document.getElementById('scheduler-warning');
-        if (warn && getComputedStyle(warn).display === 'none') {
-          warn.style.display = 'block';
-        }
-        setDot(document.getElementById('menu-toggle'), true, '#ffc107');
-        setDot(document.getElementById('open-scheduler'), true, '#ffc107');
-      
-        // Marcá como "visto" en este dispositivo para no insistir si reabre
         try {
-          const onceKey = `gj_sched_hint_shown:${(email||'').toLowerCase()}`;
-          localStorage.setItem(onceKey, '1');
-        } catch(_) {}
+          // 1) Ocultar banners de BBDD si están visibles
+          ['journey-warning','bbdd-warning'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && getComputedStyle(el).display !== 'none') el.style.display = 'none';
+          });
+    
+          // 2) Apagar dots de BBDD en menú (usa polyfill seguro)
+          setDotSafe(document.getElementById('menu-toggle'), false);
+          setDotSafe(document.getElementById('li-edit-bbdd'), false);
+    
+          // 3) Mostrar banner de Programar Daily + dots (no marcamos "visto" acá)
+          const warn = document.getElementById('scheduler-warning');
+          if (warn && getComputedStyle(warn).display === 'none') {
+            warn.style.display = 'block';
+          }
+          setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
+          setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
+    
+          // ⚠️ NO grabamos gj_sched_hint_shown acá: solo al hacer click en "Programar"
+        } catch (uiErr) {
+          console.warn('[BBDD UI] hint scheduler fallo suave:', uiErr);
+        }
       }
-      
-      
+    
     } catch (err) {
-      toast("Error en confirmación: " + err.message, false);
+      toast("❌ Error en confirmación: " + err.message, false);
       return;
     }
 
