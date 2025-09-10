@@ -92,17 +92,16 @@
           </div>
          <!-- AVISO: programar Daily Quest -->
         <div id="scheduler-warning" class="alert-card" style="display:none;">
-          <div class="alert-row">
-            <span class="alert-dot" aria-hidden="true"></span>
-            <span class="alert-text">
-              <strong>Tu Daily Quest está listo</strong>
-              <span class="muted">Programalo para recibirlo cada día.</span>
-            </span>
+          <span class="alert-dot" aria-hidden="true"></span>
+          <div class="alert-text">
+            <strong>Tu Daily Quest está listo</strong>
+            <span class="muted">Programalo para recibirlo cada día.</span>
           </div>
-        
-          <!-- botón igual al de BBDD, reusa clase .chip -->
           <a id="btn-programar-dq" href="#" class="chip">Programar Daily Quest</a>
         </div>
+        
+        <!-- hint opcional para igualar “aire” al de BBDD (podés dejarlo vacío) -->
+        <p id="scheduler-hint" class="alert-hint" style="display:none;"></p>
       <div class="dashboard-columns">
         <!-- IZQUIERDA -->
         <section class="left-column">
