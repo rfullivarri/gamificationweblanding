@@ -162,15 +162,6 @@
             <p class="warning-text">⚠️ Te falta completar tu formulario inicial para comenzar tu Journey.</p>
             <a href="https://rfullivarri.github.io/gamificationweblanding/formsintro.html" class="dashboard-button">Realizar formulario</a>
           </div>
-
-          <!-- AVISO: Falta confirmar BBDD -->
-<!--           <div id="bbdd-warning" class="warning-container" style="display:none;">
-            <p class="warning-text">⚙️ Te falta confirmar tu base de datos. Abrí el menú (☰) → “Editar Base”, revisala y presioná “Confirmar Edicion”.</p>
-             <!--<a id="edit-bbdd-warning" href="#" class="dashboard-button">Editar Base</a>-->
-<!--             <a id="edit-bbdd-warning" href="gamificationweblanding/index-bbdd.html" class="dashboard-button" data-keep-email>Editar Base</a>
-          </div> -->
-      
-
           
           <!-- Radar -->
           <div class="radar-section">
@@ -204,7 +195,8 @@
         <!-- DERECHA -->
         <section class="right-column">
           <!-- 🔥 DOPAMINE PILLAR CARD (columna 3) -->
-          <section id="pillar-card-root" class="pc-card gj-constancy-card"></section>
+<!--           <section id="pillar-card-root" class="pc-card gj-constancy-card"></section> -->
+          <div id="panel-rachas"></div>
           <!-- Recompensas (como ya lo tenías) -->
           <div id="rewardsContainer"></div>
         </section>
@@ -265,5 +257,21 @@
 //=================NOTIFICACIONES===========================
 <script src="./js/noti-client.js"></script>
 <script>document.addEventListener('DOMContentLoaded', ()=> Noti.init());</script>
+<script src="panel-rachas.js"></script>
+<script>
+    const mapMode = (m) => {
+    const x = String(m||'FLOW').toUpperCase();
+    if (x.startsWith('LOW'))   return 'Low';
+    if (x.startsWith('CHILL')) return 'Chill';
+    if (x.startsWith('EVOL'))  return 'Evolve';
+    return 'Flow';
+  };
+  
+  PanelRachas.mount('#panel-rachas', {
+    initialState: { mode: mapMode(data.game_mode), pillar: 'Body', range: 'month' },
+    dataProvider: PanelRachas.adapters.fromDashboardV3(data)
+  });
+</script>
+    
 </body>
 </html>
