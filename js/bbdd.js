@@ -343,6 +343,35 @@ async function doConfirm(){
       state.aiUpdated.clear();
       render();             
       toast("✅ Cambios confirmados. ¡Estamos configurando tu Daily Quest!");
+      // === UI Onboarding (optimista estricta): solo si estado === "primera" ===
+      const isFirst = String(estado || '').toLowerCase() === 'primera';
+      
+      if (isFirst) {
+        // 1) Ocultar banners de BBDD si están visibles
+        ['journey-warning','bbdd-warning'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && getComputedStyle(el).display !== 'none') el.style.display = 'none';
+        });
+        // Apagar dots de BBDD en menú
+        setDot(document.getElementById('menu-toggle'), false);
+        setDot(document.getElementById('li-edit-bbdd'), false);
+      
+        // 2) Mostrar banner de Programar Daily + dots
+        const warn = document.getElementById('scheduler-warning');
+        if (warn && getComputedStyle(warn).display === 'none') {
+          warn.style.display = 'block';
+        }
+        setDot(document.getElementById('menu-toggle'), true, '#ffc107');
+        setDot(document.getElementById('open-scheduler'), true, '#ffc107');
+      
+        // Marcá como "visto" en este dispositivo para no insistir si reabre
+        try {
+          const onceKey = `gj_sched_hint_shown:${(email||'').toLowerCase()}`;
+          localStorage.setItem(onceKey, '1');
+        } catch(_) {}
+      }
+      
+      
     } catch (err) {
       toast("Error en confirmación: " + err.message, false);
       return;
