@@ -376,21 +376,19 @@ async function doConfirm(){
       const isFirst = String(estado || '').toLowerCase() === 'primera';
       if (isFirst) {
         try {
-          // 1) Mensaje en caliente (si el dashboard está abierto detrás)
+          // 1) avisar al DASHBOARD (funciona en overlay/iframe o en otra pestaña)
           try {
-            const bc = new BroadcastChannel('gj_onboarding');
-            bc.postMessage({ type: 'bbdd-confirmed', estado: 'primera', email });
-            bc.close();
+            window.parent?.postMessage(
+              { kind: 'GJ_ONBOARD', step: 'BBDD_CONFIRMED', estado: 'primera', email },
+              '*'
+            );
           } catch {}
       
-          // 2) Señal para navegación en el mismo tab (el dashboard la lee al cargar)
+          // 2) fallback si navega al dashboard en el mismo tab
           try { sessionStorage.setItem('gj_onboarding', 'primera'); } catch {}
       
-          // 3) Forzado one–shot legacy por si el dashboard aún no tenía el canal
-          try {
-            const key = `gj_force_scheduler_banner:${String(email||'').toLowerCase()}`;
-            localStorage.setItem(key, '1');
-          } catch {}
+          // 3) one-shot legacy por si el dashboard aún no tenía el listener
+          try { localStorage.setItem(`gj_force_scheduler_banner:${(email||'').toLowerCase()}`, '1'); } catch {}
         } catch {}
       }
 
