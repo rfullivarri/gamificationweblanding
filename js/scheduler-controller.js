@@ -129,8 +129,8 @@ export function attachSchedulerModal() {
         dias: v.dias || '',
         hora: String(v.hora),               // solo “HH”
         timezone: v.timezone || 'Europe/Madrid',
-        estado: v.estado,
-        linkPublico: v.linkPublico || ctx.linkPublico || ''
+        estado: v.estado
+        //linkPublico: v.linkPublico || ctx.linkPublico || ''
       };
   
       console.log('[SCHED → /schedule] payload =', payload);
@@ -145,6 +145,21 @@ export function attachSchedulerModal() {
       }
   
       modal.setNotice(`✅ Programación guardada. Se enviará ${v.frecuencia==='CUSTOM' && v.dias ? `${v.dias} a las ${v.hora}` : `todos los días a las ${v.hora}`}.`);
+      // === UI optimista: esconder banner y dots de “Programar Daily” ===
+      (function(){
+        const warn = document.getElementById('scheduler-warning');
+        if (warn && getComputedStyle(warn).display !== 'none') warn.style.display = 'none';
+      
+        // apagar puntitos
+        setDot(document.getElementById('menu-toggle'), false);
+        setDot(document.getElementById('open-scheduler'), false);
+      
+        // marcar como visto en este dispositivo (para no re-mostrar)
+        try {
+          const onceKey = `gj_sched_hint_shown:${(ctx.email||'').toLowerCase()}`;
+          localStorage.setItem(onceKey, '1');
+        } catch(_) {}
+      })();
 
       // === refrescar KV del Worker y re-cargar el contexto para pintar lo nuevo ===
       try {
