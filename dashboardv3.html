@@ -259,17 +259,21 @@
 <script>document.addEventListener('DOMContentLoaded', ()=> Noti.init());</script>
 <script src="js/panel-rachas.js"></script>
 <script>
-    const mapMode = (m) => {
+  const mapMode = (m) => {
     const x = String(m||'FLOW').toUpperCase();
     if (x.startsWith('LOW'))   return 'Low';
     if (x.startsWith('CHILL')) return 'Chill';
     if (x.startsWith('EVOL'))  return 'Evolve';
     return 'Flow';
   };
-  
-  PanelRachas.mount('#panel-rachas', {
-    initialState: { mode: mapMode(data.game_mode), pillar: 'Body', range: 'month' },
-    dataProvider: PanelRachas.adapters.fromDashboardV3(data)
+
+  // Montar cuando dashboardv3 avisa que los datos están listos
+  document.addEventListener('gj:data-ready', (ev) => {
+    const d = ev.detail?.data || window.GJ_DATA;
+    PanelRachas.mount('#panel-rachas', {
+      initialState: { mode: mapMode(d.game_mode), pillar: 'Body', range: 'month' },
+      dataProvider: PanelRachas.adapters.fromDashboardV3(d)
+    });
   });
 </script>
     
