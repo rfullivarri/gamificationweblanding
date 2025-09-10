@@ -7,6 +7,12 @@ import {
   apiGetContext, saveCtx
 } from './scheduler-api.js?v=3';
 
+// --- POLYFILL UI (scheduler): evita ReferenceError si no está definido en el dashboard ---
+const setDot      = (window.setDot      || function(){});
+const setDotSafe  = (el,on,color) => { try { setDot(el,on,color); } catch(_) {} };
+const hideSched   = () => { const w = document.getElementById('scheduler-warning'); if (w) w.style.display = 'none'; };
+const showSched   = () => { const w = document.getElementById('scheduler-warning'); if (w) w.style.display = 'block'; };
+
 // —— helpers ——
 function getEmail() {
   const url = new URL(location.href);
@@ -152,12 +158,11 @@ export function attachSchedulerModal() {
       modal.setNotice(`✅ Programación guardada. Se enviará ${v.frecuencia==='CUSTOM' && v.dias ? `${v.dias} a las ${v.hora}` : `todos los días a las ${v.hora}`}.`);
       // === UI optimista: esconder banner y dots de “Programar Daily” ===
       (function(){
-        const warn = document.getElementById('scheduler-warning');
-        if (warn && getComputedStyle(warn).display !== 'none') warn.style.display = 'none';
+        hideSched();
       
         // apagar puntitos
-        setDot(document.getElementById('menu-toggle'), false);
-        setDot(document.getElementById('open-scheduler'), false);
+        setDotSafe(document.getElementById('menu-toggle'), false);
+        setDotSafe(document.getElementById('open-scheduler'), false);
       
         // marcar como visto en este dispositivo (para no re-mostrar)
         try {
