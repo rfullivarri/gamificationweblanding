@@ -244,6 +244,7 @@
           </div>
         </div>`;
       }).join('');
+    }
     
     // Eventos
     els.pillars.addEventListener('click',e=>{
