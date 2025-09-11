@@ -191,6 +191,7 @@
           </div>
         </div>`;
       }).join('');
+    }
     //   const exclude = new Set(topStreaks.map(t=>t.id));
     //   const ranked = tasks
     //     .filter(t=>!exclude.has(t.id))
