@@ -1,12 +1,12 @@
-/* ====== Tokens y curvaturas iguales al panel de rachas ====== */
+/* ===== Tokens / curvaturas del panel de rachas ===== */
 .dashboard-root{
   --gj-glass-blur: 18px;
   --gj-glass-bg: rgba(255,255,255,.06);
   --gj-glass-br: rgba(255,255,255,.22);
   --gj-glass-shadow: 0 12px 30px rgba(0,0,0,.35);
 
-  --gj-r-card: 28px;     /* card grande */
-  --gj-r-inner: 16px;    /* inner card */
+  --gj-r-card: 28px;   /* cards grandes */
+  --gj-r-inner: 16px;  /* inner blocks */
   --gj-r-pill: 999px;
 
   --gj-surface-1: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
@@ -14,13 +14,17 @@
   --gj-stroke-1: rgba(255,255,255,.14);
   --gj-stroke-2: #1f2a48;
 
-  /* TRACK común */
-  --gj-progress-track: #1f274a;
-  /* RELLENO NIVEL (amarillo, desfasaje) */
-  --gj-progress-fill-level: linear-gradient(90deg,#FFE27A 0%, #FFC84D 55%, #F3A712 100%);
+  --gj-track: #1f274a;
+  --gj-fill-level: linear-gradient(90deg,#FFE27A 0%, #FFC84D 55%, #F3A712 100%);
 }
 
-/* ====== Cards del Dashboard con el mismo “vidrio” del panel ====== */
+/* ===== Control de separación entre columnas ===== */
+.dashboard-root .dashboard-columns{
+  display:grid;              /* por si el base usa grid igual */
+  gap: 18px;                 /* <-- AJUSTÁ ACÁ el espacio entre las 3 columnas */
+}
+
+/* ===== Cards con vidrio del panel ===== */
 .dashboard-root .xp-box,
 .dashboard-root .avatar-box,
 .dashboard-root .energy-box,
@@ -30,7 +34,7 @@
 .dashboard-root .missions-section,
 .dashboard-root .alert-card,
 .dashboard-root .warning-container,
-.dashboard-root #rewardsContainer {
+.dashboard-root #rewardsContainer{
   position: relative;
   background: var(--gj-glass-bg);
   border: 1px solid var(--gj-glass-br);
@@ -38,71 +42,58 @@
   backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   box-shadow: var(--gj-glass-shadow);
-  overflow: visible;               /* evita que se “corten” popovers o el botón i */
+  overflow: visible;          /* permite que los tooltips salgan del card */
+  z-index: 0;
 }
 
-/* Brillos como en el panel pero siempre por debajo del contenido */
+/* Brillos sutiles SIEMPRE debajo del contenido */
 .dashboard-root .xp-box::before,
 .dashboard-root .energy-box::before,
 .dashboard-root .daily-cultivation-section::before,
 .dashboard-root .radar-section::before,
-.dashboard-root .emotion-box::before {
+.dashboard-root .emotion-box::before{
   content:"";
   position:absolute; inset:-30% -8% auto -8%; height:240px;
   background:
     radial-gradient(140px 140px at 22% 68%, rgba(168,120,255,.18), transparent 60%),
     radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18),  transparent 60%);
   filter: blur(10px) saturate(120%);
-  pointer-events: none;
-  z-index: 0;                       /* nunca por encima del contenido */
+  pointer-events:none;
+  z-index: -1;                /* nunca tapa */
 }
 
-/* ====== Inner containers ====== */
+/* ===== Inner containers ===== */
 .dashboard-root .daily-cultivation-section .chart-wrapper,
 .dashboard-root .emotion-box .emotion-chart-container,
-.dashboard-root .radar-section #radarChartContainer {
+.dashboard-root .radar-section #radarChartContainer{
   background: var(--gj-surface-1);
   border: 1px solid var(--gj-stroke-1);
   border-radius: var(--gj-r-inner);
   padding: 8px;
-  position: relative;
-  z-index: 1;
 }
 
-/* ====== Avatar mucho más chico (rectangular tipo story) ====== */
-.dashboard-root .avatar-box{
-  max-width: 220px;
-  margin: 0 auto;
-  padding: 8px;
-}
-@media (max-width: 600px){
-  .dashboard-root .avatar-box{ max-width: 180px; }
-}
+/* ===== Avatar: sin margen y al doble (440px) ===== */
+.dashboard-root .avatar-box{ max-width: 440px; margin: 0 auto; padding: 0; }
+@media (max-width: 600px){ .dashboard-root .avatar-box{ max-width: 320px; } }
+
 .dashboard-root .avatar-img{
   display:block;
   width:100%;
   height:auto;
-  aspect-ratio: 3 / 4;              /* proporción vertical agradable */
+  aspect-ratio: 3 / 4;
   border-radius: var(--gj-r-card);
   border: 1px solid var(--gj-glass-br);
 }
 
-/* ====== Chips (mismo look del panel) ====== */
+/* ===== Chips como el panel ===== */
 .dashboard-root .chip{
-  background:#1a2037;
-  border:1px solid #2a3560;
-  color:#d6dcff;
-  padding:6px 9px;
-  border-radius: var(--gj-r-pill);
-  font-weight:800;
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
+  background:#1a2037; border:1px solid #2a3560; color:#d6dcff;
+  padding:6px 9px; border-radius: var(--gj-r-pill);
+  font-weight:800; display:inline-flex; align-items:center; gap:8px;
 }
 .dashboard-root .chip.mode{
   --mcolor:#5aa0ff;
-  border-radius: 10px;              /* rectangular */
-  font-size:12px; padding:5px 10px;
+  border-radius: 10px; font-size:12px; padding:5px 10px;
   background: color-mix(in srgb, var(--mcolor) 12%, #0c1124);
   border: 1px solid color-mix(in srgb, var(--mcolor) 40%, #2a3560);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--mcolor) 25%, transparent) inset;
@@ -112,66 +103,70 @@
 .dashboard-root .chip.mode.flow   { --mcolor:#1f7aff; }
 .dashboard-root .chip.mode.evolve { --mcolor:#a77bff; }
 
-/* ====== Barra de NIVEL (XP) gruesa + amarilla ====== */
+/* ===== Barra NIVEL (amarilla + gruesa) ===== */
 .dashboard-root .progress-bar{
   position:relative;
-  height: 20px;                     /* más ancha */
-  background: var(--gj-progress-track);
+  height: 20px;
+  background: var(--gj-track);
   border-radius: var(--gj-r-pill);
-  overflow:hidden;
+  overflow: hidden;
 }
 .dashboard-root .progress-bar .bar-fill,
 .dashboard-root #bar-nivel{
   position:absolute; inset:0;
-  background: var(--gj-progress-fill-level);
+  background: var(--gj-fill-level);
   border-radius: var(--gj-r-pill);
   height:100%;
 }
 
-/* ====== Daily Energy: barras al doble de alto ====== */
+/* ===== Daily Energy doble de alto ===== */
 .dashboard-root .energy-track{
   position:relative;
-  height: 20px;                     /* antes 10px → doble */
-  background: var(--gj-progress-track);
+  height: 20px;
+  background: var(--gj-track);
   border-radius: var(--gj-r-pill);
   overflow: hidden;
 }
-.dashboard-root .energy-track .bar-fill{
-  border-radius: var(--gj-r-pill);
-  height:100%;
-}
+.dashboard-root .energy-track .bar-fill{ height:100%; border-radius: var(--gj-r-pill); }
 
-/* ====== Info buttons (icono “i”) SIEMPRE arriba y fuera ====== */
+/* ====== “i” SIEMPRE arriba y tooltip pegado al botón ====== */
+/* El título se vuelve ancla local */
 .dashboard-root .card-title{ position: relative; z-index: 2; }
 
-/* Cubre nombres comunes: .info, .info-btn, .info-chip (el panel usa .info / .info-chip) */
+/* Botón “i” absoluto dentro del título */
 .dashboard-root .card-title .info,
 .dashboard-root .card-title .info-btn,
 .dashboard-root .card-title .info-chip{
   position: absolute !important;
   top: 10px; right: 10px;
-  z-index: 5;                       /* por encima del contenido de la card */
+  z-index: 1002 !important;
   pointer-events: auto;
 }
 
-/* Popovers encima de todo, sin quedar “debajo” del card */
+/* Tooltip: fuera del card, pegado al botón y SOBRE todo */
 .dashboard-root .info-pop{
-  position: fixed !important;
-  z-index: 9999 !important;
+  position: absolute !important;
+  top: 0; right: 0;
+  transform: translate(0, calc(-100% - 10px));   /* queda por arriba del título */
+  z-index: 1001 !important;                      /* sobre el contenido del card */
+  pointer-events: auto;
 }
 
-/* ====== Notificaciones y menú (coherencia visual) ====== */
-.dashboard-root #gj-noti-dropdown{
-  border-radius: var(--gj-r-inner) !important;
-  border:1px solid var(--gj-glass-br) !important;
-  background: var(--gj-glass-bg) !important;
-  backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%) !important;
-  box-shadow: var(--gj-glass-shadow) !important;
+/* Si el tooltip no está como hijo de .card-title, forzamos anclaje desde el contenedor */
+.dashboard-root .xp-box > .info-pop,
+.dashboard-root .energy-box > .info-pop,
+.dashboard-root .daily-cultivation-section > .info-pop,
+.dashboard-root .radar-section > .info-pop,
+.dashboard-root .emotion-box > .info-pop{
+  position: absolute !important;
+  top: 10px; right: 10px;
+  transform: none;
+  z-index: 1001 !important;
 }
 
-.dashboard-root .card-title{ margin-bottom: 8px; }
-.dashboard-root .energy-meter{ margin: 10px 0; }
-.dashboard-root .daily-cultivation-header{
-  display:flex; align-items:center; gap:10px; justify-content:space-between;
+/* En cualquier caso, nada debe taparlos */
+.dashboard-root *{ /* solo stacking, no layout */
+  /* z-index:auto por defecto; evitamos crear nuevos contextos por accidente */
 }
+
+
