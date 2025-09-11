@@ -1,0 +1,178 @@
+/* ====== Tokens visuales (idénticos al panel) ====== */
+.dashboard-root{
+  --gj-glass-blur: 18px;
+  --gj-glass-bg: rgba(255,255,255,.06);
+  --gj-glass-br: rgba(255,255,255,.22);
+  --gj-glass-shadow: 0 12px 30px rgba(0,0,0,.35);
+
+  --gj-r-card: 28px;     /* curvatura grande = panel .box */
+  --gj-r-inner: 16px;    /* curvatura inner = panel .task */
+  --gj-r-pill: 999px;
+
+  --gj-surface-1: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+  --gj-surface-2: linear-gradient(180deg,#141c3a,#0e142b);
+  --gj-stroke-1: rgba(255,255,255,.14);
+  --gj-stroke-2: #1f2a48;
+
+  --gj-progress-track: #1f274a;
+  --gj-progress-fill: linear-gradient(90deg,#5a2bff,#a77bff);
+}
+
+/* ====== Cards principales del Dashboard → mismo vidrio y curvatura ====== */
+.dashboard-root .xp-box,
+.dashboard-root .avatar-box,
+.dashboard-root .energy-box,
+.dashboard-root .daily-cultivation-section,
+.dashboard-root .radar-section,
+.dashboard-root .emotion-box,
+.dashboard-root .missions-section,
+.dashboard-root .alert-card,
+.dashboard-root .warning-container,
+.dashboard-root #rewardsContainer {
+  position: relative;
+  background: var(--gj-glass-bg);
+  border: 1px solid var(--gj-glass-br);
+  border-radius: var(--gj-r-card);
+  backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
+  box-shadow: var(--gj-glass-shadow);
+}
+
+/* sutiles destellos como en el panel (no tapa el contenido) */
+.dashboard-root .xp-box::before,
+.dashboard-root .energy-box::before,
+.dashboard-root .daily-cultivation-section::before,
+.dashboard-root .radar-section::before,
+.dashboard-root .emotion-box::before {
+  content:"";
+  position:absolute; inset:-30% -8% auto -8%; height:240px;
+  background:
+    radial-gradient(140px 140px at 22% 68%, rgba(168,120,255,.18), transparent 60%),
+    radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18),  transparent 60%);
+  filter: blur(10px) saturate(120%);
+  pointer-events: none;
+}
+
+/* ====== Inner cards/containers (cuando existan) ====== */
+.dashboard-root .daily-cultivation-section .chart-wrapper,
+.dashboard-root .emotion-box .emotion-chart-container,
+.dashboard-root .radar-section #radarChartContainer {
+  background: var(--gj-surface-1);
+  border: 1px solid var(--gj-stroke-1);
+  border-radius: var(--gj-r-inner);
+  padding: 8px;
+}
+
+/* Avatar rectangular con la misma curvatura */
+.dashboard-root .avatar-img{
+  display:block;
+  width:100%;
+  height:auto;
+  border-radius: var(--gj-r-card);
+  border: 1px solid var(--gj-glass-br);
+}
+
+/* ====== Chips: no parecen botón, pill consistente ====== */
+.dashboard-root .chip{
+  background:#1a2037;
+  border:1px solid #2a3560;
+  color:#d6dcff;
+  padding:6px 9px;
+  border-radius: var(--gj-r-pill);
+  font-weight:800;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.dashboard-root .chip.mode{
+  --mcolor:#5aa0ff;
+  border-radius: 10px;               /* rectangular como el panel */
+  font-size:12px; padding:5px 10px;
+  background: color-mix(in srgb, var(--mcolor) 12%, #0c1124);
+  border: 1px solid color-mix(in srgb, var(--mcolor) 40%, #2a3560);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mcolor) 25%, transparent) inset;
+}
+.dashboard-root .chip.mode.low    { --mcolor:#ff6b6b; }
+.dashboard-root .chip.mode.chill  { --mcolor:#20d3b0; }
+.dashboard-root .chip.mode.flow   { --mcolor:#1f7aff; }
+.dashboard-root .chip.mode.evolve { --mcolor:#a77bff; }
+
+/* ====== Progress bars (nivel + energy) → misma forma del panel ====== */
+.dashboard-root .progress-bar,
+.dashboard-root .energy-track{
+  position:relative;
+  height:10px;
+  background: var(--gj-progress-track);
+  border-radius: var(--gj-r-pill);
+  overflow:hidden;
+}
+.dashboard-root .progress-bar .bar-fill,
+.dashboard-root #bar-nivel{
+  position:absolute; inset:0;
+  background: var(--gj-progress-fill);
+  border-radius: var(--gj-r-pill);
+  height:100%;
+}
+/* energies mantienen color propio; solo heredamos forma */
+.dashboard-root .energy-track .bar-fill{
+  border-radius: var(--gj-r-pill);
+  height:100%;
+}
+
+/* ====== Alertas/avisos (bbdd-warning / scheduler-warning) ====== */
+.dashboard-root .alert-card{
+  padding:12px 14px;
+}
+.dashboard-root .alert-card .alert-dot{
+  width:10px; height:10px; border-radius: var(--gj-r-pill);
+  background:#ffad5a; border:1px solid #6e3c17;
+  display:inline-block;
+}
+.dashboard-root .alert-card .alert-hint{ opacity:.8; }
+
+/* ====== Misiones: hijos con inner-curvature ====== */
+.dashboard-root .missions-section .missions-grid > *{
+  background: var(--gj-surface-2);
+  border: 1px solid var(--gj-stroke-2);
+  border-radius: var(--gj-r-inner);
+  padding:10px;
+}
+
+/* ====== Dropdown de notificaciones y menú ====== */
+.dashboard-root #gj-noti-dropdown{
+  border-radius: var(--gj-r-inner) !important;
+  border:1px solid var(--gj-glass-br) !important;
+  background: var(--gj-glass-bg) !important;
+  backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%) !important;
+  box-shadow: var(--gj-glass-shadow) !important;
+}
+
+/* ====== Botón “Realizar formulario” no se toca (es acción primaria) ====== */
+.dashboard-root .dashboard-button{ border-radius: 12px; }
+
+/* ====== Popup avatar con curvatura consistente ====== */
+.dashboard-root .popup-overlay .popup-content{
+  border-radius: var(--gj-r-card);
+  background: var(--gj-glass-bg);
+  border:1px solid var(--gj-glass-br);
+  backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
+  box-shadow: var(--gj-glass-shadow);
+}
+
+/* ====== Compatibilidad info chips dentro del panel (si los usa en dashboard) ====== */
+.dashboard-root #rachasInfoTop .info-chip,
+.dashboard-root #rachasInfoScope .info-chip{
+  position: static !important;
+  width:26px; height:26px; border-radius: var(--gj-r-pill);
+  background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+  font-weight:800; line-height:1; cursor:pointer;
+}
+
+/* ====== Ajustes mínimos de spacing para homogeneizar ====== */
+.dashboard-root .card-title{ margin-bottom: 8px; }
+.dashboard-root .energy-meter{ margin: 8px 0; }
+.dashboard-root .daily-cultivation-header{
+  display:flex; align-items:center; gap:10px; justify-content:space-between;
+}
