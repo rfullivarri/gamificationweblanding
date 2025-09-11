@@ -202,7 +202,7 @@
     return refresh();
   }
 
-  // === Adaptador a Dashboard v3 ===
+  // === Adaptador a Dashboard v3 (reemplazar entero) ===
   function fromDashboardV3(data){
     const MODE_TIER = { LOW:1, CHILL:2, FLOW:3, 'FLOW MOOD':3, EVOL:4, EVOLVE:4 };
     const PILLAR_MAP = {
@@ -211,28 +211,15 @@
       'BODY':'Body','MIND':'Mind','SOUL':'Soul',
       'CUERPO':'Body','MENTE':'Mind','ALMA':'Soul'
     };
-
-    // ---- BBDD base (tareas) ----
-    const rows = Array.isArray(data?.bbdd) ? data.bbdd : [];
-    const BASE = rows.map(r=>({
-      id:   (r.id || r.task || r.Task || r.TAREA || r.nombre || '').toString().trim() || Math.random().toString(36).slice(2),
-      pillar: PILLAR_MAP[(r.pilar||r.pillar||'').toString().trim()] || 'Body',
-      stat:   (r.stat || r.rasgo || r.trait || '').toString().trim(),
-      name:   (r.task || r.Task || r.Tarea || r.nombre || '').toString().trim(),
-      xp: Number(r.xp_base ?? r.xp ?? r.exp ?? 0),
-      streakWeeks: Number(r.constancia || r.streak || 0),
-      weeklyNow:{1:+(r.c1s_ac||0),2:+(r.c2s_ac||0),3:+(r.c3s_ac||0),4:+(r.c4s_ac||0)},
-      weeklyMax:{1:+(r.c1s_m ||0),2:+(r.c2s_m ||0),3:+(r.c3s_m ||0),4:+(r.c4s_m ||0)}
-    }));
-
-    // ---- helpers fecha/texto ----
-    const DAY=86400000;
-    const weekStart = (date)=>{ const d=new Date(date); const day=(d.getDay()+6)%7; d.setHours(0,0,0,0); return new Date(d.getTime()-day*DAY); };
-    const addDays=(d,n)=>new Date(d.getTime()+n*DAY);
-    const monthStart = (d)=>{ const x=new Date(d); return new Date(x.getFullYear(), x.getMonth(), 1); };
-    const monthEnd   = (d)=>{ const x=new Date(d); return new Date(x.getFullYear(), x.getMonth()+1, 1); };
-
-    // parsea local “YYYY-MM-DD” o “DD/MM/YYYY”, etc.
+  
+    // ---------- helpers de fecha ----------
+    const DAY = 86400000;
+    const weekStart = (date)=>{ const d=new Date(date); const wd=(d.getDay()+6)%7; d.setHours(0,0,0,0); return new Date(d.getTime()-wd*DAY); };
+    const addDays  = (d,n)=>new Date(d.getTime()+n*DAY);
+    const monthStart = d => new Date(d.getFullYear(), d.getMonth(), 1);
+    const monthEnd   = d => new Date(d.getFullYear(), d.getMonth()+1, 1);
+  
+    // YYYY-MM-DD -> local
     function parseLocalDate(s){
       const str = (s||'').toString().trim();
       let m = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -242,157 +229,182 @@
       const d = new Date(str);
       return isNaN(+d) ? null : d;
     }
-
-    // normalizador agresivo (quita acentos/símbolos; compacta)
-    const normStr = s => (s ?? '')
-      .toString()
+    // week key -> 'YYYY-Www'
+    function isoWeekKey(d){
+      const dt = weekStart(d);
+      const tmp = new Date(dt.getFullYear(), 0, 4);
+      const wk = Math.round((dt - weekStart(tmp))/ (7*DAY)) + 1;
+      return `${dt.getFullYear()}-W${String(wk).padStart(2,'0')}`;
+    }
+    // cuando viene 'YYYY-Www' en el bundle
+    const normWeekKey = s => (s||'').toString().trim().toUpperCase().replace(/(\d{4})[ -]?W?(\d{1,2})/,'$1-W$2').replace(/W(\d)$/, 'W0$1');
+  
+    // ---------- normalizador de texto ----------
+    const stripZeroWidth = s => (s||'').replace(/[\u200B-\u200D\uFEFF]/g,'');
+    const normStr = s => stripZeroWidth(s||'')
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
       .replace(/[^\w\s]/g,' ')
       .replace(/\s+/g,' ')
       .trim()
       .toLowerCase();
-
-    const tokens = s => normStr(s).split(' ').filter(Boolean);
-    function sameTask(a,b){
-      const A = normStr(a), B = normStr(b);
-      if (!A || !B) return false;
-      if (A===B || A.includes(B) || B.includes(A)) return true;
-      const ta=tokens(a), tb=tokens(b);
-      const inter = ta.filter(t=>tb.includes(t)).length;
-      const ratio = inter / Math.max(ta.length, tb.length);
-      return ratio >= 0.8; // tolerante
-    }
-
-    const pill = v => PILLAR_MAP[String(v||'').trim()] || String(v||'').trim();
-
-    // ---- logs crudos (daily_log_raw / daily_log) ----
+  
+    const mapPillar = v => PILLAR_MAP[String(v||'').trim()] || String(v||'').trim();
+  
+    // ---------- base de tareas (BBDD) ----------
+    const rows = Array.isArray(data?.bbdd) ? data.bbdd : [];
+    const BASE = rows.map(r=>({
+      id:   (r.id || r.task || r.Task || r.TAREA || r.nombre || '').toString().trim() || Math.random().toString(36).slice(2),
+      pillar: mapPillar(r.pilar||r.pillar),
+      stat:   (r.stat || r.rasgo || r.trait || '').toString().trim(),
+      name:   (r.task || r.Task || r.Tarea || r.nombre || '').toString().trim(),
+      xp: Number(r.xp_base ?? r.xp ?? r.exp ?? 0),
+      streakWeeks: Number(r.constancia || r.streak || 0),
+      weeklyNow:{1:+(r.c1s_ac||0),2:+(r.c2s_ac||0),3:+(r.c3s_ac||0),4:+(r.c4s_ac||0)},
+      weeklyMax:{1:+(r.c1s_m ||0),2:+(r.c2s_m ||0),3:+(r.c3s_m ||0),4:+(r.c4s_m ||0)}
+    }));
+  
+    // ---------- logs crudos ----------
     const RAW = Array.isArray(data?.daily_log_raw) ? data.daily_log_raw
               : (Array.isArray(data?.daily_log) ? data.daily_log : []);
-    const LOGS = RAW.map(l=>{
-      const d  = parseLocalDate(l.fecha || l.date || l.day || l.Fecha);
-      const p  = pill(l.pilar || l.pillar || l.Pilar);
-      const t  = (l.task || l.tarea || l.Task || l.nombre || '').toString().trim();
-      const xp = Number(l.xp || l.XP || l.exp || 0) || 0;
-      if (!d || !t) return null;
-      return { dt:d, pillar:p, taskRaw:t, taskNorm:normStr(t), xp };
-    }).filter(Boolean);
-
-    // ---- ventanas Mes actual + 3M ----
-    const now = new Date();
-    function buildWeeksOfCurrentMonth(){
-      const start = monthStart(now), end = monthEnd(now);
-      const weeks = [];
-      for(let d=weekStart(start); d<end; d=addDays(d,7)){
-        const s = d < start ? start : d;
-        const e = addDays(d,7) > end ? end : addDays(d,7);
-        if (s < e) weeks.push({start:s, end:e});
-      }
-      return weeks;
+  
+    // Index: key = "<PILAR>|<slug>", agregando por semana y por mes.
+    // value: { byWeek: Map<weekKey, {count, xpSum, missXP}>, byMonth: Map<'YYYY-MM', {count, xpSum, missXP}> }
+    const byKey = new Map();
+    function idxGet(key){
+      let o = byKey.get(key);
+      if (!o){ o = { byWeek:new Map(), byMonth:new Map() }; byKey.set(key,o); }
+      return o;
     }
-    function build3Months(){
+    const monthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  
+    for (const l of RAW){
+      const pilar = mapPillar(l.pilar || l.pillar || l.Pilar);
+      const task  = (l.task || l.tarea || l.Task || l.nombre || '').toString();
+      const slug  = normStr(task);
+      if (!pilar || !slug) continue;
+  
+      let dt = parseLocalDate(l.fecha || l.date || l.day || l.Fecha);
+      // si no vino fecha pero sí semana, invento lunes de esa semana
+      if (!dt && l.semana){ 
+        // no necesito un Date preciso: solo la key
+        // pongo el 1ro del mes para derivar monthKey; queda dentro del mes correcto
+        const wk = normWeekKey(l.semana);
+        // guardo la propia key directamente
+        dt = null;
+      }
+  
+      const key = `${pilar}|${slug}`;
+      const store = idxGet(key);
+  
+      // week key
+      const wKey = l.semana ? normWeekKey(l.semana) : (dt ? isoWeekKey(dt) : null);
+      if (!wKey) continue;
+  
+      // month key
+      const mKey = dt ? monthKey(dt) : (wKey.slice(0,4) + '-' + wKey.slice(6,8)); // aproximación YYYY-MM
+  
+      const xp = Number(l.xp || l.XP || l.exp || 0) || 0;
+      const upd = (map, k, xpVal)=>{
+        const o = map.get(k) || {count:0, xpSum:0, missXP:0};
+        o.count += 1;
+        if (xpVal>0) o.xpSum += xpVal;
+        else o.missXP += 1;
+        map.set(k,o);
+      };
+      upd(store.byWeek,  wKey, xp);
+      upd(store.byMonth, mKey, xp);
+    }
+  
+    const now = new Date();
+    function weeksOfCurrentMonth(){
+      const start = monthStart(now), end = monthEnd(now);
+      const out = [];
+      for(let d=weekStart(start); d<end; d=addDays(d,7)){
+        const s = d<start ? start : d;
+        const e = addDays(d,7) > end ? end : addDays(d,7);
+        if (s<e) out.push({start:s, end:e, wKey: isoWeekKey(s)});
+      }
+      return out; // 4 o 5
+    }
+    function last3Months(){
       const base = monthStart(now);
       const arr=[];
       for(let i=2;i>=0;i--){
         const s = new Date(base.getFullYear(), base.getMonth()-i, 1);
         const e = new Date(base.getFullYear(), base.getMonth()-i+1, 1);
-        arr.push({start:s, end:e});
+        arr.push({start:s, end:e, mKey: monthKey(s)});
       }
-      return arr;
+      return arr; // [mes-2, mes-1, mes0]
     }
-
-    const xpFromLog = (log, taskXP) => (log.xp && log.xp>0) ? log.xp : Number(taskXP||0);
-
-    // ---- agrega métricas por tarea ----
+  
+    const xpFromBuckets = (o, fallbackXP) => o.xpSum + o.missXP * (Number(fallbackXP)||0);
+  
     function aggregateForTask(t){
-      const tier = MODE_TIER[String((data?.metrics?.game_mode || data?.game_mode || 'FLOW')).toUpperCase()] || 3;
-
-      // 1) buscar por nombre + pilar
-      let taskLogs = LOGS.filter(l => (l.pillar===t.pillar) && sameTask(l.taskRaw, t.name));
-
-      // 2) si no encontró, relajar pilar
-      if (taskLogs.length === 0) {
-        taskLogs = LOGS.filter(l => sameTask(l.taskRaw, t.name));
-      }
-
-      // semana actual
-      const ws = weekStart(now), we = addDays(ws,7);
-      const wLogs = taskLogs.filter(l => l.dt>=ws && l.dt<we);
-      const week  = { count:wLogs.length, xp: wLogs.reduce((a,l)=>a+xpFromLog(l,t.xp),0) };
-
-      // sin logs → devolver barras vacías pero con week real (0 o >0 si corresponde)
-      if (taskLogs.length===0){
-        return {
-          week,
-          month: { count:0, xp:0, weeks: buildWeeksOfCurrentMonth().map(()=>0) },
-          qtr:   { count:0, xp:0, weeks:[0,0,0] }
-        };
-      }
-
-      // Mes actual → barras 4–5 (semanas recortadas a mes)
-      const weeks = buildWeeksOfCurrentMonth();
-      const weeksArr = new Array(weeks.length).fill(0);
-      let monthCount=0, monthXP=0;
-      for (const l of taskLogs){
-        for (let i=0;i<weeks.length;i++){
-          const b = weeks[i];
-          if (l.dt>=b.start && l.dt<b.end){
-            weeksArr[i]++; monthCount++; monthXP += xpFromLog(l,t.xp); break;
-          }
+      const game = String((data?.metrics?.game_mode || data?.game_mode || 'FLOW')).toUpperCase();
+      const tier = MODE_TIER[game] || 3;
+      const key  = `${t.pillar}|${normStr(t.name)}`;
+      const idx  = byKey.get(key) || { byWeek:new Map(), byMonth:new Map() };
+  
+      // Semana actual (por clave ISO)
+      const wsKey = isoWeekKey(now);
+      const w    = idx.byWeek.get(wsKey) || {count:0, xpSum:0, missXP:0};
+      const week = { count: w.count, xp: xpFromBuckets(w, t.xp) };
+  
+      // Mes actual → barras por semanas del mes en curso
+      const weeks = weeksOfCurrentMonth();
+      const weeksArr = weeks.map(b => (idx.byWeek.get(b.wKey)?.count || 0));
+      const monthCount = weeksArr.reduce((a,b)=>a+b,0);
+      const m = idx.byMonth.get(monthKey(now)) || {count:0, xpSum:0, missXP:0};
+      const month = { count: monthCount, xp: xpFromBuckets(m, t.xp), weeks: weeksArr };
+  
+      // 3M → totales + altura por mes
+      const months = last3Months();
+      let qCount = 0, qXp = 0;
+      const perWeekInMonth = months.map(mo=>{
+        const wks = [];
+        for(let d=weekStart(mo.start); d<mo.end; d=addDays(d,7)){
+          const k = isoWeekKey(d);
+          const c = idx.byWeek.get(k)?.count || 0;
+          if (d>=mo.start && d<mo.end) wks.push(c);
         }
-      }
-      const monthMetrics = { count:monthCount, xp:monthXP, weeks:weeksArr };
-
-      // 3M → 3 barras por mes + totales
-      const months = build3Months();
-      const qStart = months[0].start, qEnd = months[months.length-1].end;
-      const qLogs = taskLogs.filter(l => l.dt>=qStart && l.dt<qEnd);
-      const qCount = qLogs.length;
-      const qXP    = qLogs.reduce((a,l)=>a+xpFromLog(l,t.xp),0);
-
-      // altura por mes basada en promedio semanal vs goal
-      const perWeekCount = new Map(); // weekStart(ts) -> count
-      for (const l of qLogs){
-        const k = +weekStart(l.dt);
-        perWeekCount.set(k, (perWeekCount.get(k)||0) + 1);
-      }
-      const qtrBars = months.map(({start,end})=>{
-        const w = [];
-        for(let d=weekStart(start); d<end; d=addDays(d,7)){
-          const k = +d;
-          const c = perWeekCount.get(k) || 0;
-          if (d>=start && d<end) w.push(c);
-        }
-        const wN = Math.max(1, w.length);
-        const avg = w.reduce((a,b)=>a+b,0) / wN;
+        const bucket = idx.byMonth.get(mo.mKey) || {count:0, xpSum:0, missXP:0};
+        qCount += bucket.count;
+        qXp    += xpFromBuckets(bucket, t.xp);
+        return wks;
+      });
+  
+      const qtrBars = perWeekInMonth.map(w=>{
+        const weeksN = Math.max(1, w.length);
+        const avg = w.reduce((a,b)=>a+b,0) / weeksN;
         const allHit = w.every(v=>v>=tier);
         if (allHit) return tier;
         if (avg <= tier) return avg;
         return tier + Math.max(1, Math.round(avg - tier));
       });
-
-      const qtrMetrics = { count:qCount, xp:qXP, weeks:qtrBars };
-      return { week, month: monthMetrics, qtr: qtrMetrics };
+  
+      const qtr = { count:qCount, xp:qXp, weeks:qtrBars };
+      return { week, month, qtr };
     }
-
-    // ---- provider ----
+  
+    // ---------- provider ----------
     return ({ mode, pillar, range, query })=>{
       const q = (query||'').toLowerCase();
       const ofPillar = BASE.filter(x=>x.pillar===pillar && (!q || x.name.toLowerCase().includes(q) || x.stat.toLowerCase().includes(q)));
-
-      // Top-3 rachas desde BBDD (no toca logs)
+  
+      // Top rachas desde BBDD (no depende de logs)
       const tier = MODE_TIER[String((mode||'FLOW')).toUpperCase()] || 3;
       const topStreaks = ofPillar
         .filter(x=>x.streakWeeks>=2)
         .sort((a,b)=>b.streakWeeks-a.streakWeeks)
         .slice(0,3)
         .map(x=>({ id:x.id, name:x.name, stat:x.stat, weekDone:(x.weeklyNow[tier]||0), streakWeeks:x.streakWeeks }));
-
-      // Métricas completas usando daily_log_raw / daily_log
+  
+      // Métricas completas con daily_log_raw
       const tasks = ofPillar.map(x=>{
         const metrics = aggregateForTask(x);
         return { id:x.id, name:x.name, stat:x.stat, weekDone:(x.weeklyNow[tier]||0), streakWeeks:x.streakWeeks, metrics };
       });
-
+  
       return Promise.resolve({ topStreaks, tasks });
     };
   }
