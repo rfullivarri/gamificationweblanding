@@ -207,7 +207,11 @@
 
   // === Adaptador a Dashboard v3 ===
   function fromDashboardV3(data){
-    const MODE_TIER = { LOW:1, CHILL:2, FLOW:3, EVOL:4, EVOLVE:4 };
+    const MODE_TIER = { LOW:1, CHILL:2, FLOW:3, 'FLOW MOOD':3, EVOL:4, EVOLVE:4 };
+    // Normaliza el game_mode que viene en el bundle (p.ej. "Flow Mood" → "FLOW")
+    const GAME_MODE_NORM = String((data?.metrics?.game_mode ?? data?.game_mode ?? 'FLOW'))
+      .toUpperCase()
+      .split(/\s+/)[0]; // toma la primera palabra
     const PILLAR_MAP = {'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul','BODY':'Body','MIND':'Mind','SOUL':'Soul','CUERPO':'Body','MENTE':'Mind','ALMA':'Soul'};
     const rows = Array.isArray(data?.bbdd) ? data.bbdd : [];
 
@@ -216,7 +220,7 @@
       pillar: PILLAR_MAP[(r.pilar||r.pillar||'').toString().trim()] || 'Body',
       stat:   (r.stat || r.rasgo || r.trait || '').toString().trim(),
       name:   (r.task || r.Task || r.Tarea || r.nombre || '').toString().trim(),
-      xp:     Number(r.exp || r.xp || 0),
+      xp: Number(r.xp_base ?? r.xp ?? r.exp ?? 0),
       streakWeeks: Number(r.constancia || r.streak || 0),
       weeklyNow:{1:+(r.c1s_ac||0),2:+(r.c2s_ac||0),3:+(r.c3s_ac||0),4:+(r.c4s_ac||0)},
       weeklyMax:{1:+(r.c1s_m ||0),2:+(r.c2s_m ||0),3:+(r.c3s_m ||0),4:+(r.c4s_m ||0)}
@@ -224,7 +228,9 @@
     const BASE = rows.map(norm);
 
     // Logs diarios (opcional)
-    const LOGS = Array.isArray(data?.daily_cultivation) ? data.daily_cultivation : [];
+    // ✅ Usa la nueva fuente con tarea + fecha
+    const LOGS = Array.isArray(data?.daily_log_raw) ? data.daily_log_raw
+              : (Array.isArray(data?.daily_log) ? data.daily_log : []);
     const get = (o,keys)=>{ for(const k of keys){ if(o && o[k]!=null) return o[k]; } };
     const parseD = (s)=>{
       const str=(s||'').toString(); const d=new Date(str);
@@ -281,7 +287,7 @@
 
     // Agrega métricas para una tarea
     function aggregateForTask(t){
-      const tier = MODE_TIER[String((data?.game_mode||'FLOW')).toUpperCase()] || 3;
+      const tier = MODE_TIER[GAME_MODE_NORM] || 3;
 
       // Filtrar logs que pertenezcan a ESTA tarea (si no hay nombre de tarea en el log, NO cuenta)
       const taskLogs = LOGS.filter(l=>{
@@ -383,7 +389,7 @@
       const ofPillar = BASE.filter(x=>x.pillar===pillar && (!q || x.name.toLowerCase().includes(q) || x.stat.toLowerCase().includes(q)));
 
       // Top-3 rachas (si hay)
-      const tier = MODE_TIER[String((mode||'FLOW')).toUpperCase()] || 3;
+      const tier = MODE_TIER[GAME_MODE_NORM] || 3;
       const topStreaks = ofPillar
         .filter(x=>x.streakWeeks>=2)
         .sort((a,b)=>b.streakWeeks-a.streakWeeks)
