@@ -9,15 +9,20 @@
 
   // Barras: Mes = semanas; 3M = meses agregados
   function weeklyBars(values, goal){
-    if(!values) return '';
-    const BASE=20, EXTRA=6;
+    if(!Array.isArray(values) || values.length===0) return '';
+    const BASE = 20, EXTRA = 6;
     return `<div class="wkbars">${
       values.map(v=>{
-        let h=BASE, cls='hit';
-        if(v===goal){ h=BASE; cls='hit'; }
-        else if(v<goal){ h=Math.max(6, Math.round(BASE*(v/goal))); cls='miss'; }
-        else { h=BASE+(v-goal)*EXTRA; cls='over'; }
-        return `<b class="${cls}" style="height:${h}px"></b>`;
+        const n = Math.max(0, Number(v)||0);
+        if (n < goal) {
+          const h = Math.max(6, Math.round(BASE*(n/goal)));
+          return `<b class="miss" style="height:${h}px"></b>`;
+        }
+        if (n === goal) {
+          return `<b class="hit" style="height:${BASE}px"></b>`;
+        }
+        const h = BASE + (n - goal) * EXTRA;
+        return `<b class="over" style="height:${h}px"></b>`;
       }).join('')
     }</div>`;
   }
@@ -103,6 +108,16 @@
         .wkbars b{width:12px;border-radius:4px}
         .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
         .muted{color:#9aa3b2}
+        @media (max-width: 1280px){
+        .task{grid-template-columns:1fr; row-gap:8px}
+        .right{justify-content:space-between}
+        .wkbars{min-width:0}
+        }
+        @media (max-width: 768px){
+          .chip{font-size:12px; padding:5px 8px}
+          .wkbars b{width:10px}
+          .pnum{min-width:auto}
+        }
       `;
       document.head.appendChild(css);
     }
@@ -137,21 +152,27 @@
             <div class="n">${t.name}</div>
             <div class="sub"><span></span><span>${t.weekDone}/${goal}</span></div>
             <div class="bar" style="--p:${p}%"><i></i></div>
-            <span class="streak-chip">🔥 x${t.streakWeeks}w</span>
+            ${t.streakWeeks>=2 ? `<span class="streak-chip">🔥 x${t.streakWeeks}w</span>` : ``}
           </div>`;
         }).join('');
       }
 
       // LISTA (ordenada por XP del scope y sin duplicar top)
+      // === NUEVO ===
       const exclude = new Set(topStreaks.map(t=>t.id));
+      
+      // ordenar por XP del scope (desc)
       const ranked = tasks
-        .filter(t=>!exclude.has(t.id))
-        .sort((a,b)=>((b.metrics[S.range]?.xp||0) - (a.metrics[S.range]?.xp||0)));
-
+        .filter(t => !exclude.has(t.id))
+        .sort((a,b) => ((b.metrics[S.range]?.xp || 0) - (a.metrics[S.range]?.xp || 0)));
+      
       els.list.innerHTML = ranked.map(t=>{
-        const m = t.metrics[S.range] || {count:0,xp:0,values:[]};
-        const P = pct(t.weekDone, goal), st = stateClass(t.weekDone, goal);
-        const bars = (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
+        const m   = t.metrics[S.range] || { count:0, xp:0, weeks:[] };
+        const P   = pct(t.weekDone, goal);
+        const st  = stateClass(t.weekDone, goal);
+        const bars= (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
+        const fire= (t.streakWeeks>=2) ? `<span class="chip">🔥 x${t.streakWeeks}w</span>` : '';
+      
         return `<div class="task">
           <div class="left">
             <div class="name">${t.name}</div>
@@ -165,12 +186,39 @@
           <div class="right">
             <span class="chip">✓×${m.count||0}</span>
             <span class="chip">+${m.xp||0} XP</span>
-            <span class="chip">🔥 x${t.streakWeeks||0}w</span>
+            ${fire}
             ${bars}
           </div>
         </div>`;
       }).join('');
-    }
+    //   const exclude = new Set(topStreaks.map(t=>t.id));
+    //   const ranked = tasks
+    //     .filter(t=>!exclude.has(t.id))
+    //     .sort((a,b)=>((b.metrics[S.range]?.xp||0) - (a.metrics[S.range]?.xp||0)));
+
+    //   els.list.innerHTML = ranked.map(t=>{
+    //     const m = t.metrics[S.range] || {count:0,xp:0,values:[]};
+    //     const P = pct(t.weekDone, goal), st = stateClass(t.weekDone, goal);
+    //     const bars = (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
+    //     return `<div class="task">
+    //       <div class="left">
+    //         <div class="name">${t.name}</div>
+    //         <div class="stat">Stat: ${t.stat}</div>
+    //         <div class="prog">
+    //           <span class="state ${st}" title="Estado semanal"></span>
+    //           <div class="bar" style="--p:${P}%"><i></i></div>
+    //           <div class="pnum">${t.weekDone}/${goal}</div>
+    //         </div>
+    //       </div>
+    //       <div class="right">
+    //         <span class="chip">✓×${m.count||0}</span>
+    //         <span class="chip">+${m.xp||0} XP</span>
+    //         <span class="chip">🔥 x${t.streakWeeks||0}w</span>
+    //         ${bars}
+    //       </div>
+    //     </div>`;
+    //   }).join('');
+    // }
 
     // Eventos
     els.pillars.addEventListener('click',e=>{
@@ -226,14 +274,26 @@
     const monthEnd   = (d)=>new Date(d.getFullYear(), d.getMonth()+1, 1);
 
     // Construye semanas visibles para "Mes" (4-5 últimas)
-    function buildWeeksMonth(){
-      const arr=[]; const end=weekStart(now);
-      // tomamos 5 semanas (últimas), se verán 4/5 según el mes
-      for(let i=4;i>=0;i--){
-        const start=addDays(end, -7*i);
-        arr.push({start, end:addDays(start,7)});
+    // function buildWeeksMonth(){
+    //   const arr=[]; const end=weekStart(now);
+    //   // tomamos 5 semanas (últimas), se verán 4/5 según el mes
+    //   for(let i=4;i>=0;i--){
+    //     const start=addDays(end, -7*i);
+    //     arr.push({start, end:addDays(start,7)});
+    //   }
+    //   return arr;
+    // }
+
+    function buildWeeksOfCurrentMonth(){
+      const start = monthStart(now);
+      const end   = monthEnd(now);
+      const weeks = [];
+      for(let d=weekStart(start); d<end; d=addDays(d,7)){
+        const s = d < start ? start : d;
+        const e = addDays(d,7) > end ? end : addDays(d,7);
+        if (s < e) weeks.push({start:s, end:e});
       }
-      return arr;
+      return weeks; // 4 o 5 barras según el mes
     }
 
     // Meses para 3M: actual y dos anteriores
@@ -268,17 +328,30 @@
       });
 
       // weekDone actual (de tu tabla base)
-      const weekDone = t.weeklyNow[tier] || 0;
-      const week = { count: weekDone, xp: weekDone * (t.xp||0) };
+      const weekDone = t.weeklyNow[tier] || 0; // para la barra de progreso
+      // chips de "Sem": logs de esta semana calendario
+      const wStart = weekStart(now), wEnd = addDays(wStart,7);
+      let wCount=0, wXP=0;
+      for(const l of taskLogs){
+        const dt = parseD(get(l,['date','fecha','day','Fecha'])); if(!dt) continue;
+        if(dt>=wStart && dt<wEnd){ wCount++; wXP += xpFromLog(l, t.xp); }
+      }
+      const week = { count: wCount, xp: wXP };
 
       // Si no hay logs, devolvemos mínimos
+      // Si no hay logs, igual devolvemos barras vacías (grises)
       if(!taskLogs.length){
-        const blank = { count: week.count, xp: week.xp, weeks: [] };
-        return { week, month: blank, qtr: blank };
+        const monthWeeks = buildWeeksOfCurrentMonth().map(()=>0); // 4–5 barras
+        const qtrBars    = [0,0,0];                               // 3 barras (meses)
+        return {
+          week,                                 // chips de semana = 0
+          month: { count: 0, xp: 0, weeks: monthWeeks },
+          qtr:   { count: 0, xp: 0, weeks: qtrBars }
+        };
       }
 
       // ---- Mes (semanas) ----
-      const weeks = buildWeeksMonth();
+      const weeks = buildWeeksOfCurrentMonth();
       const weeksArr = new Array(weeks.length).fill(0);
       let monthCount=0, monthXP=0;
       for(const l of taskLogs){
@@ -288,7 +361,7 @@
           if(dt>=b.start && dt<b.end){ weeksArr[i]++; monthCount++; monthXP += xpFromLog(l, t.xp); break; }
         }
       }
-      const monthMetrics = { count: monthCount, xp: monthXP, weeks: weeksArr.slice(-5) };
+      const monthMetrics = { count: monthCount, xp: monthXP, weeks: weeksArr };
 
       // ---- 3M (3 barras = meses) ----
       const months = build3Months();
@@ -337,7 +410,7 @@
       // Top-3 rachas (si hay)
       const tier = MODE_TIER[String((mode||'FLOW')).toUpperCase()] || 3;
       const topStreaks = ofPillar
-        .filter(x=>x.streakWeeks>0)
+        .filter(x=>x.streakWeeks>=2)
         .sort((a,b)=>b.streakWeeks-a.streakWeeks)
         .slice(0,3)
         .map(x=>({ id:x.id, name:x.name, stat:x.stat, weekDone:(x.weeklyNow[tier]||0), streakWeeks:x.streakWeeks }));
