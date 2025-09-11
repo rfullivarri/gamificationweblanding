@@ -279,53 +279,102 @@
     };
 
     // === Info chips (usa tu util global attachInfoChip) ===
-    // (idempotente: si ya existe el chip, no vuelve a crearlo)
-    if (window.attachInfoChip) {
+    // === Info chips (usa tu util global attachInfoChip) ===
+    // Intenta varias veces por si la utilidad carga después.
+    (function initInfoChipsRetry(){
       const TOP_INFO_HTML = `
-          <div>
-            <h4>¿Cómo leer “Rachas”?</h4>
-            <ul style="margin:0; padding-left:18px">
-              <li>
-                <span class="ico-lila"></span>
-                <b>Barra lila</b>: progreso de la <b>semana actual</b> vs objetivo (<b>N×/sem</b> según el modo).
-              </li>
-              <li><b>✓×N</b> y <b>+XP</b>: totales en el <b>scope</b> seleccionado (Sem, Mes, 3M).</li>
-              <li>🔥 <b>Racha diaria</b>: días consecutivos sin cortar.</li>
-              <li>
-                <span class="ico-verdes"><i></i><i></i><i></i></span>
-                <b>Mini barras verdes</b> (Top-3): semanas del <b>mes actual</b> vs objetivo.
-              </li>
-              <li>
-                <span class="ico-verdes"><i></i><i></i><i></i></span>
-                <b>Barras verdes</b> por tarea:
-                <ul style="margin:6px 0 0 0; padding-left:18px">
-                  <li><b>Mes</b>: 4–5 columnas (semanas). Verde si esa semana alcanzó el objetivo; más alta si lo superó.</li>
-                  <li><b>3M</b>: 3 columnas (meses). Verde “llena” si todas las semanas del mes cumplieron.</li>
-                </ul>
-              </li>
-              <li><b>Etiquetas</b>: <b>1..5</b> = semanas; <b>J/A/S</b> = meses (derecha = mes actual).</li>
-            </ul>
-          </div>
-        `;
+        <div>
+          <h4>¿Cómo leer “Rachas”?</h4>
+          <ul style="margin:0; padding-left:18px">
+            <li><span class="ico-lila"></span> <b>Barra lila</b>: progreso de la <b>semana actual</b> vs objetivo (<b>N×/sem</b> según el modo).</li>
+            <li><b>✓×N</b> y <b>+XP</b>: totales en el <b>scope</b> seleccionado (Sem, Mes, 3M).</li>
+            <li>🔥 <b>Racha diaria</b>: días consecutivos sin cortar.</li>
+            <li><span class="ico-verdes"><i></i><i></i><i></i></span> <b>Mini barras verdes</b> (Top-3): semanas del <b>mes actual</b> vs objetivo.</li>
+            <li><span class="ico-verdes"><i></i><i></i><i></i></span> <b>Barras verdes</b> por tarea:
+              <ul style="margin:6px 0 0 0; padding-left:18px">
+                <li><b>Mes</b>: 4–5 columnas (semanas). Verde si esa semana alcanzó el objetivo; más alta si lo superó.</li>
+                <li><b>3M</b>: 3 columnas (meses). Verde “llena” si todas las semanas del mes cumplieron.</li>
+              </ul>
+            </li>
+            <li><b>Etiquetas</b>: <b>1..5</b> = semanas; <b>J/A/S</b> = meses (derecha = mes actual).</li>
+          </ul>
+        </div>`;
     
       const SCOPE_INFO_HTML = `
         <h4>Scopes: Sem / Mes / 3M</h4>
         <ul>
-          <li><b>Sem</b>: todo refleja SOLO la semana actual.</li>
+          <li><b>Sem</b>: todo refleja SOLO la semana actual (la lila siempre es semanal).</li>
           <li><b>Mes</b>: chips agregan el mes; barras verdes = semanas <b>1..N</b>.</li>
           <li><b>3M</b>: chips agregan 90 días; barras verdes = meses <b>J A S</b> (derecha = mes actual).</li>
-        </ul>
-        <p style="margin-top:6px"><b>Tip:</b> la lila SIEMPRE es la semana actual.</p>
-      `;
+        </ul>`;
     
-      // Evitar duplicados si alguien remonta el panel:
-      if (!document.querySelector('#rachasInfoTop .info-chip')) {
-        attachInfoChip('#rachasInfoTop', TOP_INFO_HTML, 'right');
+      let tries = 0;
+      const MAX = 20;     // ~3s total
+      const DELAY = 150;
+    
+      function go(){
+        // si la utilidad ya está y aún no se creó el chip, crearlo
+        if (window.attachInfoChip) {
+          if (!document.querySelector('#rachasInfoTop .info-chip')) {
+            attachInfoChip('#rachasInfoTop',   TOP_INFO_HTML,   'right');
+          }
+          if (!document.querySelector('#rachasInfoScope .info-chip')) {
+            attachInfoChip('#rachasInfoScope', SCOPE_INFO_HTML, 'right');
+          }
+          return; // listo
+        }
+        if (++tries <= MAX) setTimeout(go, DELAY);
+        // si se agota, no hacemos nada (evitamos ruido en consola)
       }
-      if (!document.querySelector('#rachasInfoScope .info-chip')) {
-        attachInfoChip('#rachasInfoScope', SCOPE_INFO_HTML, 'right');
-      }
-    }
+      go();
+    })();
+    // // (idempotente: si ya existe el chip, no vuelve a crearlo)
+    // if (window.attachInfoChip) {
+    //   const TOP_INFO_HTML = `
+    //       <div>
+    //         <h4>¿Cómo leer “Rachas”?</h4>
+    //         <ul style="margin:0; padding-left:18px">
+    //           <li>
+    //             <span class="ico-lila"></span>
+    //             <b>Barra lila</b>: progreso de la <b>semana actual</b> vs objetivo (<b>N×/sem</b> según el modo).
+    //           </li>
+    //           <li><b>✓×N</b> y <b>+XP</b>: totales en el <b>scope</b> seleccionado (Sem, Mes, 3M).</li>
+    //           <li>🔥 <b>Racha diaria</b>: días consecutivos sin cortar.</li>
+    //           <li>
+    //             <span class="ico-verdes"><i></i><i></i><i></i></span>
+    //             <b>Mini barras verdes</b> (Top-3): semanas del <b>mes actual</b> vs objetivo.
+    //           </li>
+    //           <li>
+    //             <span class="ico-verdes"><i></i><i></i><i></i></span>
+    //             <b>Barras verdes</b> por tarea:
+    //             <ul style="margin:6px 0 0 0; padding-left:18px">
+    //               <li><b>Mes</b>: 4–5 columnas (semanas). Verde si esa semana alcanzó el objetivo; más alta si lo superó.</li>
+    //               <li><b>3M</b>: 3 columnas (meses). Verde “llena” si todas las semanas del mes cumplieron.</li>
+    //             </ul>
+    //           </li>
+    //           <li><b>Etiquetas</b>: <b>1..5</b> = semanas; <b>J/A/S</b> = meses (derecha = mes actual).</li>
+    //         </ul>
+    //       </div>
+    //     `;
+    
+    //   const SCOPE_INFO_HTML = `
+    //     <h4>Scopes: Sem / Mes / 3M</h4>
+    //     <ul>
+    //       <li><b>Sem</b>: todo refleja SOLO la semana actual.</li>
+    //       <li><b>Mes</b>: chips agregan el mes; barras verdes = semanas <b>1..N</b>.</li>
+    //       <li><b>3M</b>: chips agregan 90 días; barras verdes = meses <b>J A S</b> (derecha = mes actual).</li>
+    //     </ul>
+    //     <p style="margin-top:6px"><b>Tip:</b> la lila SIEMPRE es la semana actual.</p>
+    //   `;
+    
+    //   // Evitar duplicados si alguien remonta el panel:
+    //   if (!document.querySelector('#rachasInfoTop .info-chip')) {
+    //     attachInfoChip('#rachasInfoTop', TOP_INFO_HTML, 'right');
+    //   }
+    //   if (!document.querySelector('#rachasInfoScope .info-chip')) {
+    //     attachInfoChip('#rachasInfoScope', SCOPE_INFO_HTML, 'right');
+    //   }
+    // }
 
     async function refresh(){
       const goal = MODES[S.mode] || 3;   // fallback
