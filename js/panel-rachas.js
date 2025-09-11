@@ -61,7 +61,12 @@
           </div>
           <div class="seg">
             <span class="chip mode ${S.mode.toLowerCase()}" data-role="modeChip">🎮 ${S.mode} · <b>${MODES[S.mode]}×/sem</b></span>
+            <button class="info" data-role="infoBtn">i</button>
           </div>
+        </div>
+        <div class="streaks" data-role="streaks" style="display:none">
+          <div class="stitle">🔥 Top 3 rachas <span class="muted">— días consecutivos sin cortar</span></div>
+          <div class="slist" data-role="top3"></div>
         </div>
         <div class="row" style="margin-top:8px">
           <div class="seg" data-role="range">
@@ -69,11 +74,6 @@
             <button aria-pressed="${S.range==='month'}" data-r="month">Mes</button>
             <button aria-pressed="${S.range==='qtr'}"   data-r="qtr">3M</button>
           </div>
-          <button class="info" data-role="infoBtn">i</button>
-        </div>
-        <div class="streaks" data-role="streaks" style="display:none">
-          <div class="stitle">🔥 Top 3 rachas <span class="muted">— días consecutivos sin cortar</span></div>
-          <div class="slist" data-role="top3"></div>
         </div>
         <div class="filter"><input type="search" data-role="q" placeholder="Filtrar tareas… (ej.: ayuno)"></div>
         <div class="list" data-role="list"></div>
@@ -147,6 +147,60 @@
         .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
         .wkbars .labels{position:absolute;inset:auto 0 -14px 0;display:grid;grid-auto-flow:column;gap:4px;pointer-events:none}
         .wkbars .labels i{display:block;text-align:center;font-size:11px;line-height:1;color:#9aa3b2;opacity:.8;font-weight:700;letter-spacing:.04em}
+        
+        /* BARRAS GRANDES + ETIQUETAS */
+        .wkbars{
+          position:relative;
+          display:grid;
+          grid-auto-flow:column;
+          gap:4px;
+          align-items:end;
+          /* antes: height:32px;  min-width:112px;  */
+          height:40px;               /* reserva espacio total */
+          min-width:112px;
+          padding-bottom:12px;        /* deja “piso” para las etiquetas */
+        }
+        .wkbars b{ width:12px; border-radius:4px }
+        .wkbars b.miss{background:#3a456f}
+        .wkbars b.hit{ background:#30e47b}
+        .wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+        
+        /* Etiquetas debajo, sin solaparse */
+        .wkbars .labels{
+          position:absolute;
+          left:0; right:0; bottom:0;           /* antes: inset:auto 0 -14px 0 */
+          display:grid;
+          grid-auto-flow:column;
+          gap:4px;
+          pointer-events:none;
+        }
+        .wkbars .labels i{
+          display:block;
+          text-align:center;
+          font-size:11px; line-height:1;
+          color:#9aa3b2; opacity:.8; font-weight:700; letter-spacing:.04em;
+        }
+        
+        /* ====== chip de modo, más chico y no “parecido a botón” ====== */
+        .chip.mode{
+          border-radius:10px;                /* más rectangular */
+          font-size:12px; padding:5px 10px;
+          background:color-mix(in srgb, var(--mcolor, #5aa0ff) 12%, #0c1124);
+          border:1px solid color-mix(in srgb, var(--mcolor, #5aa0ff) 40%, #2a3560);
+          box-shadow:0 0 0 1px color-mix(in srgb, var(--mcolor, #5aa0ff) 25%, transparent) inset;
+        }
+        .chip.mode.low    { --mcolor:#ff6b6b; }   /* Low = rojo   */
+        .chip.mode.chill  { --mcolor:#20d3b0; }   /* Chill = verde */
+        .chip.mode.flow   { --mcolor:#1f7aff; }   /* Flow = azul  */
+        .chip.mode.evolve { --mcolor:#a77bff; }   /* Evolve = lila*/
+        
+        /* ====== tabs Sem/Mes/3M reubicados y centrados ====== */
+        .seg.is-range{ width:100%; justify-content:center; gap:8px; }
+        .seg.is-range button{ flex:0 1 96px; }       /* tamaño parejo y responsive */
+        
+        /* pequeño ajuste para que el bloque derecho tenga aire
+           cuando las barras verdes son altas */
+        .right{gap:10px; flex-wrap:wrap; justify-content:flex-end; min-height:40px}
       `;
       document.head.appendChild(css);
     }
@@ -224,7 +278,7 @@
         const bars = (S.range==='week') ? '' : weeklyBars(m.weeks, goal, wkLabels);
       
         // (el fueguito lo dejamos como está por ahora)
-        const fire = (t.streakWeeks>=2) ? `<span class="chip">🔥 x${t.streakWeeks}w</span>` : '';
+        const fire = (t.streakWeeks>=2) ? `<span class="chip">🔥</span>` : '';
       
         return `<div class="task">
           <div class="left">
