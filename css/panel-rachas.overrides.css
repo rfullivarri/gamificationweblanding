@@ -1,47 +1,40 @@
-/* ============== TOKENS del panel de rachas (no toques) ============== */
+/* ===== TOKENS del panel de rachas ===== */
 .dashboard-root{
   --gj-glass-blur: 18px;
   --gj-glass-bg: rgba(255,255,255,.06);
   --gj-glass-br: rgba(255,255,255,.22);
   --gj-glass-shadow: 0 12px 30px rgba(0,0,0,.35);
 
-  --gj-r-card: 28px;
-  --gj-r-inner: 16px;
+  --gj-r-card: 28px;     /* cards grandes */
+  --gj-r-inner: 16px;    /* inner containers */
   --gj-r-pill: 999px;
 
   --gj-surface-1: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
-  --gj-surface-2: linear-gradient(180deg,#141c3a,#0e142b);
   --gj-stroke-1: rgba(255,255,255,.14);
-  --gj-stroke-2: #1f2a48;
-
   --gj-track: #1f274a;
   --gj-fill-level: linear-gradient(90deg,#FFE27A 0%, #FFC84D 55%, #F3A712 100%);
 
-  /* ======== Ajustes rápidos (TOCÁ ACÁ) ======== */
-  --dash-gap: 16px;                 /* [1] separacion entre columnas */
-  --dash-col-left: 360px;           /* [2] ancho col izquierda en desktop */
-  --dash-col-center-min: 520px;     /* [3] min del centro */
-  --dash-col-right: 420px;          /* [4] ancho col derecha (rachas) */
-  --info-pop-width: 340px;          /* [5] ancho máximo tooltip */
+  /* ===== Ajustes rápidos ===== */
+  --dash-gap: 16px;                /* espacio entre columnas */
+  --dash-min-col: 360px;           /* ancho mínimo de cada columna */
+  --info-pop-width: 340px;         /* ancho máximo de los tooltips */
 }
 
-/* ============== GRID DE 3 COLUMNAS (desktop) ============== */
+/* ===== GRID: 3 columnas del MISMO ancho ===== */
 .dashboard-root .dashboard-columns{
-  display:grid !important;
+  display: grid !important;
   grid-template-columns: 1fr;
   gap: var(--dash-gap);
-  align-items:start;
+  align-items: start;
 }
 @media (min-width: 1180px){
   .dashboard-root .dashboard-columns{
-    grid-template-columns:
-      var(--dash-col-left)
-      minmax(var(--dash-col-center-min), 1fr)
-      var(--dash-col-right);
+    /* tres columnas iguales; cada una no baja de --dash-min-col */
+    grid-template-columns: repeat(3, minmax(var(--dash-min-col), 1fr));
   }
 }
 
-/* ============== CARDS con vidrio del panel ============== */
+/* ===== Cards con vidrio del panel ===== */
 .dashboard-root .xp-box,
 .dashboard-root .avatar-box,
 .dashboard-root .energy-box,
@@ -59,11 +52,10 @@
   backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   box-shadow:var(--gj-glass-shadow);
-  overflow:visible;            /* deja salir tooltips */
-  z-index:0;
+  overflow: visible;    /* deja salir los tooltips */
 }
 
-/* brillos por debajo siempre */
+/* brillo sutil debajo siempre */
 .dashboard-root .xp-box::before,
 .dashboard-root .energy-box::before,
 .dashboard-root .daily-cultivation-section::before,
@@ -74,53 +66,37 @@
   background:
     radial-gradient(140px 140px at 22% 68%, rgba(168,120,255,.18), transparent 60%),
     radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18), transparent 60%);
-  filter:blur(10px) saturate(120%);
+  filter: blur(10px) saturate(120%);
   pointer-events:none;
   z-index:-1;
 }
 
-/* ============== Inner containers ============== */
+/* ===== Inner containers típicos ===== */
 .dashboard-root .daily-cultivation-section .chart-wrapper,
 .dashboard-root .emotion-box .emotion-chart-container,
 .dashboard-root .radar-section #radarChartContainer{
-  background:var(--gj-surface-1);
-  border:1px solid var(--gj-stroke-1);
-  border-radius:var(--gj-r-inner);
-  padding:8px;
+  background: var(--gj-surface-1);
+  border: 1px solid var(--gj-stroke-1);
+  border-radius: var(--gj-r-inner);
+  padding: 8px;
 }
 
-/* ============== Avatar sin margen + tamaño grande (doble) ============== */
-.dashboard-root .avatar-box{ max-width:440px; margin:0 auto; padding:0; }
+/* ===== Avatar sin margen y grande ===== */
+.dashboard-root .avatar-box{ max-width: 440px; margin: 0 auto; padding: 0; }
 @media (max-width: 600px){ .dashboard-root .avatar-box{ max-width:320px; } }
 .dashboard-root .avatar-img{
-  display:block; width:100%; height:auto; aspect-ratio:3/4;
+  display:block; width:100%; aspect-ratio:3/4; height:auto;
   border-radius:var(--gj-r-card); border:1px solid var(--gj-glass-br);
 }
 
-/* ============== Chips y barras (igual al panel) ============== */
-.dashboard-root .chip{
-  background:#1a2037; border:1px solid #2a3560; color:#d6dcff;
-  padding:6px 9px; border-radius:var(--gj-r-pill);
-  font-weight:800; display:inline-flex; align-items:center; gap:8px;
-}
-.dashboard-root .chip.mode{
-  --mcolor:#5aa0ff;
-  border-radius:10px; font-size:12px; padding:5px 10px;
-  background:color-mix(in srgb, var(--mcolor) 12%, #0c1124);
-  border:1px solid color-mix(in srgb, var(--mcolor) 40%, #2a3560);
-  box-shadow:0 0 0 1px color-mix(in srgb, var(--mcolor) 25%, transparent) inset;
-}
-.dashboard-root .chip.mode.low    { --mcolor:#ff6b6b; }
-.dashboard-root .chip.mode.chill  { --mcolor:#20d3b0; }
-.dashboard-root .chip.mode.flow   { --mcolor:#1f7aff; }
-.dashboard-root .chip.mode.evolve { --mcolor:#a77bff; }
-
+/* ===== Barras (nivel + energy) ===== */
 .dashboard-root .progress-bar{
   position:relative; height:20px; background:var(--gj-track);
   border-radius:var(--gj-r-pill); overflow:hidden;
 }
 .dashboard-root .progress-bar .bar-fill,
-.dashboard-root #bar-nivel{ position:absolute; inset:0; height:100%;
+.dashboard-root #bar-nivel{
+  position:absolute; inset:0; height:100%;
   background:var(--gj-fill-level); border-radius:var(--gj-r-pill);
 }
 .dashboard-root .energy-track{
@@ -129,16 +105,14 @@
 }
 .dashboard-root .energy-track .bar-fill{ height:100%; border-radius:var(--gj-r-pill); }
 
-/* ============== INFO BUTTONS (default: arriba-derecha) ============== */
-.dashboard-root .card-title{ position:relative; z-index:2; }
+/* ====== INFO: regla base (arriba-derecha) ====== */
+.dashboard-root .card-title{ position: relative; z-index: 2; }
 .dashboard-root .card-title .info,
 .dashboard-root .card-title .info-btn,
 .dashboard-root .card-title .info-chip{
   position:absolute !important; top:10px; right:10px;
   z-index:1002 !important;
 }
-
-/* Tooltip general: pegado al botón (arriba) y ancho legible */
 .dashboard-root .info-pop{
   position:absolute !important;
   top:0; right:0;
@@ -148,33 +122,45 @@
   width: max-content;
 }
 
-/* ============== EXCEPCIÓN: Daily Cultivation (ℹ a la IZQUIERDA) ============== */
-.dashboard-root .daily-cultivation-section .card-title{ padding-left:28px; }
-.dashboard-root .daily-cultivation-section .card-title h3{ padding-left:0; }
-
-/* botón a la izquierda */
+/* ====== EXCEPCIÓN 1: Daily Cultivation (ℹ izquierda) ====== */
 .dashboard-root .daily-cultivation-section .card-title .info,
 .dashboard-root .daily-cultivation-section .card-title .info-btn,
 .dashboard-root .daily-cultivation-section .card-title .info-chip{
   left:10px; right:auto;
 }
-
-/* tooltip anclado al botón de la izquierda, saliendo hacia abajo o arriba izquierda */
 .dashboard-root .daily-cultivation-section .info-pop{
-  left:10px; right:auto;
-  transform: translate(0, calc(-100% - 10px));   /* arriba de la cabecera */
-  max-width: var(--info-pop-width);
-  width: max-content;
+  left:0; right:auto;
+  transform: translate(0, calc(-100% - 10px));
 }
 
-/* Si por estructura el tooltip no queda dentro del título, anclamos desde el contenedor */
+/* ====== EXCEPCIÓN 2: Radar y Emotion (forzar correcto anclaje) ====== */
+.dashboard-root .radar-section .card-title .info,
+.dashboard-root .emotion-box .card-title .info,
+.dashboard-root .radar-section .card-title .info-btn,
+.dashboard-root .emotion-box .card-title .info-btn,
+.dashboard-root .radar-section .card-title .info-chip,
+.dashboard-root .emotion-box .card-title .info-chip{
+  top:10px; right:10px; left:auto;  /* arriba-derecha fijo */
+}
+.dashboard-root .radar-section .info-pop,
+.dashboard-root .emotion-box .info-pop{
+  right:0; left:auto;
+  transform: translate(0, calc(-100% - 10px));
+}
+
+/* Fallback por si el tooltip se inyecta fuera del título */
+.dashboard-root .radar-section > .info-pop,
+.dashboard-root .emotion-box > .info-pop,
 .dashboard-root .daily-cultivation-section > .info-pop{
-  position:absolute !important; left:10px; top:10px; right:auto;
-  transform: translateY(calc(-100% - 10px));
+  position:absolute !important; top:10px; right:10px;
+  transform: translate(0, calc(-100% - 10px));
   z-index:1001 !important;
 }
+.dashboard-root .daily-cultivation-section > .info-pop{
+  left:10px; right:auto; transform: translate(0, calc(-100% - 10px));
+}
 
-/* ============== Notificaciones ============== */
+/* ====== Notificaciones (coherencia visual) ====== */
 .dashboard-root #gj-noti-dropdown{
   border-radius:var(--gj-r-inner) !important;
   border:1px solid var(--gj-glass-br) !important;
@@ -184,7 +170,7 @@
   box-shadow:var(--gj-glass-shadow) !important;
 }
 
-/* ajustes de spacing */
+/* Espaciados menores */
 .dashboard-root .card-title{ margin-bottom:8px; }
 .dashboard-root .energy-meter{ margin:10px 0; }
 .dashboard-root .daily-cultivation-header{
