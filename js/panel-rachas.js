@@ -233,7 +233,15 @@
       if(m){const [_,dd,mm,yy]=m; return new Date(yy.length===2?('20'+yy):yy, mm-1, dd)}
       return null;
     };
-    const sameTask=(a,b)=>a.toLowerCase().trim()===b.toLowerCase().trim();
+    // compara ignorando acentos, mayúsculas y pequeños desvíos ("2l de agua" ~ "2 litros de agua")
+    const normStr = s => (s ?? '').toString()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // sin acentos
+      .toLowerCase().trim();
+    
+    const sameTask = (a,b) => {
+      const A = normStr(a), B = normStr(b);
+      return A === B || A.includes(B) || B.includes(A);
+    };
 
     const now = new Date(), DAY=86400000;
     const weekStart = (date)=>{ const d=new Date(date); const day=(d.getDay()+6)%7; d.setHours(0,0,0,0); return new Date(d.getTime()-day*DAY); };
@@ -285,14 +293,24 @@
       });
 
       // weekDone actual (de tu tabla base)
-      const weekDone = t.weeklyNow[tier] || 0; // para la barra de progreso
-      // chips de "Sem": logs de esta semana calendario
+      // Barra semanal = weeklyNow (tu tabla base)
+      const weekDone = t.weeklyNow[tier] || 0;
+      
+      // Chips "Sem": preferí logs si existen; si no, usá weeklyNow*t.xp
       const wStart = weekStart(now), wEnd = addDays(wStart,7);
-      let wCount=0, wXP=0;
-      for(const l of taskLogs){
-        const dt = parseD(get(l,['date','fecha','day','Fecha'])); if(!dt) continue;
-        if(dt>=wStart && dt<wEnd){ wCount++; wXP += xpFromLog(l, t.xp); }
+      let wCount = weekDone;
+      let wXP    = weekDone * (t.xp || 0);
+      
+      const weekLogs = [];
+      for (const l of taskLogs) {
+        const dt = parseD(get(l,['date','fecha','day','Fecha'])); if (!dt) continue;
+        if (dt>=wStart && dt<wEnd) { weekLogs.push(l); }
       }
+      if (weekLogs.length) {
+        wCount = weekLogs.length;
+        wXP    = weekLogs.reduce((acc,l)=>acc + xpFromLog(l, t.xp), 0);
+      }
+      
       const week = { count: wCount, xp: wXP };
 
       // Si no hay logs, devolvemos mínimos
