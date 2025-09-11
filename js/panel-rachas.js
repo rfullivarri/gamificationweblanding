@@ -133,6 +133,28 @@
         .seg{display:flex;gap:8px;flex-wrap:wrap}
         .seg button{background:#1a2240;border:1px solid #24325a;color:#cfd6ff;padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer}
         .seg button[aria-pressed="true"]{background:#eef2ff;color:#0f1630;border-color:transparent}
+        /* === Info chips: fijar anclaje y que se vean como botoncito === */
+        #rachasInfoTop, #rachasInfoScope{
+          position: relative;            /* ancla local para estilos globales */
+          display: inline-flex; 
+          align-items: center;
+          min-width: 22px;               /* evita colapso del contenedor */
+        }
+        
+        /* Si tu CSS global posiciona .info-chip en absolute, acá lo neutralizamos */
+        #rachasInfoTop .info-chip,
+        #rachasInfoScope .info-chip{
+          position: static !important;   /* que fluya como botón común */
+          margin-left: 6px;
+        }
+        
+        /* Opcional: tamaño/estética consistente con tus tabs */
+        #rachasInfoTop .info-chip,
+        #rachasInfoScope .info-chip{
+          width: 26px; height: 26px; border-radius: 999px;
+          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+          font-weight:800; line-height:1; cursor:pointer;
+        }
         .chip{background:#1a2037;border:1px solid #2a3560;color:#d6dcff;padding:6px 9px;border-radius:999px;font-weight:800;display:inline-flex;align-items:center;gap:8px}
         .chip.mode{--modeFlow:#1f7aff;background:color-mix(in srgb, var(--modeFlow) 12%, #0c1124);border-color:color-mix(in srgb, var(--modeFlow) 40%, #2a3560)}
         .chip.mode.low{--modeFlow:#7d7fff}.chip.mode.chill{--modeFlow:#7bc6ff}.chip.mode.flow{--modeFlow:#1f7aff}.chip.mode.evolve{--modeFlow:#20d3b0}
