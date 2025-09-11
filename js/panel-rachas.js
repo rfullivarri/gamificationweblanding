@@ -419,9 +419,9 @@
       S.range=b.dataset.r; $$('.seg[data-role="range"] button',root).forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false')); refresh();
     });
     els.q.addEventListener('input', ()=>{ S.query=els.q.value||''; refresh(); });
-    els.infoBtn.addEventListener('click', ()=>{
-      alert('Tip: ✓×N = veces en el período · +XP = XP · 🔥 = racha. Mes = semanas; 3M = meses (verde si todas las semanas llegaron).');
-    });
+    // els.infoBtn.addEventListener('click', ()=>{
+    //   alert('Tip: ✓×N = veces en el período · +XP = XP · 🔥 = racha. Mes = semanas; 3M = meses (verde si todas las semanas llegaron).');
+    // });
 
     return refresh();
   }
