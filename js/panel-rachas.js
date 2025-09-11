@@ -123,7 +123,7 @@
           background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
           border:1px solid rgba(255,255,255,.14);
           border-radius:16px;
-          padding:9px 13px;              /* respiro lateral de cada card */
+          padding:9px 9px;              /* respiro lateral de cada card */
         }
         
         /* margen lateral de la lista para que las cards no “toquen” el vidrio */
@@ -159,7 +159,7 @@
         .pnum{font-variant-numeric:tabular-nums;font-weight:900;min-width:48px;text-align:right}
         .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
         .right .chip{background:transparent}
-        .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px;min-width:112px}
+        .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px}
         .wkbars b{width:12px;border-radius:4px}
         .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
         .muted{color:#9aa3b2}
@@ -231,6 +231,18 @@
         /* pequeño ajuste para que el bloque derecho tenga aire
            cuando las barras verdes son altas */
         .right{gap:10px; flex-wrap:wrap; justify-content:flex-end; min-height:40px}
+        /* compactar el bloque de barras verdes */
+        .task .right{ gap:8px; } /* antes 10px, reduce el aire entre chips y barras */
+        
+        /* ⚠️ anula el min-width heredado (si lo tenés en alguna regla anterior) */
+        .wkbars{ min-width:0 !important; }
+        
+        /* barras y separaciones más finas */
+        .wkbars{ gap:3px; }             /* antes 4px */
+        .wkbars b{ width:9px; }         /* antes 12px */
+        
+        /* etiquetas más juntitas y… más abajo para que no “muerdan” barras altas */
+        .wkbars .labels{ gap:3px; bottom:-8px; font-size:10px; }
       `;
       document.head.appendChild(css);
     }
