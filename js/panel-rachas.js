@@ -29,7 +29,7 @@
       ? `<div class="labels">${labels.map(t=>`<i>${t}</i>`).join('')}</div>`
       : '';
   
-    return `<div class="wkbars">${bars}${lab}</div>`;
+    return <div class="wkbars" style="--bars:${values.length}">${bars}${lab}</div>;
   }
   // Mini barras verdes (Top-3): semanas del MES actual vs goal
   function miniWeeklyBars(values, goal){
@@ -90,19 +90,44 @@
       css.textContent = `
         .third{max-width:560px;margin:0 auto 18px;width:100%}
         @media(min-width:1160px){.third{max-width:33vw}}
+        /* Box principal con glass claro (estilo Simplicity) */
         .box{
-        position:relative; overflow:hidden; border-radius:22px;
-        backdrop-filter:saturate(140%) blur(14px);
-        background:rgba(12,16,34,.65); border:1px solid rgba(140,130,255,.25);
-        box-shadow:0 10px 28px rgba(0,0,0,.35)
+          /* tokens */
+          --glass-blur: 18px;
+          --glass-bg: rgba(255,255,255,.06);        /* blanco lechoso */
+          --glass-br: rgba(255,255,255,.22);        /* borde claro */
+          --glass-shadow: 0 12px 30px rgba(0,0,0,.35);
+        
+          position:relative; overflow:hidden;
+          border-radius:28px;                        /* radio grande como el ref */
+          background:var(--glass-bg);
+          backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+          -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+          border:1px solid var(--glass-br);
+          box-shadow:var(--glass-shadow);
+        
+          /* más respiro horizontal sin tocar el spacing vertical que ya te gusta */
+          padding:14px 18px 14px;
         }
+        /* destellos lila/azul muy suaves detrás (como el ref) */
         .box::before{
-          content:""; position:absolute; inset:-35% -10% auto -10%; height:260px;
+          content:""; position:absolute; inset:-30% -8% auto -8%; height:260px;
           background:
-            radial-gradient(140px 140px at 22% 65%, rgba(168,120,255,.18), transparent 60%),
-            radial-gradient(180px 180px at 78% 30%, rgba(55,170,255,.18), transparent 60%);
-          filter:blur(10px) saturate(120%); pointer-events:none
+            radial-gradient(140px 140px at 22% 68%, rgba(168,120,255,.18), transparent 60%),
+            radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18),  transparent 60%);
+          filter:blur(10px) saturate(120%); pointer-events:none;
         }
+        
+        /* Cards internas con una capa de glass un poco más opaca para “doble vidrio” */
+        .task{
+          background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+          border:1px solid rgba(255,255,255,.14);
+          border-radius:16px;
+          padding:12px 16px;              /* respiro lateral de cada card */
+        }
+        
+        /* margen lateral de la lista para que las cards no “toquen” el vidrio */
+        .list{ padding:0 10px 12px; }
         .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
         .seg{display:flex;gap:8px;flex-wrap:wrap}
         .seg button{background:#1a2240;border:1px solid #24325a;color:#cfd6ff;padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer}
@@ -161,36 +186,28 @@
         .wkbars .labels i{display:block;text-align:center;font-size:11px;line-height:1;color:#9aa3b2;opacity:.8;font-weight:700;letter-spacing:.04em}
         
         /* BARRAS GRANDES + ETIQUETAS */
+        /* Barras con “zanja” para labels */
         .wkbars{
           position:relative;
-          display:grid;
-          grid-auto-flow:column;
-          gap:4px;
-          align-items:end;
-          /* antes: height:32px;  min-width:112px;  */
-          height:40px;               /* reserva espacio total */
-          min-width:112px;
-          padding-bottom:12px;        /* deja “piso” para las etiquetas */
+          display:grid; grid-auto-flow:column; gap:4px; align-items:end;
+          height:36px;                 /* pelín más alto */
+          padding-bottom:18px;         /* reserva suelo para etiquetas */
+          overflow:visible;
         }
         .wkbars b{ width:12px; border-radius:4px }
         .wkbars b.miss{background:#3a456f}
-        .wkbars b.hit{ background:#30e47b}
+        .wkbars b.hit {background:#30e47b}
         .wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
         
-        /* Etiquetas debajo, sin solaparse */
         .wkbars .labels{
-          position:absolute;
-          left:0; right:0; bottom:0;           /* antes: inset:auto 0 -14px 0 */
-          display:grid;
-          grid-auto-flow:column;
-          gap:4px;
-          pointer-events:none;
+          position:absolute; left:0; right:0; bottom:-10px;   /* más abajo → no pisa barras altas */
+          display:grid; grid-template-columns:repeat(var(--bars,3),1fr);
+          gap:4px; pointer-events:none;
         }
         .wkbars .labels i{
-          display:block;
-          text-align:center;
-          font-size:11px; line-height:1;
-          color:#9aa3b2; opacity:.8; font-weight:700; letter-spacing:.04em;
+          display:block; text-align:center;
+          font-size:11px; line-height:1; font-weight:700; letter-spacing:.02em;
+          transform:none;               /* nada de translate raro */
         }
         
         /* ====== chip de modo, más chico y no “parecido a botón” ====== */
