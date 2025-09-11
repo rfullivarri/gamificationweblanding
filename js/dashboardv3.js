@@ -6,15 +6,8 @@ const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxncfav0V6OJsHDF
 async function loadDataFromCacheOrWebApp(email) {
   try {
     const r = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
-
-    if (r.status === 200) {
-      return await r.json();
-    }
-    // Si no hay bundle todavía
-    if (r.status === 204) {
-      throw new Error('No bundle yet');
-    }
-    // Cualquier otro status del Worker => probamos fallback
+    if (r.status === 200) return await r.json();
+    if (r.status === 204) throw new Error('No bundle yet');
     throw new Error(`Worker ${r.status}`);
   } catch (err) {
     const resp = await fetch(`${OLD_WEBAPP_URL}?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
@@ -27,29 +20,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   const overlay = document.getElementById("spinner-overlay");
   const showSpinner = () => overlay && (overlay.style.display = "flex");
   const hideSpinner = () => overlay && (overlay.style.display = "none");
-
-  showSpinner(); // que se vea antes de cualquier fetch
+  showSpinner();
 
   try {
     // 1) email
     const params = new URLSearchParams(window.location.search);
     const email = params.get("email");
-    if (!email) { 
-      alert("No se proporcionó un correo electrónico."); 
-      return; 
-    }
-    
+    if (!email) { alert("No se proporcionó un correo electrónico."); return; }
+
     // 1.1) Contexto para el SCHEDULER
     window.GJ_CTX = { email };
 
-
-    
     // 2) FETCH DATOS (usa Worker -> fallback WebApp)
     const dataRaw = await loadDataFromCacheOrWebApp(email);
-    
-    // ---- Normalizar data del Worker (metrics/links) al formato plano que usa el front ----
+
+    // 2.1) Logs crudos para rachas (CLAVE)
+    const logsRaw = Array.isArray(dataRaw?.daily_log_raw) ? dataRaw.daily_log_raw
+                  : (Array.isArray(dataRaw?.daily_log)    ? dataRaw.daily_log : []);
+
+    // DEBUG: ver que lleguen
+    console.log('[Dashboard] bundle:', dataRaw);
+    console.log('[Dashboard] daily_log_raw len =', logsRaw.length);
+
+    // ---- Normalizar data al formato plano que usa el front ----
     const data = {
-      // Métricas
+      // Métricas (flatten)
       xp:            dataRaw.xp ?? dataRaw.metrics?.xp_actual ?? 0,
       nivel:         dataRaw.nivel ?? dataRaw.metrics?.nivel ?? 0,
       xp_faltante:   dataRaw.xp_faltante ?? dataRaw.metrics?.xp_faltante ?? 0,
@@ -59,31 +54,45 @@ document.addEventListener("DOMContentLoaded", async () => {
       focus:         dataRaw.focus ?? dataRaw.metrics?.focus ?? 0,
       dias_journey:  dataRaw.dias_journey ?? dataRaw.metrics?.dias_journey ?? 0,
       game_mode:     dataRaw.game_mode ?? dataRaw.metrics?.game_mode ?? "",
-    
+
       // Links
-      avatar_url:         dataRaw.avatar_url ?? dataRaw.links?.avatar_url ?? "",
-      daily_form_url:     dataRaw.daily_form_url ?? dataRaw.links?.daily_form ?? "",
-      daily_form_edit_url:dataRaw.daily_form_edit_url ?? dataRaw.links?.daily_form_edit ?? "",
-      user_profile:      dataRaw.user_profile ?? dataRaw.links?.user_profile ?? "",
-      bbdd_editor_url:    dataRaw.bbdd_editor_url ?? dataRaw.links?.bbdd_editor ?? "",
-    
-      // Otros que ya usás tal cual
-      estado:             dataRaw.estado ?? "",
-      confirmacionbbdd:   dataRaw.confirmacionbbdd ?? "",
-      nombre:             dataRaw.nombre ?? "",
-      apellido:           dataRaw.apellido ?? "",
-      sexo:               dataRaw.sexo ?? "",
-      edad:               dataRaw.edad ?? "",
-      daily_cultivation:  dataRaw.daily_cultivation ?? [],
-      daily_emotion:      dataRaw.daily_emotion ?? [],
-      bbdd:               dataRaw.bbdd ?? [],
+      avatar_url:          dataRaw.avatar_url ?? dataRaw.links?.avatar_url ?? "",
+      daily_form_url:      dataRaw.daily_form_url ?? dataRaw.links?.daily_form ?? "",
+      daily_form_edit_url: dataRaw.daily_form_edit_url ?? dataRaw.links?.daily_form_edit ?? "",
+      user_profile:        dataRaw.user_profile ?? dataRaw.links?.user_profile ?? "",
+      bbdd_editor_url:     dataRaw.bbdd_editor_url ?? dataRaw.links?.bbdd_editor ?? "",
+
+      // Otros
+      estado:            dataRaw.estado ?? "",
+      confirmacionbbdd:  dataRaw.confirmacionbbdd ?? "",
+      nombre:            dataRaw.nombre ?? "",
+      apellido:          dataRaw.apellido ?? "",
+      sexo:              dataRaw.sexo ?? "",
+      edad:              dataRaw.edad ?? "",
+
+      // Series que ya usás
+      daily_cultivation: dataRaw.daily_cultivation ?? [],
+      daily_emotion:     dataRaw.daily_emotion ?? [],
+
+      // BBDD de tareas
+      bbdd:              Array.isArray(dataRaw.bbdd) ? dataRaw.bbdd : [],
 
       // Habitos Logrados (para Radar)
-      habitos_logrados:      dataRaw.habitos_logrados ?? [],
-      habitos_by_rasgo:      dataRaw.habitos_agg_by_rasgo ?? null,
+      habitos_logrados:  dataRaw.habitos_logrados ?? [],
+      habitos_by_rasgo:  dataRaw.habitos_agg_by_rasgo ?? null,
+
+      // ⬅️ NUEVO: EXponer logs crudos para el panel de rachas
+      daily_log_raw:     logsRaw,
+      daily_log:         logsRaw, // alias por compat
     };
 
+    // 3) Espejos globales
+    // - GJ_DATA: objeto “plano” que usa la UI
+    // - GJ_W1:   bundle estilo worker/webapp (por si algo quiere el shape original)
     window.GJ_DATA = data;
+    window.GJ_W1   = { ...dataRaw, daily_log_raw: logsRaw, daily_log: logsRaw };
+
+    // 4) Notificar que hay datos listos
     document.dispatchEvent(new CustomEvent('gj:data-ready', { detail: { data } }));
 
 
