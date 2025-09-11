@@ -10,18 +10,13 @@
   // Barras: Mes = semanas; 3M = meses agregados
   function weeklyBars(values, goal){
     if(!Array.isArray(values) || values.length===0) return '';
-    const BASE = 20, EXTRA = 6;
+    const BASE = 20, EXTRA = 6, g = Math.max(1, goal|0);
     return `<div class="wkbars">${
       values.map(v=>{
         const n = Math.max(0, Number(v)||0);
-        if (n < goal) {
-          const h = Math.max(6, Math.round(BASE*(n/goal)));
-          return `<b class="miss" style="height:${h}px"></b>`;
-        }
-        if (n === goal) {
-          return `<b class="hit" style="height:${BASE}px"></b>`;
-        }
-        const h = BASE + (n - goal) * EXTRA;
+        if (n < g)  { const h = Math.max(6, Math.round(BASE*(n/g))); return `<b class="miss" style="height:${h}px"></b>`; }
+        if (n === g){ return `<b class="hit" style="height:${BASE}px"></b>`; }
+        const h = BASE + (n - g) * EXTRA;
         return `<b class="over" style="height:${h}px"></b>`;
       }).join('')
     }</div>`;
@@ -136,7 +131,7 @@
     };
 
     async function refresh(){
-      const goal = MODES[S.mode];
+      const goal = MODES[S.mode] || 3;   // fallback
       els.modeChip.className = `chip mode ${S.mode.toLowerCase()}`;
       els.modeChip.innerHTML = `🎮 ${S.mode} · <b>${goal}×/sem</b>`;
 
@@ -192,35 +187,7 @@
         </div>`;
       }).join('');
     }
-    //   const exclude = new Set(topStreaks.map(t=>t.id));
-    //   const ranked = tasks
-    //     .filter(t=>!exclude.has(t.id))
-    //     .sort((a,b)=>((b.metrics[S.range]?.xp||0) - (a.metrics[S.range]?.xp||0)));
-
-    //   els.list.innerHTML = ranked.map(t=>{
-    //     const m = t.metrics[S.range] || {count:0,xp:0,values:[]};
-    //     const P = pct(t.weekDone, goal), st = stateClass(t.weekDone, goal);
-    //     const bars = (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
-    //     return `<div class="task">
-    //       <div class="left">
-    //         <div class="name">${t.name}</div>
-    //         <div class="stat">Stat: ${t.stat}</div>
-    //         <div class="prog">
-    //           <span class="state ${st}" title="Estado semanal"></span>
-    //           <div class="bar" style="--p:${P}%"><i></i></div>
-    //           <div class="pnum">${t.weekDone}/${goal}</div>
-    //         </div>
-    //       </div>
-    //       <div class="right">
-    //         <span class="chip">✓×${m.count||0}</span>
-    //         <span class="chip">+${m.xp||0} XP</span>
-    //         <span class="chip">🔥 x${t.streakWeeks||0}w</span>
-    //         ${bars}
-    //       </div>
-    //     </div>`;
-    //   }).join('');
-    // }
-
+    
     // Eventos
     els.pillars.addEventListener('click',e=>{
       const b=e.target.closest('button'); if(!b) return;
@@ -273,17 +240,6 @@
     const addDays=(d,n)=>new Date(d.getTime()+n*DAY);
     const monthStart = (d)=>new Date(d.getFullYear(), d.getMonth(), 1);
     const monthEnd   = (d)=>new Date(d.getFullYear(), d.getMonth()+1, 1);
-
-    // Construye semanas visibles para "Mes" (4-5 últimas)
-    // function buildWeeksMonth(){
-    //   const arr=[]; const end=weekStart(now);
-    //   // tomamos 5 semanas (últimas), se verán 4/5 según el mes
-    //   for(let i=4;i>=0;i--){
-    //     const start=addDays(end, -7*i);
-    //     arr.push({start, end:addDays(start,7)});
-    //   }
-    //   return arr;
-    // }
 
     function buildWeeksOfCurrentMonth(){
       const start = monthStart(now);
@@ -431,6 +387,49 @@
   else global.PanelRachas = PanelRachas;
 
 })(typeof window!=='undefined' ? window : globalThis);
+
+
+
+    // Construye semanas visibles para "Mes" (4-5 últimas)
+    // function buildWeeksMonth(){
+    //   const arr=[]; const end=weekStart(now);
+    //   // tomamos 5 semanas (últimas), se verán 4/5 según el mes
+    //   for(let i=4;i>=0;i--){
+    //     const start=addDays(end, -7*i);
+    //     arr.push({start, end:addDays(start,7)});
+    //   }
+    //   return arr;
+    // }
+
+
+    //   const exclude = new Set(topStreaks.map(t=>t.id));
+    //   const ranked = tasks
+    //     .filter(t=>!exclude.has(t.id))
+    //     .sort((a,b)=>((b.metrics[S.range]?.xp||0) - (a.metrics[S.range]?.xp||0)));
+
+    //   els.list.innerHTML = ranked.map(t=>{
+    //     const m = t.metrics[S.range] || {count:0,xp:0,values:[]};
+    //     const P = pct(t.weekDone, goal), st = stateClass(t.weekDone, goal);
+    //     const bars = (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
+    //     return `<div class="task">
+    //       <div class="left">
+    //         <div class="name">${t.name}</div>
+    //         <div class="stat">Stat: ${t.stat}</div>
+    //         <div class="prog">
+    //           <span class="state ${st}" title="Estado semanal"></span>
+    //           <div class="bar" style="--p:${P}%"><i></i></div>
+    //           <div class="pnum">${t.weekDone}/${goal}</div>
+    //         </div>
+    //       </div>
+    //       <div class="right">
+    //         <span class="chip">✓×${m.count||0}</span>
+    //         <span class="chip">+${m.xp||0} XP</span>
+    //         <span class="chip">🔥 x${t.streakWeeks||0}w</span>
+    //         ${bars}
+    //       </div>
+    //     </div>`;
+    //   }).join('');
+    // }
 
 
 
