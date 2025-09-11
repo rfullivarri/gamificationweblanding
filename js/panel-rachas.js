@@ -164,8 +164,10 @@
       
       els.list.innerHTML = ranked.map(t=>{
         const m   = t.metrics[S.range] || { count:0, xp:0, weeks:[] };
-        const P   = pct(t.weekDone, goal);
-        const st  = stateClass(t.weekDone, goal);
+        // SIEMPRE semana actual para la lila:
+        const wk  = (t.metrics?.week?.count ?? 0);
+        const P   = pct(wk, goal);
+        const st  = stateClass(wk, goal);
         const bars= (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
         const fire= (t.streakWeeks>=2) ? `<span class="chip">🔥 x${t.streakWeeks}w</span>` : '';
       
@@ -176,7 +178,7 @@
             <div class="prog">
               <span class="state ${st}" title="Estado semanal"></span>
               <div class="bar" style="--p:${P}%"><i></i></div>
-              <div class="pnum">${t.weekDone}/${goal}</div>
+              <div class="pnum">${wk}/${goal}</div>
             </div>
           </div>
           <div class="right">
