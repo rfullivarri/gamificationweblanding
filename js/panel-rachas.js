@@ -90,7 +90,19 @@
       css.textContent = `
         .third{max-width:560px;margin:0 auto 18px;width:100%}
         @media(min-width:1160px){.third{max-width:33vw}}
-        .box{background:linear-gradient(180deg,#111831,#0e152a);border:1px solid #1f2a48;border-radius:22px;padding:14px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+        .box{
+        position:relative; overflow:hidden; border-radius:22px;
+        backdrop-filter:saturate(140%) blur(14px);
+        background:rgba(12,16,34,.65); border:1px solid rgba(140,130,255,.25);
+        box-shadow:0 10px 28px rgba(0,0,0,.35)
+        }
+        .box::before{
+          content:""; position:absolute; inset:-35% -10% auto -10%; height:260px;
+          background:
+            radial-gradient(140px 140px at 22% 65%, rgba(168,120,255,.18), transparent 60%),
+            radial-gradient(180px 180px at 78% 30%, rgba(55,170,255,.18), transparent 60%);
+          filter:blur(10px) saturate(120%); pointer-events:none
+        }
         .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
         .seg{display:flex;gap:8px;flex-wrap:wrap}
         .seg button{background:#1a2240;border:1px solid #24325a;color:#cfd6ff;padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer}
@@ -197,6 +209,7 @@
         /* ====== tabs Sem/Mes/3M reubicados y centrados ====== */
         .seg.is-range{ width:100%; justify-content:center; gap:8px; }
         .seg.is-range button{ flex:0 1 96px; }       /* tamaño parejo y responsive */
+        .seg[data-role="range"]{ width:100%; justify-content:center }
         
         /* pequeño ajuste para que el bloque derecho tenga aire
            cuando las barras verdes son altas */
