@@ -12,18 +12,37 @@
   const dbg = (...a)=>{ if (DEBUG_RACHAS) try{ console.log(...a); } catch(_){} };
 
   // Barras: Mes = semanas; 3M = meses agregados
-  function weeklyBars(values, goal){
+  // Barras: Mes = semanas; 3M = meses agregados
+  // +labels opcional: ['1','2','3','4','5'] ó ['J','A','S']
+  function weeklyBars(values, goal, labels){
     if(!Array.isArray(values) || values.length===0) return '';
     const BASE = 20, EXTRA = 6, g = Math.max(1, goal|0);
-    return `<div class="wkbars">${
+    const bars = values.map(v=>{
+      const n = Math.max(0, Number(v)||0);
+      if (n < g)  { const h = Math.max(6, Math.round(BASE*(n/g))); return `<b class="miss" style="height:${h}px"></b>`; }
+      if (n === g){ return `<b class="hit" style="height:${BASE}px"></b>`; }
+      const h = BASE + (n - g) * EXTRA;
+      return `<b class="over" style="height:${h}px"></b>`;
+    }).join('');
+  
+    const lab = (Array.isArray(labels) && labels.length===values.length)
+      ? `<div class="labels">${labels.map(t=>`<i>${t}</i>`).join('')}</div>`
+      : '';
+  
+    return `<div class="wkbars">${bars}${lab}</div>`;
+  }
+  // Mini barras verdes (Top-3): semanas del MES actual vs goal
+  function miniWeeklyBars(values, goal){
+    if(!Array.isArray(values) || values.length===0) return '';
+    const g = Math.max(1, goal|0);
+    return `<span class="wkmini">${
       values.map(v=>{
         const n = Math.max(0, Number(v)||0);
-        if (n < g)  { const h = Math.max(6, Math.round(BASE*(n/g))); return `<b class="miss" style="height:${h}px"></b>`; }
-        if (n === g){ return `<b class="hit" style="height:${BASE}px"></b>`; }
-        const h = BASE + (n - g) * EXTRA;
-        return `<b class="over" style="height:${h}px"></b>`;
+        if (n < g)  return `<b class="miss"></b>`;
+        if (n === g) return `<b class="hit"></b>`;
+        return `<b class="over"></b>`;
       }).join('')
-    }</div>`;
+    }</span>`;
   }
 
   // === Componente ===
@@ -117,6 +136,17 @@
           .wkbars b{width:10px}
           .pnum{min-width:auto}
         }
+        /* mini barras para Top-3 */
+        .wkmini{display:inline-grid;grid-auto-flow:column;gap:3px;align-items:end;height:10px;margin-left:8px}
+        .wkmini b{width:3px;border-radius:2px;opacity:.9}
+        .wkmini b.miss{background:#3a456f}
+        .wkmini b.hit{background:#30e47b}
+        .wkmini b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+        .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px;min-width:112px;position:relative}
+        .wkbars b{width:12px;border-radius:4px}
+        .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+        .wkbars .labels{position:absolute;inset:auto 0 -14px 0;display:grid;grid-auto-flow:column;gap:4px;pointer-events:none}
+        .wkbars .labels i{display:block;text-align:center;font-size:11px;line-height:1;color:#9aa3b2;opacity:.8;font-weight:700;letter-spacing:.04em}
       `;
       document.head.appendChild(css);
     }
@@ -141,17 +171,24 @@
 
       const { topStreaks=[], tasks=[] } = await dataProvider({ mode:S.mode, pillar:S.pillar, range:S.range, query:S.query });
 
-      // TOP 3
-      if(topStreaks.length===0){ els.streaks.style.display='none'; }
-      else{
+      // TOP 3 (sincronizado con logs semanales + mini-barras del mes)
+      if(topStreaks.length===0){
+        els.streaks.style.display='none';
+      }else{
         els.streaks.style.display='';
+        // para acceder a metrics por id
+        const byId = new Map(tasks.map(x=>[x.id, x]));
         els.top3.innerHTML = topStreaks.slice(0,3).map(t=>{
-          const p = pct(t.weekDone, goal);
+          const mt   = byId.get(t.id);                 // tarea completa con metrics
+          const wk   = mt?.metrics?.week?.count ?? t.weekDone ?? 0;   // semana actual (logs)
+          const p    = pct(wk, goal);                                   // barra lila
+          const bars = miniWeeklyBars(mt?.metrics?.month?.weeks || [], goal); // mini barras verdes (mes)
+      
           return `<div class="stag">
             <div class="n">${t.name}</div>
-            <div class="sub"><span></span><span>${t.weekDone}/${goal}</span></div>
+            <div class="sub"><span>${bars}</span><span>${wk}/${goal}</span></div>
             <div class="bar" style="--p:${p}%"><i></i></div>
-            ${t.streakWeeks>=2 ? `<span class="streak-chip">🔥 x${t.streakWeeks}w</span>` : ``}
+            ${t.streakWeeks>=2 ? `<span class="streak-chip">🔥 x${t.streakWeeks}d</span>` : ``}
           </div>`;
         }).join('');
       }
@@ -164,12 +201,30 @@
       
       els.list.innerHTML = ranked.map(t=>{
         const m   = t.metrics[S.range] || { count:0, xp:0, weeks:[] };
-        // SIEMPRE semana actual para la lila:
+      
+        // 🔮 LILA = SIEMPRE semana actual (independiente del scope)
         const wk  = (t.metrics?.week?.count ?? 0);
         const P   = pct(wk, goal);
         const st  = stateClass(wk, goal);
-        const bars= (S.range==='week') ? '' : weeklyBars(m.weeks, goal);
-        const fire= (t.streakWeeks>=2) ? `<span class="chip">🔥 x${t.streakWeeks}w</span>` : '';
+      
+        // 🟩 Etiquetas sutiles para las barritas verdes
+        let wkLabels = null;
+        if (S.range === 'month') {
+          // Semanas del mes: 1..N (N=4 o 5)
+          wkLabels = Array.from({length: (m.weeks?.length||0)}, (_,i)=> String(i+1));
+        } else if (S.range === 'qtr') {
+          // 3 meses: mes-2, mes-1, mes0 (derecha = mes actual)
+          const now = new Date();
+          const L = i => new Date(now.getFullYear(), now.getMonth()-i, 1)
+                          .toLocaleString('es-ES', { month:'short' })
+                          .slice(0,1).toUpperCase(); // J,A,S...
+          wkLabels = [ L(2), L(1), L(0) ];
+        }
+      
+        const bars = (S.range==='week') ? '' : weeklyBars(m.weeks, goal, wkLabels);
+      
+        // (el fueguito lo dejamos como está por ahora)
+        const fire = (t.streakWeeks>=2) ? `<span class="chip">🔥 x${t.streakWeeks}w</span>` : '';
       
         return `<div class="task">
           <div class="left">
@@ -189,7 +244,6 @@
           </div>
         </div>`;
       }).join('');
-    }
     
     // Eventos
     els.pillars.addEventListener('click',e=>{
