@@ -29,7 +29,7 @@
       ? `<div class="labels">${labels.map(t=>`<i>${t}</i>`).join('')}</div>`
       : '';
   
-    return <div class="wkbars" style="--bars:${values.length}">${bars}${lab}</div>;
+    return `<div class="wkbars" style="--bars:${values.length}">${bars}${lab}</div>`;
   }
   // Mini barras verdes (Top-3): semanas del MES actual vs goal
   function miniWeeklyBars(values, goal){
