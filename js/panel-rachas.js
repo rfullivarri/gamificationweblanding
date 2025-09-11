@@ -61,7 +61,7 @@
           </div>
           <div class="seg">
             <span class="chip mode ${S.mode.toLowerCase()}" data-role="modeChip">🎮 ${S.mode} · <b>${MODES[S.mode]}×/sem</b></span>
-            <button class="info" data-role="infoBtn">i</button>
+            <span id="rachasInfoTop" ></span>
           </div>
         </div>
         <div class="streaks" data-role="streaks" style="display:none">
@@ -74,6 +74,7 @@
             <button aria-pressed="${S.range==='month'}" data-r="month">Mes</button>
             <button aria-pressed="${S.range==='qtr'}"   data-r="qtr">3M</button>
           </div>
+          <span id="rachasInfoScope" ></span>
         </div>
         <div class="filter"><input type="search" data-role="q" placeholder="Filtrar tareas… (ej.: ayuno)"></div>
         <div class="list" data-role="list"></div>
@@ -243,6 +244,23 @@
         
         /* etiquetas más juntitas y… más abajo para que no “muerdan” barras altas */
         .wkbars .labels{ gap:3px; bottom:-8px; font-size:10px; }
+        /* Iconitos solo dentro del popover de ayuda */
+        .info-pop .ico-lila{
+          display:inline-block; width:22px; height:6px; 
+          background:linear-gradient(90deg,#5a2bff,#a77bff);
+          border-radius:999px; vertical-align:middle; margin-right:6px
+        }
+        .info-pop .ico-verdes{
+          display:inline-grid; grid-auto-flow:column; gap:3px; 
+          height:12px; vertical-align:middle; margin-right:6px
+        }
+        .info-pop .ico-verdes i{
+          width:3px; border-radius:2px; background:linear-gradient(180deg,#8bff6a,#26e0a4);
+          display:inline-block
+        }
+        .info-pop .ico-verdes i:nth-child(1){height:10px}
+        .info-pop .ico-verdes i:nth-child(2){height:7px}
+        .info-pop .ico-verdes i:nth-child(3){height:11px}
       `;
       document.head.appendChild(css);
     }
@@ -257,8 +275,57 @@
       top3:    $('[data-role="top3"]', root),
       list:    $('[data-role="list"]', root),
       q:       $('[data-role="q"]', root),
-      infoBtn: $('[data-role="infoBtn"]', root)
+      //infoBtn: $('[data-role="infoBtn"]', root)
     };
+
+    // === Info chips (usa tu util global attachInfoChip) ===
+    // (idempotente: si ya existe el chip, no vuelve a crearlo)
+    if (window.attachInfoChip) {
+      const TOP_INFO_HTML = `
+          <div>
+            <h4>¿Cómo leer “Rachas”?</h4>
+            <ul style="margin:0; padding-left:18px">
+              <li>
+                <span class="ico-lila"></span>
+                <b>Barra lila</b>: progreso de la <b>semana actual</b> vs objetivo (<b>N×/sem</b> según el modo).
+              </li>
+              <li><b>✓×N</b> y <b>+XP</b>: totales en el <b>scope</b> seleccionado (Sem, Mes, 3M).</li>
+              <li>🔥 <b>Racha diaria</b>: días consecutivos sin cortar.</li>
+              <li>
+                <span class="ico-verdes"><i></i><i></i><i></i></span>
+                <b>Mini barras verdes</b> (Top-3): semanas del <b>mes actual</b> vs objetivo.
+              </li>
+              <li>
+                <span class="ico-verdes"><i></i><i></i><i></i></span>
+                <b>Barras verdes</b> por tarea:
+                <ul style="margin:6px 0 0 0; padding-left:18px">
+                  <li><b>Mes</b>: 4–5 columnas (semanas). Verde si esa semana alcanzó el objetivo; más alta si lo superó.</li>
+                  <li><b>3M</b>: 3 columnas (meses). Verde “llena” si todas las semanas del mes cumplieron.</li>
+                </ul>
+              </li>
+              <li><b>Etiquetas</b>: <b>1..5</b> = semanas; <b>J/A/S</b> = meses (derecha = mes actual).</li>
+            </ul>
+          </div>
+        `;
+    
+      const SCOPE_INFO_HTML = `
+        <h4>Scopes: Sem / Mes / 3M</h4>
+        <ul>
+          <li><b>Sem</b>: todo refleja SOLO la semana actual.</li>
+          <li><b>Mes</b>: chips agregan el mes; barras verdes = semanas <b>1..N</b>.</li>
+          <li><b>3M</b>: chips agregan 90 días; barras verdes = meses <b>J A S</b> (derecha = mes actual).</li>
+        </ul>
+        <p style="margin-top:6px"><b>Tip:</b> la lila SIEMPRE es la semana actual.</p>
+      `;
+    
+      // Evitar duplicados si alguien remonta el panel:
+      if (!document.querySelector('#rachasInfoTop .info-chip')) {
+        attachInfoChip('#rachasInfoTop', TOP_INFO_HTML, 'right');
+      }
+      if (!document.querySelector('#rachasInfoScope .info-chip')) {
+        attachInfoChip('#rachasInfoScope', SCOPE_INFO_HTML, 'right');
+      }
+    }
 
     async function refresh(){
       const goal = MODES[S.mode] || 3;   // fallback
