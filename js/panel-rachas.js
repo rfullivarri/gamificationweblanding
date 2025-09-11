@@ -204,7 +204,7 @@
 
   // === Adaptador a Dashboard v3 (reemplazar entero) ===
   function fromDashboardV3(data){
-    const DEBUG = false; // ← poné true si querés logs en consola
+    const DEBUG = true; // ← poné true si querés logs en consola
   
     const MODE_TIER = { LOW:1, CHILL:2, FLOW:3, 'FLOW MOOD':3, EVOL:4, EVOLVE:4 };
     const PILLAR_MAP = {
