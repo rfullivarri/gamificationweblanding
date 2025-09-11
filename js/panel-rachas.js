@@ -308,7 +308,7 @@
         <div>
           <h4>¿Cómo leer “Rachas”?</h4>
           <ul style="margin:0; padding-left:18px">
-            <li><span class="ico-lila"></span> <b>Barra lila</b>: progreso de la <b>semana actual</b> vs objetivo (<b>N×/sem</b> según el modo).</li>
+            <li><span class="ico-lila"></span> <b>Barra lila</b>: progreso de la <b>semana actual</b> vs objetivo (<b>N×/sem</b> según el game mode).</li>
             <li><b>✓×N</b> y <b>+XP</b>: totales en el <b>scope</b> seleccionado (Sem, Mes, 3M).</li>
             <li>🔥 <b>Racha diaria</b>: días consecutivos sin cortar.</li>
             <li><span class="ico-verdes"><i></i><i></i><i></i></span> <b>Mini barras verdes</b> (Top-3): semanas del <b>mes actual</b> vs objetivo.</li>
