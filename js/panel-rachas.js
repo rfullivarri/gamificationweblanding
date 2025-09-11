@@ -107,7 +107,7 @@
           box-shadow:var(--glass-shadow);
         
           /* más respiro horizontal sin tocar el spacing vertical que ya te gusta */
-          padding:11px 15px 11px;
+          padding:9px 13px 9px;
         }
         /* destellos lila/azul muy suaves detrás (como el ref) */
         .box::before{
@@ -127,7 +127,7 @@
         }
         
         /* margen lateral de la lista para que las cards no “toquen” el vidrio */
-        .list{ padding:0 7px 9px; }
+        .list{ padding:0 5px 7px; }
         .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
         .seg{display:flex;gap:8px;flex-wrap:wrap}
         .seg button{background:#1a2240;border:1px solid #24325a;color:#cfd6ff;padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer}
