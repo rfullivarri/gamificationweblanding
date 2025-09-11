@@ -5,8 +5,8 @@
   --gj-glass-br: rgba(255,255,255,.22);
   --gj-glass-shadow: 0 12px 30px rgba(0,0,0,.35);
 
-  --gj-r-card: 28px;     /* cards grandes */
-  --gj-r-inner: 16px;    /* inner containers */
+  --gj-r-card: 28px;
+  --gj-r-inner: 16px;
   --gj-r-pill: 999px;
 
   --gj-surface-1: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
@@ -14,27 +14,26 @@
   --gj-track: #1f274a;
   --gj-fill-level: linear-gradient(90deg,#FFE27A 0%, #FFC84D 55%, #F3A712 100%);
 
-  /* ===== Ajustes rápidos ===== */
-  --dash-gap: 16px;                /* espacio entre columnas */
-  --dash-min-col: 360px;           /* ancho mínimo de cada columna */
-  --info-pop-width: 340px;         /* ancho máximo de los tooltips */
+  /* Ajustes rápidos */
+  --dash-gap: 16px;         /* separación entre columnas */
+  --dash-min-col: 360px;    /* ancho mínimo de cada columna */
+  --info-pop-width: 340px;  /* ancho máximo del tooltip */
 }
 
-/* ===== GRID: 3 columnas del MISMO ancho ===== */
+/* ===== GRID: 3 columnas IGUALES ===== */
 .dashboard-root .dashboard-columns{
-  display: grid !important;
+  display:grid !important;
   grid-template-columns: 1fr;
   gap: var(--dash-gap);
-  align-items: start;
+  align-items:start;
 }
-@media (min-width: 1180px){
+@media (min-width:1180px){
   .dashboard-root .dashboard-columns{
-    /* tres columnas iguales; cada una no baja de --dash-min-col */
     grid-template-columns: repeat(3, minmax(var(--dash-min-col), 1fr));
   }
 }
 
-/* ===== Cards con vidrio del panel ===== */
+/* ===== Cards con el vidrio del panel ===== */
 .dashboard-root .xp-box,
 .dashboard-root .avatar-box,
 .dashboard-root .energy-box,
@@ -52,10 +51,11 @@
   backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   box-shadow:var(--gj-glass-shadow);
-  overflow: visible;    /* deja salir los tooltips */
+  overflow:visible;      /* deja salir tooltips */
+  z-index:1;             /* base */
 }
 
-/* brillo sutil debajo siempre */
+/* brillo debajo siempre */
 .dashboard-root .xp-box::before,
 .dashboard-root .energy-box::before,
 .dashboard-root .daily-cultivation-section::before,
@@ -67,36 +67,54 @@
     radial-gradient(140px 140px at 22% 68%, rgba(168,120,255,.18), transparent 60%),
     radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18), transparent 60%);
   filter: blur(10px) saturate(120%);
-  pointer-events:none;
-  z-index:-1;
+  pointer-events:none; z-index:-1;
 }
 
-/* ===== Inner containers típicos ===== */
+/* ===== SUBE EL CARD cuando el ℹ o el tooltip están activos ===== */
+/* soporte moderno: :has() */
+.dashboard-root .xp-box:hover,
+.dashboard-root .energy-box:hover,
+.dashboard-root .daily-cultivation-section:hover,
+.dashboard-root .radar-section:hover,
+.dashboard-root .emotion-box:hover,
+.dashboard-root .xp-box:focus-within,
+.dashboard-root .energy-box:focus-within,
+.dashboard-root .daily-cultivation-section:focus-within,
+.dashboard-root .radar-section:focus-within,
+.dashboard-root .emotion-box:focus-within,
+.dashboard-root .xp-box:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
+.dashboard-root .energy-box:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
+.dashboard-root .daily-cultivation-section:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
+.dashboard-root .radar-section:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
+.dashboard-root .emotion-box:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop){
+  z-index: 9999;   /* queda por encima del panel de rachas y todo lo demás */
+}
+
+/* ===== Inner containers ===== */
 .dashboard-root .daily-cultivation-section .chart-wrapper,
 .dashboard-root .emotion-box .emotion-chart-container,
 .dashboard-root .radar-section #radarChartContainer{
-  background: var(--gj-surface-1);
-  border: 1px solid var(--gj-stroke-1);
-  border-radius: var(--gj-r-inner);
-  padding: 8px;
+  background:var(--gj-surface-1);
+  border:1px solid var(--gj-stroke-1);
+  border-radius:var(--gj-r-inner);
+  padding:8px;
 }
 
-/* ===== Avatar sin margen y grande ===== */
-.dashboard-root .avatar-box{ max-width: 440px; margin: 0 auto; padding: 0; }
-@media (max-width: 600px){ .dashboard-root .avatar-box{ max-width:320px; } }
+/* ===== Avatar grande (sin padding) ===== */
+.dashboard-root .avatar-box{ max-width:440px; margin:0 auto; padding:0; }
+@media (max-width:600px){ .dashboard-root .avatar-box{ max-width:320px; } }
 .dashboard-root .avatar-img{
-  display:block; width:100%; aspect-ratio:3/4; height:auto;
+  display:block; width:100%; height:auto; aspect-ratio:3/4;
   border-radius:var(--gj-r-card); border:1px solid var(--gj-glass-br);
 }
 
-/* ===== Barras (nivel + energy) ===== */
+/* ===== Barras ===== */
 .dashboard-root .progress-bar{
   position:relative; height:20px; background:var(--gj-track);
   border-radius:var(--gj-r-pill); overflow:hidden;
 }
 .dashboard-root .progress-bar .bar-fill,
-.dashboard-root #bar-nivel{
-  position:absolute; inset:0; height:100%;
+.dashboard-root #bar-nivel{ position:absolute; inset:0; height:100%;
   background:var(--gj-fill-level); border-radius:var(--gj-r-pill);
 }
 .dashboard-root .energy-track{
@@ -105,8 +123,8 @@
 }
 .dashboard-root .energy-track .bar-fill{ height:100%; border-radius:var(--gj-r-pill); }
 
-/* ====== INFO: regla base (arriba-derecha) ====== */
-.dashboard-root .card-title{ position: relative; z-index: 2; }
+/* ===== ℹ BASE: arriba-derecha + tooltip pegado ===== */
+.dashboard-root .card-title{ position:relative; z-index:2; }
 .dashboard-root .card-title .info,
 .dashboard-root .card-title .info-btn,
 .dashboard-root .card-title .info-chip{
@@ -120,35 +138,34 @@
   z-index:1001 !important;
   max-width: var(--info-pop-width);
   width: max-content;
+  pointer-events:auto;
 }
 
-/* ====== EXCEPCIÓN 1: Daily Cultivation (ℹ izquierda) ====== */
+/* ===== EXCEPCIÓN: Daily Cultivation → ℹ arriba-IZQUIERDA al borde ===== */
+.dashboard-root .daily-cultivation-section .card-title{ padding-left: 30px; }
 .dashboard-root .daily-cultivation-section .card-title .info,
 .dashboard-root .daily-cultivation-section .card-title .info-btn,
 .dashboard-root .daily-cultivation-section .card-title .info-chip{
-  left:10px; right:auto;
+  left: 10px; right: auto; top: 8px;
 }
 .dashboard-root .daily-cultivation-section .info-pop{
-  left:0; right:auto;
+  left: 0; right: auto;
   transform: translate(0, calc(-100% - 10px));
 }
 
-/* ====== EXCEPCIÓN 2: Radar y Emotion (forzar correcto anclaje) ====== */
+/* ===== Radar & Emotion: forzar anclaje correcto (arriba-derecha) ===== */
 .dashboard-root .radar-section .card-title .info,
-.dashboard-root .emotion-box .card-title .info,
 .dashboard-root .radar-section .card-title .info-btn,
-.dashboard-root .emotion-box .card-title .info-btn,
 .dashboard-root .radar-section .card-title .info-chip,
+.dashboard-root .emotion-box .card-title .info,
+.dashboard-root .emotion-box .card-title .info-btn,
 .dashboard-root .emotion-box .card-title .info-chip{
-  top:10px; right:10px; left:auto;  /* arriba-derecha fijo */
+  top:10px; right:10px; left:auto;
 }
 .dashboard-root .radar-section .info-pop,
-.dashboard-root .emotion-box .info-pop{
-  right:0; left:auto;
-  transform: translate(0, calc(-100% - 10px));
-}
+.dashboard-root .emotion-box .info-pop{ right:0; left:auto; }
 
-/* Fallback por si el tooltip se inyecta fuera del título */
+/* ===== Fallback si el tooltip lo inyecta fuera del título ===== */
 .dashboard-root .radar-section > .info-pop,
 .dashboard-root .emotion-box > .info-pop,
 .dashboard-root .daily-cultivation-section > .info-pop{
@@ -160,19 +177,5 @@
   left:10px; right:auto; transform: translate(0, calc(-100% - 10px));
 }
 
-/* ====== Notificaciones (coherencia visual) ====== */
-.dashboard-root #gj-noti-dropdown{
-  border-radius:var(--gj-r-inner) !important;
-  border:1px solid var(--gj-glass-br) !important;
-  background:var(--gj-glass-bg) !important;
-  backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%) !important;
-  -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%) !important;
-  box-shadow:var(--gj-glass-shadow) !important;
-}
-
-/* Espaciados menores */
-.dashboard-root .card-title{ margin-bottom:8px; }
-.dashboard-root .energy-meter{ margin:10px 0; }
-.dashboard-root .daily-cultivation-header{
-  display:flex; align-items:center; gap:10px; justify-content:space-between;
-}
+/* ===== Panel de rachas: que NO tape nada por defecto ===== */
+#panel-rachas{ position:relative; z-index: 2; }  /* queda debajo de los cards elevados */
