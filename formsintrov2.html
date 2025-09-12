@@ -634,41 +634,81 @@ const FORM_LABELS = {
   const backIntroBtn = $go("backIntro") || $go("backToIntro");
   if (backIntroBtn) backIntroBtn.addEventListener("click", ()=> show("scr-intro"));
 
-  // Email Intro (robusto + autofill/pegado silencioso)
+  // Email Intro (robusto + failsafe + debug opcional)
   (() => {
     const emailInput = document.getElementById("emailInput");
     const goModesBtn = document.getElementById("goModes");
     if (!emailInput || !goModesBtn) return;
   
-    // evita submit del <form> si existiera
     if (goModesBtn.tagName === 'BUTTON') goModesBtn.type = 'button';
   
     const norm    = v => String(v||"").trim().toLowerCase().replace(/\s+/g,'');
     const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   
+    function setEnabled(ok){
+      goModesBtn.disabled = !ok;
+      if (ok) goModesBtn.removeAttribute('disabled'); // por si quedó el atributo
+    }
+  
     function refresh(){
       const v  = norm(emailInput.value);
       const ok = isEmail(v);
-      goModesBtn.disabled = !ok;
-      window.GJ_EMAIL = v;   // útil para debug/otros módulos
-      answers.email   = v;   // 👈 guardado inmediato en tu estado central
+      setEnabled(ok);
+      window.GJ_EMAIL = v;
+      answers.email   = v;
+      if (window._GJ_DEBUG_EL_) {
+        window._GJ_DEBUG_EL_.textContent = email=${v || '∅'} | ok=${ok} | disabled=${goModesBtn.disabled};
+      }
     }
   
-    // eventos que sí se disparan con autofill/pegado en la mayoría de browsers
-    ['input','change','paste','blur','keyup','focus']
+    // 1) Eventos amplios (tanto tipeo como autofill/IME)
+    ['input','change','paste','blur','focus','keyup','keydown','beforeinput','compositionend']
       .forEach(ev => emailInput.addEventListener(ev, refresh, {passive:true}));
   
-    // poll corto para autofill silencioso (Brave/Samsung/Chrome/iOS a veces no emiten eventos)
-    let tries = 0;
-    const poll = setInterval(() => { refresh(); if (++tries > 12) clearInterval(poll); }, 250);
+    // 2) Poll de arranque (hasta ~8s por si el autofill entra tarde)
+    let t = 0;
+    const bootPoll = setInterval(() => { refresh(); if (++t > 32) clearInterval(bootPoll); }, 250);
   
-    // click: última validación + navega a modos (mantengo tu UX)
+    // 3) Micro-poll mientras el campo tiene foco (agarra el tap del sugerido)
+    let focusPoll = null;
+    emailInput.addEventListener('focus', () => {
+      if (focusPoll) return;
+      let n = 0;
+      focusPoll = setInterval(() => {
+        refresh();
+        if (++n > 40) { clearInterval(focusPoll); focusPoll = null; } // máx ~10s
+      }, 250);
+    }, {passive:true});
+    emailInput.addEventListener('blur', () => {
+      if (focusPoll) { clearInterval(focusPoll); focusPoll = null; }
+    }, {passive:true});
+  
+    // 4) Si otro script pisa el disabled, lo corregimos cuando el mail sea válido
+    const mo = new MutationObserver(() => refresh());
+    mo.observe(goModesBtn, { attributes:true, attributeFilter:['disabled','class'] });
+  
+    // 5) Click CTA: validación final + navegar
     goModesBtn.addEventListener("click", ()=>{
+      refresh(); // por si justo llegó un cambio silencioso
       const v = norm(emailInput.value);
       if (!isEmail(v)){ toast("Poné un correo válido ✉"); return; }
       answers.email = v;
       show("scr-modes");
     });
+  
+    // 6) Debug visible (activar si querés ver el estado en el celu)
+    const DEBUG = false;
+    if (DEBUG) {
+      const el = document.createElement('div');
+      Object.assign(el.style,{
+        position:'fixed',left:'8px',bottom:'8px',font:'12px/1.2 monospace',
+        color:'#9aa3b2',background:'rgba(18,24,41,.85)',padding:'6px 8px',
+        border:'1px solid #2a3352',borderRadius:'8px',zIndex:999999
+      });
+      document.body.appendChild(el);
+      window._GJ_DEBUG_EL_ = el;
+      refresh();
+    }
   
     // primer chequeo
     refresh();
