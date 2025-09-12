@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Self-Improvement Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e19; --panel:#141a2c; --card:#171b31; --ring:rgba(255,255,255,.08);
+    --text:#eaf0ff; --muted:#a9b2d0; --accent:#7a66ff; --accent2:#a78bfa; --ok:#38d39f;
+    --shadow:0 24px 80px rgba(0,0,0,.40);
+    --hudH:64px; /* altura HUD desktop */
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(1100px 700px at 50% -15%, rgba(122,102,255,.18), transparent 60%),
+      linear-gradient(180deg, #0b0e19, #0b0e19 30%, #0f1325 100%);
+    overflow:auto;
+    padding-top: calc(var(--hudH) + 10px); /* evita que el HUD tape títulos */
+  }
+
+  /* HUD (mantengo tu diseño) */
+  .hud{
+    position:fixed; inset:0 0 auto 0; z-index:20;
+    display:grid; gap:10px;
+    grid-template-columns: 1fr 1.2fr auto;
+    grid-template-areas: "brand mid xp";
+    align-items:center;
+    padding:10px 12px; background:rgba(10,12,24,.86); border-bottom:1px solid var(--ring);
+    backdrop-filter: blur(4px);
+  }
+  .brand{grid-area:brand; display:flex; align-items:center; gap:10px; font-weight:800}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 20px var(--accent)}
+  .journey{display:flex; align-items:center; gap:10px}
+  .journey .progress{width:190px}
+  .mid{grid-area:mid; display:flex; justify-content:center; gap:18px}
+  .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:110px}
+  .pill .row{display:flex; align-items:center; gap:6px}
+  .pill .emoji{font-size:14px}
+  .pill .label{font-weight:600}
+  progress{width:120px; height:8px; background:#0f1430; border-radius:6px}
+  progress::-webkit-progress-bar{background:#0f1430; border-radius:6px}
+  progress::-webkit-progress-value{border-radius:6px; background:linear-gradient(90deg,#6d78ff,#a78bfa)}
+  .xp{grid-area:xp; justify-self:end; font-weight:800; letter-spacing:.2px}
+  .progress{height:8px; background:#0f1430; border-radius:6px; overflow:hidden}
+  .progress .fill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2))}
+
+  /* HUD móvil intacto */
+  @media (max-width:720px){
+    :root{ --hudH: 104px; }
+    .hud{
+      grid-template-columns: 1fr auto;
+      grid-template-areas:
+        "brand brand"
+        "mid xp";
+      row-gap:8px;
+    }
+    .journey .progress{width:150px}
+    .pill{min-width:auto}
+    progress{width:80px}
+  }
+  @media (max-width:420px){
+    .journey .progress{width:120px}
+    progress{width:64px}
+  }
+
+  /* Página y tarjeta */
+  /* Importante para tu JS: necesita .overlay presente */
+  .overlay{ display:flex; justify-content:center; width:100%; }
+  .modal{
+    width:min(980px,94vw);
+    background:rgba(20,24,44,.78);
+    border:1px solid var(--ring); border-radius:18px; box-shadow:var(--shadow);
+    padding:20px;
+    overflow:hidden; /* 🔒 nada se sale del “post‑it” */
+  }
+
+  /* Screens */
+  .scr{display:none}
+  .scr.active{display:block}
+
+  /* Layout de cada pantalla */
+  .hero{
+    display:grid; gap:24px;
+    grid-template-columns: 1.05fr .95fr;
+    align-items:start;
+  }
+  @media (max-width:980px){ .hero{grid-template-columns:1fr} }
+
+
+  
+  /* Centrar la figura (imagen) dentro de la tarjeta/hero */
+    .hero > .pic{
+      /* centra la figura dentro de su celda de grid */
+      align-self: center;         /* centro vertical dentro del alto de la tarjeta */
+      justify-self: center;       /* centro horizontal dentro de la columna derecha */
+      margin: 8px auto;           /* respiro simétrico arriba/abajo e izquierda/derecha */
+      max-width: 92%;             /* deja un margen lateral dentro de la tarjeta */
+    }
+    
+    /* En mobile, que use todo el ancho disponible de la columna */
+    @media (max-width:980px){
+      .hero > .pic{ max-width: 100%; }
+    }
+
+
+  
+  /* Imágenes: contenidas y sin sobresalir */
+    .pic{
+    border-radius:14px;
+    border:1px solid var(--ring);
+    overflow:hidden;
+    background:#10142b;
+    justify-self:center;   /* 👈 centra el bloque dentro de la grilla */
+    max-width: 95%;        /* 👈 evita que llegue pegado al borde derecho */
+  }
+  
+  .pic img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;   /* la imagen llena el marco */
+    border-radius:14px; /* coincide exacto con el borde del contenedor */
+    opacity:.96;
+  }
+  /* Desktop: relación 4:3, altura acotada */
+  @media (min-width:981px){
+    .pic{
+      aspect-ratio:4 / 3;
+      height:auto;
+      max-height:min(520px, calc(100vh - var(--hudH) - 140px));
+    }
+    .pic img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+  }
+  /* Mobile: compacto */
+  @media (max-width:980px){
+    .pic{
+      height:auto;
+      max-height:clamp(260px, 42vh, 380px);
+    }
+    .pic img{ height:auto; object-fit:cover; }
+  }
+  @media (max-width:420px){
+    .pic{ max-height:320px; }
+  }
+
+  h1,h2{margin:6px 0 10px}
+  p{margin:6px 0 12px; color:#cbd3ff; line-height:1.65}
+  .note{color:#aab7ff; font-size:13px}
+
+  .xp-badge{
+    display:inline-block; font-size:12px; padding:2px 9px; border-radius:999px;
+    background:#101433; border:1px solid var(--ring); margin-left:8px; vertical-align:middle;
+  }
+
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin:12px 0}
+  .card{background:#171b31; border:1px solid var(--ring); border-radius:14px; padding:14px; cursor:pointer;
+    transition:transform .12s ease, background .12s ease;}
+  .card:hover{transform:translateY(-2px)}
+  .card.selected{background:rgba(122,102,255,.22); border-color:rgba(122,102,255,.45)}
+
+  .checklist{display:grid; gap:10px; margin:12px 0}
+  .chip{display:flex; gap:10px; align-items:center; padding:10px 12px; border-radius:10px;
+    border:1px solid var(--ring); background:rgba(255,255,255,.04)}
+
+  textarea, input[type="text"], input[type="email"]{
+    width:100%; padding:12px; border-radius:12px; border:1px solid var(--ring);
+    background:rgba(255,255,255,.05); color:#fff; outline:none;
+  }
+
+  .open-title{margin:14px 0 8px; font-weight:700; font-size:1.05rem; color:#e9edff}
+
+  .counter{font-size:13px; color:#c7cff1; margin-top:6px}
+  .nav{display:flex; justify-content:space-between; gap:8px; margin-top:14px}
+  .btn{background:#7a66ff; border:0; color:#fff; font-weight:800; padding:10px 16px; border-radius:10px; cursor:pointer}
+  .btn.secondary{background:transparent; border:1px solid var(--ring)}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+
+  .summary-box{background:rgba(255,255,255,.05); border:1px solid var(--ring); border-radius:14px; padding:12px}
+
+  /* Toast (necesario para el JS de XP + navegación) */
+  .toast{
+    position:absolute; right:12px; bottom:12px;
+    background:#111a39; border:1px solid var(--ring);
+    padding:8px 10px; border-radius:9px;
+    font-size:13px; color:#cfe0ff;
+    opacity:0; transform:translateY(6px);
+    transition:.2s ease;
+  }
+  .toast.show{ opacity:1; transform:none; }
+  .toast{
+  position:fixed; right:12px; background:#111a39;
+  border:1px solid var(--ring); padding:8px 10px; border-radius:9px;
+  font-size:13px; color:#cfe0ff; opacity:0; transform:translateY(6px);
+  transition:opacity .2s ease, transform .2s ease; z-index:30; pointer-events:none;
+}
+#toast13{ bottom:64px; }   /* el “de arriba” */
+#toast21{ bottom:12px; }   /* el “de abajo” */
+.toast.show{ opacity:1; transform:none; }
+#hudTitle {
+cursor: pointer;
+}
+#hudTitle:hover {
+text-decoration: underline; /* opcional, para que se note */
+}
+.btn.loading{ position:relative; }
+.btn.loading::after{
+  content:""; width:14px; height:14px; border:2px solid rgba(255,255,255,.6);
+  border-top-color: transparent; border-radius:50%;
+  position:absolute; right:12px; top:50%; transform:translateY(-50%);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{ to{ transform:translateY(-50%) rotate(360deg); } }
+</style>
+
+
+
+
+
+
+  
+</head>
+<body>
+
+<!-- HUD -->
+<header class="hud">
+  <div class="brand">
+    <span class="dot"></span>
+    <div class="journey">
+      <span id="hudTitle">Journey</span>
+      <div class="progress"><div id="progressFill" class="fill"></div></div>
+    </div>
+  </div>
+  <div class="mid">
+    <div class="pill">
+      <div class="row"><span class="emoji">🫀</span><span class="label">Body</span></div>
+      <progress id="barBody" value="0" max="100"></progress>
+    </div>
+    <div class="pill">
+      <div class="row"><span class="emoji">🧠</span><span class="label">Mind</span></div>
+      <progress id="barMind" value="0" max="100"></progress>
+    </div>
+    <div class="pill">
+      <div class="row"><span class="emoji">🏵️</span><span class="label">Soul</span></div>
+      <progress id="barSoul" value="0" max="100"></progress>
+    </div>
+  </div>
+  <div class="xp">XP: <span id="xpTotal">0</span></div>
+</header>
+
+<!-- Página -->
+<main class="overlay page">
+  <div class="modal">
+
+    <!-- Intro -->
+    <section class="scr active" id="scr-intro">
+      <div class="hero">
+        <div>
+          <h2>Cap. 0 — El Despertar</h2>
+          <p>Respirá. Hoy enciendes tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.</p>
+          <p><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia <strong>(XP)</strong>. Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones).</p>
+          <div class="field" style="margin:12px 0">
+            <label for="emailInput">Tu correo (obligatorio)</label>
+            <input id="emailInput" type="email" placeholder="tu@email.com" required>
+            <small style="color:#aab7ff">Lo usamos para crear tu tablero y guardar tu progreso.</small>
+          </div>
+          <div class="nav">
+            <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
+            <button class="btn" id="goModes" disabled>Comenzar</button>
+          </div>
+        </div>
+        <figure class="pic">
+          <img src="https://i.ibb.co/1GdbMQ1f/7e5cbb24-ebfe-4b0f-bbae-bddc1b66451a.jpg" alt="Intro">
+        </figure>
+      </div>
+    </section>
+
+    <!-- Game Modes -->
+    <section class="scr" id="scr-modes">
+      <div class="hero">
+        <div>
+          <h2>Elegí tu Game Mode</h2>
+          <p>Elegí el <strong>modo</strong> que mejor describe tu estado <strong>hoy</strong> para adaptar el recorrido a tu energía y enfoque.</p>
+          <div class="grid" id="modeGrid">
+            <div class="card" data-mode="LOW"><h3>🪫 LOW MOOD</h3><p class="note">Energía baja. Activamos tu mínimo vital con acciones pequeñas y seguras.</p></div>
+            <div class="card" data-mode="CHILL"><h3>🌿 CHILL MOOD</h3><p class="note">Tranquilo / estable. Sostener bienestar con rutinas suaves y balance.</p></div>
+            <div class="card" data-mode="FLOW"><h3>🌊 FLOW MOOD</h3><p class="note">Enfocado. Alineamos tu impulso con una meta clara sin descuidar el bienestar.</p></div>
+            <div class="card" data-mode="EVOLVE"><h3>🧬 EVOLVE MOOD</h3><p class="note">Ambición con propósito. Subimos de nivel con misiones y foco sostenible.</p></div>
+          </div>
+          <div class="nav">
+            <button class="btn secondary" id="backIntro">Volver</button>
+            <button class="btn" id="confirmMode" disabled>Confirmar modo</button>
+          </div>
+        </div>
+        <figure class="pic">
+          <img src="https://i.ibb.co/VcWFCZkL/b79005b1-97d9-4aa9-85dd-239861bb6c5c.jpg" alt="Modos">
+        </figure>
+      </div>
+    </section>
+
+    <!-- ====== LOW -->
+    <section class="scr" id="scr-low-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
+      <h2>LOW · 🫀 Body</h2>
+      <p>Elegí hasta <strong>5</strong> acciones simples que te harían bien ahora. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="lowBodyList"></div>
+      <div class="counter"><span id="lowBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <div class="open-title">¿Hay algo que te cueste o quieras evitar a nivel físico? <span class="xp-badge">+21 XP</span></div>
+      <p class="note">Podés mencionar hábitos, dolores o ambientes que te incomodan… (opcional)</p>
+      <textarea id="fBodyOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+
+      <div class="nav">
+        <button class="btn secondary" id="backToModes1">Volver</button>
+        <button class="btn" id="confirmLowBody" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-low-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
+      <h2>LOW · 🏵️ Soul</h2>
+      <p>Elegí hasta <strong>5</strong> cosas simples que te conectan con vos. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="lowSoulList"></div>
+      <div class="counter"><span id="lowSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <div class="open-title">¿Qué tipo de prácticas espirituales te gustaría probar o retomar? <span class="xp-badge">+21 XP</span></div>
+      <p class="note">Podés incluir ejemplos personales… (opcional)</p>
+      <textarea id="fSoulOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+
+      <div class="nav">
+        <button class="btn secondary" id="backLowBody">Volver</button>
+        <button class="btn" id="confirmLowSoul" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-low-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
+      <h2>LOW · 🧠 Mind</h2>
+      <p>Elegí hasta <strong>5</strong> acciones mentales que te ayuden hoy. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="lowMindList"></div>
+      <div class="counter"><span id="lowMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <div class="open-title">¿Qué te gustaría lograr con tu desarrollo mental? <span class="xp-badge">+21 XP</span></div>
+      <p class="note">Por ejemplo: leer más, organizar mejor el tiempo, mantenerte enfocado… (opcional)</p>
+      <textarea id="fMindOpen" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+
+      <div class="nav">
+        <button class="btn secondary" id="backLowSoul">Volver</button>
+        <button class="btn" id="confirmLowMind" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- Low · comentario final -->
+    <section class="scr" id="scr-low-note" data-type="open" data-xp="21">
+      <h2>LOW · ¿Querés contarnos algo más?</h2>
+      <p class="note">Es opcional: solo una IA lo revisará. Podés dejarlo en blanco si no querés.</p>
+      <textarea id="lowNote" rows="4" placeholder="(opcional)"></textarea>
+      <div class="nav">
+        <button class="btn secondary" id="backLowMind">Volver</button>
+        <button class="btn" id="confirmLowNote">Continuar</button>
+      </div>
+    </section>
+
+    <!-- ====== CHILL -->
+    <section class="scr" id="scr-chill-open" data-type="open21">
+      <div class="hero">
+        <div>
+          <h2>CHILL · Una cosa este mes <span class="xp-badge">+21 XP</span></h2>
+          <p>Si pudieras mejorar o lograr <strong>solo una cosa</strong> este mes, ¿cuál sería?</p>
+          <textarea id="chillOneThing" rows="4" placeholder="Escribí tu respuesta… (obligatoria)"></textarea>
+          <div class="nav">
+            <button class="btn secondary" id="backToModes2">Volver</button>
+            <button class="btn" id="confirmChillOpen" disabled>Confirmar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="https://i.ibb.co/DDvczhR5/1e2bc15a-9f87-47b7-9b5b-c28156b69f0f.jpg" alt="Chill"></figure>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-chill-motiv" data-type="mode13">
+      <h2>CHILL · ¿Qué te impulsa más? <span class="xp-badge">+13 XP</span></h2>
+      <p>Elegí las que sientas (al menos una).</p>
+      <div class="checklist" id="chillMotivList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backChillOpen">Volver</button>
+        <button class="btn" id="confirmChillMotiv" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== FLOW -->
+    <section class="scr" id="scr-flow-goal" data-type="open21">
+      <div class="hero">
+        <div>
+          <h2>FLOW · Tu objetivo <span class="xp-badge">+21 XP</span></h2>
+          <p>¿Cuál es tu objetivo en este momento?</p>
+          <textarea id="flowGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
+          <div class="nav">
+            <button class="btn secondary" id="backToModes3">Volver</button>
+            <button class="btn" id="confirmFlowGoal" disabled>Confirmar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="https://i.ibb.co/DDvczhR5/1e2bc15a-9f87-47b7-9b5b-c28156b69f0f.jpg" alt="Flow"></figure>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-flow-imped" data-type="mode13">
+      <h2>FLOW · ¿Qué te lo viene impidiendo? <span class="xp-badge">+13 XP</span></h2>
+      <p>Elegí las que apliquen (al menos una).</p>
+      <div class="checklist" id="flowImpedList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backFlowGoal">Volver</button>
+        <button class="btn" id="confirmFlowImped" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== EVOLVE -->
+    <section class="scr" id="scr-evolve-goal" data-type="open21">
+      <div class="hero">
+        <div>
+          <h2>EVOLVE · Objetivo desafiante <span class="xp-badge">+21 XP</span></h2>
+          <p>¿Cuál es tu objetivo desafiante?</p>
+          <textarea id="evolveGoal" rows="4" placeholder="Escribí tu objetivo… (obligatorio)"></textarea>
+          <div class="nav">
+            <button class="btn secondary" id="backToModes4">Volver</button>
+            <button class="btn" id="confirmEvolveGoal" disabled>Confirmar</button>
+          </div>
+        </div>
+        <figure class="pic"><img src="https://i.ibb.co/DDvczhR5/1e2bc15a-9f87-47b7-9b5b-c28156b69f0f.jpg" alt="Evolve"></figure>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-evolve-trade" data-type="mode13">
+      <h2>EVOLVE · ¿Qué estás dispuesto a ajustar? <span class="xp-badge">+13 XP</span></h2>
+      <p>Elegí las que apliquen (al menos una).</p>
+      <div class="checklist" id="evolveTradeList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backEvolveGoal">Volver</button>
+        <button class="btn" id="confirmEvolveTrade" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-evolve-att" data-type="mode21-radio">
+      <h2>EVOLVE · Actitud ante el cambio <span class="xp-badge">+21 XP</span></h2>
+      <p>Elegí una opción.</p>
+      <div class="checklist" id="evolveAttList"></div>
+      <div class="nav">
+        <button class="btn secondary" id="backEvolveTrade">Volver</button>
+        <button class="btn" id="confirmEvolveAtt" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== FOUNDATIONS -->
+    <section class="scr" id="scr-f-body" data-type="checklist" data-pillar="Body" data-xp="13" data-limit="5">
+      <h2>Foundations · 🫀 Body</h2>
+      <p>Lo físico es tu base. Elegí hasta <strong>5</strong> anclas. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="fBodyList"></div>
+      <div class="counter"><span id="fBodyCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <div class="open-title">¿Hay algo que te cueste o quieras evitar a nivel físico? <span class="xp-badge">+21 XP</span></div>
+      <p class="note">Podés mencionar hábitos, dolores o ambientes que te incomodan… (opcional)</p>
+      <textarea id="fBodyOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+
+      <div class="nav">
+        <button class="btn secondary" id="backFoundPrev1">Volver</button>
+        <button class="btn" id="confirmFBody" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-f-soul" data-type="checklist" data-pillar="Soul" data-xp="13" data-limit="5">
+      <h2>Foundations · 🏵️ Soul</h2>
+      <p>Sin centro, no hay llegada. Elegí hasta <strong>5</strong> prácticas. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="fSoulList"></div>
+      <div class="counter"><span id="fSoulCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <div class="open-title">¿Qué tipo de prácticas espirituales te gustaría probar o retomar? <span class="xp-badge">+21 XP</span></div>
+      <p class="note">Podés incluir ejemplos personales… (opcional)</p>
+      <textarea id="fSoulOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+
+      <div class="nav">
+        <button class="btn secondary" id="backFBody">Volver</button>
+        <button class="btn" id="confirmFSoul" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <section class="scr" id="scr-f-mind" data-type="checklist" data-pillar="Mind" data-xp="13" data-limit="5">
+      <h2>Foundations · 🧠 Mind</h2>
+      <p>No es hacer más: es <strong>hacer mejor</strong>. Elegí hasta <strong>5</strong> focos. <span class="xp-badge">+13 XP</span></p>
+      <div class="checklist" id="fMindList"></div>
+      <div class="counter"><span id="fMindCount">0</span>/5 seleccionadas (obligatorio)</div>
+
+      <div class="open-title">¿Qué te gustaría lograr con tu desarrollo mental? <span class="xp-badge">+21 XP</span></div>
+      <p class="note">Por ejemplo: leer más, organizar mejor el tiempo, mantenerte enfocado… (opcional)</p>
+      <textarea id="fMindOpen2" rows="4" placeholder="Escribí si querés… (opcional)"></textarea>
+
+      <div class="nav">
+        <button class="btn secondary" id="backFSoul">Volver</button>
+        <button class="btn" id="confirmFMind" disabled>Confirmar</button>
+      </div>
+    </section>
+
+    <!-- ====== RESUMEN -->
+    <section class="scr" id="scr-summary">
+      <h2>¡Todo listo para empezar! 🚀</h2>
+      <div class="summary-box" id="summaryBox"></div>
+      <p class="note" style="margin-top:10px">
+        <strong>Capitán</strong>, con esto generamos tus <strong>primeras tasks</strong> y un plan simple para hoy.
+        Vas a poder ver tu avance y reacomodar prioridades en tu <strong>tablero personal</strong>, pero lo importante es el <em>ritmo</em>:
+        pasos cortos, XP real, progreso visible.
+      </p>
+      <div class="nav">
+        <button class="btn secondary" id="restart">Volver al inicio</button>
+        <button class="btn" id="finish">Comenzar Journey</button>
+      </div>
+    </section>
+
+   <!-- toasts listos (solo visuales, sin lógica aún) -->
+    <div id="toast13" class="toast">+13 XP</div>
+    <div id="toast21" class="toast">+21 XP</div>
+
+</main>
+<div id="toast" class="toast"></div>
+
+
+
+<script>
+// ==========================
+// 1) Etiquetas 1:1 con el Form (copiadas del prellenado)
+// ==========================
+const FORM_LABELS = {
+  // LOW (emoji AL FINAL, textos y tildes exactos)
+  lowBody: [
+    "Dormir mejor 😴",
+    "Alimentarte mejor 🥗",
+    "Moverte un poco más 🏃",
+    "Tomar más agua 💧",
+    "Descansar sin culpa 🧘"
+  ],
+  lowSoul: [
+    "Respirar profundo unos minutos 🌬️",
+    "Escuchar música que te gusta 🎶",
+    "Estar en contacto con la naturaleza 🍃",
+    "Anotar lo que sentís en un papel 📝",
+    "Hacer algo sin tener que ser útil 🌈"
+  ],
+  lowMind: [
+    "Leer algo corto 📖",
+    "Anotar tus pensamientos 📓",
+    "Mirar una serie tranquila 📺",
+    "Hacer una pausa sin pantallas 🚫📱",
+    "Desarmar alguna idea negativa 🧩"
+  ],
+
+  // CHILL — Motivaciones (emoji AL INICIO, exactamente como en el form)
+  chillMotiv: [
+    "🌱 Crecer como persona / desarrollo personal",
+    "🎯 Lograr metas concretas que me propongo",
+    "🤝 Sentirme más conectado con otras personas",
+    "🧘‍♂️ Vivir con más calma y menos estrés",
+    "🏆 Superarme a mí mismo y romper mis límites",
+    "🛠️ Crear o construir algo (proyectos, arte, emprendimientos)",
+    "✨ Sentirme más feliz y satisfecho con mi día a día",
+    "🗺️ Tener más experiencias y aventuras",
+    "💖 Cuidar mi salud y bienestar a largo plazo"
+  ],
+
+  flowObstacles: [
+    "Falta de tiempo",
+    "Falta de energía o motivación",
+    "Miedo al fracaso",
+    "Dudas sobre dónde empezar",
+    "Falta de apoyo",
+    "Procrastinación",
+    "No tengo Hábitos aún",
+    "Síndrome del impostor"
+  ],
+
+  evolveCommit: [
+    "Mis hábitos diarios",
+    "Mi alimentación",
+    "Mis rutinas de descanso",
+    "Mi tiempo libre",
+    "Mis relaciones sociales",
+    "Mis creencias y bloqueos mentales",
+    "Mis espacios físicos"
+  ],
+  evolveAtt: [
+    "Estoy muy motivado y quiero cambios ya",
+    "Quiero ir de a poco pero con foco",
+    "Me cuesta mantener constancia pero quiero intentar"
+  ],
+
+  // FOUNDATIONS — Body
+  fBody: [
+    "🏃‍♂️ Actividad física regular (Energía)",
+    "🥗 Alimentación saludable (Nutrición)",
+    "😴 Dormir y descansar mejor (Sueño)",
+    "🛀 Relajación y pausas para recuperar el cuerpo (Recuperación)",
+    "💧 Tomar más agua o hidratarte mejor (Hidratación)",
+    "🧼 Higiene y cuidado personal diario (Higiene)",
+    "🌅 Sentirte con más energía y vitalidad al despertar (Vitalidad)",
+    "💺 Mejorar tu postura y ergonomía (Postura)",
+    "🧘‍♂️ Flexibilidad y movilidad corporal (Movilidad)",
+    "🚫 Reducir consumo de alcohol, tabaco o cafeína (Moderación)"
+  ],
+
+  fSoul: [
+    "🤝 Fortalecer relaciones y vínculos personales (Conexión)",
+    "🌌 Practicar espiritualidad o sentir plenitud interior (Espiritualidad)",
+    "🎯 Definir tu propósito y dirección en la vida (Propósito)",
+    "⚖️ Vivir más alineado a tus valores (Valores)",
+    "💗 Ayudar a otros o aportar a una causa (Altruismo)",
+    "🔍 Conocerte más profundamente (Insight)",
+    "🙏 Practicar gratitud o tener una actitud positiva (Gratitud)",
+    "🌳 Conectarte más con la naturaleza (Naturaleza)",
+    "🎉 Jugar, reír y divertirte sin culpa (Gozo)",
+    "🪞 Trabajar tu autoestima y hablarte con más amabilidad (Autoestima)"
+  ],
+
+  fMind: [
+    "🎯 Mejorar tu enfoque y productividad diaria (Enfoque)",
+    "📚 Aprender cosas nuevas o estudiar mejor (Aprendizaje)",
+    "🎨 Desarrollar tu creatividad e ideas nuevas (Creatividad)",
+    "😵‍💫 Manejar mejor el estrés o ansiedad (Gestión)",
+    "🧠 Regular tus emociones y reacciones (Autocontrol)",
+    "💪 Ser más resiliente frente a desafíos (Resiliencia)",
+    "🗂️ Tener tus tareas o espacios mentales más organizados (Orden)",
+    "🚀 Desarrollarte profesionalmente o avanzar en tu carrera (Proyección)",
+    "💰 Mejorar tus hábitos financieros (Finanzas)",
+    "🧩 Ejercitar tu memoria y agilidad mental (Agilidad)"
+  ]
+};
+// ==========================
+// Mapear los modos internos a etiquetas exactas del Form
+// ==========================
+  const MODE_LABELS = {
+  LOW:   "Low Mood 🪫 - Quiero un cambio, pero no tengo la energia",
+  CHILL: "Chill Mood 🌿 - Estoy  bien, quiero trackear mis hábitos",
+  FLOW:  "Flow Mood 🌊 - Tengo un objetivo y quiero comenzar esta aventura",
+  EVOLVE:"Evolve Mood 🧬 - Estoy enfocado y quiero ir al próximo nivel"
+};
+</script>
+
+<script>
+// ==========================
+// 2) Lógica UI + XP + rutas
+// ==========================
+(() => {
+  // Estado
+  const xp = { Body:0, Mind:0, Soul:0, total:0 };
+  const answers = {
+    email:"",
+    mode:null,
+    low:{ body:[], soul:[], mind:[], note:"" },
+    chill:{ oneThing:"", motiv:[] },
+    flow:{ goal:"", imped:[] },
+    evolve:{ goal:"", trade:[], att:"" },
+    foundations:{
+      body:[], soul:[], mind:[],
+      bodyOpen:"", soulOpen:"", mindOpen:""    // 👈 NUEVO
+    }
+  };
+  const routes = {
+    LOW: ["scr-low-body","scr-low-soul","scr-low-mind","scr-low-note","scr-summary"],
+    CHILL: ["scr-chill-open","scr-chill-motiv","scr-f-body","scr-f-soul","scr-f-mind","scr-summary"],
+    FLOW: ["scr-flow-goal","scr-flow-imped","scr-f-body","scr-f-soul","scr-f-mind","scr-summary"],
+    EVOLVE:["scr-evolve-goal","scr-evolve-trade","scr-evolve-att","scr-f-body","scr-f-soul","scr-f-mind","scr-summary"]
+  };
+  let routeScreens = []; let stepIndex = 0;
+
+  // Helpers
+  const $  = s=>document.querySelector(s);
+  const $$ = s=>Array.from(document.querySelectorAll(s));
+  const $go = id => document.getElementById(id);
+  const show = id => { $$(".scr").forEach(s=>s.classList.remove("active")); $("#"+id).classList.add("active"); drawProgress(); };
+  const toast = (txt) => { const t=$("#toast"); t.textContent=txt; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 1100); };
+
+  function drawProgress(){
+    const total = routeScreens.length || 1;
+    const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
+    $("#progressFill").style.width = pct + "%";
+
+    const b = Math.round(xp.Body);
+    const m = Math.round(xp.Mind);
+    const s = Math.round(xp.Soul);
+
+    $("#barBody").value = Math.min(b, 100);
+    $("#barMind").value = Math.min(m, 100);
+    $("#barSoul").value = Math.min(s, 100);
+
+    const shownTotal = b + m + s;
+    $("#xpTotal").textContent = shownTotal;
+    xp.total = shownTotal;
+  }
+
+  function addXP(amount, pillar){
+    if (amount <= 0) return;
+    const fix = n => Math.round(n * 100) / 100;
+    if (pillar === "ALL") ["Body","Mind","Soul"].forEach(p => { xp[p] = fix(xp[p] + amount/3); });
+    else xp[pillar] = fix(xp[pillar] + amount);
+    xp.total = fix(xp.Body + xp.Mind + xp.Soul);
+    drawProgress();
+  }
+
+  // Pintado de listas
+  function paintChecklist(listId, items, type="checkbox", nameGroup="grp"){
+    const host = document.getElementById(listId);
+    host.innerHTML = "";
+    items.forEach((txt,i)=>{
+      const id = `${listId}-${i}`;
+      const input = document.createElement("input");
+      input.type = type;
+      if(type==="radio") input.name = nameGroup;
+      input.id = id;
+      const label = document.createElement("label");
+      label.className = "chip"; label.setAttribute("for", id);
+      label.appendChild(input);
+      const span = document.createElement("span"); span.textContent = txt; label.appendChild(span);
+      host.appendChild(label);
+    });
+  }
+
+  // Fuente única → UI
+  const LISTS = {
+    // LOW
+    lowBody: FORM_LABELS.lowBody,
+    lowSoul: FORM_LABELS.lowSoul,
+    lowMind: FORM_LABELS.lowMind,
+    // CHILL
+    chillMotiv: FORM_LABELS.chillMotiv,
+    // FLOW
+    flowImped: FORM_LABELS.flowObstacles,
+    // EVOLVE
+    evolveTrade: FORM_LABELS.evolveCommit,
+    evolveAtt: FORM_LABELS.evolveAtt,
+    // FOUNDATIONS
+    fBody: FORM_LABELS.fBody,
+    fSoul: FORM_LABELS.fSoul,
+    fMind: FORM_LABELS.fMind
+  };
+
+  // Textareas "open" de Foundations para sumar +21 si tienen contenido
+  const OPEN_FOUND = {
+    "scr-f-body": "fBodyOpen2",
+    "scr-f-soul": "fSoulOpen2",
+    "scr-f-mind": "fMindOpen2"
+  };
+
+  // Pintar todas
+  paintChecklist("lowBodyList", LISTS.lowBody);
+  paintChecklist("lowSoulList", LISTS.lowSoul);
+  paintChecklist("lowMindList", LISTS.lowMind);
+  paintChecklist("fBodyList",   LISTS.fBody);
+  paintChecklist("fSoulList",   LISTS.fSoul);
+  paintChecklist("fMindList",   LISTS.fMind);
+  paintChecklist("chillMotivList", LISTS.chillMotiv);
+  paintChecklist("flowImpedList",  LISTS.flowImped);
+  paintChecklist("evolveTradeList", LISTS.evolveTrade);
+  paintChecklist("evolveAttList",   LISTS.evolveAtt, "radio", "evolveAtt");
+
+  // --- helpers para no duplicar XP y para resetear todo ---
+  // Ejecuta la acción de una pantalla solo la primera vez (usa data-done en la <section>)
+  function doOnce(sectionId, fn) {
+    const sec = document.getElementById(sectionId);
+    if (!sec) return;
+    if (sec.dataset.done === "1") {            // ya se ejecutó → solo avanzar
+      nextStep();
+      return;
+    }
+    fn();                                       // primera vez → hace lo que corresponda
+    sec.dataset.done = "1";                     // marca como hecho
+    nextStep();
+  }
+  
+  // Resetea TODO el estado, UI y marcas "done"
+  function resetAll(){
+    // 1) estado
+    xp.Body = xp.Mind = xp.Soul = xp.total = 0;
+    answers.email = "";
+    answers.mode  = null;
+    answers.low   = { body:[], soul:[], mind:[], note:"" };
+    answers.chill = { oneThing:"", motiv:[] };
+    answers.flow  = { goal:"", imped:[] };
+    answers.evolve= { goal:"", trade:[], att:"" };
+    answers.foundations = { body:[], soul:[], mind:[], bodyOpen:"", soulOpen:"", mindOpen:"" };
+  
+    // 2) UI: limpiar inputs / checks / textareas
+    document.querySelectorAll("input[type=email], input[type=text], textarea")
+      .forEach(el => el.value = "");
+    document.querySelectorAll("input[type=checkbox], input[type=radio]")
+      .forEach(el => el.checked = false);
+  
+    // 3) desmarcar selecciones visuales y re‑deshabilitar botones de confirm donde aplique
+    document.querySelectorAll(".card.selected").forEach(c => c.classList.remove("selected"));
+    ["confirmMode","confirmChillOpen","confirmFlowGoal","confirmEvolveGoal",
+     "confirmChillMotiv","confirmFlowImped","confirmEvolveTrade","confirmEvolveAtt",
+     "confirmLowBody","confirmLowSoul","confirmLowMind",
+     "confirmFBody","confirmFSoul","confirmFMind"]
+      .forEach(id => { const b=document.getElementById(id); if(b) b.disabled = true; });
+  
+    // 4) quitar todas las marcas de ejecución (para que no cuenten XP al re‑hacer)
+    document.querySelectorAll(".scr").forEach(s => delete s.dataset.done);
+  
+    // 5) barra superior y progreso
+    document.getElementById("xpTotal").textContent = "0";
+    ["barBody","barMind","barSoul"].forEach(id => { const p=document.getElementById(id); if(p) p.value=0; });
+    const fill = document.getElementById("progressFill"); if (fill) fill.style.width = "0%";
+  
+    // 6) rutas/step y volver a la intro
+    routeScreens = [];
+    stepIndex = 0;
+    show("scr-intro");
+  }
+
+  // Navegación base
+  const nextStep = ()=>{
+    const next = Math.min(routeScreens.length - 1, stepIndex + 1);
+    const target = routeScreens[next];
+    if (!target) return;
+    stepIndex = next;
+    show(target);
+    if (target === "scr-summary") renderSummary();
+  };
+  const prevStep = ()=>{
+    stepIndex = Math.max(0, stepIndex - 1);
+    show(routeScreens[stepIndex]);
+  };
+  // HUD: click en "Journey" para volver al landing
+  $go("hudTitle")?.addEventListener("click", ()=>{
+    if (!xp.total || confirm("¿Salir y volver al inicio? Se perderá el progreso.")) {
+      window.location.href = "https://rfullivarri.github.io/gamificationweblanding/indexv2.html"; // 🔗 tu URL del landing
+    }
+  });
+
+  // Back a intro (manejo ambos IDs por tu HTML actual)
+  const backIntroBtn = $go("backIntro") || $go("backToIntro");
+  if (backIntroBtn) backIntroBtn.addEventListener("click", ()=> show("scr-intro"));
+
+  // Email Intro
+  const emailInput = document.getElementById("emailInput");
+  const goModesBtn = document.getElementById("goModes");
+  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(v||"").trim());
+  if (emailInput && goModesBtn){
+    const refresh = ()=> { goModesBtn.disabled = !isEmail(emailInput.value); };
+    emailInput.addEventListener("input", refresh);
+    refresh();
+    goModesBtn.addEventListener("click", ()=>{
+      const v = String(emailInput.value||"").trim();
+      if(!isEmail(v)){ toast("Poné un correo válido ✉️"); return; }
+      answers.email = v;
+      show("scr-modes");
+    });
+  }
+
+  // Elegir modo
+  $$("#modeGrid .card").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      $$("#modeGrid .card").forEach(c=>c.classList.remove("selected"));
+      card.classList.add("selected");
+      answers.mode = card.dataset.mode;
+      $go("confirmMode").disabled = false;
+    });
+  });
+  $go("confirmMode").addEventListener("click", ()=>{
+    routeScreens = routes[answers.mode];
+    stepIndex = 0;
+    show(routeScreens[stepIndex]);
+  });
+
+  // Volver a modes
+  ["backToModes1","backToModes2","backToModes3","backToModes4"].forEach(id=>{
+    if($go(id)) $go(id).addEventListener("click", ()=> show("scr-modes"));
+  });
+
+  // BACKS Foundations (Body → Soul → Mind)
+  ["backFoundPrev1","backFBody","backFSoul"].forEach(id => {
+    const btn = $go(id);
+    if (!btn) return;
+    btn.addEventListener("click", () => {
+      stepIndex = Math.max(0, stepIndex - 1);
+      show(routeScreens[stepIndex]);
+    });
+  });
+
+  // Utils selección
+  const getCheckedTexts = sel => $$(sel+" input:checked").map(i=>i.parentElement.textContent.trim());
+  const getRadioText   = sel => { const el = $$(sel+" input[type=radio]").find(i=>i.checked); return el?el.parentElement.textContent.trim():""; };
+
+  // Checklist con límite + XP (13) y, si hay open con texto, +21 extra.
+  // Evita duplicar XP aunque vuelvas y confirmes varias veces.
+  // Checklist con límite y confirm (+ opcional "open" con +21 XP)
+  function bindLimitedChecklist(scrId, listId, countId, storeArrRef, openTextareaId=null){
+    const max    = Number($("#"+scrId).dataset.limit || 5);
+    const inputs = $$("#"+listId+" input");
+    const count  = $("#"+countId);
+  
+    function update(){
+      const ch = inputs.filter(i=>i.checked);
+      if(ch.length > max){ ch[ch.length-1].checked = false; }
+      const now = inputs.filter(i=>i.checked).length;
+      if (count) count.textContent = now;
+      $go(confirmIdFor(scrId)).disabled = (now < 1);
+    }
+    inputs.forEach(i=> i.addEventListener("change", update));
+    update();
+  
+    function confirmIdFor(id){
+      return ({
+        "scr-low-body":"confirmLowBody","scr-low-soul":"confirmLowSoul","scr-low-mind":"confirmLowMind",
+        "scr-f-body":"confirmFBody","scr-f-soul":"confirmFSoul","scr-f-mind":"confirmFMind"
+      })[id];
+    }
+  
+    $go(confirmIdFor(scrId)).addEventListener("click", ()=>{
+      const sec = document.getElementById(scrId);
+  
+      // 1) Guardar y evaluar el "open" si existe (puede sumarse aunque la checklist ya estuviera hecha)
+      if (openTextareaId){
+        const val = ($go(openTextareaId)?.value || "").trim();
+        // mapear a la key correcta en answers.foundations
+        const keyMap = {
+          "scr-f-body":"bodyOpen",
+          "scr-f-soul":"soulOpen",
+          "scr-f-mind":"mindOpen",
+          "scr-low-body": "bodyOpen",
+          "scr-low-soul": "soulOpen",
+          "scr-low-mind": "mindOpen"
+        };
+        const k = keyMap[scrId];
+        answers.foundations = answers.foundations || {};
+        if (k) answers.foundations[k] = val;
+  
+        if (val && sec.dataset.openDone !== "1"){
+          addXP(21,"ALL"); toast("+21 XP");
+          sec.dataset.openDone = "1"; // marca que el +21 ya se otorgó por este open
+        }
+      }
+  
+      // 2) Checklist: solo la 1ª vez guarda, suma +13 y marca done
+      if (sec.dataset.done !== "1"){
+        storeArrRef.length = 0;
+        getCheckedTexts("#"+listId).forEach(t=>storeArrRef.push(t));
+        const xpVal = Number($("#"+scrId).dataset.xp || 13);
+        const pillar = $("#"+scrId).dataset.pillar;
+        addXP(xpVal, pillar);
+        toast(`+${xpVal} XP`);
+        sec.dataset.done = "1";
+      }
+  
+      // 3) Avanzar
+      nextStep();
+    });
+  }
+
+
+  
+
+
+  // Binds LOW + FOUNDATIONS
+  bindLimitedChecklist("scr-low-body","lowBodyList","lowBodyCount",   answers.low.body, "fBodyOpen");
+  bindLimitedChecklist("scr-low-soul","lowSoulList","lowSoulCount",   answers.low.soul, "fSoulOpen");
+  bindLimitedChecklist("scr-low-mind","lowMindList","lowMindCount",   answers.low.mind, "fMindOpen");
+  bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount", answers.foundations.body, "fBodyOpen2");
+  bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount", answers.foundations.soul, "fSoulOpen2");
+  bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount", answers.foundations.mind, "fMindOpen2");
+  // bindLimitedChecklist("scr-f-body",  "fBodyList",  "fBodyCount",     answers.foundations.body);
+  // bindLimitedChecklist("scr-f-soul",  "fSoulList",  "fSoulCount",     answers.foundations.soul);
+  // bindLimitedChecklist("scr-f-mind",  "fMindList",  "fMindCount",     answers.foundations.mind);
+
+  // LOW note (21 XP)
+  $go("backLowMind")?.addEventListener("click", ()=> prevStep());
+  $go("confirmLowNote")?.addEventListener("click", ()=>{
+  answers.low.note = $go("lowNote").value.trim();
+  // SUMA XP solo si escribió algo:
+  if (answers.low.note) (window.JOURNEY_STATE.xp.Soul ||= 0, window.JOURNEY_STATE.xp.Soul += Number($go("scr-low-note")?.dataset?.xp || 21));
+  nextStep();
+});
+
+  // ---------- CHILL ----------
+$go("chillOneThing").addEventListener("input", ()=> {
+  $go("confirmChillOpen").disabled = ($go("chillOneThing").value.trim().length < 1);
+});
+
+// CHILL open (+21) — evita duplicar XP al re‑confirmar
+$go("confirmChillOpen").addEventListener("click", ()=>{
+  doOnce("scr-chill-open", ()=>{
+    answers.chill.oneThing = $go("chillOneThing").value.trim();
+    addXP(21, "ALL"); toast("+21 XP");
+  });
+});
+
+const chillInputs = $$("#chillMotivList input");
+const updateChill = ()=> $go("confirmChillMotiv").disabled = chillInputs.filter(i=>i.checked).length < 1;
+chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill();
+
+// CHILL motiv (+13)
+  $go("confirmChillMotiv").addEventListener("click", ()=>{
+    doOnce("scr-chill-motiv", ()=>{
+      answers.chill.motiv = getCheckedTexts("#chillMotivList");
+      addXP(13, "ALL"); toast("+13 XP");
+    });
+  });
+  $go("backChillOpen").addEventListener("click", ()=> prevStep());
+  
+  
+  // ---------- FLOW ----------
+  $go("flowGoal").addEventListener("input", ()=> {
+    $go("confirmFlowGoal").disabled = ($go("flowGoal").value.trim().length < 1);
+  });
+  
+  // FLOW goal (+21)
+  $go("confirmFlowGoal").addEventListener("click", ()=>{
+    doOnce("scr-flow-goal", ()=>{
+      answers.flow.goal = $go("flowGoal").value.trim();
+      addXP(21, "ALL"); toast("+21 XP");
+    });
+  });
+  
+  const flowImps = $$("#flowImpedList input");
+  const updateFlow = ()=> $go("confirmFlowImped").disabled = flowImps.filter(i=>i.checked).length < 1;
+  flowImps.forEach(i=> i.addEventListener("change", updateFlow)); updateFlow();
+  
+  // FLOW imped (+13)
+  $go("confirmFlowImped").addEventListener("click", ()=>{
+    doOnce("scr-flow-imped", ()=>{
+      answers.flow.imped = getCheckedTexts("#flowImpedList");
+      addXP(13, "ALL"); toast("+13 XP");
+    });
+  });
+  $go("backFlowGoal").addEventListener("click", ()=> prevStep());
+  
+  
+  // ---------- EVOLVE ----------
+  $go("evolveGoal").addEventListener("input", ()=> {
+    $go("confirmEvolveGoal").disabled = ($go("evolveGoal").value.trim().length < 1);
+  });
+  
+  // EVOLVE goal (+21)
+  $go("confirmEvolveGoal").addEventListener("click", ()=>{
+    doOnce("scr-evolve-goal", ()=>{
+      answers.evolve.goal = $go("evolveGoal").value.trim();
+      addXP(21, "ALL"); toast("+21 XP");
+    });
+  });
+  
+  const evTrade = $$("#evolveTradeList input");
+  const updEvTrade = ()=> $go("confirmEvolveTrade").disabled = evTrade.filter(i=>i.checked).length < 1;
+  evTrade.forEach(i=> i.addEventListener("change", updEvTrade)); updEvTrade();
+  
+  // EVOLVE trade (+13)
+  $go("confirmEvolveTrade").addEventListener("click", ()=>{
+    doOnce("scr-evolve-trade", ()=>{
+      answers.evolve.trade = getCheckedTexts("#evolveTradeList");
+      addXP(13, "ALL"); toast("+13 XP");
+    });
+  });
+  
+  // EVOLVE att (+21)
+  const evAtt = $$("#evolveAttList input");
+  evAtt.forEach(i=> i.addEventListener("change", ()=> $go("confirmEvolveAtt").disabled = !evAtt.some(x=>x.checked)));
+  $go("confirmEvolveAtt").addEventListener("click", ()=>{
+    doOnce("scr-evolve-att", ()=>{
+      answers.evolve.att = getRadioText("#evolveAttList");
+      addXP(21, "ALL"); toast("+21 XP");
+    });
+  });
+ 
+  $go("backEvolveTrade").addEventListener("click", ()=> prevStep());
+
+  // Atajos teclado
+  document.addEventListener("keydown",(e)=>{
+    if(e.key==="ArrowLeft")  prevStep();
+    if(e.key==="ArrowRight") nextStep();
+  });
+
+  // Resumen
+  function renderSummary(){
+    const box = $("#summaryBox");
+    const fmt = a => (a && a.length)? a.join(", ") : "—";
+    box.innerHTML = `
+      <div><strong>Game Mode:</strong> ${answers.mode||"—"}</div>
+      <div><strong>Email:</strong> ${answers.email||"—"}</div>
+      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+      ${
+        answers.mode==="LOW"
+        ? `
+          <div><strong>LOW · Body:</strong> ${fmt(answers.low.body)}</div>
+          <div><strong>LOW · Soul:</strong> ${fmt(answers.low.soul)}</div>
+          <div><strong>LOW · Mind:</strong> ${fmt(answers.low.mind)}</div>
+          ${answers.low.note?`<div><strong>Nota:</strong> ${answers.low.note}</div>`:""}
+        `
+        : `
+          ${answers.mode==="CHILL" ? `<div><strong>CHILL · Objetivo:</strong> ${answers.chill.oneThing}</div>
+          <div><strong>CHILL · Motivaciones:</strong> ${fmt(answers.chill.motiv)}</div>`:""}
+          ${answers.mode==="FLOW" ? `<div><strong>FLOW · Objetivo:</strong> ${answers.flow.goal}</div>
+          <div><strong>FLOW · Impedimentos:</strong> ${fmt(answers.flow.imped)}</div>`:""}
+          ${answers.mode==="EVOLVE" ? `<div><strong>EVOLVE · Objetivo:</strong> ${answers.evolve.goal}</div>
+          <div><strong>EVOLVE · Ajustes:</strong> ${fmt(answers.evolve.trade)}</div>
+          <div><strong>EVOLVE · Actitud:</strong> ${answers.evolve.att}</div>`:""}
+          <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+          <div><strong>Foundations · Body:</strong> ${fmt(answers.foundations.body)}</div>
+          <div><strong>Foundations · Soul:</strong> ${fmt(answers.foundations.soul)}</div>
+          <div><strong>Foundations · Mind:</strong> ${fmt(answers.foundations.mind)}</div>
+        `
+      }
+      <hr style="border:0;border-top:1px solid var(--ring);margin:8px 0">
+      <div><strong>🫀 Body:</strong> ${Math.round(xp.Body)} XP</div>
+      <div><strong>🧠 Mind:</strong> ${Math.round(xp.Mind)} XP</div>
+      <div><strong>🏵️ Soul:</strong> ${Math.round(xp.Soul)} XP</div>
+      <div style="margin-top:6px"><strong>Total:</strong> ${Math.round(xp.total)} XP</div>
+    `;
+  }
+  // Botón "Volver al inicio" del resumen
+  document.getElementById("restart")?.addEventListener("click", resetAll);
+
+  // Init
+  drawProgress();
+  window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
+})();
+</script>
+  
+<script>
+/* ==========================
+   3) Envío a Google Forms
+   ========================== */
+
+/* IDs de entradas (1:1 con tu último prellenado) */
+const ENTRIES = {
+  email: "entry.646330003",
+  mode:  "entry.97701242",
+
+  // XP
+  xp_total: "entry.1162318324",
+  xp_body:  "entry.719321726",
+  xp_mind:  "entry.1918862868",
+  xp_soul:  "entry.463475479",
+
+  // LOW
+  low_body: "entry.811917583",
+  low_soul: "entry.1264509887",
+  low_mind: "entry.930582201",
+  low_note: "entry.1684429349",
+
+  // CHILL
+  chill_one:   "entry.1593318786",
+  chill_motiv: "entry.245183915",
+
+  // FLOW
+  flow_goal:  "entry.1840529708",
+  flow_imped: "entry.1903049465",
+
+  // EVOLVE
+  evolve_goal:  "entry.1816542307",
+  evolve_trade: "entry.263772832",
+  evolve_att:   "entry.1936745776",
+
+  // FOUNDATIONS
+  f_body:       "entry.1504903278",
+  f_body_open:  "entry.263311735",
+  f_soul:       "entry.753306725",
+  f_soul_open:  "entry.590475620",
+  f_mind:       "entry.1978710",
+  f_mind_open:  "entry.1918822353",
+};
+
+/* ---------- Helpers ---------- */
+function appendFD(fd, name, val){
+  if (Array.isArray(val)) {
+    // Checkbox: si no hay selecciones, NO mandes nada
+    if (val.length > 0) val.forEach(v => fd.append(name, String(v)));
+    return;
+  }
+  // Scalars
+  if (val == null) return;
+  const s = String(val);
+  if (s.trim() === "") return;   // texto vacío → no lo mandes
+  fd.append(name, s);
+}
+
+// Intenta usar MODE_LABELS del Script 1 (si existen)
+function modeLabelFrom(answers){
+  try {
+    if (typeof MODE_LABELS !== "undefined" && MODE_LABELS[answers?.mode]) {
+      return MODE_LABELS[answers.mode];
+    }
+  } catch(_) {}
+  return answers?.mode || "";
+}
+
+// Si tenemos FORM_LABELS, filtramos a los valores válidos EXACTOS (evita que Forms descarte)
+function sanitizeArray(values, allowed, opts = {}) {
+  const { field = "(unknown-field)", mode = "" } = opts || {};
+
+  // Tipo inválido → aviso y vacío
+  if (!Array.isArray(values)) {
+    console.warn(`[forms] ${field} (${mode}) → recibido no-array:`, values);
+    return [];
+  }
+
+  // Sin catálogo → no filtramos
+  if (!Array.isArray(allowed) || allowed.length === 0) {
+    return values;
+  }
+
+  const whitelist = new Set(allowed);
+  const out = values.filter(v => whitelist.has(v));
+
+  // Si filtró algo, log detallado + traza acumulada
+  if (out.length !== values.length) {
+    const descartados = values.filter(v => !whitelist.has(v));
+    console.error("[forms] MISMATCH en catálogo", {
+      field, mode,
+      descartados,
+      permitidos: allowed,
+      enviados: out
+    });
+    try {
+      (window.__FORM_MISMATCHES ||= []).push({
+        ts: Date.now(), field, mode,
+        descartados, permitidos: allowed, enviados: out
+      });
+    } catch(_) {}
+  }
+
+  return out;
+}
+
+function pickEmail(){
+  const a = window.JOURNEY_STATE?.answers?.email || "";
+  const b = document.querySelector("#emailInput")?.value || "";
+  const c = document.querySelector("input[type=email]")?.value || "";
+  return String(a || b || c || "").trim();
+}
+
+
+  
+ function buildFormDataFromState(){
+   const fd = new FormData();
+
+   const state   = window.JOURNEY_STATE || { answers:{}, xp:{} };
+   const answers = state.answers || {};
+   const xp      = state.xp || {};
+   const t = x => String(x || "").trim();              // helper texto seguro
+
+   // ===== OBLIGATORIOS
+   const email = pickEmail();
+   const modeLabel = modeLabelFrom(answers);
+   appendFD(fd, ENTRIES.email, email);
+   appendFD(fd, ENTRIES.mode,  modeLabel);
+
+   // ===== XP (siempre números)
+   const b = Math.round(Number(xp.Body || 0));
+   const m = Math.round(Number(xp.Mind || 0));
+   const s = Math.round(Number(xp.Soul || 0));
+   appendFD(fd, ENTRIES.xp_total, b+m+s);
+   appendFD(fd, ENTRIES.xp_body,  b);
+   appendFD(fd, ENTRIES.xp_mind,  m);
+   appendFD(fd, ENTRIES.xp_soul,  s);
+
+   // ===== Catálogo para sanear
+   const L = (typeof FORM_LABELS !== "undefined") ? FORM_LABELS : {};
+
+   // LOW
+  appendFD(fd, ENTRIES.low_body, sanitizeArray(answers?.low?.body || [], L.lowBody || [], { field: "low_body", mode: modeLabel }));
+  appendFD(fd, ENTRIES.low_soul, sanitizeArray(answers?.low?.soul || [], L.lowSoul || [], { field: "low_soul", mode: modeLabel }));
+  appendFD(fd, ENTRIES.low_mind, sanitizeArray(answers?.low?.mind || [], L.lowMind || [], { field: "low_mind", mode: modeLabel }));
+  appendFD(fd, ENTRIES.low_note, t(answers?.low?.note)); // 🔸 siempre
+  
+  // CHILL
+  appendFD(fd, ENTRIES.chill_one, t(answers?.chill?.oneThing)); // 🔸 siempre
+  appendFD(fd, ENTRIES.chill_motiv, sanitizeArray(answers?.chill?.motiv || [], L.chillMotiv || [], { field: "chill_motiv", mode: modeLabel }));
+  
+  // FLOW
+  appendFD(fd, ENTRIES.flow_goal, t(answers?.flow?.goal)); // 🔸 siempre
+  appendFD(fd, ENTRIES.flow_imped, sanitizeArray(answers?.flow?.imped || [], L.flowObstacles || [], { field: "flow_imped", mode: modeLabel }));
+  
+  // EVOLVE
+  appendFD(fd, ENTRIES.evolve_goal, t(answers?.evolve?.goal)); // 🔸 siempre
+  appendFD(fd, ENTRIES.evolve_trade, sanitizeArray(answers?.evolve?.trade || [], L.evolveCommit || [], { field: "evolve_trade", mode: modeLabel }));
+  appendFD(fd, ENTRIES.evolve_att, t(answers?.evolve?.att));
+  
+  // FOUNDATIONS
+  appendFD(fd, ENTRIES.f_body, sanitizeArray(answers?.foundations?.body || [], L.fBody || [], { field: "f_body", mode: modeLabel }));
+  appendFD(fd, ENTRIES.f_soul, sanitizeArray(answers?.foundations?.soul || [], L.fSoul || [], { field: "f_soul", mode: modeLabel }));
+  appendFD(fd, ENTRIES.f_mind, sanitizeArray(answers?.foundations?.mind || [], L.fMind || [], { field: "f_mind", mode: modeLabel }));
+  
+  // “open” de foundations — 🔸 SIEMPRE (vacío si no hay texto)
+  appendFD(fd, ENTRIES.f_body_open, t(answers?.foundations?.bodyOpen));
+  appendFD(fd, ENTRIES.f_soul_open, t(answers?.foundations?.soulOpen));
+  appendFD(fd, ENTRIES.f_mind_open, t(answers?.foundations?.mindOpen));
+   return fd;
+ }  
+
+
+
+// ✨ NUEVO: usar el proxy del Worker
+const PROXY_URL = "https://formulariointro.rfullivarri22.workers.dev/";
+
+// ✨ Si activaste REQUIRE_KEY en el Worker, poné la misma clave acá.
+const PROXY_KEY = "formsintro"; // o "" si no usás clave
+
+async function submitJourneyToForm() {
+  try {
+    // 1) Armamos el FormData como ya lo tenés
+    const fd = buildFormDataFromState();
+
+    // 2) Headers (API key del Worker si aplica)
+    const headers = {};
+    if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
+
+    // 3) Modo debug conmutado por flag o por query (?debug=1 en la URL actual)
+    const qsDebug = new URL(location.href).searchParams.get("debug") === "1";
+    const USE_DEBUG = qsDebug; // producción por defecto (false), debug si pasás ?debug=1
+    const url = PROXY_URL + (USE_DEBUG ? "?debug=1" : "");
+
+    // 4) Fetch al Worker (keepalive para mobile / pestaña que navega)
+    const resp = await fetch(url, {
+      method: "POST",
+      mode: "cors",
+      credentials: "omit",
+      headers,
+      body: fd,
+      keepalive: true
+    });
+
+    // 5) En debug el Worker responde JSON {ok, status, location, html, received...}
+    if (USE_DEBUG) {
+      const data = await resp.json().catch(() => ({}));
+      console.log("[forms] 🔍 Debug Worker →", data);
+
+      // éxito si el Worker vio redirect/location O si status es 200/204
+      const ok = !!data.ok || data.status === 204 || data.status === 200;
+      return ok;
+    }
+
+    // 6) En producción: consideramos éxito 204 (expected) o 200 (variantes)
+    return resp.status === 204 || resp.status === 200;
+
+  } catch (err) {
+    console.error("[forms] ❌ Error en envío:", err);
+    return false;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  const btn = document.getElementById("finish");
+  if (!btn){ console.warn('[forms] No encontré #finish'); return; }
+
+  btn.addEventListener("click", async (e)=>{
+    e.preventDefault();
+
+    // UI: bloquear y mostrar spinner
+    btn.disabled = true;
+    btn.classList.add("loading");
+    // opcional: cambiar texto mientras envía
+    const oldTxt = btn.textContent;
+    btn.textContent = "Enviando…";
+
+    const ok = await submitJourneyToForm();
+
+    if (ok){
+      // éxito → ahora sí navegamos
+      window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+    }else{
+      // fallo → reactivar UI y avisar
+      btn.classList.remove("loading");
+      btn.disabled = false;
+      btn.textContent = oldTxt;
+      alert("No pudimos enviar. Revisá tu conexión e intentá de nuevo.");
+    }
+  });
+});
+</script>
+</body>
+</html>
