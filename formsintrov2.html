@@ -827,7 +827,7 @@ const FORM_LABELS = {
       answers.low.note = $go("lowNote").value.trim();
       if (answers.low.note) {
         const xpVal = Number($go("scr-low-note")?.dataset?.xp || 21);
-        addXP(xpVal, "ALL"); toast(+${xpVal} XP);
+        addXP(xpVal, "ALL"); toast(`+${xpVal} XP`);
       }
     });
   });
