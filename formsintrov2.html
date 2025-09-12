@@ -630,13 +630,12 @@ const FORM_LABELS = {
   const backIntroBtn = $go("backIntro") || $go("backToIntro");
   if (backIntroBtn) backIntroBtn.addEventListener("click", ()=> show("scr-intro"));
 
-  // Email Intro — mínimo, defensivo y sin pisarse con otros scripts
+  // Email Intro — FIX sin loops -->
   (() => {
     const emailInput = document.getElementById('emailInput');
     const goBtn      = document.getElementById('goModes');
     if (!emailInput || !goBtn) return;
   
-    // evita submit fantasma si está dentro de <form>
     if (String(goBtn.tagName).toUpperCase() === 'BUTTON') {
       goBtn.type = 'button';
     }
@@ -645,8 +644,15 @@ const FORM_LABELS = {
     const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   
     function setEnabled(ok){
-      goBtn.disabled = !ok;
-      if (ok) goBtn.removeAttribute('disabled'); // por si quedó seteado en el HTML
+      const wantDisabled = !ok;
+      // solo escribir si realmente cambia
+      if (goBtn.disabled !== wantDisabled) {
+        goBtn.disabled = wantDisabled;
+      }
+      // quitar el atributo sólo si corresponde y existe
+      if (!wantDisabled && goBtn.hasAttribute('disabled')) {
+        goBtn.removeAttribute('disabled');
+      }
     }
   
     function save(v){
@@ -664,44 +670,33 @@ const FORM_LABELS = {
       }
     }
   
-    // Eventos amplios (tecleo + pegado + IME/autofill)
-    ['input','change','paste','keyup','keydown','blur','focus','beforeinput','compositionend']
-      .forEach(ev => emailInput.addEventListener(ev, refresh));
+    // debounce a rAF (fluido y sin tormenta de eventos)
+    let raf = 0;
+    const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(refresh); };
   
-    // Poll de arranque (autofill tardío) + corrección si otro script pisa 'disabled'
-    let t = 0;
-    const boot = setInterval(() => { refresh(); if (++t > 40) clearInterval(boot); }, 200);
-    const mo = new MutationObserver(refresh);
-    mo.observe(goBtn, { attributes:true, attributeFilter:['disabled'] });
+    // eventos suficientes (sin keydown/keyup que spamean)
+    ['input','change','paste','blur','compositionend']
+      .forEach(ev => emailInput.addEventListener(ev, schedule));
+  
+    // boot para capturar autofill tardío (máx ~3s)
+    let tries = 0;
+    const boot = setInterval(() => { schedule(); if (++tries > 20) clearInterval(boot); }, 150);
   
     goBtn.addEventListener('click', (e) => {
       refresh(); // último check
       const v = norm(emailInput.value);
       if (!isEmail(v)) {
-        (typeof toast === 'function' ? toast('Poné un correo válido ✉') : alert('Poné un correo válido ✉'));
+        (typeof toast==='function' ? toast('Poné un correo válido ✉') : alert('Poné un correo válido ✉'));
         e.preventDefault();
         return;
       }
       save(v);
-      if (typeof show === 'function') show('scr-modes'); // mantiene tu UX
+      if (typeof show === 'function') show('scr-modes');
     });
-  
-    // Debug visible (activá si querés ver estado en el celu)
-    const DEBUG = false;
-    if (DEBUG) {
-      const chip = document.createElement('div');
-      Object.assign(chip.style, {
-        position:'fixed', left:'8px', bottom:'8px', font:'12px/1.2 monospace',
-        color:'#9aa3b2', background:'rgba(18,24,41,.85)', padding:'6px 8px',
-        border:'1px solid #2a3352', borderRadius:'8px', zIndex:999999
-      });
-      document.body.appendChild(chip);
-      window._GJ_DBG_ = chip; // 👈 nombre correcto
-      refresh();
-    }
   
     refresh();
   })();
+
 
 
 
