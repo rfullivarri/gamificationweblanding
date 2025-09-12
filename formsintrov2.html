@@ -634,85 +634,76 @@ const FORM_LABELS = {
   const backIntroBtn = $go("backIntro") || $go("backToIntro");
   if (backIntroBtn) backIntroBtn.addEventListener("click", ()=> show("scr-intro"));
 
-  // Email Intro (robusto + failsafe + debug opcional)
+  // Email Intro — mínimo, defensivo y sin pisarse con otros scripts
   (() => {
-    const emailInput = document.getElementById("emailInput");
-    const goModesBtn = document.getElementById("goModes");
-    if (!emailInput || !goModesBtn) return;
+    const emailInput = document.getElementById('emailInput');
+    const goBtn      = document.getElementById('goModes');
+    if (!emailInput || !goBtn) return;
   
-    if (goModesBtn.tagName === 'BUTTON') goModesBtn.type = 'button';
+    // evita submit fantasma si está dentro de <form>
+    if (goBtn.tagName === 'BUTTON') goBtn.type = 'button';
   
-    const norm    = v => String(v||"").trim().toLowerCase().replace(/\s+/g,'');
+    const norm = v => String(v||'').trim().toLowerCase();
     const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   
     function setEnabled(ok){
-      goModesBtn.disabled = !ok;
-      if (ok) goModesBtn.removeAttribute('disabled'); // por si quedó el atributo
+      goBtn.disabled = !ok;
+      if (ok) goBtn.removeAttribute('disabled'); // quita el atributo si quedó en el HTML
     }
-  
+    function save(v){
+      // guarda donde exista, sin romper si no existe 'answers'
+      try { if (typeof answers !== 'undefined' && answers) answers.email = v; } catch(e){}
+      window.GJ_EMAIL = v;
+    }
     function refresh(){
-      const v  = norm(emailInput.value);
+      const v = norm(emailInput.value);
       const ok = isEmail(v);
       setEnabled(ok);
-      window.GJ_EMAIL = v;
-      answers.email   = v;
-      if (window._GJ_DEBUG_EL_) {
-        window._GJ_DEBUG_EL_.textContent = email=${v || '∅'} | ok=${ok} | disabled=${goModesBtn.disabled};
-      }
+      save(v);
+      if (window._GJ_DBG) window.GJ_DBG_.textContent =
+        email=${v||'∅'} | ok=${ok} | disabled=${goBtn.disabled};
     }
   
-    // 1) Eventos amplios (tanto tipeo como autofill/IME)
-    ['input','change','paste','blur','focus','keyup','keydown','beforeinput','compositionend']
+    // Eventos amplios (tecleo + pegado + IME/autofill raros)
+    ['input','change','paste','keyup','keydown','blur','focus','beforeinput','compositionend']
       .forEach(ev => emailInput.addEventListener(ev, refresh, {passive:true}));
   
-    // 2) Poll de arranque (hasta ~8s por si el autofill entra tarde)
-    let t = 0;
-    const bootPoll = setInterval(() => { refresh(); if (++t > 32) clearInterval(bootPoll); }, 250);
+    // Poll de arranque (captura autofill tardío) y corrección si otro script pisa 'disabled'
+    let t=0; const boot = setInterval(()=>{ refresh(); if(++t>40) clearInterval(boot); }, 200);
+    const mo = new MutationObserver(refresh);
+    mo.observe(goBtn, {attributes:true, attributeFilter:['disabled']});
   
-    // 3) Micro-poll mientras el campo tiene foco (agarra el tap del sugerido)
-    let focusPoll = null;
-    emailInput.addEventListener('focus', () => {
-      if (focusPoll) return;
-      let n = 0;
-      focusPoll = setInterval(() => {
-        refresh();
-        if (++n > 40) { clearInterval(focusPoll); focusPoll = null; } // máx ~10s
-      }, 250);
-    }, {passive:true});
-    emailInput.addEventListener('blur', () => {
-      if (focusPoll) { clearInterval(focusPoll); focusPoll = null; }
-    }, {passive:true});
-  
-    // 4) Si otro script pisa el disabled, lo corregimos cuando el mail sea válido
-    const mo = new MutationObserver(() => refresh());
-    mo.observe(goModesBtn, { attributes:true, attributeFilter:['disabled','class'] });
-  
-    // 5) Click CTA: validación final + navegar
-    goModesBtn.addEventListener("click", ()=>{
-      refresh(); // por si justo llegó un cambio silencioso
+    goBtn.addEventListener('click', (e)=>{
+      refresh(); // último check
       const v = norm(emailInput.value);
-      if (!isEmail(v)){ toast("Poné un correo válido ✉"); return; }
-      answers.email = v;
-      show("scr-modes");
+      if (!isEmail(v)) {
+        (typeof toast==='function' ? toast('Poné un correo válido ✉') : alert('Poné un correo válido ✉'));
+        e.preventDefault(); return;
+      }
+      save(v);
+      if (typeof show==='function') show('scr-modes'); // mantiene tu UX
     });
   
-    // 6) Debug visible (activar si querés ver el estado en el celu)
+    // Debug visible (activá si querés ver estado en el celu)
     const DEBUG = false;
     if (DEBUG) {
-      const el = document.createElement('div');
-      Object.assign(el.style,{
+      const chip = document.createElement('div');
+      Object.assign(chip.style,{
         position:'fixed',left:'8px',bottom:'8px',font:'12px/1.2 monospace',
         color:'#9aa3b2',background:'rgba(18,24,41,.85)',padding:'6px 8px',
         border:'1px solid #2a3352',borderRadius:'8px',zIndex:999999
       });
-      document.body.appendChild(el);
-      window._GJ_DEBUG_EL_ = el;
+      document.body.appendChild(chip);
+      window._GJ_DBG_ = chip;
       refresh();
     }
   
-    // primer chequeo
     refresh();
   })();
+
+
+
+  
 
   // Elegir modo
   $$("#modeGrid .card").forEach(card=>{
