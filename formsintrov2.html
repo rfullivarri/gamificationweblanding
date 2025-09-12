@@ -46,7 +46,6 @@
           <h2>Cap. 0 — El Despertar</h2>
           <p>Respirá. Hoy enciendes tu sistema de mejora. Te voy guiando para equilibrar <strong>Cuerpo, Mente y Alma</strong> con pasos simples.</p>
           <p><strong>Cómo funciona:</strong> por cada pregunta que completes vas a ir sumando puntos de experiencia <strong>(XP)</strong>. Algunas valen <em>+21 XP</em> (respuestas escritas o clave de modo) y otras <em>+13 XP</em> (selecciones).</p>
-    
           <div class="field" style="margin:12px 0">
             <label for="emailInput">Tu correo (obligatorio)</label>
             <input
@@ -54,22 +53,20 @@
               name="email"
               type="email"
               placeholder="tu@email.com"
-              autocomplete="email username"
+              autocomplete="email"
               autocapitalize="none"
-              autocorrect="off"
               spellcheck="false"
               inputmode="email"
+              enterkeyhint="go"
               required
             />
             <small style="color:#aab7ff">Lo usamos para crear tu tablero y guardar tu progreso.</small>
           </div>
-    
           <div class="nav">
             <button class="btn secondary" id="backIntroDisabled" disabled>—</button>
             <button class="btn" id="goModes" disabled>Comenzar</button>
           </div>
         </div>
-    
         <figure class="pic">
           <img src="https://i.ibb.co/1GdbMQ1f/7e5cbb24-ebfe-4b0f-bbae-bddc1b66451a.jpg" alt="Intro">
         </figure>
@@ -318,6 +315,8 @@
 </main>
 <div id="toast" class="toast"></div>
 
+
+
 <script>
 // ==========================
 // 1) Etiquetas 1:1 con el Form (copiadas del prellenado)
@@ -471,21 +470,18 @@ const FORM_LABELS = {
   const toast = (txt) => { const t=$("#toast"); t.textContent=txt; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 1100); };
 
   function drawProgress(){
-    const total = routeScreens.length;
-    let pct = 0;
-    if (total > 1) {
-      pct = Math.min(100, Math.max(0, Math.round((stepIndex)/(total-1)*100)));
-    }
+    const total = routeScreens.length || 1;
+    const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
     $("#progressFill").style.width = pct + "%";
-  
+
     const b = Math.round(xp.Body);
     const m = Math.round(xp.Mind);
     const s = Math.round(xp.Soul);
-  
+
     $("#barBody").value = Math.min(b, 100);
     $("#barMind").value = Math.min(m, 100);
     $("#barSoul").value = Math.min(s, 100);
-  
+
     const shownTotal = b + m + s;
     $("#xpTotal").textContent = shownTotal;
     xp.total = shownTotal;
@@ -701,10 +697,6 @@ const FORM_LABELS = {
     refresh();
   })();
 
-
-
-  
-
   // Elegir modo
   $$("#modeGrid .card").forEach(card=>{
     card.addEventListener("click", ()=>{
@@ -823,14 +815,11 @@ const FORM_LABELS = {
   // LOW note (21 XP)
   $go("backLowMind")?.addEventListener("click", ()=> prevStep());
   $go("confirmLowNote")?.addEventListener("click", ()=>{
-    doOnce("scr-low-note", ()=>{
-      answers.low.note = $go("lowNote").value.trim();
-      if (answers.low.note) {
-        const xpVal = Number($go("scr-low-note")?.dataset?.xp || 21);
-        addXP(xpVal, "ALL"); toast(`+${xpVal} XP`);
-      }
-    });
-  });
+  answers.low.note = $go("lowNote").value.trim();
+  // SUMA XP solo si escribió algo:
+  if (answers.low.note) (window.JOURNEY_STATE.xp.Soul ||= 0, window.JOURNEY_STATE.xp.Soul += Number($go("scr-low-note")?.dataset?.xp || 21));
+  nextStep();
+});
 
   // ---------- CHILL ----------
 $go("chillOneThing").addEventListener("input", ()=> {
@@ -973,83 +962,9 @@ chillInputs.forEach(i=> i.addEventListener("change", updateChill)); updateChill(
   drawProgress();
   window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
 })();
-
-// DEBUG visible para probar autofill
-const DEBUG = true;
-if (DEBUG) {
-  const $log = document.createElement('div');
-  Object.assign($log.style,{
-    position:'fixed',left:'8px',bottom:'8px',font:'12px/1.2 monospace',
-    color:'#9aa3b2',background:'rgba(18,24,41,.85)',padding:'6px 8px',
-    border:'1px solid #2a3352',borderRadius:'8px',zIndex:99999
-  });
-  document.body.appendChild($log);
-  setInterval(()=>{ $log.textContent = 'email='+(window.GJ_EMAIL||''); }, 300);
-}
 </script>
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   
-<!-- <script>
+<script>
 /* ==========================
    3) Envío a Google Forms
    ========================== */
@@ -1271,6 +1186,58 @@ async function submitJourneyToForm() {
     return false;
   }
 }
+// async function submitJourneyToForm() {
+//   try {
+//     const fd = buildFormDataFromState();
+
+//     // ---- FormData -> URLSearchParams (lo que espera tu Worker sin 400) ----
+//     const body = new URLSearchParams();
+//     for (const [k, v] of fd.entries()) body.append(k, v);
+
+//     const headers = {};
+//     if (PROXY_KEY) headers["X-Proxy-Key"] = PROXY_KEY;
+//     headers["Content-Type"] = "application/x-www-form-urlencoded;charset=UTF-8";
+
+//     // Log opcional (previo a enviar)
+//     const preview = {};
+//     for (const [k, v] of body.entries()) (preview[k] ||= []).push(v);
+//     console.log("=== LOG ENVÍO (via Worker) ===", preview);
+
+//     // Envío con debug=1 para ver status de Google
+//     const resp = await fetch(PROXY_URL + "?debug=1", {
+//       method: "POST",
+//       mode: "cors",
+//       headers,
+//       body
+//     });
+
+//     const dbg = await resp.json().catch(() => ({}));
+//     console.log("[forms] 🔍 Debug Worker →", dbg);
+//     console.log("[forms] ✅ Enviado vía Worker");
+//   } catch (err) {
+//     console.error("[forms] ❌ Error en envío:", err);
+//   }
+// }
+
+  
+// /* Hook del botón final */
+// document.addEventListener("DOMContentLoaded", ()=>{
+//   const btn = document.getElementById("finish");
+//   if (!btn) {
+//     console.warn('[forms] No encontré #finish; agregá id="finish" al botón final.');
+//     return;
+//   }
+//   btn.addEventListener("click", async (e)=>{
+//     e.preventDefault();
+//     try {
+//       await submitJourneyToForm();        // 👈 esperamos a que el Worker responda
+//     } catch (err) {
+//       console.error("Envío falló:", err); // opcional: mostrar toast
+//     } finally {
+//       window.location.href = "https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1";
+//     }
+//   });
+// });
 
 document.addEventListener("DOMContentLoaded", ()=>{
   const btn = document.getElementById("finish");
@@ -1299,4 +1266,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
       alert("No pudimos enviar. Revisá tu conexión e intentá de nuevo.");
     }
   });
-}); -->
+});
+</script>
+</body>
+</html>
