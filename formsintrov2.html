@@ -471,18 +471,21 @@ const FORM_LABELS = {
   const toast = (txt) => { const t=$("#toast"); t.textContent=txt; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 1100); };
 
   function drawProgress(){
-    const total = routeScreens.length || 1;
-    const pct = Math.min(100, Math.round((stepIndex)/(total-1)*100));
+    const total = routeScreens.length;
+    let pct = 0;
+    if (total > 1) {
+      pct = Math.min(100, Math.max(0, Math.round((stepIndex)/(total-1)*100)));
+    }
     $("#progressFill").style.width = pct + "%";
-
+  
     const b = Math.round(xp.Body);
     const m = Math.round(xp.Mind);
     const s = Math.round(xp.Soul);
-
+  
     $("#barBody").value = Math.min(b, 100);
     $("#barMind").value = Math.min(m, 100);
     $("#barSoul").value = Math.min(s, 100);
-
+  
     const shownTotal = b + m + s;
     $("#xpTotal").textContent = shownTotal;
     xp.total = shownTotal;
@@ -647,9 +650,8 @@ const FORM_LABELS = {
       const v  = norm(emailInput.value);
       const ok = isEmail(v);
       goModesBtn.disabled = !ok;
-      // guardamos el valor “limpio” en tus estados de siempre
-      window.GJ_EMAIL   = v;
-      if (window.answers) answers.email = v;
+      window.GJ_EMAIL = v;   // útil para debug/otros módulos
+      answers.email   = v;   // 👈 guardado inmediato en tu estado central
     }
   
     // eventos que sí se disparan con autofill/pegado en la mayoría de browsers
@@ -790,11 +792,14 @@ const FORM_LABELS = {
   // LOW note (21 XP)
   $go("backLowMind")?.addEventListener("click", ()=> prevStep());
   $go("confirmLowNote")?.addEventListener("click", ()=>{
-  answers.low.note = $go("lowNote").value.trim();
-  // SUMA XP solo si escribió algo:
-  if (answers.low.note) (window.JOURNEY_STATE.xp.Soul ||= 0, window.JOURNEY_STATE.xp.Soul += Number($go("scr-low-note")?.dataset?.xp || 21));
-  nextStep();
-});
+    doOnce("scr-low-note", ()=>{
+      answers.low.note = $go("lowNote").value.trim();
+      if (answers.low.note) {
+        const xpVal = Number($go("scr-low-note")?.dataset?.xp || 21);
+        addXP(xpVal, "ALL"); toast(+${xpVal} XP);
+      }
+    });
+  });
 
   // ---------- CHILL ----------
 $go("chillOneThing").addEventListener("input", ()=> {
