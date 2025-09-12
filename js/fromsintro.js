@@ -1,7 +1,8 @@
 // formsintro.js — Enviar respuestas del Journey a Google Forms (versión estable iOS)
 
 const FORM_ACTION_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSclxAQ2reKAgONJL3S5Js1GLzGLAciQO1cedbuFSx66u4iD8Q/formResponse";
+  "https://docs.google.com/forms/u/0/d/e/1FAIpQLSclqKO9kEe_my-UPY9iUA_DeKAOw4oxZv8g-5qCGOFW6aCBqw/formResponse";
+
 
 // Mapeo de tus entry.xxx (incluye Email correcto)
 const entries = {
