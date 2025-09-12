@@ -637,65 +637,73 @@ const FORM_LABELS = {
     if (!emailInput || !goBtn) return;
   
     // evita submit fantasma si está dentro de <form>
-    if (goBtn.tagName === 'BUTTON') goBtn.type = 'button';
+    if (String(goBtn.tagName).toUpperCase() === 'BUTTON') {
+      goBtn.type = 'button';
+    }
   
-    const norm = v => String(v||'').trim().toLowerCase();
+    const norm    = v => String(v || '').trim().toLowerCase();
     const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   
     function setEnabled(ok){
       goBtn.disabled = !ok;
-      if (ok) goBtn.removeAttribute('disabled'); // quita el atributo si quedó en el HTML
+      if (ok) goBtn.removeAttribute('disabled'); // por si quedó seteado en el HTML
     }
+  
     function save(v){
-      // guarda donde exista, sin romper si no existe 'answers'
       try { if (typeof answers !== 'undefined' && answers) answers.email = v; } catch(e){}
       window.GJ_EMAIL = v;
     }
+  
     function refresh(){
-      const v = norm(emailInput.value);
+      const v  = norm(emailInput.value);
       const ok = isEmail(v);
       setEnabled(ok);
       save(v);
-      if (window._GJ_DBG) window.GJ_DBG_.textContent =
-        `email=${v||'∅'} | ok=${ok} | disabled=${goBtn.disabled}`;
+      if (window._GJ_DBG_) {
+        window._GJ_DBG_.textContent = `email=${v || '∅'} | ok=${ok} | disabled=${goBtn.disabled}`;
+      }
     }
   
-    // Eventos amplios (tecleo + pegado + IME/autofill raros)
+    // Eventos amplios (tecleo + pegado + IME/autofill)
     ['input','change','paste','keyup','keydown','blur','focus','beforeinput','compositionend']
-      .forEach(ev => emailInput.addEventListener(ev, refresh, {passive:true}));
+      .forEach(ev => emailInput.addEventListener(ev, refresh));
   
-    // Poll de arranque (captura autofill tardío) y corrección si otro script pisa 'disabled'
-    let t=0; const boot = setInterval(()=>{ refresh(); if(++t>40) clearInterval(boot); }, 200);
+    // Poll de arranque (autofill tardío) + corrección si otro script pisa 'disabled'
+    let t = 0;
+    const boot = setInterval(() => { refresh(); if (++t > 40) clearInterval(boot); }, 200);
     const mo = new MutationObserver(refresh);
-    mo.observe(goBtn, {attributes:true, attributeFilter:['disabled']});
+    mo.observe(goBtn, { attributes:true, attributeFilter:['disabled'] });
   
-    goBtn.addEventListener('click', (e)=>{
+    goBtn.addEventListener('click', (e) => {
       refresh(); // último check
       const v = norm(emailInput.value);
       if (!isEmail(v)) {
-        (typeof toast==='function' ? toast('Poné un correo válido ✉') : alert('Poné un correo válido ✉'));
-        e.preventDefault(); return;
+        (typeof toast === 'function' ? toast('Poné un correo válido ✉') : alert('Poné un correo válido ✉'));
+        e.preventDefault();
+        return;
       }
       save(v);
-      if (typeof show==='function') show('scr-modes'); // mantiene tu UX
+      if (typeof show === 'function') show('scr-modes'); // mantiene tu UX
     });
   
     // Debug visible (activá si querés ver estado en el celu)
     const DEBUG = false;
     if (DEBUG) {
       const chip = document.createElement('div');
-      Object.assign(chip.style,{
-        position:'fixed',left:'8px',bottom:'8px',font:'12px/1.2 monospace',
-        color:'#9aa3b2',background:'rgba(18,24,41,.85)',padding:'6px 8px',
-        border:'1px solid #2a3352',borderRadius:'8px',zIndex:999999
+      Object.assign(chip.style, {
+        position:'fixed', left:'8px', bottom:'8px', font:'12px/1.2 monospace',
+        color:'#9aa3b2', background:'rgba(18,24,41,.85)', padding:'6px 8px',
+        border:'1px solid #2a3352', borderRadius:'8px', zIndex:999999
       });
       document.body.appendChild(chip);
-      window._GJ_DBG_ = chip;
+      window._GJ_DBG_ = chip; // 👈 nombre correcto
       refresh();
     }
   
     refresh();
   })();
+
+
 
   // Elegir modo
   $$("#modeGrid .card").forEach(card=>{
