@@ -661,7 +661,7 @@ const FORM_LABELS = {
       setEnabled(ok);
       save(v);
       if (window._GJ_DBG) window.GJ_DBG_.textContent =
-        email=${v||'∅'} | ok=${ok} | disabled=${goBtn.disabled};
+        `email=${v||'∅'} | ok=${ok} | disabled=${goBtn.disabled}`;
     }
   
     // Eventos amplios (tecleo + pegado + IME/autofill raros)
