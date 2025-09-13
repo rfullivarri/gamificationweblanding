@@ -139,6 +139,121 @@
   }
   .modal-title{ margin:4px 0 10px; font-size:24px; }
   .modal-actions{ display:flex; gap:10px; margin-top:12px; }
+
+  /* ====== Login: centrar acciones y estado ====== */
+  .wrap .actions{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+  }
+  .status{
+    text-align:center;
+    margin-top:14px;
+    min-height:22px; /* reserva lugar cuando no hay mensaje */
+  }
+  
+  /* Spinner compacto y centrable junto al texto de .status */
+  .spinner{
+    width:1em; height:1em;
+    border:2px solid rgba(255,255,255,.28);
+    border-top-color:#a78bfa;
+    border-radius:50%;
+    display:inline-block;
+    vertical-align:-2px;
+    animation:spin .9s linear infinite;
+    margin-left:6px;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  
+  /* ====== Await modal: cubrir y desenfocar el fondo ====== */
+  .wait-shell{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center;
+    z-index:1000;
+  }
+  .wait-shell.visible{ display:flex; }
+  
+  /* Capa de oscurecimiento + blur para que no “se lea” el login detrás */
+  .wait-shell::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(1200px 800px at 80% 10%, rgba(99,102,241,.18), transparent 70%),
+      rgba(8,10,18,.70);                /* <- más opacidad */
+    backdrop-filter: blur(12px) saturate(115%);
+    -webkit-backdrop-filter: blur(12px) saturate(115%);
+  }
+  
+  /* Tarjeta del modal, un poco más sólida para legibilidad */
+  .wait-card{
+    position:relative;
+    width:min(900px, 92vw);
+    padding:28px;
+    border-radius:18px;
+    background:linear-gradient(180deg, rgba(24,26,35,.90), rgba(24,26,35,.86));
+    border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 22px 60px rgba(0,0,0,.55);
+  }
+  
+  /* “Próximos pasos”: lista vertical, no clicable */
+  .next-steps{
+    list-style:none;
+    margin:10px 0 18px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    counter-reset:step;
+  }
+  .next-steps li{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 16px;
+    border-radius:14px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+  }
+  .next-steps li::before{
+    content:counter(step);
+    counter-increment:step;
+    display:inline-grid;
+    place-items:center;
+    width:28px; height:28px;
+    border-radius:999px;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.18);
+    font:600 13px/1 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
+    color:rgba(255,255,255,.92);
+  }
+  .step-link{
+    flex:1;
+    text-decoration:none;
+    color:rgba(255,255,255,.92);
+    pointer-events:none;   /* <- NO clickable */
+    cursor:default;
+  }
+  
+  /* “Mientras tanto”: centrar chips/botones */
+  .wait-minor{
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin:8px 0 2px;
+  }
+  .wait-minor .ghost{
+    padding:10px 14px;
+    border:1px solid rgba(255,255,255,.16);
+    background:rgba(255,255,255,.07);
+    border-radius:999px;
+    transition:transform .08s ease;
+  }
+  .wait-minor .ghost:active{ transform:scale(.98); }
+  
+  /* Close del modal, opcional: que siempre quede visible por encima del blur */
+  .wait-card .close{ position:absolute; right:12px; top:12px; z-index:1; }
   </style>
 </head>
 <body>
