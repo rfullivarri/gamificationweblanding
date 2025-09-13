@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 🔧 CONFIGURAR:
   const FORM_ACTION = "https://docs.google.com/forms/u/0/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcwW67K5Gv-dsvmdRDXVd78MRMjNLA/formResponse"; // tu form TRIGGER
   const CHECK_STATUS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxOaMmRvEUweOyfXxj93ERX-ls8yvovoU5B_jjDg7qDeWLPhn70-0ClahMyOg69zJhf/exec"; // Apps Script columna E
-  const FORM_PUBLIC_URL = "https://rfullivarri.github.io/gamificationweblanding/formsintro.html";     // link que abrís si falta completar
+  const FORM_PUBLIC_URL = "https://rfullivarri.github.io/gamificationweblanding/formsintrov3.html";     // link que abrís si falta completar
   const LOGIN_URL = "loginv2.html";                                   // a dónde mandás si ya está listo
   const POLL_MS = 10000;
 
