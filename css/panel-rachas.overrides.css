@@ -139,14 +139,15 @@
   z-index:1000 !important;     /* < pop */
 }
 
-/* POP: dejar que el JS lo posicione (fixed) y que esté por encima de todo */
+/* POP: SIEMPRE fixed + top del stack global */
 .dashboard-root .info-pop{
-  /* NO forzar position/transform aquí: lo hace el JS (fixed + left/top) */
-  z-index:10050 !important;    /* > 9999 del card elevado */
+  position: fixed !important;             /* fijo al viewport */
+  z-index: 2147483647 !important;         /* tope absoluto sobre todo */
   max-width: var(--info-pop-width);
   width: max-content;
-  pointer-events:auto;
-  display:none;                /* por defecto oculto; el JS lo muestra */
+  pointer-events: auto;
+  display: none;                          /* el JS lo muestra */
+  will-change: left, top, transform;
 }
 
 /* ===== EXCEPCIÓN: Daily Cultivation (chip a la izquierda) ===== */
@@ -181,9 +182,6 @@
 .dashboard-root .emotion-box .card-title .info-chip{
   top:10px; right:10px; left:auto;
 }
-
-/* ===== Eliminamos fallbacks que forzaban absolute/transform ===== */
-/* (se retiran para no romper el posicionamiento FIXED del JS) */
 
 /* ===== Panel de rachas: no tapar nada por defecto ===== */
 #panel-rachas{ position:relative; z-index:2; }
