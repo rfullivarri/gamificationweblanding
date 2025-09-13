@@ -7,247 +7,483 @@
   <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#7d3cff">
   <style>
-  /* --- Layout base --- */
-  :root{
-    --bg: #0b0e14;
-    --card: rgba(255,255,255,0.06);
-    --card-border: rgba(255,255,255,0.08);
-    --text: #E8EAF2;
-    --text-dim: #B9BED1;
-    --accent: #8e6cff;
-    --accent-2: #4ad1ff;
-    --chip: rgba(255,255,255,0.08);
-  }
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; }
-  body{
-    margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
-    color:var(--text); background: radial-gradient(1200px 700px at 20% -10%, #251B52 0%, transparent 65%),
-                        radial-gradient(900px 600px at 80% 10%, #0A3B53 0%, transparent 60%),
-                        var(--bg);
-  }
+    :root{
+      --bg:#0b0f19; --card:#121829; --ink:#e8ecf1; --muted:#9aa3b2;
+      --accent:#7d3cff; --accent-2:#5c28c2; --line:rgba(255,255,255,.14);
+      --overlay:rgba(8,10,16,.55);
+      --chip-glass-from: rgba(255,255,255,.06);
+      --chip-glass-to:   rgba(255,255,255,.02);
+      --chip-radius: 14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family: system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 800px at 20% -10%, #1a2340 0%, rgba(26,35,64,0) 60%),
+        radial-gradient(1000px 700px at 120%   0%, #321a63 0%, rgba(50,26,99,0) 60%),
+        var(--bg);
+      color:var(--ink);
+      display:flex;flex-direction:column;
+    }
   
-  /* Orbes de fondo */
-  .bg{ position:fixed; inset:0; pointer-events:none; overflow:hidden;}
-  .bg .orb{ position:absolute; filter:blur(60px); opacity:.35; border-radius:50%;}
-  .bg .orb.a{ width:380px;height:380px; left:-120px; top:-120px; background:#7c5cff;}
-  .bg .orb.b{ width:420px;height:420px; right:-140px; top:-60px; background:#25a4ff;}
-  .bg .orb.c{ width:500px;height:500px; left:50%; bottom:-220px; transform:translateX(-50%); background:#4f3d91;}
+    /* NAVBAR */
+    .nav{
+      width:100%; background:rgba(18,24,41,.6); border-bottom:1px solid var(--line);
+      backdrop-filter: blur(6px);
+      display:flex; align-items:center; justify-content:center; padding:12px 16px;
+      position:sticky; top:0; z-index:40;
+    }
+    .nav a{color:#fff; text-decoration:none; font-weight:900}
+    .nav a:hover{text-decoration:underline}
   
-  /* Nav */
-  .nav{
-    position:sticky; top:0; padding:18px 24px; text-align:center;
-    background:linear-gradient(to bottom, rgba(0,0,0,.35), transparent);
-    font-weight:700; letter-spacing:.3px;
-  }
-  .nav a{ color:var(--text); text-decoration:none; }
+    /* CONTENIDO */
+    .wrap{flex:1; display:grid; place-items:center; padding:24px}
+    .card{
+      width:100%; max-width:520px;
+      background:linear-gradient(180deg, var(--chip-glass-from), var(--chip-glass-to));
+      border:1px solid var(--line); border-radius:18px; padding:24px; backdrop-filter: blur(8px);
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    h1{margin:0 0 8px; font-size:26px; font-weight:900; text-align:center}
+    .sub{margin:0 0 18px; color:var(--muted); text-align:center; line-height:1.55}
+    .field{margin:14px 0 6px}
+    label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
+    input[type="email"]{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
+      background:#0f1526; color:#e8ecf1; outline:none; text-align:center;
+    }
+    input::placeholder{color:#7f8aa3}
+    .actions{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap}
+    .btn{
+      appearance:none; border:0; border-radius:12px; padding:12px 16px; font-weight:800;
+      background:var(--accent); color:#fff; cursor:pointer; transition:.2s background,.05s transform;
+    }
+    .btn:hover{background:var(--accent-2)} .btn:active{transform:translateY(1px)}
+    .btn.secondary{
+      background:transparent; border:1px solid var(--line); color:#e8ecf1
+    }
+    .status{margin-top:10px; color:var(--muted); font-size:13px; text-align:center; min-height:20px}
   
-  /* Card “glass” */
-  .wrap{ display:grid; place-items:center; padding:56px 20px 80px; }
-  .card{
-    width:min(720px, 92vw);
-    background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.05));
-    border:1px solid var(--card-border);
-    border-radius:18px; padding:32px 28px; backdrop-filter: blur(10px);
-    box-shadow: 0 10px 40px rgba(0,0,0,.35);
-  }
-  .card h1{ margin:0 0 10px; font-size:28px; line-height:1.25; }
-  .card .sub{ margin:0 0 18px; color:var(--text-dim); }
+    /* SPINNER */
+    .spinner{
+      width:18px;height:18px;border-radius:50%;
+      border:3px solid rgba(255,255,255,.2); border-top-color:#fff;
+      animation:spin .9s linear infinite; display:inline-block; vertical-align:middle; margin-left:8px;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
   
-  /* Form */
-  .field{ margin:14px 0 16px; }
-  .field label{ display:block; font-size:13px; color:var(--text-dim); margin:0 0 6px; }
-  .field input{
-    width:100%; padding:12px 14px; border-radius:10px;
-    border:1px solid rgba(255,255,255,0.14);
-    background:rgba(255,255,255,0.06); color:var(--text);
-    outline:none;
-  }
-  .actions{ display:flex; gap:10px; margin-top:12px; }
-  .btn{
-    appearance:none; border:0; border-radius:12px; padding:12px 16px; font-weight:700; cursor:pointer;
-    background:linear-gradient(180deg, #A08BFF, #7F60FF); color:#151221;
-    box-shadow:0 6px 22px rgba(127,96,255,.35);
-  }
-  .btn.secondary{
-    background:transparent; color:var(--text);
-    border:1px solid rgba(255,255,255,.18);
-  }
-  .status{ margin-top:10px; min-height:22px; color:var(--text-dim); }
-  .spinner{
-    display:inline-block; width:16px;height:16px; margin-left:6px;
-    border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%;
-    animation:spin 0.8s linear infinite; vertical-align:-3px;
-  }
-  @keyframes spin{ to{ transform:rotate(360deg);} }
+    /* MODAL (base) */
+    .modal{
+      position:fixed; inset:0; display:none; place-items:center; padding:20px;
+      background:var(--overlay); z-index:100; backdrop-filter: blur(2px);
+    }
+    .modal.visible{display:grid}
+    .modal-card{
+      width:100%; max-width:760px;
+      background:linear-gradient(180deg, var(--chip-glass-from), var(--chip-glass-to));
+      border:1px solid var(--line); border-radius:18px; padding:20px 22px 18px; position:relative;
+      box-shadow:0 30px 80px rgba(0,0,0,.5); backdrop-filter: blur(10px);
+    }
+    .close{
+      position:absolute; top:12px; right:12px; width:38px; height:38px; border-radius:12px;
+      display:grid; place-items:center; cursor:pointer; border:1px solid var(--line);
+      color:#cfd6ec; background:rgba(255,255,255,.02);
+    }
+    .close:hover{border-color:#fff; color:#fff}
+    .modal-title{margin:0 0 6px; font-weight:900; font-size:22px}
+    .modal-body{color:var(--muted); font-size:14px; line-height:1.6}
+    .pill{
+      display:inline-block; font-size:12px; padding:4px 10px; border-radius:999px;
+      border:1px solid var(--line); color:#cfd6ec; background:linear-gradient(180deg, var(--chip-glass-from), var(--chip-glass-to));
+    }
+    .modal-actions{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:14px}
   
-  /* --- Modal Await (glass card) --- */
-  .wait-shell{
-    position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:32px 16px;
-    background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35));
-    z-index:50;
-  }
-  .wait-shell.visible{ display:flex; }
-  .wait-card{
-    width:min(780px, 95vw);
-    background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.05));
-    border:1px solid var(--card-border);
-    border-radius:18px; padding:26px 22px; backdrop-filter: blur(10px);
-    box-shadow: 0 10px 40px rgba(0,0,0,.4);
-  }
-  .wait-title{ margin:4px 0 8px; font-size:28px; font-weight:800; }
-  .wait-sub{ margin:0 0 14px; color:var(--text-dim); }
-  .wait-tip{
-    margin:10px 0 18px; padding:10px 12px; border-radius:10px;
-    background:var(--chip); color:var(--text-dim);
-  }
-  .wait-section-title{ margin:10px 0 8px; font-size:12px; letter-spacing:.18em; color:var(--text-dim); text-transform:uppercase; }
+    /* TIP con borde lila (arriba, más visible) */
+    .callout{
+      position:relative; padding:12px 12px 12px 18px; margin:12px 0 12px;
+      border:1px dashed var(--line); border-radius:14px; color:#cdd6f4;
+      background:rgba(125,60,255,.08);
+    }
+    .callout::before{
+      content:""; position:absolute; left:10px; top:10px; bottom:10px; width:4px; border-radius:4px;
+      background:linear-gradient(180deg, #7d3cff 0%, rgba(125,60,255,.25) 100%);
+    }
   
-  /* Pasos verticales (no botones) */
-  .next-steps{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px; }
-  .step-row{
-    display:flex; align-items:center; gap:12px; padding:12px 14px; border-radius:12px;
-    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);
-  }
-  .step-row .num{
-    display:inline-grid; place-items:center; width:24px;height:24px; border-radius:999px;
-    background:rgba(255,255,255,0.12); font-size:12px; font-weight:800; color:var(--text);
-  }
-  .step-row .step-text{ color:var(--text); }
-  .step-row a{ pointer-events:none; } /* Por si algún markup heredado */
+    /* glow sutil por paso */
+    .is-blue  { box-shadow: inset 0 0 0 2px rgba(92,162,255,.18),  0 10px 28px rgba(92,162,255,.08); }
+    .is-green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.20), 0 10px 28px rgba(105,219,124,.09); }
+    .is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,92,.22),  0 10px 28px rgba(255,190,92,.10); }
   
-  .wait-minor{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
-  .ghost{
-    padding:10px 14px; border-radius:999px; background:transparent; color:var(--text);
-    border:1px solid rgba(255,255,255,0.2); cursor:pointer; text-decoration:none;
-  }
-  .close{
-    position:absolute; right:14px; top:12px; width:32px; height:32px; border:1px solid rgba(255,255,255,.15);
-    background:transparent; color:var(--text); border-radius:10px; cursor:pointer;
-  }
+    /* —— “Mientras tanto” —— */
+    .section-subtitle{ text-align:center; margin:10px 0 6px; color:#cfd6ec; font-weight:900 }
+    .action-chips{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:8px 0 2px }
+    .pill-btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg, var(--chip-glass-from), var(--chip-glass-to));
+      color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
+    }
+    /* violeta para “Instalar app” */
+    #installBtn{ background:#7d3cff; border-color:#7d3cff; color:#fff; }
+    #installBtn:hover{ background:#5c28c2 }
+    /* “Copiar link” mismo tamaño pero ghost */
+    #copyLinkBtn{ background:transparent; }
+    .chip-note{
+      display:block; text-align:center; font-size:12px; color:#aab2c5; margin-top:2px;
+    }
   
-  /* Modal not-found (usa el mismo overlay que await) */
-  .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:60;
-    background:linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,.35)); padding:32px 16px;
-  }
-  .modal.visible{ display:flex; }
-  .modal-card{
-    width:min(650px, 92vw);
-    background:linear-gradient(180deg, rgba(255,255,255,.085), rgba(255,255,255,.05));
-    border:1px solid var(--card-border);
-    border-radius:18px; padding:22px 20px; backdrop-filter: blur(10px);
-  }
-  .modal-title{ margin:4px 0 10px; font-size:24px; }
-  .modal-actions{ display:flex; gap:10px; margin-top:12px; }
+    /* Botones del footer del modal con look de chip */
+    .modal-actions .btn{
+      background:linear-gradient(180deg, var(--chip-glass-from), var(--chip-glass-to));
+      color:#e8ecf1; border:1px solid var(--line); font-weight:900;
+    }
+    .modal-actions .btn:hover{ background:rgba(255,255,255,.08) }
+  
+    /* Ocultos por defecto para que JS los active contextualmente */
+    #installBtn{ display:none; }
+    .step.is-blue  { box-shadow: inset 0 0 0 2px rgba(92,162,255,.18),  0 10px 28px rgba(92,162,255,.08); }
+    .step.is-green { box-shadow: inset 0 0 0 2px rgba(105,219,124,.20), 0 10px 28px rgba(105,219,124,.09); }
+    .step.is-amber { box-shadow: inset 0 0 0 2px rgba(255,190,92,.22),  0 10px 28px rgba(255,190,92,.10); }
+    .chip-note { font-size:11px; color:#aab2c5; text-align:center; margin-top:4px; }
 
-  /* ====== Login: centrar acciones y estado ====== */
-  .wrap .actions{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    gap:14px;
-  }
-  .status{
-    text-align:center;
-    margin-top:14px;
-    min-height:22px; /* reserva lugar cuando no hay mensaje */
-  }
-  
-  /* Spinner compacto y centrable junto al texto de .status */
-  .spinner{
-    width:1em; height:1em;
-    border:2px solid rgba(255,255,255,.28);
-    border-top-color:#a78bfa;
-    border-radius:50%;
-    display:inline-block;
-    vertical-align:-2px;
-    animation:spin .9s linear infinite;
-    margin-left:6px;
-  }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-  
-  /* ====== Await modal: cubrir y desenfocar el fondo ====== */
-  .wait-shell{
-    position:fixed; inset:0; display:none;
-    align-items:center; justify-content:center;
-    z-index:1000;
-  }
-  .wait-shell.visible{ display:flex; }
-  
-  /* Capa de oscurecimiento + blur para que no “se lea” el login detrás */
-  .wait-shell::before{
-    content:"";
-    position:absolute; inset:0;
-    background:
-      radial-gradient(1200px 800px at 80% 10%, rgba(99,102,241,.18), transparent 70%),
-      rgba(8,10,18,.70);                /* <- más opacidad */
-    backdrop-filter: blur(12px) saturate(115%);
-    -webkit-backdrop-filter: blur(12px) saturate(115%);
-  }
-  
-  /* Tarjeta del modal, un poco más sólida para legibilidad */
-  .wait-card{
+    
+    /* ===== FIXES ===== */
+    /* Fondo del overlay con blur (se mantiene) */
+    .modal{
+      background: rgba(8,10,16,.55);
+      backdrop-filter: blur(4px);
+    }
+    
+    /* Tarjeta del modal: opaca (no se ve atrás), sin blur interno */
+    .modal-card{
+    width:100%; max-width:760px;
+    /* fondo sólido + leve glass, ya NO se transparenta el contenido de atrás */
+    background: rgba(18,24,41,.94);            /* <- sólido */
+    border:1px solid var(--line); 
+    border-radius:18px; 
+    padding:20px 22px 18px; 
     position:relative;
-    width:min(900px, 92vw);
-    padding:28px;
-    border-radius:18px;
-    background:linear-gradient(180deg, rgba(24,26,35,.90), rgba(24,26,35,.86));
-    border:1px solid rgba(255,255,255,.08);
-    box-shadow:0 22px 60px rgba(0,0,0,.55);
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+    backdrop-filter: blur(10px);               /* glass suave encima del sólido */
+  }
+      
+    /* === Próximos pasos → cards iguales (rectangulares, glassy y simples) === */
+    .steps-title{
+      text-align:center;
+      margin:8px 0 12px;
+      font-weight:900;
+      color:#cfd6ec;
+    }
+    
+    .steps-row{
+      display:grid;
+      gap:14px;
+      margin:10px 0 14px;
+      grid-template-columns:1fr;                 /* mobile */
+    }
+    @media (min-width:720px){
+      .steps-row{ grid-template-columns:repeat(3,1fr); } /* 3 en línea en desktop */
+    }
+    
+    /* Card de paso (NO botón) */
+    .step{
+      display:flex; align-items:center; justify-content:center;
+      height:60px;                               /* alto parejo, más compacto */
+      padding:0 16px;                            /* menos panza */
+      border-radius:12px;                        /* curvita corta (no pastilla) */
+      cursor:default;                            /* no parece botón */
+      text-align:center; font-weight:900; letter-spacing:.2px; color:#e8ecf1;
+    
+      /* glassy sutil y translúcido */
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      backdrop-filter:blur(4px);
+    
+      /* borde “blanco” suave como Copiar link */
+      border:1px solid rgba(255,255,255,.20);
+    
+      /* bisel MUY leve para evitar efecto plástico */
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      transition:.15s ease;
+    }
+    .step:hover{
+      transform:translateY(-1px);
+      border-color:rgba(255,255,255,.30);
+    }
+
+    
+    /* Chips de acción (instalar / copiar) */
+    .pill-btn{
+      border:1px solid rgba(255,255,255,.22);
+      background:transparent;                            /* ghost por defecto */
+      color:#e8ecf1; padding:10px 14px; border-radius:999px; font-weight:800;
+    }
+    
+    /* Violeta para destacar (Instalar app y Crear cuenta) */
+    .pill-btn.accent{ background:#7d3cff; border-color:#7d3cff; color:#fff; }
+    .pill-btn.accent:hover{ background:#5c28c2; }
+    
+    /* Copiar link: ghost */
+    #copyLinkBtn{ background:transparent; }
+    
+    /* Ocultar botón Instalar por defecto: lo muestra JS (iOS/Android) */
+    #installBtn{ display:none; }
+    
+    /* Ayuda iOS: oculta por defecto; solo al tocar Instalar en iPhone */
+    #installHelp{
+      display:none;
+      margin:8px 0 0; padding:10px 12px;
+      border:1px dashed rgba(255,255,255,.18);
+      border-radius:12px; color:#cfd6ec;
+    }
+    
+    /* Nota chiquita debajo de “Copiar link” */
+    .chip-note{ font-size:12px; color:#aab2c5; text-align:center; margin-top:4px; }
+    /* Botón violeta de la app para cualquier chip con .accent */
+    .pill-btn.accent{ background:#7d3cff; border-color:#7d3cff; color:#fff; }
+    .pill-btn.accent:hover{ background:#5c28c2; }
+    
+    /* Copiar link: ghost con borde blanco (ya lo tenés, lo dejo explícito) */
+  #copyLinkBtn{ background:transparent; border:1px solid rgba(255,255,255,.22); color:#e8ecf1; }
+      /* === Fondo con destellos animados (Athos-style) === */
+  .bg{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(1200px 800px at 50% 50%, #0a0a12 0%, #070711 55%, #05050a 100%);
+    overflow:hidden;
   }
   
-  /* “Próximos pasos”: lista vertical, no clicable */
+  /* Caústicas de luz girando (suave) */
+  .bg::before,
+  .bg::after{
+    content:""; position:absolute; inset:-40%;
+    background:
+      conic-gradient(from 0deg,
+        transparent 0turn 0.08turn,
+        color-mix(in oklab, #7d3cff 30%, transparent) 0.12turn 0.18turn,
+        transparent 0.24turn 0.34turn,
+        color-mix(in oklab, #00d4ff 28%, transparent) 0.40turn 0.46turn,
+        transparent 0.52turn 0.64turn,
+        color-mix(in oklab, #ff79c6 22%, transparent) 0.70turn 0.76turn,
+        transparent 0.82turn 1turn);
+    filter: blur(64px);
+    opacity:.45; mix-blend-mode:screen;
+    animation: spin 28s linear infinite;    /* reusa tu @keyframes spin */
+  }
+  .bg::after{
+    opacity:.35; filter: blur(82px);
+    animation: spin 42s linear infinite reverse;
+  }
+  
+  /* Orbes orbitando (dan “vida” orgánica) */
+  .orb{
+    position:absolute; top:50%; left:50%;
+    width:45vmax; height:45vmax; margin:-22.5vmax; border-radius:50%;
+    background: radial-gradient(35% 35% at 30% 30%, color-mix(in oklab, #7d3cff 60%, transparent) 0%, transparent 70%);
+    filter: blur(70px);
+    mix-blend-mode:screen; opacity:.55;
+    animation: orbit1 24s ease-in-out infinite;
+  }
+  .orb.b{
+    background: radial-gradient(35% 35% at 70% 35%, color-mix(in oklab, #00d4ff 55%, transparent) 0%, transparent 72%);
+    animation: orbit2 30s ease-in-out infinite; opacity:.5;
+  }
+  .orb.c{
+    background: radial-gradient(35% 35% at 40% 70%, color-mix(in oklab, #ff79c6 50%, transparent) 0%, transparent 75%);
+    animation: orbit3 36s ease-in-out infinite; opacity:.45;
+  }
+  
+  /* Órbitas */
+  @keyframes orbit1 {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)   translateX(12vmax) rotate(0deg); }
+    50%  { transform: translate(-50%,-50%) rotate(180deg) translateX(8vmax)  rotate(-180deg); }
+    100% { transform: translate(-50%,-50%) rotate(360deg) translateX(12vmax) rotate(-360deg); }
+  }
+  @keyframes orbit2 {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)    translateY(10vmax) rotate(0deg); }
+    50%  { transform: translate(-50%,-50%) rotate(-200deg) translateY(6vmax)  rotate(200deg); }
+    100% { transform: translate(-50%,-50%) rotate(-360deg) translateY(10vmax) rotate(360deg); }
+  }
+  @keyframes orbit3 {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)   translate(8vmax,-6vmax) rotate(0deg); }
+    50%  { transform: translate(-50%,-50%) rotate(220deg) translate(4vmax,-4vmax) rotate(-220deg); }
+    100% { transform: translate(-50%,-50%) rotate(360deg) translate(8vmax,-6vmax) rotate(-360deg); }
+  }
+  
+  /* Aseguramos que el contenido quede por encima del fondo animado */
+  .wrap{ position:relative; z-index:1; }
+  
+  /* Shimmer permanente para el botón primario */
+  .btn.shimmer{
+    position:relative; overflow:hidden; isolation:isolate;
+    box-shadow: inset 0 0 0 1px rgba(125,60,255,.15), 0 8px 30px rgba(125,60,255,.25);
+  }
+  .btn.shimmer::before{
+    content:""; position:absolute; inset:-2px; border-radius:inherit; z-index:-1;
+    background:
+      conic-gradient(from 0deg at 50% 50%,
+        transparent, rgba(255,255,255,.35), transparent 35%,
+        color-mix(in oklab, #00d4ff 28%, transparent), transparent 70%,
+        color-mix(in oklab, #7d3cff 28%, transparent), transparent);
+    filter: blur(14px);
+    animation: spin 8s linear infinite;
+    opacity:.55;
+  }
+  .btn.shimmer::after{
+    content:""; position:absolute; top:0; left:-160%; width:60%; height:100%;
+    background: linear-gradient(115deg, transparent 0%,
+      rgba(255,255,255,.55) 45%, rgba(255,255,255,.85) 52%,
+      rgba(255,255,255,.55) 59%, transparent 100%);
+    transform: skewX(-18deg);
+    mix-blend-mode: screen; filter: blur(2px);
+    animation: btn-slide 2.3s linear infinite;
+  }
+  @keyframes btn-slide { to { transform: translateX(260%) skewX(-18deg); } }
+  
+  /* Respeto a usuarios con “reducir movimiento” */
+  @media (prefers-reduced-motion: reduce){
+    .bg::before,.bg::after,.orb,.btn.shimmer::before,.btn.shimmer::after{ animation:none !important }
+  }
+
+  /* ===== Wait / Preparing screen ===== */
+  :root{
+    --bg:#0b0f14;
+    --text:#e8edf7;
+    --muted:#a7b0c2;
+    --accent:#8b5cf6;      /* violeta suave */
+    --accent-2:#22d3ee;    /* cian sutil  */
+    --panel:rgba(18,22,30,0.68);
+    --border:rgba(255,255,255,0.06);
+    --ring:rgba(139,92,246,0.25);
+  }
+  
+  body.wait-bg{
+    background:
+      radial-gradient(1200px 800px at 80% -10%, rgba(139,92,246,0.15), transparent 55%),
+      radial-gradient(900px 700px at 10% 110%, rgba(34,211,238,0.12), transparent 50%),
+      linear-gradient(180deg, #0b0f14 0%, #0b0f14 100%);
+    color:var(--text);
+  }
+  
+  /* contenedor centrado */
+  .wait-shell{
+    min-height: 100dvh;
+    display:grid;
+    place-items:center;
+    padding:24px;
+  }
+  
+  /* “card” tipo glass */
+  .wait-card{
+    width:min(780px, 92vw);
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:20px;
+    backdrop-filter: blur(16px);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    padding:32px clamp(20px, 4vw, 40px);
+  }
+  
+  /* título/subtítulo */
+  .wait-title{
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: clamp(22px, 3.2vw, 30px);
+    margin: 0 0 8px 0;
+  }
+  
+  .wait-sub{
+    color:var(--muted);
+    margin:0 0 18px 0;
+    line-height:1.55;
+  }
+  
+  /* pill tip */
+  .wait-tip{
+    --pill-bg: rgba(255,255,255,0.05);
+    background: var(--pill-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin: 6px 0 22px 0;
+  }
+  
+  /* separador */
+  .wait-section-title{
+    margin: 6px 0 10px 0;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-weight: 700;
+    font-size: .78rem;
+  }
+  
+  /* === Próximos pasos como lista vertical (no botones) === */
   .next-steps{
     list-style:none;
-    margin:10px 0 18px;
+    margin: 8px 0 20px 0;
     padding:0;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-    counter-reset:step;
+    counter-reset: step;
   }
   .next-steps li{
+    counter-increment: step;
     display:flex;
+    gap:14px;
     align-items:center;
-    gap:12px;
-    padding:14px 16px;
-    border-radius:14px;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.10);
-    pointer-events:none;   /* <- NO clickable */
+    padding:14px 12px;
+    border-radius:12px;
+    border:1px solid transparent;
+    transition: all .18s ease;
   }
   .next-steps li::before{
-    content:counter(step);
-    counter-increment:step;
+    content: counter(step);
     display:inline-grid;
     place-items:center;
     width:28px; height:28px;
-    border-radius:999px;
-    background:rgba(255,255,255,.10);
-    border:1px solid rgba(255,255,255,.18);
-    font:600 13px/1 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu;
-    color:rgba(255,255,255,.92);
+    border-radius:9px;
+    background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(34,211,238,.18));
+    border:1px solid var(--border);
+    font-weight:700;
+    font-size:.9rem;
+    color:var(--text);
+  }
+  .next-steps a.step-link{
+    color:var(--text);
+    text-decoration: none;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .next-steps li:hover{
+    background: rgba(255,255,255,0.03);
+    border-color: var(--border);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+  }
+  .next-steps li:hover a.step-link{
+    text-decoration: underline;
+    text-underline-offset: 3px;
   }
   
-  /* “Mientras tanto”: centrar chips/botones */
+  /* En esa sección NO queremos botones antiguos */
+  .wait-actions-row,
+  .wait-actions-row .btn,
+  .wait-actions-row button{
+    all: unset; display:none !important;
+  }
+  
+  /* Footer de acciones opcionales (si lo usás) */
   .wait-minor{
-    display:flex;
-    justify-content:center;
-    flex-wrap:wrap;
-    gap:10px;
-    margin:8px 0 2px;
+    display:flex; gap:10px; flex-wrap:wrap;
+    margin-top: 10px;
   }
   .wait-minor .ghost{
-    padding:10px 14px;
-    border:1px solid rgba(255,255,255,.16);
-    background:rgba(255,255,255,.07);
-    border-radius:999px;
-    transition:transform .08s ease;
+    appearance:none; border:1px solid var(--border);
+    padding:10px 14px; border-radius:12px; color:var(--text);
+    background: transparent; cursor:pointer; font-weight:600;
   }
-  .wait-minor .ghost:active{ transform:scale(.98); }
-  
-  /* Close del modal, opcional: que siempre quede visible por encima del blur */
-  .wait-card .close{ position:absolute; right:12px; top:12px; z-index:1; }
+  .wait-minor .ghost:hover{ border-color: var(--ring); }
   </style>
 </head>
 <body>
@@ -257,14 +493,13 @@
     <div class="orb b"></div>
     <div class="orb c"></div>
   </div>
-
   <!-- NAV -->
   <div class="nav">
     <a href="indexv2.html">Gamification Journey</a>
   </div>
 
-  <!-- CONTENIDO (LOGIN) -->
-  <div class="wrap" id="loginWrap">
+  <!-- CONTENIDO -->
+  <div class="wrap">
     <div class="card">
       <h1>Entrar al Dashboard</h1>
       <p class="sub">
@@ -288,48 +523,55 @@
     </div>
   </div>
 
-  <!-- AWAIT (solo con ?await=1 o cuando el status está “en proceso”) -->
-  <section id="awaitModal" class="wait-shell" role="dialog" aria-labelledby="awaitTitle" aria-hidden="true">
-    <div class="wait-card" role="document">
-      <button id="closeModal" class="close" title="Volver al login" aria-label="Volver al login">✕</button>
-
-      <h2 id="awaitTitle" class="wait-title">Preparando tu mundo…</h2>
-      <p class="wait-sub">
-        Estamos creando tu espacio. En unos minutos te llegará un
-        <strong>pergamino digital</strong> (un mail) para confirmar tu usuario.
-      </p>
-
-      <!-- TIP -->
-      <div class="wait-tip">
-        Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
+  <!-- MODAL AWAIT -->
+   <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
+    <div class="modal-card">
+      <button id="closeModal" class="close" title="Volver al login">✕</button>
+  
+      <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
+  
+      <div class="modal-body">
+        <p>
+          Estamos creando tu espacio. En unos minutos te llegará un
+          <span class="pill">pergamino digital</span> (un mail) para confirmar tu usuario.
+        </p>
+  
+        <!-- TIP arriba -->
+        <div class="callout">
+          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
+        </div>
+  
+        <!-- Próximos pasos -->
+        <h3 class="steps-title">Próximos pasos</h3>
+        <div class="steps-row">
+          <span class="step is-blue">Login</span>
+          <span class="step is-green">Confirmar BBDD</span>
+          <span class="step is-amber">Programar Daily&nbsp;Quest</span>
+        </div>
+  
+        <!-- Mientras tanto -->
+        <h4 class="section-subtitle">Mientras tanto</h4>
+        <div class="action-chips">
+          <button id="installBtn"  type="button" class="pill-btn accent">Instalar app</button>
+          <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link</button>
+        </div>
+        <div class="chip-note">Usá “Copiar link” para abrirlo en tu móvil.</div>
+  
+        <!-- Ayuda iOS (se muestra al tocar Instalar app en iPhone) -->
+        <div id="installHelp">
+          <strong>iPhone (Safari)</strong>
+          <ol>
+            <li>Tocá <em>Compartir</em> (icono ↑).</li>
+            <li>Elegí <em>Agregar a inicio</em>.</li>
+            <li>Confirmá el nombre y guardá.</li>
+          </ol>
+        </div>
       </div>
-
-      <!-- Próximos pasos (vertical, NO botones) -->
-      <div class="wait-section-title">Próximos pasos</div>
-      <ol class="next-steps" aria-label="Próximos pasos">
-        <li class="step-row"><span class="num">1</span><span class="step-text">Login</span></li>
-        <li class="step-row"><span class="num">2</span><span class="step-text">Confirmar BBDD</span></li>
-        <li class="step-row"><span class="num">3</span><span class="step-text">Programar Daily&nbsp;Quest</span></li>
-      </ol>
-
-      <!-- Mientras tanto (sí accionan) -->
-      <div class="wait-section-title">Mientras tanto</div>
-      <div class="wait-minor">
-        <button id="installBtn"   class="ghost" type="button">Instalar app</button>
-        <button id="copyLinkBtn"  class="ghost" type="button">Copiar link</button>
-        <a id="signupBtn" class="ghost" href="signupv2.html">Crear cuenta</a>
-        <a class="ghost" href="indexv2.html">Volver al inicio</a>
+  
+      <div class="modal-actions">
+        <a id="signupBtn" class="pill-btn accent"   href="signupv2.html">Crear cuenta</a>
+        <a                 class="pill-btn"         href="indexv2.html">Volver al inicio</a>
       </div>
-
-      <!-- Ayuda iOS (plegable) -->
-      <details id="installHelp" class="wait-tip" style="margin-top:14px;">
-        <summary><strong>iPhone (Safari)</strong> — ¿Cómo instalar?</summary>
-        <ol style="margin:10px 0 0 18px;">
-          <li>Tocá <em>Compartir</em> (icono ↑).</li>
-          <li>Elegí <em>Agregar a inicio</em>.</li>
-          <li>Confirmá el nombre y guardá.</li>
-        </ol>
-      </details>
     </div>
   </section>
 
@@ -355,38 +597,23 @@
     const CHECK_ENDPOINT = "https://script.google.com/macros/s/AKfycbzOvVEFFtNQfFE28AK5Tgi7kwdzn4if5tbLHofmlyAQ3fiVLdQgwXah2TcqTZDLEzua/exec";
     const POLL_MS = 10000;
     const DASHBOARD = "dashboardv3.html";
-
+  
     /* ================== UTILS ================== */
     function qs(n){ const p=new URLSearchParams(location.search); return (p.get(n)||"").trim(); }
     function setStatus(msg, spinning=false){
       const $status = document.getElementById('status');
       if (!$status) return;
-      $status.innerHTML = spinning ? `${msg} <span class="spinner" aria-hidden="true"></span>` : msg;
+      $status.innerHTML = spinning ? `${msg} <span class="spinner"></span>` : msg;
     }
-    function showModal(id){
-      const m=document.getElementById(id); if(!m) return;
-      m.classList.add('visible'); m.setAttribute('aria-hidden','false');
-    }
-    function hideModal(id){
-      const m=document.getElementById(id); if(!m) return;
-      m.classList.remove('visible'); m.setAttribute('aria-hidden','true');
-    }
+    function showModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.add('visible'); m.setAttribute('aria-hidden','false'); }
+    function hideModal(id){ const m=document.getElementById(id); if(!m) return; m.classList.remove('visible'); m.setAttribute('aria-hidden','true'); }
     function disable(el,v){ if(!el) return; el.disabled = !!v; el.style.opacity = v ? 0.7 : 1; }
-
-    function hideLogin(){
-      const w = document.getElementById('loginWrap');
-      if (w){ w.hidden = true; w.setAttribute('aria-hidden','true'); }
-    }
-    function showLogin(){
-      const w = document.getElementById('loginWrap');
-      if (w){ w.hidden = false; w.setAttribute('aria-hidden','false'); }
-    }
-
+  
     const UA = navigator.userAgent || '';
     const isIOS = /iPhone|iPad|iPod/i.test(UA);
     const isAndroid = /Android/i.test(UA);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-
+  
     /* ================== CHECKER ================== */
     async function checkStatus(email){
       const res = await fetch(`${CHECK_ENDPOINT}?email=${encodeURIComponent(email)}`, {cache:'no-store'});
@@ -403,7 +630,7 @@
       const m = (d.message||d.error||d.reason||'').toString().toLowerCase();
       return /no existe|not found|no encontrado/.test(m);
     }
-
+  
     /* ================== LOGIN FLOW ================== */
     let pollTimer=null, lastEmail="";
     document.getElementById('loginForm').addEventListener('submit', async (e)=>{
@@ -412,56 +639,50 @@
       const email = (document.getElementById('email').value||"").trim().toLowerCase();
       if(!email || !email.includes('@')){ setStatus('Ingresá un correo válido.'); return; }
       lastEmail=email;
-
+  
       if(!CHECK_ENDPOINT || CHECK_ENDPOINT.startsWith("PON_AQUI")) {
-        hideLogin();
-        showModal('awaitModal');
-        return;
+        showModal('awaitModal'); return;
       }
-
+  
       disable($goBtn,true); setStatus('Chequeando estado…', true);
       try{
         const data = await checkStatus(email);
-
+  
         // Usuario no existe
         if (isNotFound(data)){
           setStatus('Ese correo no está registrado.');
-          hideModal('awaitModal'); // por si estaba abierto
+          hideModal('awaitModal');
           showModal('notFoundModal');
           const $f = document.getElementById('signupNF'); if ($f) $f.focus();
           return;
         }
-
+  
         // Listo → entrar
         if (isReady(data)){
           setStatus('Listo, entrando…', true);
           window.location.href = `${DASHBOARD}?email=${encodeURIComponent(email)}`;
           return;
         }
-
-        // En proceso → esperar (oculta login)
+  
+        // En proceso → esperar
         setStatus('Tu base está en proceso. Te avisamos acá.');
-        hideLogin();
-        showModal('awaitModal');
-        startPolling();
-
+        showModal('awaitModal'); startPolling();
+  
       }catch(_){
         setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
-        hideLogin();
-        showModal('awaitModal');
-        startPolling();
+        showModal('awaitModal'); startPolling();
       }finally{
         disable($goBtn,false);
       }
     });
-
+  
     function startPolling(){
       stopPolling();
       pollTimer=setInterval(async ()=>{
         try{
           const data = await checkStatus(lastEmail);
           if (isNotFound(data)){
-            stopPolling(); hideModal('awaitModal'); showLogin();
+            stopPolling(); hideModal('awaitModal');
             setStatus('Ese correo no está registrado.');
             showModal('notFoundModal');
             return;
@@ -474,27 +695,27 @@
       }, POLL_MS);
     }
     function stopPolling(){ if(pollTimer){ clearInterval(pollTimer); pollTimer=null; } }
-
+  
     // Cierres / acciones modales
     document.getElementById('closeModal')
       .addEventListener('click', ()=>{
         stopPolling();
         hideModal('awaitModal');
-        showLogin();
         setStatus('Listo para intentar de nuevo.');
       });
-
-    const retry = document.getElementById('retryBtn');
+    
+    // El botón "Reintentar" ya no se usa; si existe en alguna versión, lo manejamos igual.
+    const retry = document.getElementById('retryBtn'); // <- ojo: 'retryBtn' con B mayúscula
     if (retry){
       retry.addEventListener('click', async ()=>{
         if(!lastEmail) return;
         const t = retry.textContent;
-        retry.innerHTML = `Reintentando <span class="spinner" aria-hidden="true"></span>`;
+        retry.innerHTML = `Reintentando <span class="spinner"></span>`;
         retry.disabled = true;
         try{
           const data = await checkStatus(lastEmail);
           if (isNotFound(data)){
-            stopPolling(); hideModal('awaitModal'); showLogin();
+            stopPolling(); hideModal('awaitModal');
             setStatus('Ese correo no está registrado.');
             showModal('notFoundModal');
             return;
@@ -510,22 +731,20 @@
         }
       });
     }
-
+  
     document.getElementById('closeNF')?.addEventListener('click', ()=> hideModal('notFoundModal'));
     document.getElementById('backNF')?.addEventListener('click', ()=> hideModal('notFoundModal'));
-
+  
     // Modo “forzar popup” desde el mail (await=1)
     (function boot(){
       // En iOS mostramos de entrada el botón Instalar (abre ayuda)
       const $installBtn = document.getElementById('installBtn');
       if (isIOS && $installBtn) $installBtn.style.display = 'inline-block';
-
+  
       const force = qs('await');
       const pre = qs('email');
       if (pre) document.getElementById('email').value = pre;
-
       if (force === '1') {
-        hideLogin();                 // ⬅️ importante
         showModal('awaitModal');
         if (pre && CHECK_ENDPOINT && !CHECK_ENDPOINT.startsWith("PON_AQUI")){
           lastEmail = pre.toLowerCase();
@@ -533,41 +752,47 @@
         }
       }
     })();
-
+  
     // Enter directo
     document.addEventListener('keydown', (e)=>{
       if(e.key === 'Enter' && document.activeElement === document.getElementById('email')){
         e.preventDefault(); document.getElementById('goBtn').click();
       }
     });
-
+  
     /* ================== PWA: Instalar / Copy link ================== */
     const $installBtn = document.getElementById('installBtn');
     const $copyLinkBtn = document.getElementById('copyLinkBtn');
     const $installHelp = document.getElementById('installHelp');
     let deferredPrompt = null;
-
+  
+    // Android/Chromium: habilita el botón cuando hay prompt
     window.addEventListener('beforeinstallprompt', (e) => {
-      if (isStandalone) return;
+      if (isStandalone) return;         // si ya está instalada, no sugerimos
       e.preventDefault();
       deferredPrompt = e;
       if ($installBtn) $installBtn.style.display = 'inline-block';
     });
-
+  
+    // Click en “Instalar app”
     $installBtn?.addEventListener('click', async ()=>{
       if (deferredPrompt) {
+        // Android/desktop compatibles
         deferredPrompt.prompt();
         try { await deferredPrompt.userChoice; } catch {}
         deferredPrompt = null;
         return;
       }
       if (isIOS) {
+        // iOS → mostrar ayuda compacta en el mismo modal
         if ($installHelp) $installHelp.style.display = 'block';
         return;
       }
+      // Fallback genérico
       alert('Si tu navegador lo permite, usá “Instalar app / Agregar a la pantalla de inicio”.');
     });
-
+  
+    // Construye un link portable con await=1 (+ email si está cargado)
     function buildPortalUrlForMobile(){
       const base = `${location.origin}${location.pathname}`;
       const email = (document.getElementById('email').value||'').trim().toLowerCase();
@@ -575,7 +800,8 @@
       if (email) params.set('email', email);
       return `${base}?${params.toString()}`;
     }
-
+  
+    // Copiar link del portal
     $copyLinkBtn?.addEventListener('click', async ()=>{
       const url = buildPortalUrlForMobile();
       try{
@@ -588,7 +814,7 @@
       }
     });
   </script>
-
+  
   <!-- SW -->
   <script>
     if ('serviceWorker' in navigator) {
