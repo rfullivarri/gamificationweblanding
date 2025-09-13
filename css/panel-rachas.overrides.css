@@ -185,3 +185,10 @@
 
 /* ===== Panel de rachas: no tapar nada por defecto ===== */
 #panel-rachas{ position:relative; z-index:2; }
+
+/* ===== GUTTERS MÓVILES: usar casi todo el ancho de la pantalla ===== */
+@media (max-width: 540px){
+  .dashboard-root .dashboard-content{ padding-left:2px !important; padding-right:2px !important; }
+  main{ padding-left:2px !important; padding-right:2px !important; }
+  body, .dashboard-root{ margin-left:0 !important; margin-right:0 !important; }
+}
