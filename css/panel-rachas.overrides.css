@@ -20,7 +20,7 @@
   --info-pop-width: 340px;  /* ancho máximo del tooltip */
 }
 
-/* ===== GRID: 3 columnas IGUALES ===== */
+/* ===== GRID: 3 columnas IGUALES (mobile-first) ===== */
 .dashboard-root .dashboard-columns{
   display:grid !important;
   grid-template-columns: 1fr;
@@ -71,7 +71,6 @@
 }
 
 /* ===== SUBE EL CARD cuando el ℹ o el tooltip están activos ===== */
-/* soporte moderno: :has() */
 .dashboard-root .xp-box:hover,
 .dashboard-root .energy-box:hover,
 .dashboard-root .daily-cultivation-section:hover,
@@ -87,7 +86,7 @@
 .dashboard-root .daily-cultivation-section:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
 .dashboard-root .radar-section:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
 .dashboard-root .emotion-box:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop){
-  z-index: 9999;   /* queda por encima del panel de rachas y todo lo demás */
+  z-index: 9999;   /* eleva el card; el pop va aún más arriba */
 }
 
 /* ===== Inner containers ===== */
@@ -100,7 +99,7 @@
   padding:8px;
 }
 
-/* ===== Avatar grande (sin padding) ===== */
+/* ===== Avatar “story” ===== */
 .dashboard-root .avatar-box{ max-width:440px; margin:0 auto; padding:0; }
 @media (max-width:600px){ .dashboard-root .avatar-box{ max-width:320px; } }
 .dashboard-root .avatar-img{
@@ -114,7 +113,8 @@
   border-radius:var(--gj-r-pill); overflow:hidden;
 }
 .dashboard-root .progress-bar .bar-fill,
-.dashboard-root #bar-nivel{ position:absolute; inset:0; height:100%;
+.dashboard-root #bar-nivel{
+  position:absolute; inset:0; height:100%;
   background:var(--gj-fill-level); border-radius:var(--gj-r-pill);
 }
 .dashboard-root .energy-track{
@@ -123,37 +123,56 @@
 }
 .dashboard-root .energy-track .bar-fill{ height:100%; border-radius:var(--gj-r-pill); }
 
-/* ===== ℹ BASE: arriba-derecha + tooltip pegado ===== */
-.dashboard-root .card-title{ position:relative; z-index:2; }
+/* ===== Títulos con chip ℹ ===== */
+.dashboard-root .card-title{
+  position:relative;
+  z-index:2;
+  padding-right:34px;          /* deja “aire” para el chip a la derecha */
+}
+
+/* CHIP: debajo del pop en stacking */
 .dashboard-root .card-title .info,
 .dashboard-root .card-title .info-btn,
 .dashboard-root .card-title .info-chip{
-  position:absolute !important; top:10px; right:10px;
-  z-index:1002 !important;
-}
-.dashboard-root .info-pop{
   position:absolute !important;
-  top:0; right:0;
-  transform: translate(0, calc(-100% - 10px));
-  z-index:1001 !important;
+  top:10px; right:10px;
+  z-index:1000 !important;     /* < pop */
+}
+
+/* POP: dejar que el JS lo posicione (fixed) y que esté por encima de todo */
+.dashboard-root .info-pop{
+  /* NO forzar position/transform aquí: lo hace el JS (fixed + left/top) */
+  z-index:10050 !important;    /* > 9999 del card elevado */
   max-width: var(--info-pop-width);
   width: max-content;
   pointer-events:auto;
+  display:none;                /* por defecto oculto; el JS lo muestra */
 }
 
-/* ===== EXCEPCIÓN: Daily Cultivation → ℹ arriba-IZQUIERDA al borde ===== */
-.dashboard-root .daily-cultivation-section .card-title{ padding-left: 30px; }
+/* ===== EXCEPCIÓN: Daily Cultivation (chip a la izquierda) ===== */
+.dashboard-root .daily-cultivation-section .card-title{
+  padding-left:30px;
+  padding-top:8px;             /* pequeño aire vertical */
+}
 .dashboard-root .daily-cultivation-section .card-title .info,
 .dashboard-root .daily-cultivation-section .card-title .info-btn,
 .dashboard-root .daily-cultivation-section .card-title .info-chip{
-  left: 10px; right: auto; top: 8px;
-}
-.dashboard-root .daily-cultivation-section .info-pop{
-  left: 0; right: auto;
-  transform: translate(0, calc(-100% - 10px));
+  left:10px; right:auto; top:8px;
 }
 
-/* ===== Radar & Emotion: forzar anclaje correcto (arriba-derecha) ===== */
+/* Header de Daily Cultivation: acomodo en mobile */
+.daily-cultivation-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;              /* en mobile permite bajar el selector */
+}
+@media (max-width:420px){
+  .daily-cultivation-header label{ display:none; } /* opcional: ocultar "Mes:" */
+}
+
+/* ===== Radar & Emotion: anclaje arriba-derecha ===== */
 .dashboard-root .radar-section .card-title .info,
 .dashboard-root .radar-section .card-title .info-btn,
 .dashboard-root .radar-section .card-title .info-chip,
@@ -162,20 +181,9 @@
 .dashboard-root .emotion-box .card-title .info-chip{
   top:10px; right:10px; left:auto;
 }
-.dashboard-root .radar-section .info-pop,
-.dashboard-root .emotion-box .info-pop{ right:0; left:auto; }
 
-/* ===== Fallback si el tooltip lo inyecta fuera del título ===== */
-.dashboard-root .radar-section > .info-pop,
-.dashboard-root .emotion-box > .info-pop,
-.dashboard-root .daily-cultivation-section > .info-pop{
-  position:absolute !important; top:10px; right:10px;
-  transform: translate(0, calc(-100% - 10px));
-  z-index:1001 !important;
-}
-.dashboard-root .daily-cultivation-section > .info-pop{
-  left:10px; right:auto; transform: translate(0, calc(-100% - 10px));
-}
+/* ===== Eliminamos fallbacks que forzaban absolute/transform ===== */
+/* (se retiran para no romper el posicionamiento FIXED del JS) */
 
-/* ===== Panel de rachas: que NO tape nada por defecto ===== */
-#panel-rachas{ position:relative; z-index: 2; }  /* queda debajo de los cards elevados */
+/* ===== Panel de rachas: no tapar nada por defecto ===== */
+#panel-rachas{ position:relative; z-index:2; }
