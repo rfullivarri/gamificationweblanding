@@ -1293,8 +1293,10 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
    - Colocación inteligente dentro del viewport (con margen).
    - Misma API que tu versión anterior.
 ============================================================================= */
+/* ========= InfoChip util v3 — scroll-aware & left/right anchor =============== */
 (function(){
   const MARGIN = 10; // margen de resguardo contra los bordes de la ventana
+  const TAP_GUARD_MS = 450; // evita doble toggle (touch + click)
 
   function _build(targetEl, html, pos){
     if (!targetEl) return;
@@ -1302,10 +1304,13 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
     // contenedor lógico para estilos del chip
     targetEl.classList.add('card-title-with-info');
 
+    // normalizo posición
+    const anchor = String(pos || targetEl.dataset.infoPos || 'right').toLowerCase();
+
     // botón chip
     const chip = document.createElement('button');
     chip.type = 'button';
-    chip.className = 'info-chip' + ((pos||'right')==='left' ? ' info-left' : '');
+    chip.className = 'info-chip' + (anchor === 'left' ? ' info-left' : '');
     chip.setAttribute('aria-label','Información');
     chip.textContent = 'i'; // si preferís el circulito: 'ⓘ'
 
@@ -1317,10 +1322,12 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
     targetEl.appendChild(chip);
     targetEl.appendChild(pop);
 
-    // coloca el pop usando coordenadas de viewport
+    let rafId = null;
+    let lastTouchTs = 0;
+
+    // coloca el pop usando coordenadas de viewport (position: fixed en CSS)
     function place(){
       // mostrar para medir
-      pop.style.position = 'fixed';
       pop.style.display  = 'block';
       pop.classList.add('show');
 
@@ -1328,9 +1335,13 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
       const pw = pop.offsetWidth;
       const ph = pop.offsetHeight;
 
-      // base: debajo y alineado al borde derecho del chip
-      let left = Math.round(r.right - pw);
-      let top  = Math.round(r.bottom + MARGIN);
+      // base horizontal según ancla
+      let left;
+      if (anchor === 'left' || chip.classList.contains('info-left')){
+        left = Math.round(r.left);
+      } else {
+        left = Math.round(r.right - pw);
+      }
 
       // clamp horizontal
       if (left < MARGIN) left = MARGIN;
@@ -1338,34 +1349,66 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
         left = window.innerWidth - MARGIN - pw;
       }
 
-      // si no entra abajo, probá arriba
+      // vertical: preferir debajo del chip; si no entra, va arriba
+      let top  = Math.round(r.bottom + 6); // 6px de aire
       if (top + ph > window.innerHeight - MARGIN){
-        top = Math.max(MARGIN, r.top - ph - MARGIN);
+        top = Math.max(MARGIN, Math.round(r.top - ph - 6));
       }
 
       pop.style.left = left + 'px';
       pop.style.top  = top  + 'px';
     }
 
-    // abrir/cerrar con exclusión mutua
-    const toggle = (e)=>{
-      e.stopPropagation();
-      const wantShow = !pop.classList.contains('show');
+    function closeAll(){
       document.querySelectorAll('.info-pop.show').forEach(p=>{
-        p.classList.remove('show'); p.style.display = 'none';
+        p.classList.remove('show');
+        p.style.display = 'none';
       });
-      if (wantShow){ place(); }
-    };
+    }
 
-    chip.addEventListener('click', toggle);
+    // abrir/cerrar con exclusión mutua
+    function toggle(e){
+      if (e) e.stopPropagation();
+      const wantShow = !pop.classList.contains('show');
+      closeAll();
+      if (wantShow){ place(); }
+    }
+
+    // eventos de apertura
+    chip.addEventListener('click', (e)=>{
+      // si hubo un touch hace < TAP_GUARD_MS, ignorá el click (doble firing iOS/Android)
+      if (Date.now() - lastTouchTs < TAP_GUARD_MS) return;
+      toggle(e);
+    });
+
+    chip.addEventListener('touchstart', (e)=>{
+      lastTouchTs = Date.now();
+      toggle(e);
+    }, {passive:true});
+
+    // opcional desktop: precolocar al pasar el mouse
     chip.addEventListener('mouseenter', place);
 
-    // cerrar en resize / click fuera
-    window.addEventListener('resize', ()=>{
-      pop.classList.remove('show'); pop.style.display='none';
-    });
+    // reposicionar mientras esté visible (scroll/resize/orientation)
+    function onScrollOrResize(){
+      if (!pop.classList.contains('show')) return;
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(place);
+    }
+    window.addEventListener('scroll', onScrollOrResize, {passive:true});
+    document.addEventListener('scroll', onScrollOrResize, {passive:true});
+    window.addEventListener('resize', onScrollOrResize);
+    window.addEventListener('orientationchange', onScrollOrResize);
+
+    // cerrar en click fuera o ESC
     document.addEventListener('click', (e)=>{
       if (!e.target.closest('.info-pop') && !e.target.closest('.info-chip')){
+        pop.classList.remove('show'); pop.style.display='none';
+      }
+    });
+
+    document.addEventListener('keydown', (e)=>{
+      if (e.key === 'Escape'){
         pop.classList.remove('show'); pop.style.display='none';
       }
     });
