@@ -954,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <!------------------------> 
 <!-- onboarding.client.js -->
 <!-- ------------------ -->
-<script>
+<!-- <script>
 (() => {
   const WORKER_URL = 'https://gamificationonboarding.rfullivarri22.workers.dev/'; // ⬅️ REEMPLAZAR
 
@@ -1006,6 +1006,84 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   btn.addEventListener('click', send);
+})();
+</script> -->
+
+  
+<!-- onboarding.client.js -->
+<script>
+(() => {
+  const WORKER_URL   = 'https://gamificationonboarding.rfullivarri22.workers.dev/'; // <-- tu worker, con slash final
+  const REDIRECT_URL = 'https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('finish');
+    if (!btn) { console.warn('[onboarding] #finish no encontrado'); return; }
+
+    let sending = false;
+
+    const setLoading = (on, label) => {
+      if (on) {
+        btn.disabled = true;
+        btn.classList.add('loading');      // tu CSS del spinner
+        btn.setAttribute('aria-busy','true');
+        if (label) btn.textContent = label;
+      } else {
+        btn.classList.remove('loading');
+        btn.removeAttribute('aria-busy');
+        btn.disabled = false;
+      }
+    };
+
+    btn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (sending) return;
+      sending = true;
+
+      const oldTxt = btn.textContent;
+      setLoading(true, 'Enviando…');
+
+      try {
+        const payload = window.GJPayload?.build?.();
+        if (!payload) throw new Error('payload_build_failed');
+        if (!payload.email) throw new Error('email_required');
+        if (!payload.mode)  throw new Error('mode_required');
+
+        const res = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        let data = {};
+        try { data = await res.json(); } catch(_) {}
+        if (!res.ok || data.ok === false) {
+          throw new Error(data?.error || `HTTP ${res.status}`);
+        }
+
+        // Guarda contexto para WAIT1 (opcional)
+        try {
+          sessionStorage.setItem('gj_email', payload.email || '');
+          sessionStorage.setItem('gj_client_id', data.client_id || payload.client_id || '');
+          window._lastClientId = data.client_id || payload.client_id || '';
+        } catch(_) {}
+
+        // Redirige sin pop-up
+        window.location.href = REDIRECT_URL;
+        // Nota: no “desbloqueamos” el botón para evitar re-envíos mientras navega
+
+      } catch (err) {
+        console.error('[onboarding] send error:', err);
+        (typeof toast === 'function'
+          ? toast('No pudimos enviar. Probá de nuevo.')
+          : alert('No pudimos enviar. Probá de nuevo.')
+        );
+        setLoading(false);
+        btn.textContent = oldTxt;
+        sending = false;
+      }
+    });
+  });
 })();
 </script>
 </body>
