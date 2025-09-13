@@ -15,12 +15,12 @@
   --gj-fill-level: linear-gradient(90deg,#FFE27A 0%, #FFC84D 55%, #F3A712 100%);
 
   /* Ajustes rápidos */
-  --dash-gap: 16px;         /* separación entre columnas */
-  --dash-min-col: 360px;    /* ancho mínimo de cada columna */
-  --info-pop-width: 340px;  /* ancho máximo del tooltip */
+  --dash-gap: 16px;
+  --dash-min-col: 360px;
+  --info-pop-width: 340px;
 }
 
-/* ===== GRID: 3 columnas IGUALES (mobile-first) ===== */
+/* ===== GRID (mobile-first) ===== */
 .dashboard-root .dashboard-columns{
   display:grid !important;
   grid-template-columns: 1fr;
@@ -33,7 +33,7 @@
   }
 }
 
-/* ===== Cards con el vidrio del panel ===== */
+/* ===== Cards ===== */
 .dashboard-root .xp-box,
 .dashboard-root .avatar-box,
 .dashboard-root .energy-box,
@@ -51,11 +51,11 @@
   backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--gj-glass-blur)) saturate(140%);
   box-shadow:var(--gj-glass-shadow);
-  overflow:visible;      /* deja salir tooltips */
-  z-index:1;             /* base */
+  overflow:visible;
+  z-index:1;
 }
 
-/* brillo debajo siempre */
+/* brillo decorativo */
 .dashboard-root .xp-box::before,
 .dashboard-root .energy-box::before,
 .dashboard-root .daily-cultivation-section::before,
@@ -70,7 +70,7 @@
   pointer-events:none; z-index:-1;
 }
 
-/* ===== SUBE EL CARD cuando el ℹ o el tooltip están activos ===== */
+/* elevar card cuando hay tooltip/chip activo */
 .dashboard-root .xp-box:hover,
 .dashboard-root .energy-box:hover,
 .dashboard-root .daily-cultivation-section:hover,
@@ -86,10 +86,10 @@
 .dashboard-root .daily-cultivation-section:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
 .dashboard-root .radar-section:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop),
 .dashboard-root .emotion-box:has(.card-title .info:hover, .card-title .info-btn:hover, .card-title .info-chip:hover, .info-pop){
-  z-index: 9999;   /* eleva el card; el pop va aún más arriba */
+  z-index: 9999;
 }
 
-/* ===== Inner containers ===== */
+/* contenedores internos */
 .dashboard-root .daily-cultivation-section .chart-wrapper,
 .dashboard-root .emotion-box .emotion-chart-container,
 .dashboard-root .radar-section #radarChartContainer{
@@ -99,7 +99,7 @@
   padding:8px;
 }
 
-/* ===== Avatar “story” ===== */
+/* Avatar */
 .dashboard-root .avatar-box{ max-width:440px; margin:0 auto; padding:0; }
 @media (max-width:600px){ .dashboard-root .avatar-box{ max-width:320px; } }
 .dashboard-root .avatar-img{
@@ -107,7 +107,7 @@
   border-radius:var(--gj-r-card); border:1px solid var(--gj-glass-br);
 }
 
-/* ===== Barras ===== */
+/* Barras */
 .dashboard-root .progress-bar{
   position:relative; height:20px; background:var(--gj-track);
   border-radius:var(--gj-r-pill); overflow:hidden;
@@ -123,70 +123,77 @@
 }
 .dashboard-root .energy-track .bar-fill{ height:100%; border-radius:var(--gj-r-pill); }
 
-/* ===== Títulos con chip ℹ ===== */
+/* ===== Títulos + chip ℹ ===== */
 .dashboard-root .card-title{
   position:relative;
   z-index:2;
-  padding-right:34px;          /* deja “aire” para el chip a la derecha */
+  padding-top:4px;            /* ↑ acercamos el título al borde superior */
+  padding-right:34px;         /* aire para el chip a la derecha */
+}
+.dashboard-root .card-title h3{  /* ↑ sube títulos en todos los cards */
+  margin:0 0 8px;
 }
 
-/* CHIP: debajo del pop en stacking */
+/* CHIP: más pegado al borde */
 .dashboard-root .card-title .info,
 .dashboard-root .card-title .info-btn,
 .dashboard-root .card-title .info-chip{
   position:absolute !important;
-  top:10px; right:10px;
+  top:6px; right:6px;          /* antes 10px */
   z-index:1000 !important;     /* < pop */
 }
 
-/* POP: SIEMPRE fixed + top del stack global */
+/* POP: primer plano absoluto (ya calculado por JS) */
 .dashboard-root .info-pop{
-  position: fixed !important;             /* fijo al viewport */
-  z-index: 2147483647 !important;         /* tope absoluto sobre todo */
+  position: fixed !important;
+  z-index: 2147483647 !important;
   max-width: var(--info-pop-width);
   width: max-content;
   pointer-events: auto;
-  display: none;                          /* el JS lo muestra */
+  display: none;
   will-change: left, top, transform;
 }
 
 /* ===== EXCEPCIÓN: Daily Cultivation (chip a la izquierda) ===== */
 .dashboard-root .daily-cultivation-section .card-title{
-  padding-left:30px;
-  padding-top:8px;             /* pequeño aire vertical */
+  padding-left:30px;           /* evita que el chip pise el título */
+  padding-top:4px;             /* subimos el título */
 }
 .dashboard-root .daily-cultivation-section .card-title .info,
 .dashboard-root .daily-cultivation-section .card-title .info-btn,
 .dashboard-root .daily-cultivation-section .card-title .info-chip{
-  left:10px; right:auto; top:8px;
+  left:6px; right:auto; top:6px;  /* antes 10px */
 }
 
-/* Header de Daily Cultivation: acomodo en mobile */
+/* Header de Daily Cultivation */
 .daily-cultivation-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:8px;
-  flex-wrap:wrap;              /* en mobile permite bajar el selector */
+  flex-wrap:wrap;
 }
 @media (max-width:420px){
-  .daily-cultivation-header label{ display:none; } /* opcional: ocultar "Mes:" */
+  .daily-cultivation-header label{ display:none; }
 }
 
-/* ===== Radar & Emotion: anclaje arriba-derecha ===== */
+/* ===== Radar & Emotion: chip arriba-derecha y títulos más altos ===== */
+.dashboard-root .radar-section .card-title,
+.dashboard-root .emotion-box .card-title{ padding-top:4px; }
+
 .dashboard-root .radar-section .card-title .info,
 .dashboard-root .radar-section .card-title .info-btn,
 .dashboard-root .radar-section .card-title .info-chip,
 .dashboard-root .emotion-box .card-title .info,
 .dashboard-root .emotion-box .card-title .info-btn,
 .dashboard-root .emotion-box .card-title .info-chip{
-  top:10px; right:10px; left:auto;
+  top:6px; right:6px; left:auto; /* pegados al borde */
 }
 
-/* ===== Panel de rachas: no tapar nada por defecto ===== */
+/* Panel de rachas: no tapar nada por defecto */
 #panel-rachas{ position:relative; z-index:2; }
 
-/* ===== GUTTERS MÓVILES: usar casi todo el ancho de la pantalla ===== */
+/* ===== GUTTERS móviles: casi a full-bleed ===== */
 @media (max-width: 540px){
   .dashboard-root .dashboard-content{ padding-left:2px !important; padding-right:2px !important; }
   main{ padding-left:2px !important; padding-right:2px !important; }
