@@ -1350,7 +1350,7 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
       }
 
       // vertical: preferir debajo del chip; si no entra, va arriba
-      let top  = Math.round(r.bottom + 6); // 6px de aire
+      let top  = Math.round(r.bottom + 2); // 2px de aire
       if (top + ph > window.innerHeight - MARGIN){
         top = Math.max(MARGIN, Math.round(r.top - ph - 6));
       }
