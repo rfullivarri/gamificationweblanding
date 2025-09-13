@@ -524,47 +524,54 @@
   </div>
 
   <!-- MODAL AWAIT -->
-  <section id="awaitModal" class="wait-shell" role="dialog" aria-labelledby="awaitTitle">
-    <div class="wait-card">
-      <button id="closeModal" class="close" title="Volver al login" aria-label="Volver al login">✕</button>
+   <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
+    <div class="modal-card">
+      <button id="closeModal" class="close" title="Volver al login">✕</button>
   
-      <h2 id="awaitTitle" class="wait-title">Preparando tu mundo…</h2>
-      <p class="wait-sub">
-        Estamos creando tu espacio. En unos minutos te llegará un
-        <strong>pergamino digital</strong> (un mail) para confirmar tu usuario.
-      </p>
+      <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
   
-      <!-- TIP -->
-      <div class="wait-tip">
-        Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
+      <div class="modal-body">
+        <p>
+          Estamos creando tu espacio. En unos minutos te llegará un
+          <span class="pill">pergamino digital</span> (un mail) para confirmar tu usuario.
+        </p>
+  
+        <!-- TIP arriba -->
+        <div class="callout">
+          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
+        </div>
+  
+        <!-- Próximos pasos -->
+        <h3 class="steps-title">Próximos pasos</h3>
+        <div class="steps-row">
+          <span class="step is-blue">Login</span>
+          <span class="step is-green">Confirmar BBDD</span>
+          <span class="step is-amber">Programar Daily&nbsp;Quest</span>
+        </div>
+  
+        <!-- Mientras tanto -->
+        <h4 class="section-subtitle">Mientras tanto</h4>
+        <div class="action-chips">
+          <button id="installBtn"  type="button" class="pill-btn accent">Instalar app</button>
+          <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link</button>
+        </div>
+        <div class="chip-note">Usá “Copiar link” para abrirlo en tu móvil.</div>
+  
+        <!-- Ayuda iOS (se muestra al tocar Instalar app en iPhone) -->
+        <div id="installHelp">
+          <strong>iPhone (Safari)</strong>
+          <ol>
+            <li>Tocá <em>Compartir</em> (icono ↑).</li>
+            <li>Elegí <em>Agregar a inicio</em>.</li>
+            <li>Confirmá el nombre y guardá.</li>
+          </ol>
+        </div>
       </div>
   
-      <!-- Próximos pasos (vertical, no-botones) -->
-      <div class="wait-section-title">Próximos pasos</div>
-      <ol class="next-steps">
-        <li><a id="actionLogin"        class="step-link" href="#">Login</a></li>
-        <li><a id="actionConfirmBBDD"  class="step-link" href="#">Confirmar BBDD</a></li>
-        <li><a id="actionScheduleDQ"   class="step-link" href="#">Programar Daily&nbsp;Quest</a></li>
-      </ol>
-  
-      <!-- Mientras tanto -->
-      <div class="wait-section-title">Mientras tanto</div>
-      <div class="wait-minor">
-        <button id="installApp" class="ghost" type="button">Instalar app</button>
-        <button id="copyLink"   class="ghost" type="button">Copiar link</button>
-        <a class="ghost" href="signupv2.html">Crear cuenta</a>
-        <a class="ghost" href="indexv2.html">Volver al inicio</a>
+      <div class="modal-actions">
+        <a id="signupBtn" class="pill-btn accent"   href="signupv2.html">Crear cuenta</a>
+        <a                 class="pill-btn"         href="indexv2.html">Volver al inicio</a>
       </div>
-  
-      <!-- Ayuda iOS (plegable) -->
-      <details id="installHelp" class="wait-tip" style="margin-top:14px;">
-        <summary><strong>iPhone (Safari)</strong> — ¿Cómo instalar?</summary>
-        <ol style="margin:10px 0 0 18px;">
-          <li>Tocá <em>Compartir</em> (icono ↑).</li>
-          <li>Elegí <em>Agregar a inicio</em>.</li>
-          <li>Confirmá el nombre y guardá.</li>
-        </ol>
-      </details>
     </div>
   </section>
 
