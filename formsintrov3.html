@@ -879,5 +879,134 @@ document.addEventListener('DOMContentLoaded', () => {
   window.JOURNEY_STATE = { get answers(){ return answers; }, get xp(){ return xp; } };
 });
 </script>
+  
+<!------------------------> 
+<!-- payload.builder.js -->
+<!-- ------------------ -->
+  
+<script>
+(() => {
+  const keyCID = 'gj_client_id';
+
+  function getClientId(){
+    try{
+      let cid = localStorage.getItem(keyCID);
+      if (!cid) {
+        cid = (crypto && crypto.randomUUID) ? crypto.randomUUID()
+             : 'cid-' + Math.random().toString(36).slice(2) + Date.now();
+        localStorage.setItem(keyCID, cid);
+      }
+      return cid;
+    }catch(_){
+      return 'cid-' + Date.now();
+    }
+  }
+
+  function normEmail(v){ return String(v||'').trim().toLowerCase(); }
+
+  function meta(){
+    let tz = '';
+    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(_){}
+    const lang = (navigator.language || '').toLowerCase();
+    const ua = (navigator.userAgent || '').toLowerCase();
+    const device = /mobi|android/.test(ua) ? 'mobile' : 'desktop';
+    return { tz, lang, device, version:'formsintrov2' };
+  }
+
+  function safeAnswers(){ return (window.JOURNEY_STATE && window.JOURNEY_STATE.answers) ? window.JOURNEY_STATE.answers : {}; }
+  function safeXP(){ return (window.JOURNEY_STATE && window.JOURNEY_STATE.xp) ? window.JOURNEY_STATE.xp : {Body:0,Mind:0,Soul:0,total:0}; }
+
+  function build(){
+    const a = safeAnswers();
+    const xp = safeXP();
+
+    return {
+      ts: new Date().toISOString(),
+      client_id: getClientId(),
+      email: normEmail(a.email),
+      mode: String(a.mode || '').toUpperCase(),      // LOW|CHILL|FLOW|EVOLVE
+      // mode_label: (opcional; la WebApp lo infiere si no lo mandamos)
+      data: {
+        low:   { body: a.low?.body||[],  soul: a.low?.soul||[],  mind: a.low?.mind||[],  note: a.low?.note||'' },
+        chill: { oneThing: a.chill?.oneThing||'', motiv: a.chill?.motiv||[] },
+        flow:  { goal: a.flow?.goal||'',  imped: a.flow?.imped||[] },
+        evolve:{ goal: a.evolve?.goal||'', trade: a.evolve?.trade||[], att: a.evolve?.att||'' },
+        foundations: {
+          body: a.foundations?.body||[], soul: a.foundations?.soul||[], mind: a.foundations?.mind||[],
+          bodyOpen: a.foundations?.bodyOpen||'', soulOpen: a.foundations?.soulOpen||'', mindOpen: a.foundations?.mindOpen||''
+        }
+      },
+      xp: {
+        total: Number(xp.total||0),
+        Body:  Number(xp.Body||0),
+        Mind:  Number(xp.Mind||0),
+        Soul:  Number(xp.Soul||0)
+      },
+      meta: meta()
+    };
+  }
+
+  // Exponer builder
+  window.GJPayload = { build };
+})();
+</script>
+  
+<!------------------------> 
+<!-- onboarding.client.js -->
+<!-- ------------------ -->
+<script>
+(() => {
+  const WORKER_URL = 'https://gamificationonboarding.rfullivarri22.workers.dev/'; // ⬅️ REEMPLAZAR
+
+  const btn = document.getElementById('finish');
+  if (!btn) return;
+
+  let sending = false;
+
+  function notify(msg){
+    if (typeof toast === 'function') toast(msg);
+    else alert(msg);
+  }
+
+  async function send(){
+    if (sending) return;
+    sending = true;
+    btn.disabled = true;
+
+    try{
+      const payload = (window.GJPayload && window.GJPayload.build) ? window.GJPayload.build() : null;
+      if (!payload) throw new Error('No se pudo construir el payload');
+      if (!payload.email) throw new Error('Falta email');
+      if (!payload.mode)  throw new Error('Falta modo');
+
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      let data = {};
+      try { data = await res.json(); } catch(_){}
+
+      if (!res.ok || data.ok === false){
+        throw new Error(data.error || ('HTTP '+res.status));
+      }
+
+      notify('¡Enviado! Estamos creando tu tablero ✨');
+      // (opcional) acá podés redirigir a otra vista o deshabilitar permanentemente el botón
+    }catch(err){
+      console.error('Onboarding send error:', err);
+      notify('Ups, no pudimos enviar. Probá de nuevo.');
+      btn.disabled = false;
+      sending = false;
+      return;
+    }
+
+    // éxito: mantener deshabilitado para evitar duplicados
+  }
+
+  btn.addEventListener('click', send);
+})();
+</script>
 </body>
 </html>
