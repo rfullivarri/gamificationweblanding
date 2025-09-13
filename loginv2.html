@@ -243,105 +243,247 @@
     .pill-btn.accent:hover{ background:#5c28c2; }
     
     /* Copiar link: ghost con borde blanco (ya lo tenés, lo dejo explícito) */
-#copyLinkBtn{ background:transparent; border:1px solid rgba(255,255,255,.22); color:#e8ecf1; }
-    /* === Fondo con destellos animados (Athos-style) === */
-.bg{
-  position:fixed; inset:0; pointer-events:none; z-index:0;
-  background: radial-gradient(1200px 800px at 50% 50%, #0a0a12 0%, #070711 55%, #05050a 100%);
-  overflow:hidden;
-}
+  #copyLinkBtn{ background:transparent; border:1px solid rgba(255,255,255,.22); color:#e8ecf1; }
+      /* === Fondo con destellos animados (Athos-style) === */
+  .bg{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background: radial-gradient(1200px 800px at 50% 50%, #0a0a12 0%, #070711 55%, #05050a 100%);
+    overflow:hidden;
+  }
+  
+  /* Caústicas de luz girando (suave) */
+  .bg::before,
+  .bg::after{
+    content:""; position:absolute; inset:-40%;
+    background:
+      conic-gradient(from 0deg,
+        transparent 0turn 0.08turn,
+        color-mix(in oklab, #7d3cff 30%, transparent) 0.12turn 0.18turn,
+        transparent 0.24turn 0.34turn,
+        color-mix(in oklab, #00d4ff 28%, transparent) 0.40turn 0.46turn,
+        transparent 0.52turn 0.64turn,
+        color-mix(in oklab, #ff79c6 22%, transparent) 0.70turn 0.76turn,
+        transparent 0.82turn 1turn);
+    filter: blur(64px);
+    opacity:.45; mix-blend-mode:screen;
+    animation: spin 28s linear infinite;    /* reusa tu @keyframes spin */
+  }
+  .bg::after{
+    opacity:.35; filter: blur(82px);
+    animation: spin 42s linear infinite reverse;
+  }
+  
+  /* Orbes orbitando (dan “vida” orgánica) */
+  .orb{
+    position:absolute; top:50%; left:50%;
+    width:45vmax; height:45vmax; margin:-22.5vmax; border-radius:50%;
+    background: radial-gradient(35% 35% at 30% 30%, color-mix(in oklab, #7d3cff 60%, transparent) 0%, transparent 70%);
+    filter: blur(70px);
+    mix-blend-mode:screen; opacity:.55;
+    animation: orbit1 24s ease-in-out infinite;
+  }
+  .orb.b{
+    background: radial-gradient(35% 35% at 70% 35%, color-mix(in oklab, #00d4ff 55%, transparent) 0%, transparent 72%);
+    animation: orbit2 30s ease-in-out infinite; opacity:.5;
+  }
+  .orb.c{
+    background: radial-gradient(35% 35% at 40% 70%, color-mix(in oklab, #ff79c6 50%, transparent) 0%, transparent 75%);
+    animation: orbit3 36s ease-in-out infinite; opacity:.45;
+  }
+  
+  /* Órbitas */
+  @keyframes orbit1 {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)   translateX(12vmax) rotate(0deg); }
+    50%  { transform: translate(-50%,-50%) rotate(180deg) translateX(8vmax)  rotate(-180deg); }
+    100% { transform: translate(-50%,-50%) rotate(360deg) translateX(12vmax) rotate(-360deg); }
+  }
+  @keyframes orbit2 {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)    translateY(10vmax) rotate(0deg); }
+    50%  { transform: translate(-50%,-50%) rotate(-200deg) translateY(6vmax)  rotate(200deg); }
+    100% { transform: translate(-50%,-50%) rotate(-360deg) translateY(10vmax) rotate(360deg); }
+  }
+  @keyframes orbit3 {
+    0%   { transform: translate(-50%,-50%) rotate(0deg)   translate(8vmax,-6vmax) rotate(0deg); }
+    50%  { transform: translate(-50%,-50%) rotate(220deg) translate(4vmax,-4vmax) rotate(-220deg); }
+    100% { transform: translate(-50%,-50%) rotate(360deg) translate(8vmax,-6vmax) rotate(-360deg); }
+  }
+  
+  /* Aseguramos que el contenido quede por encima del fondo animado */
+  .wrap{ position:relative; z-index:1; }
+  
+  /* Shimmer permanente para el botón primario */
+  .btn.shimmer{
+    position:relative; overflow:hidden; isolation:isolate;
+    box-shadow: inset 0 0 0 1px rgba(125,60,255,.15), 0 8px 30px rgba(125,60,255,.25);
+  }
+  .btn.shimmer::before{
+    content:""; position:absolute; inset:-2px; border-radius:inherit; z-index:-1;
+    background:
+      conic-gradient(from 0deg at 50% 50%,
+        transparent, rgba(255,255,255,.35), transparent 35%,
+        color-mix(in oklab, #00d4ff 28%, transparent), transparent 70%,
+        color-mix(in oklab, #7d3cff 28%, transparent), transparent);
+    filter: blur(14px);
+    animation: spin 8s linear infinite;
+    opacity:.55;
+  }
+  .btn.shimmer::after{
+    content:""; position:absolute; top:0; left:-160%; width:60%; height:100%;
+    background: linear-gradient(115deg, transparent 0%,
+      rgba(255,255,255,.55) 45%, rgba(255,255,255,.85) 52%,
+      rgba(255,255,255,.55) 59%, transparent 100%);
+    transform: skewX(-18deg);
+    mix-blend-mode: screen; filter: blur(2px);
+    animation: btn-slide 2.3s linear infinite;
+  }
+  @keyframes btn-slide { to { transform: translateX(260%) skewX(-18deg); } }
+  
+  /* Respeto a usuarios con “reducir movimiento” */
+  @media (prefers-reduced-motion: reduce){
+    .bg::before,.bg::after,.orb,.btn.shimmer::before,.btn.shimmer::after{ animation:none !important }
+  }
 
-/* Caústicas de luz girando (suave) */
-.bg::before,
-.bg::after{
-  content:""; position:absolute; inset:-40%;
-  background:
-    conic-gradient(from 0deg,
-      transparent 0turn 0.08turn,
-      color-mix(in oklab, #7d3cff 30%, transparent) 0.12turn 0.18turn,
-      transparent 0.24turn 0.34turn,
-      color-mix(in oklab, #00d4ff 28%, transparent) 0.40turn 0.46turn,
-      transparent 0.52turn 0.64turn,
-      color-mix(in oklab, #ff79c6 22%, transparent) 0.70turn 0.76turn,
-      transparent 0.82turn 1turn);
-  filter: blur(64px);
-  opacity:.45; mix-blend-mode:screen;
-  animation: spin 28s linear infinite;    /* reusa tu @keyframes spin */
-}
-.bg::after{
-  opacity:.35; filter: blur(82px);
-  animation: spin 42s linear infinite reverse;
-}
-
-/* Orbes orbitando (dan “vida” orgánica) */
-.orb{
-  position:absolute; top:50%; left:50%;
-  width:45vmax; height:45vmax; margin:-22.5vmax; border-radius:50%;
-  background: radial-gradient(35% 35% at 30% 30%, color-mix(in oklab, #7d3cff 60%, transparent) 0%, transparent 70%);
-  filter: blur(70px);
-  mix-blend-mode:screen; opacity:.55;
-  animation: orbit1 24s ease-in-out infinite;
-}
-.orb.b{
-  background: radial-gradient(35% 35% at 70% 35%, color-mix(in oklab, #00d4ff 55%, transparent) 0%, transparent 72%);
-  animation: orbit2 30s ease-in-out infinite; opacity:.5;
-}
-.orb.c{
-  background: radial-gradient(35% 35% at 40% 70%, color-mix(in oklab, #ff79c6 50%, transparent) 0%, transparent 75%);
-  animation: orbit3 36s ease-in-out infinite; opacity:.45;
-}
-
-/* Órbitas */
-@keyframes orbit1 {
-  0%   { transform: translate(-50%,-50%) rotate(0deg)   translateX(12vmax) rotate(0deg); }
-  50%  { transform: translate(-50%,-50%) rotate(180deg) translateX(8vmax)  rotate(-180deg); }
-  100% { transform: translate(-50%,-50%) rotate(360deg) translateX(12vmax) rotate(-360deg); }
-}
-@keyframes orbit2 {
-  0%   { transform: translate(-50%,-50%) rotate(0deg)    translateY(10vmax) rotate(0deg); }
-  50%  { transform: translate(-50%,-50%) rotate(-200deg) translateY(6vmax)  rotate(200deg); }
-  100% { transform: translate(-50%,-50%) rotate(-360deg) translateY(10vmax) rotate(360deg); }
-}
-@keyframes orbit3 {
-  0%   { transform: translate(-50%,-50%) rotate(0deg)   translate(8vmax,-6vmax) rotate(0deg); }
-  50%  { transform: translate(-50%,-50%) rotate(220deg) translate(4vmax,-4vmax) rotate(-220deg); }
-  100% { transform: translate(-50%,-50%) rotate(360deg) translate(8vmax,-6vmax) rotate(-360deg); }
-}
-
-/* Aseguramos que el contenido quede por encima del fondo animado */
-.wrap{ position:relative; z-index:1; }
-
-/* Shimmer permanente para el botón primario */
-.btn.shimmer{
-  position:relative; overflow:hidden; isolation:isolate;
-  box-shadow: inset 0 0 0 1px rgba(125,60,255,.15), 0 8px 30px rgba(125,60,255,.25);
-}
-.btn.shimmer::before{
-  content:""; position:absolute; inset:-2px; border-radius:inherit; z-index:-1;
-  background:
-    conic-gradient(from 0deg at 50% 50%,
-      transparent, rgba(255,255,255,.35), transparent 35%,
-      color-mix(in oklab, #00d4ff 28%, transparent), transparent 70%,
-      color-mix(in oklab, #7d3cff 28%, transparent), transparent);
-  filter: blur(14px);
-  animation: spin 8s linear infinite;
-  opacity:.55;
-}
-.btn.shimmer::after{
-  content:""; position:absolute; top:0; left:-160%; width:60%; height:100%;
-  background: linear-gradient(115deg, transparent 0%,
-    rgba(255,255,255,.55) 45%, rgba(255,255,255,.85) 52%,
-    rgba(255,255,255,.55) 59%, transparent 100%);
-  transform: skewX(-18deg);
-  mix-blend-mode: screen; filter: blur(2px);
-  animation: btn-slide 2.3s linear infinite;
-}
-@keyframes btn-slide { to { transform: translateX(260%) skewX(-18deg); } }
-
-/* Respeto a usuarios con “reducir movimiento” */
-@media (prefers-reduced-motion: reduce){
-  .bg::before,.bg::after,.orb,.btn.shimmer::before,.btn.shimmer::after{ animation:none !important }
-}
+  /* ===== Wait / Preparing screen ===== */
+  :root{
+    --bg:#0b0f14;
+    --text:#e8edf7;
+    --muted:#a7b0c2;
+    --accent:#8b5cf6;      /* violeta suave */
+    --accent-2:#22d3ee;    /* cian sutil  */
+    --panel:rgba(18,22,30,0.68);
+    --border:rgba(255,255,255,0.06);
+    --ring:rgba(139,92,246,0.25);
+  }
+  
+  body.wait-bg{
+    background:
+      radial-gradient(1200px 800px at 80% -10%, rgba(139,92,246,0.15), transparent 55%),
+      radial-gradient(900px 700px at 10% 110%, rgba(34,211,238,0.12), transparent 50%),
+      linear-gradient(180deg, #0b0f14 0%, #0b0f14 100%);
+    color:var(--text);
+  }
+  
+  /* contenedor centrado */
+  .wait-shell{
+    min-height: 100dvh;
+    display:grid;
+    place-items:center;
+    padding:24px;
+  }
+  
+  /* “card” tipo glass */
+  .wait-card{
+    width:min(780px, 92vw);
+    background: var(--panel);
+    border:1px solid var(--border);
+    border-radius:20px;
+    backdrop-filter: blur(16px);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.45),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+    padding:32px clamp(20px, 4vw, 40px);
+  }
+  
+  /* título/subtítulo */
+  .wait-title{
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: clamp(22px, 3.2vw, 30px);
+    margin: 0 0 8px 0;
+  }
+  
+  .wait-sub{
+    color:var(--muted);
+    margin:0 0 18px 0;
+    line-height:1.55;
+  }
+  
+  /* pill tip */
+  .wait-tip{
+    --pill-bg: rgba(255,255,255,0.05);
+    background: var(--pill-bg);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size: 0.92rem;
+    color: var(--muted);
+    margin: 6px 0 22px 0;
+  }
+  
+  /* separador */
+  .wait-section-title{
+    margin: 6px 0 10px 0;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-weight: 700;
+    font-size: .78rem;
+  }
+  
+  /* === Próximos pasos como lista vertical (no botones) === */
+  .next-steps{
+    list-style:none;
+    margin: 8px 0 20px 0;
+    padding:0;
+    counter-reset: step;
+  }
+  .next-steps li{
+    counter-increment: step;
+    display:flex;
+    gap:14px;
+    align-items:center;
+    padding:14px 12px;
+    border-radius:12px;
+    border:1px solid transparent;
+    transition: all .18s ease;
+  }
+  .next-steps li::before{
+    content: counter(step);
+    display:inline-grid;
+    place-items:center;
+    width:28px; height:28px;
+    border-radius:9px;
+    background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(34,211,238,.18));
+    border:1px solid var(--border);
+    font-weight:700;
+    font-size:.9rem;
+    color:var(--text);
+  }
+  .next-steps a.step-link{
+    color:var(--text);
+    text-decoration: none;
+    font-weight:600;
+    letter-spacing:.01em;
+  }
+  .next-steps li:hover{
+    background: rgba(255,255,255,0.03);
+    border-color: var(--border);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.22);
+  }
+  .next-steps li:hover a.step-link{
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  
+  /* En esa sección NO queremos botones antiguos */
+  .wait-actions-row,
+  .wait-actions-row .btn,
+  .wait-actions-row button{
+    all: unset; display:none !important;
+  }
+  
+  /* Footer de acciones opcionales (si lo usás) */
+  .wait-minor{
+    display:flex; gap:10px; flex-wrap:wrap;
+    margin-top: 10px;
+  }
+  .wait-minor .ghost{
+    appearance:none; border:1px solid var(--border);
+    padding:10px 14px; border-radius:12px; color:var(--text);
+    background: transparent; cursor:pointer; font-weight:600;
+  }
+  .wait-minor .ghost:hover{ border-color: var(--ring); }
   </style>
 </head>
 <body>
@@ -382,54 +524,47 @@
   </div>
 
   <!-- MODAL AWAIT -->
-  <section id="awaitModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="awaitTitle">
-    <div class="modal-card">
-      <button id="closeModal" class="close" title="Volver al login">✕</button>
+  <section id="awaitModal" class="wait-shell" role="dialog" aria-labelledby="awaitTitle">
+    <div class="wait-card">
+      <button id="closeModal" class="close" title="Volver al login" aria-label="Volver al login">✕</button>
   
-      <h2 id="awaitTitle" class="modal-title">🕒 Preparando tu mundo…</h2>
+      <h2 id="awaitTitle" class="wait-title">Preparando tu mundo…</h2>
+      <p class="wait-sub">
+        Estamos creando tu espacio. En unos minutos te llegará un
+        <strong>pergamino digital</strong> (un mail) para confirmar tu usuario.
+      </p>
   
-      <div class="modal-body">
-        <p>
-          Estamos creando tu espacio. En unos minutos te llegará un
-          <span class="pill">pergamino digital</span> (un mail) para confirmar tu usuario.
-        </p>
-  
-        <!-- TIP arriba -->
-        <div class="callout">
-          Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
-        </div>
-  
-        <!-- Próximos pasos -->
-        <h3 class="steps-title">Próximos pasos</h3>
-        <div class="steps-row">
-          <span class="step is-blue">Login</span>
-          <span class="step is-green">Confirmar BBDD</span>
-          <span class="step is-amber">Programar Daily&nbsp;Quest</span>
-        </div>
-  
-        <!-- Mientras tanto -->
-        <h4 class="section-subtitle">Mientras tanto</h4>
-        <div class="action-chips">
-          <button id="installBtn"  type="button" class="pill-btn accent">Instalar app</button>
-          <button id="copyLinkBtn" type="button" class="pill-btn">Copiar link</button>
-        </div>
-        <div class="chip-note">Usá “Copiar link” para abrirlo en tu móvil.</div>
-  
-        <!-- Ayuda iOS (se muestra al tocar Instalar app en iPhone) -->
-        <div id="installHelp">
-          <strong>iPhone (Safari)</strong>
-          <ol>
-            <li>Tocá <em>Compartir</em> (icono ↑).</li>
-            <li>Elegí <em>Agregar a inicio</em>.</li>
-            <li>Confirmá el nombre y guardá.</li>
-          </ol>
-        </div>
+      <!-- TIP -->
+      <div class="wait-tip">
+        Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
       </div>
   
-      <div class="modal-actions">
-        <a id="signupBtn" class="pill-btn accent"   href="signupv2.html">Crear cuenta</a>
-        <a                 class="pill-btn"         href="indexv2.html">Volver al inicio</a>
+      <!-- Próximos pasos (vertical, no-botones) -->
+      <div class="wait-section-title">Próximos pasos</div>
+      <ol class="next-steps">
+        <li><a id="actionLogin"        class="step-link" href="#">Login</a></li>
+        <li><a id="actionConfirmBBDD"  class="step-link" href="#">Confirmar BBDD</a></li>
+        <li><a id="actionScheduleDQ"   class="step-link" href="#">Programar Daily&nbsp;Quest</a></li>
+      </ol>
+  
+      <!-- Mientras tanto -->
+      <div class="wait-section-title">Mientras tanto</div>
+      <div class="wait-minor">
+        <button id="installApp" class="ghost" type="button">Instalar app</button>
+        <button id="copyLink"   class="ghost" type="button">Copiar link</button>
+        <a class="ghost" href="signupv2.html">Crear cuenta</a>
+        <a class="ghost" href="indexv2.html">Volver al inicio</a>
       </div>
+  
+      <!-- Ayuda iOS (plegable) -->
+      <details id="installHelp" class="wait-tip" style="margin-top:14px;">
+        <summary><strong>iPhone (Safari)</strong> — ¿Cómo instalar?</summary>
+        <ol style="margin:10px 0 0 18px;">
+          <li>Tocá <em>Compartir</em> (icono ↑).</li>
+          <li>Elegí <em>Agregar a inicio</em>.</li>
+          <li>Confirmá el nombre y guardá.</li>
+        </ol>
+      </details>
     </div>
   </section>
 
