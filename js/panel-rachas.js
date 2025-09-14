@@ -102,26 +102,17 @@
       css.textContent = `
         .third{max-width:560px;margin:0 auto 18px;width:100%}
         @media(min-width:1160px){.third{max-width:33vw}}
-        /* Box principal con glass claro (estilo Simplicity) */
+      
+        /* Box principal */
         .box{
-          /* tokens */
-          --glass-blur: 18px;
-          --glass-bg: rgba(255,255,255,.06);        /* blanco lechoso */
-          --glass-br: rgba(255,255,255,.22);        /* borde claro */
-          --glass-shadow: 0 12px 30px rgba(0,0,0,.35);
-        
-          position:relative; overflow:hidden;
-          border-radius:28px;                        /* radio grande como el ref */
-          background:var(--glass-bg);
-          backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-          -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-          border:1px solid var(--glass-br);
-          box-shadow:var(--glass-shadow);
-        
-          /* más respiro horizontal sin tocar el spacing vertical que ya te gusta */
+          --glass-blur:18px; --glass-bg:rgba(255,255,255,.06); --glass-br:rgba(255,255,255,.22);
+          --glass-shadow:0 12px 30px rgba(0,0,0,.35);
+          position:relative; overflow:hidden; border-radius:28px; background:var(--glass-bg);
+          backdrop-filter:blur(var(--glass-blur)) saturate(140%);
+          -webkit-backdrop-filter:blur(var(--glass-blur)) saturate(140%);
+          border:1px solid var(--glass-br); box-shadow:var(--glass-shadow);
           padding:9px 13px 9px;
         }
-        /* destellos lila/azul muy suaves detrás (como el ref) */
         .box::before{
           content:""; position:absolute; inset:-30% -8% auto -8%; height:260px;
           background:
@@ -129,47 +120,48 @@
             radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18),  transparent 60%);
           filter:blur(10px) saturate(120%); pointer-events:none;
         }
-        
-        /* Cards internas con una capa de glass un poco más opaca para “doble vidrio” */
+      
+        /* Cards internas */
         .task{
           background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
           border:1px solid rgba(255,255,255,.14);
-          border-radius:16px;
-          padding:9px 9px;              /* respiro lateral de cada card */
+          border-radius:16px; padding:9px 9px;
         }
-        
-        /* margen lateral de la lista para que las cards no “toquen” el vidrio */
-        .list{ padding:0 5px 7px; }
-        .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-        .seg{display:flex;gap:8px;flex-wrap:wrap}
-        .seg button{background:#1a2240;border:1px solid #24325a;color:#cfd6ff;padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer}
+      
+        /* Layout general de lista/botones */
+        .list{ padding:0 5px 7px; display:flex; flex-direction:column; gap:10px }
+        .row{ display:flex; align-items:center; justify-content:space-between; gap:10px }
+        .seg{ display:flex; gap:8px; flex-wrap:wrap }
+        .seg button{
+          background:#1a2240;border:1px solid #24325a;color:#cfd6ff;
+          padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer
+        }
         .seg button[aria-pressed="true"]{background:#eef2ff;color:#0f1630;border-color:transparent}
-        /* === Info chips: fijar anclaje y que se vean como botoncito === */
-        #rachasInfoTop, #rachasInfoScope{
-          position: relative;            /* ancla local para estilos globales */
-          display: inline-flex; 
-          align-items: center;
-          min-width: 22px;               /* evita colapso del contenedor */
+      
+        /* Chips / info buttons */
+        .chip{
+          background:#1a2037;border:1px solid #2a3560;color:#d6dcff;
+          padding:6px 9px;border-radius:999px;font-weight:800;display:inline-flex;align-items:center;gap:8px
         }
-        
-        /* Si tu CSS global posiciona .info-chip en absolute, acá lo neutralizamos */
+        .chip.mode{
+          border-radius:10px;font-size:12px;padding:5px 10px;
+          background:color-mix(in srgb, var(--mcolor, #5aa0ff) 12%, #0c1124);
+          border:1px solid color-mix(in srgb, var(--mcolor, #5aa0ff) 40%, #2a3560);
+          box-shadow:0 0 0 1px color-mix(in srgb, var(--mcolor, #5aa0ff) 25%, transparent) inset;
+        }
+        .chip.mode.low{--mcolor:#ff6b6b}
+        .chip.mode.chill{--mcolor:#20d3b0}
+        .chip.mode.flow{--mcolor:#1f7aff}
+        .chip.mode.evolve{--mcolor:#a77bff}
+      
+        /* Info chips dentro de rachas (neutralizamos absolute global) */
         #rachasInfoTop .info-chip,
         #rachasInfoScope .info-chip{
-          position: static !important;   /* que fluya como botón común */
-          margin-left: 6px;
+          position:static !important; width:26px; height:26px; border-radius:999px;
+          background:#1a2240; border:1px solid #24325a; color:#cfd6ff; font-weight:800; line-height:1;
         }
-        
-        /* Opcional: tamaño/estética consistente con tus tabs */
-        #rachasInfoTop .info-chip,
-        #rachasInfoScope .info-chip{
-          width: 26px; height: 26px; border-radius: 999px;
-          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
-          font-weight:800; line-height:1; cursor:pointer;
-        }
-        .chip{background:#1a2037;border:1px solid #2a3560;color:#d6dcff;padding:6px 9px;border-radius:999px;font-weight:800;display:inline-flex;align-items:center;gap:8px}
-        .chip.mode{--modeFlow:#1f7aff;background:color-mix(in srgb, var(--modeFlow) 12%, #0c1124);border-color:color-mix(in srgb, var(--modeFlow) 40%, #2a3560)}
-        .chip.mode.low{--modeFlow:#7d7fff}.chip.mode.chill{--modeFlow:#7bc6ff}.chip.mode.flow{--modeFlow:#1f7aff}.chip.mode.evolve{--modeFlow:#20d3b0}
-        .info{width:28px;height:28px;border-radius:999px;border:1px solid #2a3560;background:#1a2240;color:#cfd6ff;display:grid;place-items:center;cursor:pointer}
+      
+        /* Streaks */
         .streaks{margin:12px 0 10px;padding:10px;border:1px solid #1f2a48;border-radius:16px;background:linear-gradient(180deg,#141c3a,#0e142b)}
         .stitle{font-weight:900;margin:0 2px 8px;display:flex;gap:8px;align-items:center}
         .slist{display:flex;flex-direction:column;gap:8px}
@@ -179,220 +171,394 @@
         .stag .bar{height:8px;background:#1f274a;border-radius:999px;overflow:hidden;margin-top:6px}
         .stag .bar i{display:block;height:100%;width:var(--p,0%);background:linear-gradient(90deg,#5a2bff,#a77bff)}
         .stag .streak-chip{position:absolute;top:8px;right:8px;background:rgba(255,157,77,.12);border:1px solid #6e3c17;color:#ffd6b2;padding:4px 8px;border-radius:999px;font-weight:900;font-size:12px}
-        .filter{display:flex;gap:8px;margin:10px 0}
-        .filter input{flex:1;background:#101735;border:1px solid #263157;color:#e9edff;border-radius:12px;padding:10px 12px;font-weight:600}
-        .filter input::placeholder{color:#8ea0ce}
-        .list{display:flex;flex-direction:column;gap:10px}
-        .task{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:linear-gradient(180deg,#111831,#0b1428);border:1px solid #1f2a48;border-radius:16px;padding:10px}
-        @media(max-width:520px){.task{grid-template-columns:1fr}}
-        .left{min-width:0}.name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat{font-size:12px;color:#9aa3b2}
+      
+        /* Tareas */
+        .task{
+          display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center;
+          background:linear-gradient(180deg,#111831,#0b1428); border:1px solid #1f2a48; border-radius:16px; padding:10px
+        }
+        @media(max-width:520px){ .task{ grid-template-columns:1fr } }
+        .left{min-width:0}
+        .name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .stat{font-size:12px;color:#9aa3b2}
         .prog{display:flex;align-items:center;gap:8px;margin-top:8px}
-        .state{width:10px;height:10px;border-radius:999px;border:1px solid #0004}.state.ok{background:#7af59b}.state.warn{background:#ffd166}.state.bad{background:#ff6b6b}
+        .state{width:10px;height:10px;border-radius:999px;border:1px solid #0004}
+        .state.ok{background:#7af59b}.state.warn{background:#ffd166}.state.bad{background:#ff6b6b}
         .bar{position:relative;height:10px;background:#1f274a;border-radius:999px;overflow:hidden;flex:1}
         .bar i{position:absolute;inset:0;width:var(--p,0%);background:linear-gradient(90deg,#5a2bff,#a77bff)}
         .pnum{font-variant-numeric:tabular-nums;font-weight:900;min-width:48px;text-align:right}
-        .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+        .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;min-height:40px}
         .right .chip{background:transparent}
-        .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px}
-        .wkbars b{width:12px;border-radius:4px}
-        .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
-        .muted{color:#9aa3b2}
-        @media (max-width: 1280px){
-          .task{grid-template-columns:1fr; row-gap:8px}
-          .right{justify-content:space-between}
-          .wkbars{min-width:0}
+      
+        /* Barras semanales (con labels) — versión consolidada */
+        .wkbars{
+          position:relative; display:grid; grid-auto-flow:column; align-items:end;
+          gap:3px; height:36px; padding-bottom:18px; min-width:0 !important; overflow:visible;
         }
-        @media (max-width: 768px){
-          .chip{font-size:12px; padding:5px 8px}
-          .wkbars b{width:10px}
-          .pnum{min-width:auto}
+        .wkbars b{ width:9px; border-radius:4px }
+        .wkbars b.miss{background:#3a456f}
+        .wkbars b.hit {background:#30e47b}
+        .wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+        .wkbars .labels{
+          position:absolute; left:0; right:0; bottom:-8px;
+          display:grid; grid-template-columns:repeat(var(--bars,3),1fr); gap:3px; pointer-events:none;
         }
-        /* mini barras para Top-3 */
+        .wkbars .labels i{
+          display:block; text-align:center; font-size:10px; line-height:1; font-weight:700; letter-spacing:.02em; transform:none;
+        }
+      
+        /* Mini-barras verdes (Top-3) */
         .wkmini{display:inline-grid;grid-auto-flow:column;gap:3px;align-items:end;height:10px;margin-left:8px}
         .wkmini b{width:3px;border-radius:2px;opacity:.9}
         .wkmini b.miss{background:#3a456f}
         .wkmini b.hit{background:#30e47b}
         .wkmini b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
-        .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px;min-width:112px;position:relative}
-        .wkbars b{width:12px;border-radius:4px}
-        .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
-        .wkbars .labels{position:absolute;inset:auto 0 -14px 0;display:grid;grid-auto-flow:column;gap:4px;pointer-events:none}
-        .wkbars .labels i{display:block;text-align:center;font-size:11px;line-height:1;color:#9aa3b2;opacity:.8;font-weight:700;letter-spacing:.04em}
-        
-        /* BARRAS GRANDES + ETIQUETAS */
-        /* Barras con “zanja” para labels */
-        .wkbars{
-          position:relative;
-          display:grid; grid-auto-flow:column; gap:4px; align-items:end;
-          height:36px;                 /* pelín más alto */
-          padding-bottom:18px;         /* reserva suelo para etiquetas */
-          overflow:visible;
-        }
-        .wkbars b{ width:12px; border-radius:4px }
-        .wkbars b.miss{background:#3a456f}
-        .wkbars b.hit {background:#30e47b}
-        .wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
-        
-        .wkbars .labels{
-          position:absolute; left:0; right:0; bottom:-10px;   /* más abajo → no pisa barras altas */
-          display:grid; grid-template-columns:repeat(var(--bars,3),1fr);
-          gap:4px; pointer-events:none;
-        }
-        .wkbars .labels i{
-          display:block; text-align:center;
-          font-size:11px; line-height:1; font-weight:700; letter-spacing:.02em;
-          transform:none;               /* nada de translate raro */
-        }
-        
-        /* ====== chip de modo, más chico y no “parecido a botón” ====== */
-        .chip.mode{
-          border-radius:10px;                /* más rectangular */
-          font-size:12px; padding:5px 10px;
-          background:color-mix(in srgb, var(--mcolor, #5aa0ff) 12%, #0c1124);
-          border:1px solid color-mix(in srgb, var(--mcolor, #5aa0ff) 40%, #2a3560);
-          box-shadow:0 0 0 1px color-mix(in srgb, var(--mcolor, #5aa0ff) 25%, transparent) inset;
-        }
-        .chip.mode.low    { --mcolor:#ff6b6b; }   /* Low = rojo   */
-        .chip.mode.chill  { --mcolor:#20d3b0; }   /* Chill = verde */
-        .chip.mode.flow   { --mcolor:#1f7aff; }   /* Flow = azul  */
-        .chip.mode.evolve { --mcolor:#a77bff; }   /* Evolve = lila*/
-        
-        /* ====== tabs Sem/Mes/3M reubicados y centrados ====== */
-        .seg.is-range{ width:100%; justify-content:center; gap:8px; }
-        .seg.is-range button{ flex:0 1 96px; }       /* tamaño parejo y responsive */
-        .seg[data-role="range"]{ width:100%; justify-content:center }
-        
-        /* pequeño ajuste para que el bloque derecho tenga aire
-           cuando las barras verdes son altas */
-        .right{gap:10px; flex-wrap:wrap; justify-content:flex-end; min-height:40px}
-        /* compactar el bloque de barras verdes */
-        .task .right{ gap:8px; } /* antes 10px, reduce el aire entre chips y barras */
-        
-        /* ⚠️ anula el min-width heredado (si lo tenés en alguna regla anterior) */
-        .wkbars{ min-width:0 !important; }
-        
-        /* barras y separaciones más finas */
-        .wkbars{ gap:3px; }             /* antes 4px */
-        .wkbars b{ width:9px; }         /* antes 12px */
-        
-        /* etiquetas más juntitas y… más abajo para que no “muerdan” barras altas */
-        .wkbars .labels{ gap:3px; bottom:-8px; font-size:10px; }
+      
         /* Iconitos solo dentro del popover de ayuda */
         .info-pop .ico-lila{
-          display:inline-block; width:22px; height:6px; 
-          background:linear-gradient(90deg,#5a2bff,#a77bff);
-          border-radius:999px; vertical-align:middle; margin-right:6px
+          display:inline-block;width:22px;height:6px;background:linear-gradient(90deg,#5a2bff,#a77bff);
+          border-radius:999px;vertical-align:middle;margin-right:6px
         }
-        .info-pop .ico-verdes{
-          display:inline-grid; grid-auto-flow:column; gap:3px; 
-          height:12px; vertical-align:middle; margin-right:6px
-        }
-        .info-pop .ico-verdes i{
-          width:3px; border-radius:2px; background:linear-gradient(180deg,#8bff6a,#26e0a4);
-          display:inline-block
-        }
+        .info-pop .ico-verdes{display:inline-grid;grid-auto-flow:column;gap:3px;height:12px;vertical-align:middle;margin-right:6px}
+        .info-pop .ico-verdes i{width:3px;border-radius:2px;background:linear-gradient(180deg,#8bff6a,#26e0a4);display:inline-block}
         .info-pop .ico-verdes i:nth-child(1){height:10px}
         .info-pop .ico-verdes i:nth-child(2){height:7px}
         .info-pop .ico-verdes i:nth-child(3){height:11px}
-
-        /* ===== Rachas: layout del header ===== */
-
-        /* Fila 1: contenido a la derecha (info + modo) */
-        .row-top{ justify-content:flex-end; }
-        .row-top .seg-right{
-          width:100%;
-          display:flex;
-          justify-content:flex-end;
-          align-items:center;
-          gap:8px;
-        }
-        
-        /* Botón ℹ️ dentro del header: que fluya como botón normal */
-        #rachasInfoTop .info-chip{
-          position:static !important;
-          width:26px; height:26px; border-radius:999px;
-          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
-          font-weight:800; line-height:1;
-        }
-        
-        /* Fila 2: tabs centrados SIEMPRE en una sola línea */
-        .row-pills{ justify-content:center; }
-        .seg-pillars{
-          width:100%;
-          display:flex;
-          justify-content:center;
-          align-items:center;
-          gap:8px;
-          flex-wrap:nowrap;            /* ❗ no permitir segunda línea */
-          white-space:nowrap;
-        }
-        .seg-pillars button{
-          flex:0 0 auto;               /* no se estiran, no se rompen */
-          white-space:nowrap;
-        }
-        
-        /* Ajustes responsivos para que sigan entrando en móviles estrechos */
-        @media (max-width: 390px){
-          .seg-pillars button{ padding:6px 10px; font-size:13px; }
-          .chip.mode{ font-size:11px; padding:4px 8px; }
-        }
-
-
+      
         /* ===== Header Rachas – layout exacto ===== */
-        /* FILA 1: grid -> [filler][modo][info] con info pegado a la derecha */
-        .row-top{ 
-          display:grid !important; 
-          grid-template-columns: 1fr auto auto;
+      
+        /* FILA 1: grid -> [filler][modo][info] (modo centrado geométrico, info al borde) */
+        .row-top{
+          display:grid !important;
+          grid-template-columns:1fr auto auto;
           align-items:center;
         }
-        .row-top .seg-right{ display:contents !important; }   /* usa las 3 columnas del grid */
+        .row-top .seg-right{ display:contents !important; } /* deja a sus hijos ocupar col 2 y 3 */
         .row-top [data-role="modeChip"]{ grid-column:2; }
         .row-top #rachasInfoTop{ grid-column:3; justify-self:end; }
         
-        /* Botón ℹ️ del header: botón normal, no absolute */
-        #rachasInfoTop .info-chip{
-          position:static !important;
-          width:26px; height:26px; border-radius:999px;
-          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
-          font-weight:800; line-height:1;
-        }
-        
-        /* GAP entre fila 1 (modo+ℹ️) y fila 2 (pilares) */
-        .row-pills{ margin-top:8px; }
-        
-        /* FILA 2: los tres tabs SIEMPRE centrados y en una sola línea */
+        /* Fila 2: tres tabs centrados en una sola línea + separación vertical */
+        .row-pills{ margin-top:8px; justify-content:center }
         .seg-pillars{
-          width:100%;
-          display:flex; justify-content:center; align-items:center;
+          width:100%; display:flex; justify-content:center; align-items:center;
           gap:8px; flex-wrap:nowrap; white-space:nowrap;
         }
         .seg-pillars button{ flex:0 0 auto; }
-        
-        /* FILA 3: rango centrado “geométricamente” con ℹ️ a la derecha */
+      
+        /* FILA 3: rango centrado con ℹ️ a la derecha */
         .row-range{
-          display:grid; 
-          grid-template-columns: 1fr auto auto;  /* centro real, info a la derecha */
-          align-items:center;
+          display:grid; grid-template-columns:1fr auto auto; align-items:center;
         }
         .row-range [data-role="range"]{
-          grid-column:2; 
-          width:auto; 
-          display:flex; justify-content:center; gap:8px;
+          grid-column:2; width:auto; display:flex; justify-content:center; gap:8px;
         }
         .row-range #rachasInfoScope{ grid-column:3; justify-self:end; }
-        #rachasInfoScope .info-chip{
-          position:static !important;
-          width:26px; height:26px; border-radius:999px;
-          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
-          font-weight:800; line-height:1;
+      
+        /* Responsivo pequeño */
+        @media (max-width: 768px){
+          .chip{font-size:12px;padding:5px 8px}
+          .wkbars b{width:9px}
+          .pnum{min-width:auto}
         }
-        
-        /* Un toque de responsivo por si el ancho es MUY chico */
         @media (max-width: 390px){
-          .seg-pillars button{ padding:6px 10px; font-size:13px; }
-          .chip.mode{ font-size:11px; padding:4px 8px; }
+          .seg-pillars button{ padding:6px 10px; font-size:13px }
+          .chip.mode{ font-size:11px; padding:4px 8px }
         }
       `;
+      // css.textContent = `
+      //   .third{max-width:560px;margin:0 auto 18px;width:100%}
+      //   @media(min-width:1160px){.third{max-width:33vw}}
+      //   /* Box principal con glass claro (estilo Simplicity) */
+      //   .box{
+      //     /* tokens */
+      //     --glass-blur: 18px;
+      //     --glass-bg: rgba(255,255,255,.06);        /* blanco lechoso */
+      //     --glass-br: rgba(255,255,255,.22);        /* borde claro */
+      //     --glass-shadow: 0 12px 30px rgba(0,0,0,.35);
+        
+      //     position:relative; overflow:hidden;
+      //     border-radius:28px;                        /* radio grande como el ref */
+      //     background:var(--glass-bg);
+      //     backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+      //     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+      //     border:1px solid var(--glass-br);
+      //     box-shadow:var(--glass-shadow);
+        
+      //     /* más respiro horizontal sin tocar el spacing vertical que ya te gusta */
+      //     padding:9px 13px 9px;
+      //   }
+      //   /* destellos lila/azul muy suaves detrás (como el ref) */
+      //   .box::before{
+      //     content:""; position:absolute; inset:-30% -8% auto -8%; height:260px;
+      //     background:
+      //       radial-gradient(140px 140px at 22% 68%, rgba(168,120,255,.18), transparent 60%),
+      //       radial-gradient(190px 190px at 78% 30%, rgba(55,170,255,.18),  transparent 60%);
+      //     filter:blur(10px) saturate(120%); pointer-events:none;
+      //   }
+        
+      //   /* Cards internas con una capa de glass un poco más opaca para “doble vidrio” */
+      //   .task{
+      //     background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.05));
+      //     border:1px solid rgba(255,255,255,.14);
+      //     border-radius:16px;
+      //     padding:9px 9px;              /* respiro lateral de cada card */
+      //   }
+        
+      //   /* margen lateral de la lista para que las cards no “toquen” el vidrio */
+      //   .list{ padding:0 5px 7px; }
+      //   .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+      //   .seg{display:flex;gap:8px;flex-wrap:wrap}
+      //   .seg button{background:#1a2240;border:1px solid #24325a;color:#cfd6ff;padding:7px 11px;border-radius:999px;font-weight:800;cursor:pointer}
+      //   .seg button[aria-pressed="true"]{background:#eef2ff;color:#0f1630;border-color:transparent}
+      //   /* === Info chips: fijar anclaje y que se vean como botoncito === */
+      //   #rachasInfoTop, #rachasInfoScope{
+      //     position: relative;            /* ancla local para estilos globales */
+      //     display: inline-flex; 
+      //     align-items: center;
+      //     min-width: 22px;               /* evita colapso del contenedor */
+      //   }
+        
+      //   /* Si tu CSS global posiciona .info-chip en absolute, acá lo neutralizamos */
+      //   #rachasInfoTop .info-chip,
+      //   #rachasInfoScope .info-chip{
+      //     position: static !important;   /* que fluya como botón común */
+      //     margin-left: 6px;
+      //   }
+        
+      //   /* Opcional: tamaño/estética consistente con tus tabs */
+      //   #rachasInfoTop .info-chip,
+      //   #rachasInfoScope .info-chip{
+      //     width: 26px; height: 26px; border-radius: 999px;
+      //     background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+      //     font-weight:800; line-height:1; cursor:pointer;
+      //   }
+      //   .chip{background:#1a2037;border:1px solid #2a3560;color:#d6dcff;padding:6px 9px;border-radius:999px;font-weight:800;display:inline-flex;align-items:center;gap:8px}
+      //   .chip.mode{--modeFlow:#1f7aff;background:color-mix(in srgb, var(--modeFlow) 12%, #0c1124);border-color:color-mix(in srgb, var(--modeFlow) 40%, #2a3560)}
+      //   .chip.mode.low{--modeFlow:#7d7fff}.chip.mode.chill{--modeFlow:#7bc6ff}.chip.mode.flow{--modeFlow:#1f7aff}.chip.mode.evolve{--modeFlow:#20d3b0}
+      //   .info{width:28px;height:28px;border-radius:999px;border:1px solid #2a3560;background:#1a2240;color:#cfd6ff;display:grid;place-items:center;cursor:pointer}
+      //   .streaks{margin:12px 0 10px;padding:10px;border:1px solid #1f2a48;border-radius:16px;background:linear-gradient(180deg,#141c3a,#0e142b)}
+      //   .stitle{font-weight:900;margin:0 2px 8px;display:flex;gap:8px;align-items:center}
+      //   .slist{display:flex;flex-direction:column;gap:8px}
+      //   .stag{position:relative;background:#0f1530;border:1px solid #263157;border-radius:12px;padding:10px 86px 10px 10px}
+      //   .stag .n{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      //   .stag .sub{display:flex;align-items:center;justify-content:space-between;color:#cfd6ec;font-size:12px;margin-top:4px}
+      //   .stag .bar{height:8px;background:#1f274a;border-radius:999px;overflow:hidden;margin-top:6px}
+      //   .stag .bar i{display:block;height:100%;width:var(--p,0%);background:linear-gradient(90deg,#5a2bff,#a77bff)}
+      //   .stag .streak-chip{position:absolute;top:8px;right:8px;background:rgba(255,157,77,.12);border:1px solid #6e3c17;color:#ffd6b2;padding:4px 8px;border-radius:999px;font-weight:900;font-size:12px}
+      //   .filter{display:flex;gap:8px;margin:10px 0}
+      //   .filter input{flex:1;background:#101735;border:1px solid #263157;color:#e9edff;border-radius:12px;padding:10px 12px;font-weight:600}
+      //   .filter input::placeholder{color:#8ea0ce}
+      //   .list{display:flex;flex-direction:column;gap:10px}
+      //   .task{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:linear-gradient(180deg,#111831,#0b1428);border:1px solid #1f2a48;border-radius:16px;padding:10px}
+      //   @media(max-width:520px){.task{grid-template-columns:1fr}}
+      //   .left{min-width:0}.name{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stat{font-size:12px;color:#9aa3b2}
+      //   .prog{display:flex;align-items:center;gap:8px;margin-top:8px}
+      //   .state{width:10px;height:10px;border-radius:999px;border:1px solid #0004}.state.ok{background:#7af59b}.state.warn{background:#ffd166}.state.bad{background:#ff6b6b}
+      //   .bar{position:relative;height:10px;background:#1f274a;border-radius:999px;overflow:hidden;flex:1}
+      //   .bar i{position:absolute;inset:0;width:var(--p,0%);background:linear-gradient(90deg,#5a2bff,#a77bff)}
+      //   .pnum{font-variant-numeric:tabular-nums;font-weight:900;min-width:48px;text-align:right}
+      //   .right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+      //   .right .chip{background:transparent}
+      //   .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px}
+      //   .wkbars b{width:12px;border-radius:4px}
+      //   .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+      //   .muted{color:#9aa3b2}
+      //   @media (max-width: 1280px){
+      //     .task{grid-template-columns:1fr; row-gap:8px}
+      //     .right{justify-content:space-between}
+      //     .wkbars{min-width:0}
+      //   }
+      //   @media (max-width: 768px){
+      //     .chip{font-size:12px; padding:5px 8px}
+      //     .wkbars b{width:10px}
+      //     .pnum{min-width:auto}
+      //   }
+      //   /* mini barras para Top-3 */
+      //   .wkmini{display:inline-grid;grid-auto-flow:column;gap:3px;align-items:end;height:10px;margin-left:8px}
+      //   .wkmini b{width:3px;border-radius:2px;opacity:.9}
+      //   .wkmini b.miss{background:#3a456f}
+      //   .wkmini b.hit{background:#30e47b}
+      //   .wkmini b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+      //   .wkbars{display:grid;grid-auto-flow:column;gap:4px;align-items:end;height:32px;min-width:112px;position:relative}
+      //   .wkbars b{width:12px;border-radius:4px}
+      //   .wkbars b.miss{background:#3a456f}.wkbars b.hit{background:#30e47b}.wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+      //   .wkbars .labels{position:absolute;inset:auto 0 -14px 0;display:grid;grid-auto-flow:column;gap:4px;pointer-events:none}
+      //   .wkbars .labels i{display:block;text-align:center;font-size:11px;line-height:1;color:#9aa3b2;opacity:.8;font-weight:700;letter-spacing:.04em}
+        
+      //   /* BARRAS GRANDES + ETIQUETAS */
+      //   /* Barras con “zanja” para labels */
+      //   .wkbars{
+      //     position:relative;
+      //     display:grid; grid-auto-flow:column; gap:4px; align-items:end;
+      //     height:36px;                 /* pelín más alto */
+      //     padding-bottom:18px;         /* reserva suelo para etiquetas */
+      //     overflow:visible;
+      //   }
+      //   .wkbars b{ width:12px; border-radius:4px }
+      //   .wkbars b.miss{background:#3a456f}
+      //   .wkbars b.hit {background:#30e47b}
+      //   .wkbars b.over{background:linear-gradient(180deg,#8bff6a,#26e0a4)}
+        
+      //   .wkbars .labels{
+      //     position:absolute; left:0; right:0; bottom:-10px;   /* más abajo → no pisa barras altas */
+      //     display:grid; grid-template-columns:repeat(var(--bars,3),1fr);
+      //     gap:4px; pointer-events:none;
+      //   }
+      //   .wkbars .labels i{
+      //     display:block; text-align:center;
+      //     font-size:11px; line-height:1; font-weight:700; letter-spacing:.02em;
+      //     transform:none;               /* nada de translate raro */
+      //   }
+        
+      //   /* ====== chip de modo, más chico y no “parecido a botón” ====== */
+      //   .chip.mode{
+      //     border-radius:10px;                /* más rectangular */
+      //     font-size:12px; padding:5px 10px;
+      //     background:color-mix(in srgb, var(--mcolor, #5aa0ff) 12%, #0c1124);
+      //     border:1px solid color-mix(in srgb, var(--mcolor, #5aa0ff) 40%, #2a3560);
+      //     box-shadow:0 0 0 1px color-mix(in srgb, var(--mcolor, #5aa0ff) 25%, transparent) inset;
+      //   }
+      //   .chip.mode.low    { --mcolor:#ff6b6b; }   /* Low = rojo   */
+      //   .chip.mode.chill  { --mcolor:#20d3b0; }   /* Chill = verde */
+      //   .chip.mode.flow   { --mcolor:#1f7aff; }   /* Flow = azul  */
+      //   .chip.mode.evolve { --mcolor:#a77bff; }   /* Evolve = lila*/
+        
+      //   /* ====== tabs Sem/Mes/3M reubicados y centrados ====== */
+      //   .seg.is-range{ width:100%; justify-content:center; gap:8px; }
+      //   .seg.is-range button{ flex:0 1 96px; }       /* tamaño parejo y responsive */
+      //   .seg[data-role="range"]{ width:100%; justify-content:center }
+        
+      //   /* pequeño ajuste para que el bloque derecho tenga aire
+      //      cuando las barras verdes son altas */
+      //   .right{gap:10px; flex-wrap:wrap; justify-content:flex-end; min-height:40px}
+      //   /* compactar el bloque de barras verdes */
+      //   .task .right{ gap:8px; } /* antes 10px, reduce el aire entre chips y barras */
+        
+      //   /* ⚠️ anula el min-width heredado (si lo tenés en alguna regla anterior) */
+      //   .wkbars{ min-width:0 !important; }
+        
+      //   /* barras y separaciones más finas */
+      //   .wkbars{ gap:3px; }             /* antes 4px */
+      //   .wkbars b{ width:9px; }         /* antes 12px */
+        
+      //   /* etiquetas más juntitas y… más abajo para que no “muerdan” barras altas */
+      //   .wkbars .labels{ gap:3px; bottom:-8px; font-size:10px; }
+      //   /* Iconitos solo dentro del popover de ayuda */
+      //   .info-pop .ico-lila{
+      //     display:inline-block; width:22px; height:6px; 
+      //     background:linear-gradient(90deg,#5a2bff,#a77bff);
+      //     border-radius:999px; vertical-align:middle; margin-right:6px
+      //   }
+      //   .info-pop .ico-verdes{
+      //     display:inline-grid; grid-auto-flow:column; gap:3px; 
+      //     height:12px; vertical-align:middle; margin-right:6px
+      //   }
+      //   .info-pop .ico-verdes i{
+      //     width:3px; border-radius:2px; background:linear-gradient(180deg,#8bff6a,#26e0a4);
+      //     display:inline-block
+      //   }
+      //   .info-pop .ico-verdes i:nth-child(1){height:10px}
+      //   .info-pop .ico-verdes i:nth-child(2){height:7px}
+      //   .info-pop .ico-verdes i:nth-child(3){height:11px}
+
+      //   /* ===== Rachas: layout del header ===== */
+
+      //   /* Fila 1: contenido a la derecha (info + modo) */
+      //   .row-top{ justify-content:flex-end; }
+      //   .row-top .seg-right{
+      //     width:100%;
+      //     display:flex;
+      //     justify-content:flex-end;
+      //     align-items:center;
+      //     gap:8px;
+      //   }
+        
+      //   /* Botón ℹ️ dentro del header: que fluya como botón normal */
+      //   #rachasInfoTop .info-chip{
+      //     position:static !important;
+      //     width:26px; height:26px; border-radius:999px;
+      //     background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+      //     font-weight:800; line-height:1;
+      //   }
+        
+      //   /* Fila 2: tabs centrados SIEMPRE en una sola línea */
+      //   .row-pills{ justify-content:center; }
+      //   .seg-pillars{
+      //     width:100%;
+      //     display:flex;
+      //     justify-content:center;
+      //     align-items:center;
+      //     gap:8px;
+      //     flex-wrap:nowrap;            /* ❗ no permitir segunda línea */
+      //     white-space:nowrap;
+      //   }
+      //   .seg-pillars button{
+      //     flex:0 0 auto;               /* no se estiran, no se rompen */
+      //     white-space:nowrap;
+      //   }
+        
+      //   /* Ajustes responsivos para que sigan entrando en móviles estrechos */
+      //   @media (max-width: 390px){
+      //     .seg-pillars button{ padding:6px 10px; font-size:13px; }
+      //     .chip.mode{ font-size:11px; padding:4px 8px; }
+      //   }
+
+
+      //   /* ===== Header Rachas – layout exacto ===== */
+      //   /* FILA 1: grid -> [filler][modo][info] con info pegado a la derecha */
+      //   .row-top{ 
+      //     display:grid !important; 
+      //     grid-template-columns: 1fr auto auto;
+      //     align-items:center;
+      //   }
+      //   .row-top .seg-right{ display:contents !important; }   /* usa las 3 columnas del grid */
+      //   .row-top [data-role="modeChip"]{ grid-column:2; }
+      //   .row-top #rachasInfoTop{ grid-column:3; justify-self:end; }
+        
+      //   /* Botón ℹ️ del header: botón normal, no absolute */
+      //   #rachasInfoTop .info-chip{
+      //     position:static !important;
+      //     width:26px; height:26px; border-radius:999px;
+      //     background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+      //     font-weight:800; line-height:1;
+      //   }
+        
+      //   /* GAP entre fila 1 (modo+ℹ️) y fila 2 (pilares) */
+      //   .row-pills{ margin-top:8px; }
+        
+      //   /* FILA 2: los tres tabs SIEMPRE centrados y en una sola línea */
+      //   .seg-pillars{
+      //     width:100%;
+      //     display:flex; justify-content:center; align-items:center;
+      //     gap:8px; flex-wrap:nowrap; white-space:nowrap;
+      //   }
+      //   .seg-pillars button{ flex:0 0 auto; }
+        
+      //   /* FILA 3: rango centrado “geométricamente” con ℹ️ a la derecha */
+      //   .row-range{
+      //     display:grid; 
+      //     grid-template-columns: 1fr auto auto;  /* centro real, info a la derecha */
+      //     align-items:center;
+      //   }
+      //   .row-range [data-role="range"]{
+      //     grid-column:2; 
+      //     width:auto; 
+      //     display:flex; justify-content:center; gap:8px;
+      //   }
+      //   .row-range #rachasInfoScope{ grid-column:3; justify-self:end; }
+      //   #rachasInfoScope .info-chip{
+      //     position:static !important;
+      //     width:26px; height:26px; border-radius:999px;
+      //     background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+      //     font-weight:800; line-height:1;
+      //   }
+        
+      //   /* Un toque de responsivo por si el ancho es MUY chico */
+      //   @media (max-width: 390px){
+      //     .seg-pillars button{ padding:6px 10px; font-size:13px; }
+      //     .chip.mode{ font-size:11px; padding:4px 8px; }
+      //   }
+      // `;
       document.head.appendChild(css);
     }
 
