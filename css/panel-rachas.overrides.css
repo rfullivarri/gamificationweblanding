@@ -162,7 +162,7 @@
 .dashboard-root .daily-cultivation-section .card-title .info,
 .dashboard-root .daily-cultivation-section .card-title .info-btn,
 .dashboard-root .daily-cultivation-section .card-title .info-chip{
-  left:6px; right:auto; top:6px;  /* antes 10px */
+  left:4px; right:auto; top:4px;  /* antes 10px */
 }
 
 /* Header de Daily Cultivation */
