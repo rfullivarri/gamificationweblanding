@@ -1031,13 +1031,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // ========================
-    // 💖 EMOTION CHART (fix iOS date parsing + TZ safe)
+    // 💖 EMOTION CHART (iOS/Android safe)
     // ========================
     function renderEmotionChart(dailyEmotion) {
-      // Backward compat: normalizamos "Neutral" a "Cansancio"
+      // Normalizamos "Neutral" -> "Cansancio"
       const normalize = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
     
-      // Claves internas (no usamos emojis para distinguir "sin dato")
+      // Claves internas
       const emotionKey = {
         "Calma": "CALMA",
         "Felicidad": "FELI",
@@ -1047,112 +1047,88 @@ document.addEventListener("DOMContentLoaded", async () => {
         "Frustración": "FRUS",
         "Cansancio": "CANS"
       };
-    
       const keyToName = {
-        CALMA: "Calma",
-        FELI: "Felicidad",
-        MOTI: "Motivación",
-        TRIS: "Tristeza",
-        ANSI: "Ansiedad",
-        FRUS: "Frustración",
-        CANS: "Cansancio",
-        NONE: "Sin registro"
+        CALMA: "Calma", FELI: "Felicidad", MOTI: "Motivación",
+        TRIS: "Tristeza", ANSI: "Ansiedad", FRUS: "Frustración",
+        CANS: "Cansancio", NONE: "Sin registro"
       };
-    
-      // Colores (Cansancio turquesa oscuro; días sin registro gris)
       const keyToColor = {
-        CALMA: "#2ECC71",
-        FELI:  "#F1C40F",
-        MOTI:  "#9B59B6",
-        TRIS:  "#3498DB",
-        ANSI:  "#E74C3C",
-        FRUS:  "#8D6E63",
-        CANS:  "#16A085", // 👈 turquesa oscuro
-        NONE:  "#555555"  // 👈 sin datos
+        CALMA:"#2ECC71", FELI:"#F1C40F", MOTI:"#9B59B6",
+        TRIS:"#3498DB", ANSI:"#E74C3C", FRUS:"#8D6E63",
+        CANS:"#16A085", NONE:"#555555"
       };
     
-      // === FIX 1: parseo robusto D/M/YYYY -> Date local (evita Safari issues)
-      const parseDate = (str) => {
+      // Parseo robusto D/M/YYYY -> Date local
+      const parseDMY = (str) => {
         if (!str) return null;
-        const parts = String(str).split("/");
-        if (parts.length !== 3) return null;
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10);
-        const year = parseInt(parts[2], 10);
-        if (!year || !month || !day) return null;
-        return new Date(year, month - 1, day); // <-- local time, cross-browser
+        const [d,m,y] = String(str).split("/").map(v=>parseInt(v,10));
+        if (!y || !m || !d) return null;
+        return new Date(y, m-1, d);           // ← local, cross-browser
       };
-    
-      // === FIX 2: ISO local sin zona horaria (evita corrimientos de día)
+      // Clave ISO local (sin zona horaria)
       const isoLocal = (d) => {
         const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const da = String(d.getDate()).padStart(2, "0");
+        const m = String(d.getMonth()+1).padStart(2,"0");
+        const da= String(d.getDate()).padStart(2,"0");
         return `${y}-${m}-${da}`;
       };
+      // Parseo ISO local YYYY-MM-DD -> Date local
+      const parseIsoLocal = (s) => {
+        const [y,m,d] = s.split("-").map(n=>parseInt(n,10));
+        return new Date(y, (m||1)-1, (d||1));
+      };
     
-      // Mapa fecha -> clave emoción
+      // fecha -> emoción
       const emotionMap = {};
-      (dailyEmotion || []).forEach(entry => {
-        const d = parseDate(entry.fecha);
+      (dailyEmotion || []).forEach(entry=>{
+        const d = parseDMY(entry.fecha);
         const k = emotionKey[ normalize(entry.emocion) ];
         if (d instanceof Date && !isNaN(d) && k) {
-          emotionMap[isoLocal(d)] = k;
+          emotionMap[ isoLocal(d) ] = k;
         }
       });
     
       const sortedDates = Object.keys(emotionMap).sort();
-      if (sortedDates.length === 0) {
-        // nada que pintar
-        const emotionChart = document.getElementById("emotionChart");
-        if (emotionChart) emotionChart.innerHTML = "";
-        return;
-      }
-    
-      // arranca desde el domingo de la primera semana
-      const startDate = new Date(parseDate(sortedDates[0]));
-      startDate.setDate(startDate.getDate() - startDate.getDay());
-    
-      const NUM_WEEKS = 26;
-      const DAYS_IN_WEEK = 7;
-    
       const emotionChart = document.getElementById("emotionChart");
       if (!emotionChart) return;
       emotionChart.innerHTML = "";
     
+      if (sortedDates.length === 0) return;
+    
+      // ⛑️ FIX: la primera fecha es ISO local; NO usar parseDMY aquí
+      const startDate = parseIsoLocal(sortedDates[0]);
+      startDate.setDate(startDate.getDate() - startDate.getDay()); // domingo
+    
+      const NUM_WEEKS = 26, DAYS_IN_WEEK = 7;
+    
+      // Meses (una etiqueta por semana)
       const monthLabelsContainer = document.createElement("div");
       monthLabelsContainer.className = "month-labels";
-    
-      const gridContainer = document.createElement("div");
-      gridContainer.className = "emotion-grid";
-    
-      // Etiquetas de mes alineadas por columna (una por semana)
       let currentMonth = -1;
-      for (let col = 0; col < NUM_WEEKS; col++) {
+      for (let col=0; col<NUM_WEEKS; col++){
         const labelDate = new Date(startDate);
-        labelDate.setDate(startDate.getDate() + col * 7);
+        labelDate.setDate(startDate.getDate() + col*7);
         const month = labelDate.getMonth();
-    
         const label = document.createElement("div");
         label.className = "month-label";
         label.textContent = (month !== currentMonth)
-          ? labelDate.toLocaleString("es-ES", { month: "short" })
+          ? labelDate.toLocaleString("es-ES", { month:"short" })
           : "";
         currentMonth = month;
-        label.style.width = `5px`;
+        label.style.width = "5px";
         monthLabelsContainer.appendChild(label);
       }
     
-      // 7 filas (días) x 26 columnas (semanas)
-      for (let row = 0; row < DAYS_IN_WEEK; row++) {
+      // Grilla 7x26
+      const gridContainer = document.createElement("div");
+      gridContainer.className = "emotion-grid";
+      for (let row=0; row<DAYS_IN_WEEK; row++){
         const rowDiv = document.createElement("div");
         rowDiv.className = "emotion-row";
-    
-        for (let col = 0; col < NUM_WEEKS; col++) {
+        for (let col=0; col<NUM_WEEKS; col++){
           const cellDate = new Date(startDate);
-          cellDate.setDate(startDate.getDate() + row + col * 7);
-          const key = emotionMap[isoLocal(cellDate)] || "NONE";
-    
+          cellDate.setDate(startDate.getDate() + row + col*7);
+          const key = emotionMap[ isoLocal(cellDate) ] || "NONE";
           const cell = document.createElement("div");
           cell.className = "emotion-cell";
           cell.style.backgroundColor = keyToColor[key] || "#555";
@@ -1166,16 +1142,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       emotionChart.appendChild(gridContainer);
     }
     
+    // Pintar
     if (data.daily_emotion) {
       renderEmotionChart(data.daily_emotion);
     } else {
       console.warn("⚠️ No hay datos válidos para Emotion Chart");
     }
     
-    // Emoción más frecuente (incluimos ahora Cansancio; ya no excluimos Neutral)
+    // ==== Emoción prevalente (queda igual) ====
     function mostrarEmocionPrevalente(datos, dias = 15) {
       if (!Array.isArray(datos) || datos.length === 0) return;
-    
       const norm = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
     
       const ordenados = [...datos].sort((a, b) => {
@@ -1185,7 +1161,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     
       const recientes = ordenados.slice(0, dias);
-    
       const contador = {};
       recientes.forEach(entry => {
         const emocion = norm(entry.emocion?.split("–")[0]?.trim());
@@ -1196,15 +1171,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!top) return;
     
       const [nombreEmocion] = top;
-    
       const colores = {
-        "Calma": "#2ECC71",
-        "Felicidad": "#F1C40F",
-        "Motivación": "#9B59B6",
-        "Tristeza": "#3498DB",
-        "Ansiedad": "#E74C3C",
-        "Frustración": "#8D6E63",
-        "Cansancio": "#16A085"
+        "Calma":"#2ECC71","Felicidad":"#F1C40F","Motivación":"#9B59B6",
+        "Tristeza":"#3498DB","Ansiedad":"#E74C3C","Frustración":"#8D6E63",
+        "Cansancio":"#16A085"
       };
       const color = colores[nombreEmocion] || "#555";
     
@@ -1217,13 +1187,12 @@ document.addEventListener("DOMContentLoaded", async () => {
               <div class="emotion-name">${nombreEmocion}</div>
               <div class="emotion-info">Emoción más frecuente en los últimos ${dias} días</div>
             </div>
-          </div>
-        `;
+          </div>`;
       }
     }
     if (data.daily_emotion) {
       mostrarEmocionPrevalente(data.daily_emotion, 15);
-    }
+}
 
 
     
@@ -1491,55 +1460,50 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
    - Colocación inteligente dentro del viewport (con margen).
    - Misma API que tu versión anterior.
 ============================================================================= */
-/* ========= InfoChip util v3 — scroll-aware & left/right anchor =============== */
+/* ========= InfoChip util v4 — body-mounted, scroll-safe, iOS-safe ========= */
 (function(){
-  const MARGIN = 10; // margen de resguardo contra los bordes de la ventana
-  const TAP_GUARD_MS = 450; // evita doble toggle (touch + click)
+  const MARGIN = 10;       // resguardo contra bordes
+  const GAP_Y  = 2;        // separación del chip
+  const TAP_GUARD_MS = 450;
 
   function _build(targetEl, html, pos){
     if (!targetEl) return;
 
-    // contenedor lógico para estilos del chip
     targetEl.classList.add('card-title-with-info');
-
-    // normalizo posición
     const anchor = String(pos || targetEl.dataset.infoPos || 'right').toLowerCase();
 
-    // botón chip
+    // botón
     const chip = document.createElement('button');
     chip.type = 'button';
     chip.className = 'info-chip' + (anchor === 'left' ? ' info-left' : '');
     chip.setAttribute('aria-label','Información');
-    chip.textContent = 'i'; // si preferís el circulito: 'ⓘ'
+    chip.textContent = 'i';
 
-    // pop
+    // pop → lo montamos en <body> para evitar el bug de Safari/Android
     const pop = document.createElement('div');
     pop.className = 'info-pop';
     pop.innerHTML = html;
-
+    // importante: el chip queda en el card, pero el pop va al body
     targetEl.appendChild(chip);
-    targetEl.appendChild(pop);
+    document.body.appendChild(pop);
 
-    let rafId = null;
-    let lastTouchTs = 0;
+    let rafId = null, lastTouchTs = 0;
 
-    // coloca el pop usando coordenadas de viewport (position: fixed en CSS)
     function place(){
       // mostrar para medir
+      pop.style.position = 'fixed';
       pop.style.display  = 'block';
       pop.classList.add('show');
 
+      // ¡siempre recomputar con el chip que disparó!
       const r  = chip.getBoundingClientRect();
       const pw = pop.offsetWidth;
       const ph = pop.offsetHeight;
 
-      // base horizontal según ancla
-      let left;
-      if (anchor === 'left' || chip.classList.contains('info-left')){
-        left = Math.round(r.left);
-      } else {
-        left = Math.round(r.right - pw);
-      }
+      // base horizontal segun ancla
+      let left = (anchor === 'left' || chip.classList.contains('info-left'))
+        ? Math.round(r.left)
+        : Math.round(r.right - pw);
 
       // clamp horizontal
       if (left < MARGIN) left = MARGIN;
@@ -1547,10 +1511,11 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
         left = window.innerWidth - MARGIN - pw;
       }
 
-      // vertical: preferir debajo del chip; si no entra, va arriba
-      let top  = Math.round(r.bottom + 1); // 2px de aire
+      // vertical preferente: debajo
+      let top = Math.round(r.bottom + GAP_Y);
+      // si no entra, va arriba
       if (top + ph > window.innerHeight - MARGIN){
-        top = Math.max(MARGIN, Math.round(r.top - ph - 6));
+        top = Math.max(MARGIN, Math.round(r.top - ph - GAP_Y));
       }
 
       pop.style.left = left + 'px';
@@ -1564,55 +1529,42 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
       });
     }
 
-    // abrir/cerrar con exclusión mutua
     function toggle(e){
       if (e) e.stopPropagation();
       const wantShow = !pop.classList.contains('show');
       closeAll();
-      if (wantShow){ place(); }
+      if (wantShow) place();
     }
 
-    // eventos de apertura
     chip.addEventListener('click', (e)=>{
-      // si hubo un touch hace < TAP_GUARD_MS, ignorá el click (doble firing iOS/Android)
       if (Date.now() - lastTouchTs < TAP_GUARD_MS) return;
       toggle(e);
     });
+    chip.addEventListener('touchstart', (e)=>{ lastTouchTs = Date.now(); toggle(e); }, {passive:true});
+    chip.addEventListener('mouseenter', place); // desktop
 
-    chip.addEventListener('touchstart', (e)=>{
-      lastTouchTs = Date.now();
-      toggle(e);
-    }, {passive:true});
-
-    // opcional desktop: precolocar al pasar el mouse
-    chip.addEventListener('mouseenter', place);
-
-    // reposicionar mientras esté visible (scroll/resize/orientation)
-    function onScrollOrResize(){
+    // Reposicionar mientras esté visible
+    const onScrollOrResize = ()=>{
       if (!pop.classList.contains('show')) return;
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(place);
-    }
+    };
     window.addEventListener('scroll', onScrollOrResize, {passive:true});
     document.addEventListener('scroll', onScrollOrResize, {passive:true});
     window.addEventListener('resize', onScrollOrResize);
     window.addEventListener('orientationchange', onScrollOrResize);
 
-    // cerrar en click fuera o ESC
+    // Cerrar en click fuera / ESC
     document.addEventListener('click', (e)=>{
       if (!e.target.closest('.info-pop') && !e.target.closest('.info-chip')){
-        pop.classList.remove('show'); pop.style.display='none';
+        closeAll();
       }
     });
-
     document.addEventListener('keydown', (e)=>{
-      if (e.key === 'Escape'){
-        pop.classList.remove('show'); pop.style.display='none';
-      }
+      if (e.key === 'Escape') closeAll();
     });
   }
 
-  // Declarativo: cualquier elemento con data-info
   function initInfoChips(){
     document.querySelectorAll('[data-info]').forEach(el=>{
       if (el.dataset.infoInit === '1') return;
@@ -1621,7 +1573,6 @@ async function refreshBundle(email, { mode = 'reload' } = {}) {
     });
   }
 
-  // API pública
   window.attachInfoChip = function(selector, text, position){
     const el = document.querySelector(selector);
     _build(el, text, (position||'right'));
