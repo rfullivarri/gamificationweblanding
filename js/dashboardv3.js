@@ -214,12 +214,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.GJ_WARN = { bbddOk, firstProg, showSched };
     })();
 
-    async function markFirstProgrammed(email){
-      try {
-        await fetch(`${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}`, {
-          method: 'POST',
-          cache: 'no-store'
-        });
+    await fetch(${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}&key=${encodeURIComponent(API_KEY)}, {
+      method: 'POST',
+      cache: 'no-store'
+    });
         // Ocultar el warning y dots al instante (optimista)
         const elSched = document.getElementById('scheduler-warning');
         if (elSched) elSched.style.display = 'none';
