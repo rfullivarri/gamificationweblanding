@@ -199,3 +199,14 @@
   main{ padding-left:2px !important; padding-right:2px !important; }
   body, .dashboard-root{ margin-left:0 !important; margin-right:0 !important; }
 }
+
+/* ===== emotion chart fix ===== */
+.month-labels{display:grid;grid-template-columns:repeat(26,12px);gap:4px;margin-bottom:6px}
+.emotion-grid{display:grid;gap:4px}
+.emotion-row{display:grid;grid-auto-flow:column;grid-auto-columns:12px;gap:4px}
+.emotion-cell{width:12px;height:12px;border-radius:4px}
+@media (max-width:420px){
+  .month-labels{grid-template-columns:repeat(26,10px);gap:3px}
+  .emotion-row{grid-auto-columns:10px;gap:3px}
+  .emotion-cell{width:10px;height:10px;border-radius:3px}
+}
