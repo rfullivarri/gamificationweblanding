@@ -175,141 +175,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
 
 
+    // === ONBOARDING WARNINGS (regla definitiva: F y L) ===
+    (function applyOnboardingWarnings(){
+      const bbddOk = String(data.confirmacionbbdd || '').toUpperCase() === 'SI';              // F (Central)
+      const firstProg = String(dataRaw?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI'; // L (HUB)
     
-    // —— AVISO de programación (hasta que se programe al menos una vez)
-    try {
-      const emailLC  = String(email || '').toLowerCase();
-      const sched    = (window.GJ_CTX && window.GJ_CTX.scheduler) || {};
-      const schedOk  = String(sched.estado || '').toUpperCase() === 'ACTIVO' && (sched.hora != null);
+      const elBBDD  = document.getElementById('bbdd-warning');
+      const elSched = document.getElementById('scheduler-warning');
     
-      // setDot seguro
-      const setDotSafe = window.setDotSafe || window.setDot || function(){};
+      // 1) Warning BBDD
+      if (elBBDD)  elBBDD.style.display  = bbddOk ? 'none' : 'block';
     
-      // “ya programó al menos una vez” (no mostrar más)
-      const configuredKey = `gj_sched_configured:${emailLC}`;
-      const yaProgramado  = localStorage.getItem(configuredKey) === '1';
+      // 2) Warning Programar (solo si F=SI y L vacío)
+      const showSched = bbddOk && !firstProg;
+      if (elSched) elSched.style.display = showSched ? 'block' : 'none';
     
-      // Forzado one–shot (lo deja BBDD al confirmar "primera") + señal de navegación
-      const forceKey   = `gj_force_scheduler_banner:${emailLC}`;
-      const forcedLS   = (localStorage.getItem(forceKey) === '1') || (window.GJ_FORCE_SCHED_HINT === true);
-      const forcedSS   = (sessionStorage.getItem('gj_onboarding') || '').toLowerCase() === 'primera';
-      const forced     = forcedLS || forcedSS;
+      // 3) Dots (opcionales, coherentes con los avisos)
+      setDot(document.getElementById('li-edit-bbdd'), !bbddOk, '#ffc107');
+      setDot(document.getElementById('menu-toggle'), (!bbddOk || showSched), '#ffc107');
+      setDot(document.getElementById('open-scheduler'), showSched, '#ffc107');
     
-      function showSchedulerBanner() {
-        // ocultar avisos de BBDD si estuvieran
-        ['journey-warning','bbdd-warning'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el) el.style.display = 'none';
-        });
-        // mostrar aviso de Programar
-        const warn = document.getElementById('scheduler-warning');
-        if (warn) warn.style.display = 'block';
-        // dots ON
-        setDotSafe(document.getElementById('menu-toggle'), true, '#ffc107');
-        setDotSafe(document.getElementById('open-scheduler'), true, '#ffc107');
-      }
-    
-      function consumeForce() {
-        try { localStorage.removeItem(forceKey); } catch {}
-        try { sessionStorage.removeItem('gj_onboarding'); } catch {}
-        try { delete window.GJ_FORCE_SCHED_HINT; } catch {}
-      }
-    
-      // (A) Listener “en caliente” desde BBDD (postMessage entre páginas/iframe)
-      (function attachOnboardingListener(){
-        function handleMsg(ev){
-          const d = ev && ev.data || {};
-          if (d.kind === 'GJ_ONBOARD' && d.step === 'BBDD_CONFIRMED' &&
-              String(d.estado||'').toLowerCase() === 'primera') {
-            if (!yaProgramado) showSchedulerBanner();
-            consumeForce();
-          }
+      // 4) Contexto limpio por si lo usa el modal
+      window.GJ_CTX = {
+        ...(window.GJ_CTX || {}),
+        linkPublico: (data.daily_form_url || ''),
+        scheduler: {
+          canal:      (dataRaw?.scheduler?.canal      ?? 'email'),
+          frecuencia: (dataRaw?.scheduler?.frecuencia ?? 'DAILY'),
+          dias:       (dataRaw?.scheduler?.dias       ?? ''),
+          hora:       (dataRaw?.scheduler?.hora != null ? Number(dataRaw.scheduler.hora) : 8),
+          timezone:   (dataRaw?.scheduler?.timezone   ?? 'Europe/Madrid'),
+          estado:     (dataRaw?.scheduler?.estado     ?? 'ACTIVO'),
+          firstProgrammed: firstProg ? 'SI' : ''   // espejo de L
         }
-        window.addEventListener('message', handleMsg);
-      })();
+      };
     
-      // (B) Señal persistida si hubo navegación desde BBDD (mismo tab)
-      if (!yaProgramado && forcedSS) {
-        showSchedulerBanner();
-        consumeForce();
-      }
-    
-      // (C) Lógica normal: si no hay scheduler OK o viene forzado → mostrar
-      if (!yaProgramado && (forced || !schedOk)) {
-        showSchedulerBanner();
-        // si vino forzado por LS/SS, consúmelo para no repetir
-        if (forced) consumeForce();
-      }
-    
-      // (D) Mensaje alternativo por BroadcastChannel (si lo usás)
-      try {
-        const bc = new BroadcastChannel('gj_onboarding');
-        bc.onmessage = (ev) => {
-          const msg = ev && ev.data || {};
-          if (msg.type === 'bbdd-confirmed' &&
-              String(msg.estado || '').toLowerCase() === 'primera') {
-            if (!yaProgramado) showSchedulerBanner();
-            consumeForce();
-          }
-        };
-      } catch {}
-    
-      // (E) Si YA está programado, asegurá dots off y ocultar banner
-      if (schedOk || yaProgramado) {
-        setDotSafe(document.getElementById('menu-toggle'), false);
-        setDotSafe(document.getElementById('open-scheduler'), false);
-        const warn = document.getElementById('scheduler-warning');
-        if (warn) warn.style.display = 'none';
-      }
-    } catch {}
+      // (opcional) expose flags por si querés depurar
+      window.GJ_WARN = { bbddOk, firstProg, showSched };
+    })();
 
-    
-    
-    // Cache (y por si el controller cae al LS)
-    try {
-      localStorage.setItem('gj_ctx', JSON.stringify(window.GJ_CTX));
-      localStorage.setItem('gj_email', email);
-      if (userSheetId) localStorage.setItem('gj_sheetId', userSheetId);
-    } catch {}
-    
-    // Avisar al controller que el contexto está listo
-    window.dispatchEvent(new CustomEvent('gj:ctx-ready', { detail: window.GJ_CTX }));
-    
-    // (Opcional) abrir con prefill desde tu botón del menú
-    const btn = document.getElementById('open-scheduler');
-    if (btn) {
-      btn.addEventListener('click', (e)=>{
-        e.preventDefault();
-        const p = window.GJ_CTX.scheduler;
-        window.openSchedulerModal?.({
-          canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
-          hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
-          linkPublico: window.GJ_CTX.linkPublico
+    async function markFirstProgrammed(email){
+      try {
+        await fetch(`${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}`, {
+          method: 'POST',
+          cache: 'no-store'
         });
-      });
+        // Ocultar el warning y dots al instante (optimista)
+        const elSched = document.getElementById('scheduler-warning');
+        if (elSched) elSched.style.display = 'none';
+        setDot(document.getElementById('open-scheduler'), false);
+        setDot(document.getElementById('menu-toggle'), false); // o re-evaluá según BBDD
+        // Actualizá espejo local
+        if (window.GJ_CTX?.scheduler) window.GJ_CTX.scheduler.firstProgrammed = 'SI';
+      } catch(e) {
+        console.warn('markFirstProgrammed failed', e);
+      }
     }
     
-
-    // 3) ENLACES
-    //    a) Base que viene del WebApp (aceptamos dos nombres de campo)
-    // const editorBase = data.bbdd_editor_url || data["bbdd editor url"] || "";
-    // const editorURL  = editorBase ? new URL(editorBase) : null;
-    // if (editorURL) editorURL.searchParams.set("email", email); // << agregamos ?email=
-
-    // //    b) Setear el botón clásico por id (como ya tenías)
-    // const editBbdd = document.getElementById("edit-bbdd");
-    // if (editBbdd) editBbdd.href = editorURL ? editorURL.toString() : "#";
-
-    // //    c) Y además TODOS los links marcados con data-link="editar-base"
-    // document.querySelectorAll('[data-link="editar-base"]').forEach(a => {
-    //   const finalURL = editorURL ? editorURL.toString() : "#";
-    //   a.setAttribute("href", finalURL);
-    //   // Forzamos navegación en la misma pestaña (a prueba de handlers/caches)
-    //   a.addEventListener("click", (ev) => {
-    //     ev.preventDefault();
-    //     window.location.href = finalURL;
-    //   });
-    // });
 
     //    d) Resto de enlaces como ya tenías
     const dailyQuest = document.getElementById("daily-quest");
@@ -346,261 +268,263 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // 4.2) Se crep BBDD (Posiblemente Obsoleto)
-    if (data.estado !== "PROCESADO ✅") {
-      const warningContainer = document.getElementById("journey-warning");
-      if (warningContainer) warningContainer.style.display = "block";
-    }
+    // // 4.2) Se crep BBDD (Posiblemente Obsoleto)
+    // if (data.estado !== "PROCESADO ✅") {
+    //   const warningContainer = document.getElementById("journey-warning");
+    //   if (warningContainer) warningContainer.style.display = "block";
+    // }
 
     // 4.3) CONFIRMAR BBDD PUNTITO
-    const needsBBDD = String(data.confirmacionbbdd || '').toUpperCase() !== 'SI';
+    // const needsBBDD = String(data.confirmacionbbdd || '').toUpperCase() !== 'SI';
 
-    // ocultamos warning viejo
-    document.getElementById('bbdd-warning')?.style.setProperty('display','none');
+    // // ocultamos warning viejo
+    // document.getElementById('bbdd-warning')?.style.setProperty('display','none');
     
-    // llamamos a setDot
-    setDot(document.getElementById('menu-toggle'), needsBBDD, '#ffc107');
-    setDot(document.getElementById('li-edit-bbdd'), needsBBDD, '#ffc107');
+    // // llamamos a setDot
+    // setDot(document.getElementById('menu-toggle'), needsBBDD, '#ffc107');
+    // setDot(document.getElementById('li-edit-bbdd'), needsBBDD, '#ffc107');
 
     
-    // 4.3bis) CONFIRMAR BBDD (OLD)
-    if (data.confirmacionbbdd !== "SI") {
-      const bbddWarning = document.getElementById("bbdd-warning");
-      if (bbddWarning) bbddWarning.style.display = "block";
-    }
+    // // 4.3bis) CONFIRMAR BBDD (OLD)
+    // if (data.confirmacionbbdd !== "SI") {
+    //   const bbddWarning = document.getElementById("bbdd-warning");
+    //   if (bbddWarning) bbddWarning.style.display = "block";
+    // }
 
     // 4.4) Primer render listo: ocultamos el spinner global
     // Dejo un frame para que el DOM pinte antes de ocultar
     await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
     hideSpinner();
 
-    // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE (v2 con lógica actual/max)
-    const PCARD = (() => {
-      const MODE_TIER = { LOW: 1, CHILL: 2, FLOW: 3, EVOL: 4 };
-      // const PILLAR_MAP = { 'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul' };
-      const PILLAR_MAP = Object.freeze({'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul','BODY':'Body','MIND':'Mind','SOUL':'Soul','CUERPO':'Body','MENTE':'Mind','ALMA':'Soul'});
-    
-      const esc = (s='') => s.toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-      const el  = (tag, cls, html) => { const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; };
-    
-      function normalizeRow(r){
-        return {
-          pillar: PILLAR_MAP[(r.pilar||'').trim()] || 'Body',
-          rasgo:  r.rasgo || '',
-          stat:   r.stat  || '',
-          task:   r.task  || '',
-          xp:     Number(r.exp || 0),
-          streak: Number(r.constancia || 0),
-          weeklyMax:{1:+(r.c1s_m||0),2:+(r.c2s_m||0),3:+(r.c3s_m||0),4:+(r.c4s_m||0)},
-          weeklyNow:{1:+(r.c1s_ac||0),2:+(r.c2s_ac||0),3:+(r.c3s_ac||0),4:+(r.c4s_ac||0)}
-        };
-      }
-    
-      // Barra de progreso semanal (comparación actual vs máximo)
-      function progressBar(now, max, tier){
-        let _now = Math.max(0, Number(now) || 0);
-        let _max = Math.max(Number(max) || 0, 1);
-    
-        // Si no hay máximo registrado, usar default del modo
-        if (_max <= 1 && _now > 0) _max = Math.max(_now, tier);
-    
-        // Evitar que la barra se rompa si actual supera máximo → actualizar
-        if (_now > _max) _max = _now;
-    
-        const pct = Math.round((_now/_max)*100);
-    
-        const wrap = el('div','pc-progress');
-        const fill = el('div','pc-progress-fill');
-        fill.style.width = pct + '%';
-    
-        const labelText = `${_now}/${_max}`;
-        const label = el('div','pc-progress-label', esc(labelText));
-    
-        if (_now >= _max && _max > 0) {
-          const trophy = el('span','pc-progress-trophy','🏆');
-          label.appendChild(trophy);
-          wrap.classList.add('pc-progress-record');
-        }
-    
-        wrap.appendChild(fill);
-        wrap.appendChild(label);
-        return wrap;
-      }
-    
-      function buildSection(name, items, mode){
-        const tier = MODE_TIER[mode] || MODE_TIER.FLOW;
-        const sec = el('section','pc-section'+(name==='Body'?' pc-active':'')); 
-        sec.dataset.section = name.toLowerCase();
-    
-        sec.appendChild(el('div','pc-h4','🔥 Tareas con racha de constancia'));
-    
-        // Top-3 con fuego
-        const top3Box = el('div','pc-top3');
-        const withStreak = items.filter(t => t.streak > 1).sort((a,b)=>b.streak-a.streak);
-        const top3 = withStreak.slice(0,3);
-    
-        top3.forEach(t=>{
-          const c = el('div','pc-tcard');
-          c.appendChild(el('div','pc-thead','<span class="pc-fire">🔥</span><span class="pc-streak">x'+t.streak+'</span>'));
-    
-          // // Chips XP + Stat en línea
-          // const chips = el('div','pc-chips-inline');
-          // chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
-          // if(t.stat) chips.appendChild(el('span','pc-chip','Stat: ' + esc(t.stat)));
-          // c.appendChild(chips);
 
-          // Chips XP + Stat en línea
-          const chips = el('div','pc-chips-inline');
-          chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
-          if (t.stat) {chips.appendChild(el('span','pc-chip pc-stat','Stat: ' + esc(t.stat)) // 👈 clase extra
-            );}
-          c.appendChild(chips);
+  
+    // // 🔥 BLOQUE DE TAREAS Y CONSTANCIA DOPAMINE STYLE (v2 con lógica actual/max)
+    // const PCARD = (() => {
+    //   const MODE_TIER = { LOW: 1, CHILL: 2, FLOW: 3, EVOL: 4 };
+    //   // const PILLAR_MAP = { 'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul' };
+    //   const PILLAR_MAP = Object.freeze({'Cuerpo':'Body','Mente':'Mind','Alma':'Soul','Body':'Body','Mind':'Mind','Soul':'Soul','BODY':'Body','MIND':'Mind','SOUL':'Soul','CUERPO':'Body','MENTE':'Mind','ALMA':'Soul'});
     
-          // Nombre tarea
-          c.appendChild(el('div','pc-tname',esc(t.task)));
+    //   const esc = (s='') => s.toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    //   const el  = (tag, cls, html) => { const n=document.createElement(tag); if(cls)n.className=cls; if(html!=null)n.innerHTML=html; return n; };
     
-          // Barra abajo del fuego
-          const now = t.weeklyNow[tier] || 0;
-          const mx  = t.weeklyMax[tier] || 0;
-          c.appendChild(progressBar(now, mx, tier));
+    //   function normalizeRow(r){
+    //     return {
+    //       pillar: PILLAR_MAP[(r.pilar||'').trim()] || 'Body',
+    //       rasgo:  r.rasgo || '',
+    //       stat:   r.stat  || '',
+    //       task:   r.task  || '',
+    //       xp:     Number(r.exp || 0),
+    //       streak: Number(r.constancia || 0),
+    //       weeklyMax:{1:+(r.c1s_m||0),2:+(r.c2s_m||0),3:+(r.c3s_m||0),4:+(r.c4s_m||0)},
+    //       weeklyNow:{1:+(r.c1s_ac||0),2:+(r.c2s_ac||0),3:+(r.c3s_ac||0),4:+(r.c4s_ac||0)}
+    //     };
+    //   }
     
-          top3Box.appendChild(c);
-        });
-        if (top3.length) sec.appendChild(top3Box);
+    //   // Barra de progreso semanal (comparación actual vs máximo)
+    //   function progressBar(now, max, tier){
+    //     let _now = Math.max(0, Number(now) || 0);
+    //     let _max = Math.max(Number(max) || 0, 1);
     
-        // Otras tareas en racha
-        const leftovers = withStreak.slice(3);
-        if (leftovers.length){
-          const more = el('div','pc-morestreak');
-          more.appendChild(el('span','pc-morestreak-label','Otras en racha:'));
-          leftovers.slice(0,6).forEach(t=>{
-            more.appendChild(el('span','pc-morestreak-chip', `${esc(t.task)} 🔥x${t.streak}`));
-          });
-          sec.appendChild(more);
-        }
+    //     // Si no hay máximo registrado, usar default del modo
+    //     if (_max <= 1 && _now > 0) _max = Math.max(_now, tier);
     
-        // Filtro
-        const input = el('input','pc-filter');
-        input.placeholder = "Filtrar tareas… (ej. 'ayuno')";
-        input.dataset.filter = name.toLowerCase();
-        sec.appendChild(input);
+    //     // Evitar que la barra se rompa si actual supera máximo → actualizar
+    //     if (_now > _max) _max = _now;
     
-        // Lista compacta
-        const list = el('div','pc-list');
-        list.dataset.list = name.toLowerCase();
-        list.appendChild(el(
-          'div',
-          'pc-row pc-label',
-          `<div>Tarea</div><div class="pc-xp">XP</div><div class="pc-right">Semanal (${tier}×/sem)</div>`
-        ));
+    //     const pct = Math.round((_now/_max)*100);
     
-        const rest = items
-          .filter(x=>!top3.includes(x))
-          .sort((a,b)=>a.task.localeCompare(b.task,'es'));
+    //     const wrap = el('div','pc-progress');
+    //     const fill = el('div','pc-progress-fill');
+    //     fill.style.width = pct + '%';
     
-        rest.forEach(t=>{
-          const row = el('div','pc-row');
-          const now = t.weeklyNow[tier] || 0;
-          const mx  = t.weeklyMax[tier] || 0;
+    //     const labelText = `${_now}/${_max}`;
+    //     const label = el('div','pc-progress-label', esc(labelText));
     
-          const col1 = el('div',null,esc(t.task));
-          const col2 = el('div','pc-xp','+'+t.xp);
-          const col3 = el('div','pc-right');
-          col3.appendChild(progressBar(now, mx, tier));
+    //     if (_now >= _max && _max > 0) {
+    //       const trophy = el('span','pc-progress-trophy','🏆');
+    //       label.appendChild(trophy);
+    //       wrap.classList.add('pc-progress-record');
+    //     }
     
-          row.appendChild(col1);
-          row.appendChild(col2);
-          row.appendChild(col3);
-          list.appendChild(row);
-        });
+    //     wrap.appendChild(fill);
+    //     wrap.appendChild(label);
+    //     return wrap;
+    //   }
     
-        sec.appendChild(list);
+    //   function buildSection(name, items, mode){
+    //     const tier = MODE_TIER[mode] || MODE_TIER.FLOW;
+    //     const sec = el('section','pc-section'+(name==='Body'?' pc-active':'')); 
+    //     sec.dataset.section = name.toLowerCase();
     
-        input.addEventListener('input', ()=>{
-          const q = input.value.toLowerCase();
-          list.querySelectorAll('.pc-row:not(.pc-label)').forEach(r=>{
-            const name = r.firstElementChild.textContent.toLowerCase();
-            r.style.display = name.includes(q) ? '' : 'none';
-          });
-        });
+    //     sec.appendChild(el('div','pc-h4','🔥 Tareas con racha de constancia'));
     
-        return sec;
-      }
+    //     // Top-3 con fuego
+    //     const top3Box = el('div','pc-top3');
+    //     const withStreak = items.filter(t => t.streak > 1).sort((a,b)=>b.streak-a.streak);
+    //     const top3 = withStreak.slice(0,3);
     
-      function render(rootEl, bbddRaw, modeInput){
-        const root = (typeof rootEl==='string') ? document.querySelector(rootEl) : rootEl;
-        if(!root) return;
-        root.classList.add('pc');
-        root.innerHTML = '';
+    //     top3.forEach(t=>{
+    //       const c = el('div','pc-tcard');
+    //       c.appendChild(el('div','pc-thead','<span class="pc-fire">🔥</span><span class="pc-streak">x'+t.streak+'</span>'));
     
-        const mode = (modeInput || 'FLOW').toUpperCase();
-        const rows = (Array.isArray(bbddRaw) ? bbddRaw : []).map(normalizeRow);
-        const groups = { Body:[], Mind:[], Soul:[] };
-        rows.forEach(x => groups[x.pillar]?.push(x));
-    
-        const top = el('div','pc-topbar');
-        const tabs = el('div','pc-tabs');
-        ['Body','Mind','Soul'].forEach((p,i)=>{
-          const b = el('button','pc-tab'+(i===0?' pc-active':''),(p==='Body'?'🫀 ':p==='Mind'?'🧠 ':'🏵️ ')+p);
-          b.dataset.tab = p.toLowerCase();
-          b.addEventListener('click', ()=>{
-            root.querySelectorAll('.pc-tab').forEach(x=>x.classList.remove('pc-active'));
-            b.classList.add('pc-active');
-            root.querySelectorAll('.pc-section').forEach(s=>s.classList.toggle('pc-active', s.dataset.section===b.dataset.tab));
-          });
-          tabs.appendChild(b);
-        });
+    //       // // Chips XP + Stat en línea
+    //       // const chips = el('div','pc-chips-inline');
+    //       // chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
+    //       // if(t.stat) chips.appendChild(el('span','pc-chip','Stat: ' + esc(t.stat)));
+    //       // c.appendChild(chips);
 
-        // --- (venís de crear `const top = el('div','pc-topbar')` y `const tabs = el('div','pc-tabs')`) ---
-        // 1) ancla vacío donde va el chip (misma clase que usan las demás cards)
-        const infoAnchor = el('div', 'card-title-with-info');
-        infoAnchor.id = 'pc-constancy-info';
+    //       // Chips XP + Stat en línea
+    //       const chips = el('div','pc-chips-inline');
+    //       chips.appendChild(el('span','pc-chip pc-xp-small','<span class="pc-spark"></span>+' + t.xp + ' XP'));
+    //       if (t.stat) {chips.appendChild(el('span','pc-chip pc-stat','Stat: ' + esc(t.stat)) // 👈 clase extra
+    //         );}
+    //       c.appendChild(chips);
+    
+    //       // Nombre tarea
+    //       c.appendChild(el('div','pc-tname',esc(t.task)));
+    
+    //       // Barra abajo del fuego
+    //       const now = t.weeklyNow[tier] || 0;
+    //       const mx  = t.weeklyMax[tier] || 0;
+    //       c.appendChild(progressBar(now, mx, tier));
+    
+    //       top3Box.appendChild(c);
+    //     });
+    //     if (top3.length) sec.appendChild(top3Box);
+    
+    //     // Otras tareas en racha
+    //     const leftovers = withStreak.slice(3);
+    //     if (leftovers.length){
+    //       const more = el('div','pc-morestreak');
+    //       more.appendChild(el('span','pc-morestreak-label','Otras en racha:'));
+    //       leftovers.slice(0,6).forEach(t=>{
+    //         more.appendChild(el('span','pc-morestreak-chip', `${esc(t.task)} 🔥x${t.streak}`));
+    //       });
+    //       sec.appendChild(more);
+    //     }
+    
+    //     // Filtro
+    //     const input = el('input','pc-filter');
+    //     input.placeholder = "Filtrar tareas… (ej. 'ayuno')";
+    //     input.dataset.filter = name.toLowerCase();
+    //     sec.appendChild(input);
+    
+    //     // Lista compacta
+    //     const list = el('div','pc-list');
+    //     list.dataset.list = name.toLowerCase();
+    //     list.appendChild(el(
+    //       'div',
+    //       'pc-row pc-label',
+    //       `<div>Tarea</div><div class="pc-xp">XP</div><div class="pc-right">Semanal (${tier}×/sem)</div>`
+    //     ));
+    
+    //     const rest = items
+    //       .filter(x=>!top3.includes(x))
+    //       .sort((a,b)=>a.task.localeCompare(b.task,'es'));
+    
+    //     rest.forEach(t=>{
+    //       const row = el('div','pc-row');
+    //       const now = t.weeklyNow[tier] || 0;
+    //       const mx  = t.weeklyMax[tier] || 0;
+    
+    //       const col1 = el('div',null,esc(t.task));
+    //       const col2 = el('div','pc-xp','+'+t.xp);
+    //       const col3 = el('div','pc-right');
+    //       col3.appendChild(progressBar(now, mx, tier));
+    
+    //       row.appendChild(col1);
+    //       row.appendChild(col2);
+    //       row.appendChild(col3);
+    //       list.appendChild(row);
+    //     });
+    
+    //     sec.appendChild(list);
+    
+    //     input.addEventListener('input', ()=>{
+    //       const q = input.value.toLowerCase();
+    //       list.querySelectorAll('.pc-row:not(.pc-label)').forEach(r=>{
+    //         const name = r.firstElementChild.textContent.toLowerCase();
+    //         r.style.display = name.includes(q) ? '' : 'none';
+    //       });
+    //     });
+    
+    //     return sec;
+    //   }
+    
+    //   function render(rootEl, bbddRaw, modeInput){
+    //     const root = (typeof rootEl==='string') ? document.querySelector(rootEl) : rootEl;
+    //     if(!root) return;
+    //     root.classList.add('pc');
+    //     root.innerHTML = '';
+    
+    //     const mode = (modeInput || 'FLOW').toUpperCase();
+    //     const rows = (Array.isArray(bbddRaw) ? bbddRaw : []).map(normalizeRow);
+    //     const groups = { Body:[], Mind:[], Soul:[] };
+    //     rows.forEach(x => groups[x.pillar]?.push(x));
+    
+    //     const top = el('div','pc-topbar');
+    //     const tabs = el('div','pc-tabs');
+    //     ['Body','Mind','Soul'].forEach((p,i)=>{
+    //       const b = el('button','pc-tab'+(i===0?' pc-active':''),(p==='Body'?'🫀 ':p==='Mind'?'🧠 ':'🏵️ ')+p);
+    //       b.dataset.tab = p.toLowerCase();
+    //       b.addEventListener('click', ()=>{
+    //         root.querySelectorAll('.pc-tab').forEach(x=>x.classList.remove('pc-active'));
+    //         b.classList.add('pc-active');
+    //         root.querySelectorAll('.pc-section').forEach(s=>s.classList.toggle('pc-active', s.dataset.section===b.dataset.tab));
+    //       });
+    //       tabs.appendChild(b);
+    //     });
+
+    //     // --- (venís de crear `const top = el('div','pc-topbar')` y `const tabs = el('div','pc-tabs')`) ---
+    //     // 1) ancla vacío donde va el chip (misma clase que usan las demás cards)
+    //     const infoAnchor = el('div', 'card-title-with-info');
+    //     infoAnchor.id = 'pc-constancy-info';
         
-        // 2) arma la topbar: tabs + ancla para el chip
-        top.appendChild(tabs);
-        top.appendChild(infoAnchor);
-        root.appendChild(top);
+    //     // 2) arma la topbar: tabs + ancla para el chip
+    //     top.appendChild(tabs);
+    //     top.appendChild(infoAnchor);
+    //     root.appendChild(top);
         
-        // 3) contenido del pop (podés editar el texto tranquilo)
-        const infoHTML = `
-          <strong>¿Cómo leer?</strong><br/>
-          • 🔥 + <b>xN</b> = días de racha real.<br/>
-          • <b>XP</b> = experiencia total.<br/>
-          • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
-          • Si no hay máximo, usa valor por defecto del modo.<br/>
-          • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
-        `;
+    //     // 3) contenido del pop (podés editar el texto tranquilo)
+    //     const infoHTML = `
+    //       <strong>¿Cómo leer?</strong><br/>
+    //       • 🔥 + <b>xN</b> = días de racha real.<br/>
+    //       • <b>XP</b> = experiencia total.<br/>
+    //       • <b>Barra semanal</b>: actual / máximo histórico para el modo (<u>${mode}</u>).<br/>
+    //       • Si no hay máximo, usa valor por defecto del modo.<br/>
+    //       • Tiers por modo: LOW=1× · CHILL=2× · FLOW=3× · EVOL=4× / semana.
+    //     `;
         
-        // 4) usa tu util v3 (position: fixed + viewport-safe)
-        attachInfoChip('#pc-constancy-info', infoHTML, 'right');
+    //     // 4) usa tu util v3 (position: fixed + viewport-safe)
+    //     attachInfoChip('#pc-constancy-info', infoHTML, 'right');
 
-        root.appendChild(buildSection('Body', groups.Body||[], mode));
-        root.appendChild(buildSection('Mind', groups.Mind||[], mode));
-        root.appendChild(buildSection('Soul', groups.Soul||[], mode));
-      }
+    //     root.appendChild(buildSection('Body', groups.Body||[], mode));
+    //     root.appendChild(buildSection('Mind', groups.Mind||[], mode));
+    //     root.appendChild(buildSection('Soul', groups.Soul||[], mode));
+    //   }
     
-      return { render };
-    })();
+    //   return { render };
+    // })();
 
 
-    // === Pillar Card render (columna 3) ===
-    try {
-      const root = document.getElementById('pillar-card-root') || document.getElementById('pillarCard'); // fallback por si quedó el id viejo
-      const gameMode = (data.game_mode || window.gameMode || 'FLOW').toUpperCase();
+    // // === Pillar Card render (columna 3) ===
+    // try {
+    //   const root = document.getElementById('pillar-card-root') || document.getElementById('pillarCard'); // fallback por si quedó el id viejo
+    //   const gameMode = (data.game_mode || window.gameMode || 'FLOW').toUpperCase();
     
-      console.log('[PCARD] root:', !!root,
-                  '| bbdd array?', Array.isArray(data.bbdd),
-                  '| len:', data.bbdd?.length,
-                  '| mode:', gameMode);
+    //   console.log('[PCARD] root:', !!root,
+    //               '| bbdd array?', Array.isArray(data.bbdd),
+    //               '| len:', data.bbdd?.length,
+    //               '| mode:', gameMode);
     
-      if (root && Array.isArray(data.bbdd) && data.bbdd.length) {
-        PCARD.render(root, data.bbdd, gameMode);
-      } else {
-        console.warn('PillarCard: faltan root o data.bbdd');
-      }
-    } catch (e) {
-      console.error('PillarCard error:', e);
-    }
+    //   if (root && Array.isArray(data.bbdd) && data.bbdd.length) {
+    //     PCARD.render(root, data.bbdd, gameMode);
+    //   } else {
+    //     console.warn('PillarCard: faltan root o data.bbdd');
+    //   }
+    // } catch (e) {
+    //   console.error('PillarCard error:', e);
+    // }
 
     
     // ================= AVATAR =================
