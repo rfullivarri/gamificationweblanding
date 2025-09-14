@@ -229,17 +229,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.warn('markFirstProgrammed failed', e);
       }
     }
-        // Ocultar el warning y dots al instante (optimista)
-        const elSched = document.getElementById('scheduler-warning');
-        if (elSched) elSched.style.display = 'none';
-        setDot(document.getElementById('open-scheduler'), false);
-        setDot(document.getElementById('menu-toggle'), false); // o re-evaluá según BBDD
-        // Actualizá espejo local
-        if (window.GJ_CTX?.scheduler) window.GJ_CTX.scheduler.firstProgrammed = 'SI';
-      } catch(e) {
-        console.warn('markFirstProgrammed failed', e);
-      }
-    }
     
 
     //    d) Resto de enlaces como ya tenías
