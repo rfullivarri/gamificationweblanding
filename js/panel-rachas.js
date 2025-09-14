@@ -53,15 +53,17 @@
     // UI
     root.innerHTML = `
       <div class="box">
-        <!-- FILA 1: derecha -> info + modo -->
+        <!-- FILA 1: derecha -> Game Mode + Info (ℹ️ a la DERECHA, pegado al borde) -->
         <div class="row row-top">
           <div class="seg seg-right">
+            <span class="chip mode ${S.mode.toLowerCase()}" data-role="modeChip">
+              🎮 ${S.mode} · <b>${MODES[S.mode]}×/sem</b>
+            </span>
             <span id="rachasInfoTop"></span>
-            <span class="chip mode ${S.mode.toLowerCase()}" data-role="modeChip">🎮 ${S.mode} · <b>${MODES[S.mode]}×/sem</b></span>
           </div>
         </div>
     
-        <!-- FILA 2: centro -> Body / Mind / Soul -->
+        <!-- FILA 2: tabs centrados en una sola línea -->
         <div class="row row-pills">
           <div class="seg seg-pillars" data-role="pillars">
             <button aria-pressed="${S.pillar==='Body'}" data-p="Body">🫀 Body</button>
@@ -75,7 +77,8 @@
           <div class="slist" data-role="top3"></div>
         </div>
     
-        <div class="row" style="margin-top:8px">
+        <!-- FILA 3: tabs de rango CENTRADOS, con ℹ️ a la derecha -->
+        <div class="row row-range" style="margin-top:8px">
           <div class="seg" data-role="range">
             <button aria-pressed="${S.range==='week'}"  data-r="week">Sem</button>
             <button aria-pressed="${S.range==='month'}" data-r="month">Mes</button>
@@ -329,6 +332,62 @@
         }
         
         /* Ajustes responsivos para que sigan entrando en móviles estrechos */
+        @media (max-width: 390px){
+          .seg-pillars button{ padding:6px 10px; font-size:13px; }
+          .chip.mode{ font-size:11px; padding:4px 8px; }
+        }
+
+
+        /* ===== Header Rachas – layout exacto ===== */
+        /* FILA 1: grid -> [filler][modo][info] con info pegado a la derecha */
+        .row-top{ 
+          display:grid !important; 
+          grid-template-columns: 1fr auto auto;
+          align-items:center;
+        }
+        .row-top .seg-right{ display:contents !important; }   /* usa las 3 columnas del grid */
+        .row-top [data-role="modeChip"]{ grid-column:2; }
+        .row-top #rachasInfoTop{ grid-column:3; justify-self:end; }
+        
+        /* Botón ℹ️ del header: botón normal, no absolute */
+        #rachasInfoTop .info-chip{
+          position:static !important;
+          width:26px; height:26px; border-radius:999px;
+          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+          font-weight:800; line-height:1;
+        }
+        
+        /* GAP entre fila 1 (modo+ℹ️) y fila 2 (pilares) */
+        .row-pills{ margin-top:8px; }
+        
+        /* FILA 2: los tres tabs SIEMPRE centrados y en una sola línea */
+        .seg-pillars{
+          width:100%;
+          display:flex; justify-content:center; align-items:center;
+          gap:8px; flex-wrap:nowrap; white-space:nowrap;
+        }
+        .seg-pillars button{ flex:0 0 auto; }
+        
+        /* FILA 3: rango centrado “geométricamente” con ℹ️ a la derecha */
+        .row-range{
+          display:grid; 
+          grid-template-columns: 1fr auto auto;  /* centro real, info a la derecha */
+          align-items:center;
+        }
+        .row-range [data-role="range"]{
+          grid-column:2; 
+          width:auto; 
+          display:flex; justify-content:center; gap:8px;
+        }
+        .row-range #rachasInfoScope{ grid-column:3; justify-self:end; }
+        #rachasInfoScope .info-chip{
+          position:static !important;
+          width:26px; height:26px; border-radius:999px;
+          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+          font-weight:800; line-height:1;
+        }
+        
+        /* Un toque de responsivo por si el ancho es MUY chico */
         @media (max-width: 390px){
           .seg-pillars button{ padding:6px 10px; font-size:13px; }
           .chip.mode{ font-size:11px; padding:4px 8px; }
