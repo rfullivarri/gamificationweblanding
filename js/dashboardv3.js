@@ -39,8 +39,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                   : (Array.isArray(dataRaw?.daily_log)    ? dataRaw.daily_log : []);
 
     // DEBUG: ver que lleguen
-    console.log('[Dashboard] bundle:', dataRaw);
-    console.log('[Dashboard] daily_log_raw len =', logsRaw.length);
+    // console.log('[Dashboard] bundle:', dataRaw);
+    // console.log('[Dashboard] daily_log_raw len =', logsRaw.length);
 
     // ---- Normalizar data al formato plano que usa el front ----
     const data = {
