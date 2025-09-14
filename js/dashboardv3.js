@@ -214,10 +214,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       window.GJ_WARN = { bbddOk, firstProg, showSched };
     })();
 
-    await fetch(${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}&key=${encodeURIComponent(API_KEY)}, {
-      method: 'POST',
-      cache: 'no-store'
-    });
+    async function markFirstProgrammed(email){
+      try {
+        await fetch(`${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}&key=${encodeURIComponent(API_KEY)}`, {
+          method: 'POST',
+          cache: 'no-store'
+        });
+        const elSched = document.getElementById('scheduler-warning');
+        if (elSched) elSched.style.display = 'none';
+        setDot(document.getElementById('open-scheduler'), false);
+        setDot(document.getElementById('menu-toggle'), false);
+        if (window.GJ_CTX?.scheduler) window.GJ_CTX.scheduler.firstProgrammed = 'SI';
+      } catch(e) {
+        console.warn('markFirstProgrammed failed', e);
+      }
+    }
         // Ocultar el warning y dots al instante (optimista)
         const elSched = document.getElementById('scheduler-warning');
         if (elSched) elSched.style.display = 'none';
