@@ -169,37 +169,7 @@
 
   btn.addEventListener('click', (e) => { e.preventDefault(); smartBack(); });
 })();
-</script>
-  
-
-<!-- <script>
-  (function(){
-    const btn = document.getElementById('bbdd-back');
-    if(!btn) return;
-
-    btn.addEventListener('click', function(e){
-      e.preventDefault();
-
-      const ref = document.referrer || "";
-      const sameOrigin = ref && new URL(ref, location.origin).origin === location.origin;
-
-      // 1) Preferir volver por historial si venimos del dashboard (misma origin)
-      if (sameOrigin && history.length > 1) {
-        history.back();
-        return;
-      }
-
-      // 2) Fallback: ir al dashboard preservando email si lo tenemos
-      const u = new URL(location.href);
-      const email = (u.searchParams.get('email') || localStorage.getItem('gj_email') || "").trim().toLowerCase();
-
-      const dash = new URL('dashboardv3.html', location.origin);
-      if (email) dash.searchParams.set('email', email);
-
-      location.assign(dash.toString());
-    });
-  })();
-</script> -->
+</script> 
   
 <style id="bbdd-hotfix">
   /* ===== Variables (una sola fuente de verdad) ===== */
