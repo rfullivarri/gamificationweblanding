@@ -856,178 +856,373 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.warn("⚠️ No hay datos válidos para Daily Cultivation");
     }
   
+    // // ========================
+    // // 💖 EMOTION CHART (Neutral -> Cansancio, sin registro en gris)
+    // // ========================
+    // function renderEmotionChart(dailyEmotion) {
+    //   // Backward compat: normalizamos "Neutral" a "Cansancio"
+    //   const normalize = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
+  
+    //   // Claves internas (no usamos emojis para distinguir "sin dato")
+    //   const emotionKey = {
+    //     "Calma": "CALMA",
+    //     "Felicidad": "FELI",
+    //     "Motivación": "MOTI",
+    //     "Tristeza": "TRIS",
+    //     "Ansiedad": "ANSI",
+    //     "Frustración": "FRUS",
+    //     "Cansancio": "CANS"
+    //   };
+  
+    //   const keyToName = {
+    //     CALMA: "Calma",
+    //     FELI: "Felicidad",
+    //     MOTI: "Motivación",
+    //     TRIS: "Tristeza",
+    //     ANSI: "Ansiedad",
+    //     FRUS: "Frustración",
+    //     CANS: "Cansancio",
+    //     NONE: "Sin registro"
+    //   };
+  
+    //   // Colores (Cansancio turquesa oscuro; días sin registro gris)
+    //   const keyToColor = {
+    //     CALMA: "#2ECC71",
+    //     FELI:  "#F1C40F",
+    //     MOTI:  "#9B59B6",
+    //     TRIS:  "#3498DB",
+    //     ANSI:  "#E74C3C",
+    //     FRUS:  "#8D6E63",
+    //     CANS:  "#16A085", // 👈 turquesa oscuro
+    //     NONE:  "#555555"  // 👈 sin datos
+    //   };
+  
+    //   const parseDate = (str) => {
+    //     const [day, month, year] = str.split("/");
+    //     return new Date(`${year}-${month}-${day}`);
+    //   };
+    //   const iso = (d) => d.toISOString().split("T")[0];
+  
+    //   // Mapa fecha -> clave emoción
+    //   const emotionMap = {};
+    //   dailyEmotion.forEach(entry => {
+    //     const d = parseDate(entry.fecha);
+    //     const k = emotionKey[ normalize(entry.emocion) ];
+    //     if (!isNaN(d) && k) emotionMap[iso(d)] = k;
+    //   });
+  
+    //   const sortedDates = Object.keys(emotionMap).sort();
+    //   if (sortedDates.length === 0) return;
+  
+    //   const startDate = new Date(sortedDates[0]);
+    //   startDate.setDate(startDate.getDate() - startDate.getDay());
+  
+    //   const NUM_WEEKS = 26;
+    //   const DAYS_IN_WEEK = 7;
+  
+    //   const emotionChart = document.getElementById("emotionChart");
+    //   emotionChart.innerHTML = "";
+  
+    //   const monthLabelsContainer = document.createElement("div");
+    //   monthLabelsContainer.className = "month-labels";
+  
+    //   const gridContainer = document.createElement("div");
+    //   gridContainer.className = "emotion-grid";
+  
+    //   // Etiquetas de mes alineadas por columna (una por semana)
+    //   let currentMonth = -1;
+    //   for (let col = 0; col < NUM_WEEKS; col++) {
+    //     const labelDate = new Date(startDate);
+    //     labelDate.setDate(startDate.getDate() + col * 7);
+    //     const month = labelDate.getMonth();
+  
+    //     const label = document.createElement("div");
+    //     label.className = "month-label";
+    //     label.textContent = (month !== currentMonth)
+    //       ? labelDate.toLocaleString("es-ES", { month: "short" })
+    //       : "";
+    //     currentMonth = month;
+    //     label.style.width = `5px`;
+    //     monthLabelsContainer.appendChild(label);
+    //   }
+  
+    //   // 7 filas (días) x 26 columnas (semanas)
+    //   for (let row = 0; row < DAYS_IN_WEEK; row++) {
+    //     const rowDiv = document.createElement("div");
+    //     rowDiv.className = "emotion-row";
+  
+    //     for (let col = 0; col < NUM_WEEKS; col++) {
+    //       const cellDate = new Date(startDate);
+    //       cellDate.setDate(startDate.getDate() + row + col * 7);
+    //       const key = emotionMap[iso(cellDate)] || "NONE";
+  
+    //       const cell = document.createElement("div");
+    //       cell.className = "emotion-cell";
+    //       cell.style.backgroundColor = keyToColor[key] || "#555";
+    //       cell.title = `${iso(cellDate)} – ${keyToName[key]}`;
+    //       rowDiv.appendChild(cell);
+    //     }
+    //     gridContainer.appendChild(rowDiv);
+    //   }
+  
+    //   emotionChart.appendChild(monthLabelsContainer);
+    //   emotionChart.appendChild(gridContainer);
+    // }
+  
+    // if (data.daily_emotion) {
+    //   renderEmotionChart(data.daily_emotion);
+    // } else {
+    //   console.warn("⚠️ No hay datos válidos para Emotion Chart");
+    // }
+  
+    // // Emoción más frecuente (incluimos ahora Cansancio; ya no excluimos Neutral)
+    // function mostrarEmocionPrevalente(datos, dias = 15) {
+    //   if (!Array.isArray(datos) || datos.length === 0) return;
+  
+    //   // Normalizamos "Neutral" -> "Cansancio"
+    //   const norm = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
+  
+    //   const ordenados = [...datos].sort((a, b) => {
+    //     const da = new Date(a.fecha.split("/").reverse().join("-"));
+    //     const db = new Date(b.fecha.split("/").reverse().join("-"));
+    //     return db - da;
+    //   });
+  
+    //   const recientes = ordenados.slice(0, dias);
+  
+    //   const contador = {};
+    //   recientes.forEach(entry => {
+    //     const emocion = norm(entry.emocion?.split("–")[0]?.trim());
+    //     if (emocion) contador[emocion] = (contador[emocion] || 0) + 1;
+    //   });
+  
+    //   const top = Object.entries(contador).sort((a, b) => b[1] - a[1])[0];
+    //   if (!top) return;
+  
+    //   const [nombreEmocion] = top;
+  
+    //   const colores = {
+    //     "Calma": "#2ECC71",
+    //     "Felicidad": "#F1C40F",
+    //     "Motivación": "#9B59B6",
+    //     "Tristeza": "#3498DB",
+    //     "Ansiedad": "#E74C3C",
+    //     "Frustración": "#8D6E63",
+    //     "Cansancio": "#16A085"
+    //   };
+    //   const color = colores[nombreEmocion] || "#555";
+  
+    //   const contenedor = document.getElementById("emotion-destacada");
+    //   if (contenedor) {
+    //     contenedor.innerHTML = `
+    //       <div class="emotion-highlight">
+    //         <div class="big-box" style="background-color:${color};"></div>
+    //         <div>
+    //           <div class="emotion-name">${nombreEmocion}</div>
+    //           <div class="emotion-info">Emoción más frecuente en los últimos ${dias} días</div>
+    //         </div>
+    //       </div>
+    //     `;
+    //   }
+    // }
+    // if (data.daily_emotion) {
+    //   mostrarEmocionPrevalente(data.daily_emotion, 15);
+    // }
+
+    
     // ========================
-    // 💖 EMOTION CHART (Neutral -> Cansancio, sin registro en gris)
+    // 💖 EMOTION CHART — iOS/Android/Web safe
     // ========================
-    function renderEmotionChart(dailyEmotion) {
-      // Backward compat: normalizamos "Neutral" a "Cansancio"
-      const normalize = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
-  
-      // Claves internas (no usamos emojis para distinguir "sin dato")
-      const emotionKey = {
-        "Calma": "CALMA",
-        "Felicidad": "FELI",
-        "Motivación": "MOTI",
-        "Tristeza": "TRIS",
-        "Ansiedad": "ANSI",
-        "Frustración": "FRUS",
-        "Cansancio": "CANS"
-      };
-  
-      const keyToName = {
-        CALMA: "Calma",
-        FELI: "Felicidad",
-        MOTI: "Motivación",
-        TRIS: "Tristeza",
-        ANSI: "Ansiedad",
-        FRUS: "Frustración",
-        CANS: "Cansancio",
-        NONE: "Sin registro"
-      };
-  
-      // Colores (Cansancio turquesa oscuro; días sin registro gris)
-      const keyToColor = {
-        CALMA: "#2ECC71",
-        FELI:  "#F1C40F",
-        MOTI:  "#9B59B6",
-        TRIS:  "#3498DB",
-        ANSI:  "#E74C3C",
-        FRUS:  "#8D6E63",
-        CANS:  "#16A085", // 👈 turquesa oscuro
-        NONE:  "#555555"  // 👈 sin datos
-      };
-  
-      const parseDate = (str) => {
-        const [day, month, year] = str.split("/");
-        return new Date(`${year}-${month}-${day}`);
-      };
-      const iso = (d) => d.toISOString().split("T")[0];
-  
-      // Mapa fecha -> clave emoción
-      const emotionMap = {};
-      dailyEmotion.forEach(entry => {
-        const d = parseDate(entry.fecha);
-        const k = emotionKey[ normalize(entry.emocion) ];
-        if (!isNaN(d) && k) emotionMap[iso(d)] = k;
-      });
-  
-      const sortedDates = Object.keys(emotionMap).sort();
-      if (sortedDates.length === 0) return;
-  
-      const startDate = new Date(sortedDates[0]);
-      startDate.setDate(startDate.getDate() - startDate.getDay());
-  
-      const NUM_WEEKS = 26;
-      const DAYS_IN_WEEK = 7;
-  
-      const emotionChart = document.getElementById("emotionChart");
-      emotionChart.innerHTML = "";
-  
-      const monthLabelsContainer = document.createElement("div");
-      monthLabelsContainer.className = "month-labels";
-  
-      const gridContainer = document.createElement("div");
-      gridContainer.className = "emotion-grid";
-  
-      // Etiquetas de mes alineadas por columna (una por semana)
-      let currentMonth = -1;
-      for (let col = 0; col < NUM_WEEKS; col++) {
-        const labelDate = new Date(startDate);
-        labelDate.setDate(startDate.getDate() + col * 7);
-        const month = labelDate.getMonth();
-  
-        const label = document.createElement("div");
-        label.className = "month-label";
-        label.textContent = (month !== currentMonth)
-          ? labelDate.toLocaleString("es-ES", { month: "short" })
-          : "";
-        currentMonth = month;
-        label.style.width = `5px`;
-        monthLabelsContainer.appendChild(label);
-      }
-  
-      // 7 filas (días) x 26 columnas (semanas)
-      for (let row = 0; row < DAYS_IN_WEEK; row++) {
-        const rowDiv = document.createElement("div");
-        rowDiv.className = "emotion-row";
-  
-        for (let col = 0; col < NUM_WEEKS; col++) {
-          const cellDate = new Date(startDate);
-          cellDate.setDate(startDate.getDate() + row + col * 7);
-          const key = emotionMap[iso(cellDate)] || "NONE";
-  
-          const cell = document.createElement("div");
-          cell.className = "emotion-cell";
-          cell.style.backgroundColor = keyToColor[key] || "#555";
-          cell.title = `${iso(cellDate)} – ${keyToName[key]}`;
-          rowDiv.appendChild(cell);
+    (function () {
+      // --- Utiles de fecha (tolerantes y sin UTC) ---
+      function parseAnyDate(str) {
+        if (!str) return null;
+        // dd/mm/yyyy
+        if (str.includes("/")) {
+          const [d, m, y] = str.split("/").map(n => parseInt(n, 10));
+          if (!y || !m || !d) return null;
+          return new Date(y, m - 1, d);
         }
-        gridContainer.appendChild(rowDiv);
+        // yyyy-mm-dd
+        if (str.includes("-")) {
+          const [y, m, d] = str.split("-").map(n => parseInt(n, 10));
+          if (!y || !m || !d) return null;
+          return new Date(y, m - 1, d);
+        }
+        return null;
       }
-  
-      emotionChart.appendChild(monthLabelsContainer);
-      emotionChart.appendChild(gridContainer);
-    }
-  
-    if (data.daily_emotion) {
-      renderEmotionChart(data.daily_emotion);
-    } else {
-      console.warn("⚠️ No hay datos válidos para Emotion Chart");
-    }
-  
-    // Emoción más frecuente (incluimos ahora Cansancio; ya no excluimos Neutral)
-    function mostrarEmocionPrevalente(datos, dias = 15) {
-      if (!Array.isArray(datos) || datos.length === 0) return;
-  
-      // Normalizamos "Neutral" -> "Cansancio"
-      const norm = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
-  
-      const ordenados = [...datos].sort((a, b) => {
-        const da = new Date(a.fecha.split("/").reverse().join("-"));
-        const db = new Date(b.fecha.split("/").reverse().join("-"));
-        return db - da;
-      });
-  
-      const recientes = ordenados.slice(0, dias);
-  
-      const contador = {};
-      recientes.forEach(entry => {
-        const emocion = norm(entry.emocion?.split("–")[0]?.trim());
-        if (emocion) contador[emocion] = (contador[emocion] || 0) + 1;
-      });
-  
-      const top = Object.entries(contador).sort((a, b) => b[1] - a[1])[0];
-      if (!top) return;
-  
-      const [nombreEmocion] = top;
-  
-      const colores = {
-        "Calma": "#2ECC71",
-        "Felicidad": "#F1C40F",
-        "Motivación": "#9B59B6",
-        "Tristeza": "#3498DB",
-        "Ansiedad": "#E74C3C",
-        "Frustración": "#8D6E63",
-        "Cansancio": "#16A085"
-      };
-      const color = colores[nombreEmocion] || "#555";
-  
-      const contenedor = document.getElementById("emotion-destacada");
-      if (contenedor) {
-        contenedor.innerHTML = `
-          <div class="emotion-highlight">
-            <div class="big-box" style="background-color:${color};"></div>
-            <div>
-              <div class="emotion-name">${nombreEmocion}</div>
-              <div class="emotion-info">Emoción más frecuente en los últimos ${dias} días</div>
+      function ymd(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${y}-${m}-${day}`;
+      }
+    
+      // --- Render principal ---
+      function renderEmotionChart(dailyEmotion) {
+        // Backward compat: "Neutral" => "Cansancio"
+        const normalize = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
+    
+        const emotionKey = {
+          "Calma": "CALMA",
+          "Felicidad": "FELI",
+          "Motivación": "MOTI",
+          "Tristeza": "TRIS",
+          "Ansiedad": "ANSI",
+          "Frustración": "FRUS",
+          "Cansancio": "CANS"
+        };
+        const keyToName = {
+          CALMA: "Calma",
+          FELI:  "Felicidad",
+          MOTI:  "Motivación",
+          TRIS:  "Tristeza",
+          ANSI:  "Ansiedad",
+          FRUS:  "Frustración",
+          CANS:  "Cansancio",
+          NONE:  "Sin registro"
+        };
+        const keyToColor = {
+          CALMA: "#2ECC71",
+          FELI:  "#F1C40F",
+          MOTI:  "#9B59B6",
+          TRIS:  "#3498DB",
+          ANSI:  "#E74C3C",
+          FRUS:  "#8D6E63",
+          CANS:  "#16A085",
+          NONE:  "#555555"
+        };
+    
+        const wrap = document.getElementById("emotionChart");
+        if (!wrap) return;
+        wrap.innerHTML = "";
+    
+        // Mapa fecha -> emoción (clave Y-M-D estable)
+        const emotionMap = Object.create(null);
+        for (const entry of dailyEmotion || []) {
+          const d = parseAnyDate(entry.fecha);
+          const k = emotionKey[ normalize(entry.emocion) ];
+          if (d && k) emotionMap[ ymd(d) ] = k;
+        }
+    
+        const sortedDates = Object.keys(emotionMap).sort();
+        if (sortedDates.length === 0) {
+          // vacío: dejamos el contenedor con su fondo y nada más
+          return;
+        }
+    
+        // Anclamos al domingo de la primera semana (local, sin UTC)
+        const start = parseAnyDate(sortedDates[0]);
+        start.setHours(0,0,0,0);
+        start.setDate(start.getDate() - start.getDay()); // 0=Dom
+    
+        const NUM_WEEKS = 26;
+        const DAYS_IN_WEEK = 7;
+    
+        // Meses (una etiqueta por columna/semana)
+        const monthLabelsContainer = document.createElement("div");
+        monthLabelsContainer.className = "month-labels";
+    
+        // Grid 7x26
+        const gridContainer = document.createElement("div");
+        gridContainer.className = "emotion-grid";
+    
+        let currentMonth = -1;
+        for (let col = 0; col < NUM_WEEKS; col++) {
+          const labelDate = new Date(start);
+          labelDate.setDate(start.getDate() + col * 7);
+          const m = labelDate.getMonth();
+    
+          const label = document.createElement("div");
+          label.className = "month-label";
+          label.textContent = (m !== currentMonth)
+            ? labelDate.toLocaleString("es-ES", { month: "short" })
+            : "";
+          currentMonth = m;
+    
+          // ancho aproximado a 1 columna (12px celda + ~2px gap)
+          label.style.width = "14px";
+          monthLabelsContainer.appendChild(label);
+        }
+    
+        for (let row = 0; row < DAYS_IN_WEEK; row++) {
+          const rowDiv = document.createElement("div");
+          rowDiv.className = "emotion-row";
+    
+          for (let col = 0; col < NUM_WEEKS; col++) {
+            const cellDate = new Date(start);
+            cellDate.setDate(start.getDate() + row + col * 7);
+            const key = emotionMap[ ymd(cellDate) ] || "NONE";
+    
+            const cell = document.createElement("div");
+            cell.className = "emotion-cell";
+            cell.style.backgroundColor = keyToColor[key] || "#555";
+            cell.title = `${ymd(cellDate)} – ${keyToName[key]}`;
+            rowDiv.appendChild(cell);
+          }
+          gridContainer.appendChild(rowDiv);
+        }
+    
+        wrap.appendChild(monthLabelsContainer);
+        wrap.appendChild(gridContainer);
+      }
+    
+      // --- Destacado (misma estrategia de fechas segura) ---
+      function mostrarEmocionPrevalente(datos, dias = 15) {
+        if (!Array.isArray(datos) || datos.length === 0) return;
+        const norm = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
+    
+        const ordenados = [...datos].sort((a, b) => {
+          const da = parseAnyDate(a.fecha);
+          const db = parseAnyDate(b.fecha);
+          return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
+        });
+    
+        const recientes = ordenados.slice(0, dias);
+        const contador = Object.create(null);
+    
+        for (const entry of recientes) {
+          const emocion = norm((entry.emocion || "").split("–")[0].trim());
+          if (emocion) contador[emocion] = (contador[emocion] || 0) + 1;
+        }
+    
+        const top = Object.entries(contador).sort((a, b) => b[1] - a[1])[0];
+        if (!top) return;
+    
+        const [nombreEmocion] = top;
+        const colores = {
+          "Calma": "#2ECC71",
+          "Felicidad": "#F1C40F",
+          "Motivación": "#9B59B6",
+          "Tristeza": "#3498DB",
+          "Ansiedad": "#E74C3C",
+          "Frustración": "#8D6E63",
+          "Cansancio": "#16A085"
+        };
+        const color = colores[nombreEmocion] || "#555";
+    
+        const contenedor = document.getElementById("emotion-destacada");
+        if (contenedor) {
+          contenedor.innerHTML = `
+            <div class="emotion-highlight">
+              <div class="big-box" style="background-color:${color};"></div>
+              <div>
+                <div class="emotion-name">${nombreEmocion}</div>
+                <div class="emotion-info">Emoción más frecuente en los últimos ${dias} días</div>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
-    }
-    if (data.daily_emotion) {
-      mostrarEmocionPrevalente(data.daily_emotion, 15);
-    }
+    
+      // --- Hookeos ---
+      if (window.data?.daily_emotion) {
+        renderEmotionChart(window.data.daily_emotion);
+        mostrarEmocionPrevalente(window.data.daily_emotion, 15);
+      } else {
+        console.warn("⚠️ No hay datos válidos para Emotion Chart");
+      }
+})();
 
 
     
