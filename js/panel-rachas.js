@@ -53,29 +53,37 @@
     // UI
     root.innerHTML = `
       <div class="box">
-        <div class="row">
-          <div class="seg" data-role="pillars">
+        <!-- FILA 1: derecha -> info + modo -->
+        <div class="row row-top">
+          <div class="seg seg-right">
+            <span id="rachasInfoTop"></span>
+            <span class="chip mode ${S.mode.toLowerCase()}" data-role="modeChip">🎮 ${S.mode} · <b>${MODES[S.mode]}×/sem</b></span>
+          </div>
+        </div>
+    
+        <!-- FILA 2: centro -> Body / Mind / Soul -->
+        <div class="row row-pills">
+          <div class="seg seg-pillars" data-role="pillars">
             <button aria-pressed="${S.pillar==='Body'}" data-p="Body">🫀 Body</button>
             <button aria-pressed="${S.pillar==='Mind'}" data-p="Mind">🧠 Mind</button>
             <button aria-pressed="${S.pillar==='Soul'}" data-p="Soul">🏵️ Soul</button>
           </div>
-          <div class="seg">
-            <span class="chip mode ${S.mode.toLowerCase()}" data-role="modeChip">🎮 ${S.mode} · <b>${MODES[S.mode]}×/sem</b></span>
-            <span id="rachasInfoTop" ></span>
-          </div>
         </div>
+    
         <div class="streaks" data-role="streaks" style="display:none">
           <div class="stitle">🔥 Top 3 rachas <span class="muted">— días consecutivos sin cortar</span></div>
           <div class="slist" data-role="top3"></div>
         </div>
+    
         <div class="row" style="margin-top:8px">
           <div class="seg" data-role="range">
             <button aria-pressed="${S.range==='week'}"  data-r="week">Sem</button>
             <button aria-pressed="${S.range==='month'}" data-r="month">Mes</button>
             <button aria-pressed="${S.range==='qtr'}"   data-r="qtr">3M</button>
           </div>
-          <span id="rachasInfoScope" ></span>
+          <span id="rachasInfoScope"></span>
         </div>
+    
         <div class="filter"><input type="search" data-role="q" placeholder="Filtrar tareas… (ej.: ayuno)"></div>
         <div class="list" data-role="list"></div>
         <div class="muted" style="margin-top:8px">
@@ -283,6 +291,48 @@
         .info-pop .ico-verdes i:nth-child(1){height:10px}
         .info-pop .ico-verdes i:nth-child(2){height:7px}
         .info-pop .ico-verdes i:nth-child(3){height:11px}
+
+        /* ===== Rachas: layout del header ===== */
+
+        /* Fila 1: contenido a la derecha (info + modo) */
+        .row-top{ justify-content:flex-end; }
+        .row-top .seg-right{
+          width:100%;
+          display:flex;
+          justify-content:flex-end;
+          align-items:center;
+          gap:8px;
+        }
+        
+        /* Botón ℹ️ dentro del header: que fluya como botón normal */
+        #rachasInfoTop .info-chip{
+          position:static !important;
+          width:26px; height:26px; border-radius:999px;
+          background:#1a2240; border:1px solid #24325a; color:#cfd6ff;
+          font-weight:800; line-height:1;
+        }
+        
+        /* Fila 2: tabs centrados SIEMPRE en una sola línea */
+        .row-pills{ justify-content:center; }
+        .seg-pillars{
+          width:100%;
+          display:flex;
+          justify-content:center;
+          align-items:center;
+          gap:8px;
+          flex-wrap:nowrap;            /* ❗ no permitir segunda línea */
+          white-space:nowrap;
+        }
+        .seg-pillars button{
+          flex:0 0 auto;               /* no se estiran, no se rompen */
+          white-space:nowrap;
+        }
+        
+        /* Ajustes responsivos para que sigan entrando en móviles estrechos */
+        @media (max-width: 390px){
+          .seg-pillars button{ padding:6px 10px; font-size:13px; }
+          .chip.mode{ font-size:11px; padding:4px 8px; }
+        }
       `;
       document.head.appendChild(css);
     }
