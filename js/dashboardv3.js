@@ -89,6 +89,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 3) Espejos globales
     // - GJ_DATA: objeto “plano” que usa la UI
     // - GJ_W1:   bundle estilo worker/webapp (por si algo quiere el shape original)
+    // ✅ Dejar los datos accesibles + disparar el render del Emotion Chart
+    window.data = data;
+    window.GJEmotion?.draw(data.daily_emotion);           // dibuja ya si el script cargó
     window.GJ_DATA = data;
     window.GJ_W1   = { ...dataRaw, daily_log_raw: logsRaw, daily_log: logsRaw };
 
@@ -1031,20 +1034,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     
     // ========================
-    // 💖 EMOTION CHART — iOS/Android/Web safe
+    // 💖 EMOTION CHART — iOS/Android/Web safe + auto-init
     // ========================
     (function () {
-      // --- Utiles de fecha (tolerantes y sin UTC) ---
+      // ---------- util de fecha (tolerante y sin UTC) ----------
       function parseAnyDate(str) {
         if (!str) return null;
-        // dd/mm/yyyy
-        if (str.includes("/")) {
+        if (str.includes("/")) { // dd/mm/yyyy
           const [d, m, y] = str.split("/").map(n => parseInt(n, 10));
           if (!y || !m || !d) return null;
           return new Date(y, m - 1, d);
         }
-        // yyyy-mm-dd
-        if (str.includes("-")) {
+        if (str.includes("-")) { // yyyy-mm-dd
           const [y, m, d] = str.split("-").map(n => parseInt(n, 10));
           if (!y || !m || !d) return null;
           return new Date(y, m - 1, d);
@@ -1058,9 +1059,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         return `${y}-${m}-${day}`;
       }
     
-      // --- Render principal ---
+      // ---------- renderer ----------
       function renderEmotionChart(dailyEmotion) {
-        // Backward compat: "Neutral" => "Cansancio"
         const normalize = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
     
         const emotionKey = {
@@ -1073,31 +1073,21 @@ document.addEventListener("DOMContentLoaded", async () => {
           "Cansancio": "CANS"
         };
         const keyToName = {
-          CALMA: "Calma",
-          FELI:  "Felicidad",
-          MOTI:  "Motivación",
-          TRIS:  "Tristeza",
-          ANSI:  "Ansiedad",
-          FRUS:  "Frustración",
-          CANS:  "Cansancio",
-          NONE:  "Sin registro"
+          CALMA: "Calma", FELI: "Felicidad", MOTI: "Motivación",
+          TRIS: "Tristeza", ANSI: "Ansiedad", FRUS: "Frustración",
+          CANS: "Cansancio", NONE: "Sin registro"
         };
         const keyToColor = {
-          CALMA: "#2ECC71",
-          FELI:  "#F1C40F",
-          MOTI:  "#9B59B6",
-          TRIS:  "#3498DB",
-          ANSI:  "#E74C3C",
-          FRUS:  "#8D6E63",
-          CANS:  "#16A085",
-          NONE:  "#555555"
+          CALMA:"#2ECC71", FELI:"#F1C40F", MOTI:"#9B59B6",
+          TRIS:"#3498DB",  ANSI:"#E74C3C", FRUS:"#8D6E63",
+          CANS:"#16A085",  NONE:"#555555"
         };
     
         const wrap = document.getElementById("emotionChart");
         if (!wrap) return;
         wrap.innerHTML = "";
     
-        // Mapa fecha -> emoción (clave Y-M-D estable)
+        // fecha -> emoción
         const emotionMap = Object.create(null);
         for (const entry of dailyEmotion || []) {
           const d = parseAnyDate(entry.fecha);
@@ -1106,24 +1096,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     
         const sortedDates = Object.keys(emotionMap).sort();
-        if (sortedDates.length === 0) {
-          // vacío: dejamos el contenedor con su fondo y nada más
-          return;
-        }
+        if (sortedDates.length === 0) return;
     
-        // Anclamos al domingo de la primera semana (local, sin UTC)
+        // domingo de la primera semana (local)
         const start = parseAnyDate(sortedDates[0]);
         start.setHours(0,0,0,0);
-        start.setDate(start.getDate() - start.getDay()); // 0=Dom
+        start.setDate(start.getDate() - start.getDay()); // 0 = dom
     
         const NUM_WEEKS = 26;
         const DAYS_IN_WEEK = 7;
     
-        // Meses (una etiqueta por columna/semana)
+        // etiquetas de mes (una por semana)
         const monthLabelsContainer = document.createElement("div");
         monthLabelsContainer.className = "month-labels";
     
-        // Grid 7x26
         const gridContainer = document.createElement("div");
         gridContainer.className = "emotion-grid";
     
@@ -1140,7 +1126,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             : "";
           currentMonth = m;
     
-          // ancho aproximado a 1 columna (12px celda + ~2px gap)
+          // si cambiaste tamaño de celda/gap, ajusta este ancho
           label.style.width = "14px";
           monthLabelsContainer.appendChild(label);
         }
@@ -1167,7 +1153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         wrap.appendChild(gridContainer);
       }
     
-      // --- Destacado (misma estrategia de fechas segura) ---
+      // ---------- destacado ----------
       function mostrarEmocionPrevalente(datos, dias = 15) {
         if (!Array.isArray(datos) || datos.length === 0) return;
         const norm = (s) => (s || "").replace(/neutral/i, "Cansancio").trim();
@@ -1180,10 +1166,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         const recientes = ordenados.slice(0, dias);
         const contador = Object.create(null);
-    
-        for (const entry of recientes) {
-          const emocion = norm((entry.emocion || "").split("–")[0].trim());
-          if (emocion) contador[emocion] = (contador[emocion] || 0) + 1;
+        for (const e of recientes) {
+          const nombre = norm((e.emocion || "").split("–")[0].trim());
+          if (nombre) contador[nombre] = (contador[nombre] || 0) + 1;
         }
     
         const top = Object.entries(contador).sort((a, b) => b[1] - a[1])[0];
@@ -1191,19 +1176,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         const [nombreEmocion] = top;
         const colores = {
-          "Calma": "#2ECC71",
-          "Felicidad": "#F1C40F",
-          "Motivación": "#9B59B6",
-          "Tristeza": "#3498DB",
-          "Ansiedad": "#E74C3C",
-          "Frustración": "#8D6E63",
-          "Cansancio": "#16A085"
+          "Calma":"#2ECC71","Felicidad":"#F1C40F","Motivación":"#9B59B6",
+          "Tristeza":"#3498DB","Ansiedad":"#E74C3C","Frustración":"#8D6E63",
+          "Cansancio":"#16A085"
         };
         const color = colores[nombreEmocion] || "#555";
     
-        const contenedor = document.getElementById("emotion-destacada");
-        if (contenedor) {
-          contenedor.innerHTML = `
+        const cont = document.getElementById("emotion-destacada");
+        if (cont) {
+          cont.innerHTML = `
             <div class="emotion-highlight">
               <div class="big-box" style="background-color:${color};"></div>
               <div>
@@ -1215,14 +1196,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }
     
-      // --- Hookeos ---
-      if (window.data?.daily_emotion) {
-        renderEmotionChart(window.data.daily_emotion);
-        mostrarEmocionPrevalente(window.data.daily_emotion, 15);
-      } else {
-        console.warn("⚠️ No hay datos válidos para Emotion Chart");
+      // ---------- orquestador (evita la carrera) ----------
+      function drawIfReady() {
+        const hasTarget = !!document.getElementById("emotionChart");
+        const arr = window.data && window.data.daily_emotion;
+        if (hasTarget && Array.isArray(arr) && arr.length) {
+          renderEmotionChart(arr);
+          mostrarEmocionPrevalente(arr, 15);
+          return true;
+        }
+        return false;
       }
-})();
+    
+      // expone API por si querés llamarlo explícito desde tu loader
+      window.GJEmotion = {
+        draw: (arr) => { renderEmotionChart(arr || (window.data?.daily_emotion || [])); mostrarEmocionPrevalente(arr || (window.data?.daily_emotion || []), 15); },
+        renderEmotionChart,
+        mostrarEmocionPrevalente
+      };
+    
+      // intenta ahora, luego en eventos, y con un retry breve (SPA/webview)
+      if (!drawIfReady()) {
+        document.addEventListener("DOMContentLoaded", drawIfReady, { once:true });
+        window.addEventListener("load", drawIfReady, { once:true });
+        window.addEventListener("gj:data-ready", drawIfReady);
+        const retry = setInterval(() => { if (drawIfReady()) clearInterval(retry); }, 200);
+        setTimeout(() => clearInterval(retry), 8000);
+      }
+    })();
 
 
     
