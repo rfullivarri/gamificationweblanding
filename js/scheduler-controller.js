@@ -143,6 +143,12 @@ export function attachSchedulerModal() {
   
       // 6) Guardar
       const resp = await apiSchedule(payload);
+      // marcar en HUB la primera programación
+      try {
+        await apiMarkFirstProgrammed(ctx.email);
+      } catch (e) {
+        console.warn('[SCHED] mark_first_programmed falló (no bloqueante):', e);
+      }
       console.log('[SCHED ← /schedule] response =', resp);
   
       if (resp?.status === 'ERROR') {
