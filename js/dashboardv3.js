@@ -1,3 +1,50 @@
+// ===== Auto-Refresh del bundle (polling suave) =====
+function startAutoRefresh({ email, intervalMs = 15000, soft = true } = {}) {
+  if (!email) return { stop(){}, poke(){} };
+
+  // último timestamp conocido
+  let last =
+    window.GJ_BUNDLE?.updated_at ||
+    (()=>{
+      try { return JSON.parse(localStorage.getItem('gj_bundle')||'{}').updated_at; }
+      catch { return null; }
+    })();
+
+  let timer = null;
+
+  async function check() {
+    try {
+      const r = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}&t=${Date.now()}`, { cache: 'no-store' });
+      if (r.status !== 200) return;
+      const fresh = await r.json();
+      const next  = fresh?.updated_at || null;
+
+      if (next && next !== last) {
+        last = next;
+
+        // Actualiza cache local + dispara evento para que el front se repinte
+        window.GJ_BUNDLE = fresh;
+        try { localStorage.setItem('gj_bundle', JSON.stringify(fresh)); } catch {}
+        window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: fresh }));
+
+        // Si querés forzar recarga completa, poné soft=false al iniciar
+        if (!soft) location.reload();
+      }
+    } catch (_) {}
+  }
+
+  // arranca de inmediato y luego en intervalo
+  check();
+  timer = setInterval(check, intervalMs);
+
+  return {
+    stop(){ if (timer) clearInterval(timer); },
+    // para “acelerar” el próximo chequeo después de una acción del usuario
+    poke(){ check(); }
+  };
+}
+
+
 // ===== Mini State Manager (LS) =====
 const GJLocal = (() => {
   const keyFlags   = e => `gj_flags:${String(e||'').toLowerCase()}`;
@@ -90,6 +137,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 1.1) Contexto para el SCHEDULER
     window.GJ_CTX = { email };
+    window.GJ_AUTO = startAutoRefresh({
+      email: window.GJ_CTX.email,
+      intervalMs: 15000, // 15.000 milisegundos = 15 segundos
+      soft: true
+    });
 
     // 2) FETCH DATOS (usa Worker -> fallback WebApp)
     const dataRaw = await loadDataFromCacheOrWebApp(email);
