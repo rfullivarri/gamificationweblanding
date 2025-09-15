@@ -1,3 +1,63 @@
+// ===== Mini State Manager (LS) =====
+const GJLocal = (() => {
+  const keyFlags   = e => `gj_flags:${String(e||'').toLowerCase()}`;
+  const keyPending = e => `gj_pending:${String(e||'').toLowerCase()}`;
+
+  const _get = (k, fb=null) => {
+    try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch { return fb; }
+  };
+  const _set = (k, v) => { try { v==null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+  return {
+    // flags optimistas (ej: { bbdd_ok:1, firstprog_ok:1 })
+    getFlags(email){ return _get(keyFlags(email), {}); },
+    mergeFlags(email, patch){ const cur = _get(keyFlags(email), {}); const next = { ...cur, ...patch }; _set(keyFlags(email), next); return next; },
+    clearFlags(email){ _set(keyFlags(email), {}); },
+
+    // operación pendiente { op, expect, ts, ttlMs, optimistic }
+    setPending(email, p){ _set(keyPending(email), p ? { ...p, ts: Date.now() } : null); },
+    getPending(email){ return _get(keyPending(email), null); },
+    clearPending(email){ _set(keyPending(email), null); },
+    isPendingValid(email){
+      const p = _get(keyPending(email), null);
+      if (!p) return false;
+      const ttl = Number(p.ttlMs || 0);
+      if (!ttl) return true;
+      return (Date.now() - Number(p.ts || 0)) <= ttl;
+    },
+
+    // snapshot de bundle (último conocido)
+    saveBundle(bundle){ _set('gj_bundle', bundle); },
+    getBundle(){ return _get('gj_bundle', null); }
+  };
+})();
+
+// ===== Helpers =====
+const GJEvents = { emit:(name, detail)=>window.dispatchEvent(new CustomEvent(name,{detail})) };
+
+function deepGet(obj, path){
+  if (!path) return undefined;
+  return String(path).split('.').reduce((acc,k)=> (acc && acc[k]!==undefined) ? acc[k] : undefined, obj);
+}
+function bundleStamp(b){
+  return (b && (b.updated_at || b.worker_updated_at || b.version || b.worker_version)) || '';
+}
+function matchesExpect(bundle, expect){
+  if (!expect) return false; // sin expectativa, decidimos por 'stamp' (avance)
+  if (typeof expect === 'function') { try { return !!expect(bundle); } catch { return false; } }
+
+  // mapea atajos 'F' y 'L' a paths reales
+  const map = { F:'confirmacionbbdd', L:'scheduler.firstProgrammed' };
+  return Object.entries(expect).every(([k, val])=>{
+    if (k === 'op' || k === 'ttlMs' || k === 'optimistic') return true;
+    const path = map[k] || k;
+    const got = deepGet(bundle, path);
+    return String(got).toUpperCase() === String(val).toUpperCase();
+  });
+}
+
+
+
 // === Worker + fallback a WebApp ===
 const WORKER_BASE    = 'https://gamificationworker.rfullivarri22.workers.dev';
 const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxncfav0V6OJsHDFMcFg7S8qISWXrG5P5l5WTCzBn-iC_4cerC22lsznJHlDsQhneGdpA/exec';
@@ -1297,6 +1357,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   
   // ===== Integración con el popup del Dashboard =====
+  // ===== Integración con el popup del Dashboard =====
   (() => {
     const openBtn   = document.getElementById('edit-avatar');
     const modal     = document.getElementById('avatarPopup');
@@ -1323,7 +1384,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const file = inputFile?.files?.[0];
       if (!file){ alert("Elegí una imagen primero."); return; }
   
-      const email = new URLSearchParams(location.search).get('email') || "";
+      const email = window.GJ_CTX?.email || new URLSearchParams(location.search).get('email') || "";
       if (!email){ alert("Falta email en la URL."); return; }
   
       try {
@@ -1332,13 +1393,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   
         statusEl.textContent = "Actualizando tu perfil…";
         await sendAvatarToForm(email, url);
-
-        // Refrescar KV para que el Worker tenga el nuevo avatar al toque
-        await refreshBundle(ctx.email);
   
-        // Refrescar avatar en el acto
+        // UI instantánea
         if (avatarImg) avatarImg.src = url;
-        if (current) current.src = url;
+        if (current)   current.src   = url;
+  
+        // Refrescar bundle sin F5 y confirmar contra backend cuando llegue la misma URL
+        await refreshBundle(email, {
+          mode: 'soft',
+          expect: (b) => (b?.links?.avatar_url === url) || (b?.avatar_url === url)
+        });
   
         statusEl.textContent = "Listo ✅";
         setTimeout(hideModal, 600);
@@ -1349,35 +1413,173 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   })();
 
+  // (() => {
+  //   const openBtn   = document.getElementById('edit-avatar');
+  //   const modal     = document.getElementById('avatarPopup');
+  //   const closeBtn  = document.getElementById('closeAvatarPopup');
+  //   const cancelBtn = document.getElementById('cancelAvatar');
+  //   const confirmBtn= document.getElementById('confirmAvatar');
+  //   const inputFile = document.getElementById('newAvatarInput');
+  //   const statusEl  = document.getElementById('avatarStatus');
+  //   const avatarImg = document.getElementById('avatar');
+  //   const current   = document.getElementById('currentAvatar');
+  
+  //   function showModal(){ modal?.classList.add('visible'); }
+  //   function hideModal(){ modal?.classList.remove('visible'); statusEl.textContent=''; inputFile.value=''; }
+  
+  //   openBtn?.addEventListener('click', (e)=>{
+  //     e.preventDefault();
+  //     if (current && avatarImg) current.src = avatarImg.src || "";
+  //     showModal();
+  //   });
+  //   closeBtn?.addEventListener('click', hideModal);
+  //   cancelBtn?.addEventListener('click', hideModal);
+  
+  //   confirmBtn?.addEventListener('click', async ()=>{
+  //     const file = inputFile?.files?.[0];
+  //     if (!file){ alert("Elegí una imagen primero."); return; }
+  
+  //     const email = new URLSearchParams(location.search).get('email') || "";
+  //     if (!email){ alert("Falta email en la URL."); return; }
+  
+  //     try {
+  //       statusEl.textContent = "Subiendo imagen…";
+  //       const url = await uploadToImgBB(file);
+  
+  //       statusEl.textContent = "Actualizando tu perfil…";
+  //       await sendAvatarToForm(email, url);
 
-// ====== REFRESH GENÉRICO (Worker pull) ======
-async function refreshBundle(email, { mode = 'reload' } = {}) {
+  //       // Refrescar KV para que el Worker tenga el nuevo avatar al toque
+  //       await refreshBundle(ctx.email);
+  
+  //       // Refrescar avatar en el acto
+  //       if (avatarImg) avatarImg.src = url;
+  //       if (current) current.src = url;
+  
+  //       statusEl.textContent = "Listo ✅";
+  //       setTimeout(hideModal, 600);
+  //     } catch (err) {
+  //       console.error(err);
+  //       statusEl.textContent = "Error: " + err.message;
+  //     }
+  //   });
+  // })();
+
+
+// ====== REFRESH GENÉRICO (Worker pull) — extendido ======
+async function refreshBundle(
+  email,
+  {
+    mode = 'reload',               // 'reload' (igual que hoy) o 'soft' (sin F5)
+    optimistic = null,             // ej: { firstprog_ok:1 } o { bbdd_ok:1 }
+    expect = null,                 // ej: { L:'SI' }  ó  { 'scheduler.firstProgrammed':'SI' }  ó  fn(bundle)=>bool
+    ttlPending = 10*60*1000,       // 10 min para mantener UI optimista
+    retries = [2000, 5000, 10000]  // backoff para esperar bundle fresco
+  } = {}
+){
   if (!email) throw new Error('Falta email');
+  if (window.__GJ_REFRESH_INFLIGHT) return; // dedupe simple
+  window.__GJ_REFRESH_INFLIGHT = true;
 
-  // 1) Pedir al Worker que se refresque desde el WebApp y escriba el KV
-  const r = await fetch(`${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    cache: 'no-store',
-    body: JSON.stringify({ email })
-  });
-  if (!r.ok) throw new Error('refresh-pull failed: ' + r.status);
+  try {
+    // 0) Aplicar optimista (instantáneo) si vino
+    if (optimistic) {
+      GJLocal.mergeFlags(email, optimistic);
+      GJLocal.setPending(email, { op: (expect && expect.op) || 'generic', expect, ttlMs: ttlPending, optimistic });
+      GJEvents.emit('gj:state-changed', { email, flags: GJLocal.getFlags(email), pending: GJLocal.getPending(email) });
+    }
 
-  // 2a) Modo simple: recargar todo (garantiza que el dashboard use el bundle nuevo)
-  if (mode === 'reload') { location.reload(); return; }
+    // 1) Pedir al Worker que refresque desde WebApp → KV
+    const r = await fetch(`${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({ email })
+    });
+    if (!r.ok) throw new Error('refresh-pull failed: ' + r.status);
 
-  // 2b) Modo sin F5: obtener bundle fresco y anunciarlo (para quien quiera escucharlo)
-  const b = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
-  if (!b.ok) return;
-  const freshRaw = await b.json();
+    // 2a) Modo clásico (no cambiamos nada de lo que ya hacías)
+    if (mode === 'reload') { location.reload(); return; }
 
-  // Guardar y avisar. NO tocamos ctx ni campos sueltos.
-  window.GJ_BUNDLE = freshRaw;
-  try { localStorage.setItem('gj_bundle', JSON.stringify(freshRaw)); } catch {}
-  window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: freshRaw }));
+    // 2b) Modo soft: traemos bundle fresco con buster y backoff
+    const prev = GJLocal.getBundle();
+    const prevStamp = bundleStamp(prev);
 
-  return freshRaw;
+    const fetchFresh = async () => {
+      const url = `${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}&t=${Date.now()}`;
+      const resp = await fetch(url, { cache: 'no-store' });
+      if (!resp.ok) throw new Error('bundle fetch failed: ' + resp.status);
+      return await resp.json();
+    };
+
+    let fresh = await fetchFresh();
+    let advanced = (bundleStamp(fresh) && (prevStamp ? bundleStamp(fresh) !== prevStamp : true));
+    let ok = matchesExpect(fresh, expect) || advanced;
+
+    for (let i=0; !ok && i<retries.length; i++) {
+      await new Promise(res => setTimeout(res, retries[i]));
+      fresh = await fetchFresh();
+      advanced = (bundleStamp(fresh) && (prevStamp ? bundleStamp(fresh) !== prevStamp : true));
+      ok = matchesExpect(fresh, expect) || advanced;
+    }
+
+    // 3) Snapshot + evento
+    window.GJ_BUNDLE = fresh;
+    GJLocal.saveBundle(fresh);
+    GJEvents.emit('gj:bundle-updated', fresh);
+
+    // 4) Reconciliación optimista ↔ backend
+    const stillValid = GJLocal.isPendingValid(email);
+    if (matchesExpect(fresh, expect)) {
+      // confirmado por backend
+      GJLocal.clearPending(email);
+    } else if (!stillValid && optimistic) {
+      // venció TTL y backend no confirmó → rollback del patch optimista
+      const roll = Object.fromEntries(Object.keys(optimistic).map(k => [k, 0]));
+      GJLocal.mergeFlags(email, roll);
+      GJLocal.clearPending(email);
+    }
+    GJEvents.emit('gj:state-changed', { email, flags: GJLocal.getFlags(email), pending: GJLocal.getPending(email) });
+
+    return fresh;
+  } finally {
+    window.__GJ_REFRESH_INFLIGHT = false;
+  }
 }
+
+
+
+
+// async function refreshBundle(email, { mode = 'reload' } = {}) {
+//   if (!email) throw new Error('Falta email');
+
+//   // 1) Pedir al Worker que se refresque desde el WebApp y escriba el KV
+//   const r = await fetch(`${WORKER_BASE}/refresh-pull?email=${encodeURIComponent(email)}`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     cache: 'no-store',
+//     body: JSON.stringify({ email })
+//   });
+//   if (!r.ok) throw new Error('refresh-pull failed: ' + r.status);
+
+//   // 2a) Modo simple: recargar todo (garantiza que el dashboard use el bundle nuevo)
+//   if (mode === 'reload') { location.reload(); return; }
+
+//   // 2b) Modo sin F5: obtener bundle fresco y anunciarlo (para quien quiera escucharlo)
+//   const b = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+//   if (!b.ok) return;
+//   const freshRaw = await b.json();
+
+//   // Guardar y avisar. NO tocamos ctx ni campos sueltos.
+//   window.GJ_BUNDLE = freshRaw;
+//   try { localStorage.setItem('gj_bundle', JSON.stringify(freshRaw)); } catch {}
+//   window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: freshRaw }));
+
+//   return freshRaw;
+// }
+
+
+
 
 
 
