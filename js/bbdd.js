@@ -400,6 +400,7 @@ async function doConfirm(){
     // 4) Cerrar / volver (sin navegar para que el banner quede visible en el dashboard)
     setTimeout(()=>{
       if(window.BBDD_MODE==="modal"){
+        window.GJ_AUTO?.poke();  //LLAMA A CONSULTAR EL REFRESH KV
         closeOverlay();    // el dashboard ya está detrás y con el banner mostrado
       } else {
         // Si preferís navegar igualmente, podés reactivar esta línea:
