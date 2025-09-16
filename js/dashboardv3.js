@@ -103,6 +103,70 @@ function matchesExpect(bundle, expect){
   });
 }
 
+// ===== Listeners globales (única instancia; evita doble registro) =====
+if (!window.__GJ_LISTENERS_WIRED__) {
+  window.__GJ_LISTENERS_WIRED__ = true;
+
+  // util seguro para dots (no rompe si setDot no existe aún)
+  const setDotSafe = (el, on, color = '#ffc107') => {
+    try { (window.setDot || function(){ })(el, on, color); } catch(_) {}
+  };
+  const getEmail = () =>
+    (new URLSearchParams(location.search).get('email') ||
+     localStorage.getItem('gj_email') || '').trim().toLowerCase();
+
+  // Recalcula avisos/dots con el último bundle (backend) + flags optimistas (LS)
+  function repaintWarnings({ bundle, flags } = {}) {
+    const email = getEmail();
+    const b   = bundle || (window.GJ_BUNDLE || GJLocal.getBundle() || {});
+    const fl  = flags  || GJLocal.getFlags(email) || {};
+
+    const bbddOk   = String(b.confirmacionbbdd || '').toUpperCase() === 'SI' || !!fl.bbdd_ok;
+    const firstProg= String(b?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI' || !!fl.firstprog_ok;
+
+    const elBBDD  = document.getElementById('bbdd-warning');
+    const elSched = document.getElementById('scheduler-warning');
+
+    // 1) Warning BBDD
+    if (elBBDD) elBBDD.style.display = bbddOk ? 'none' : 'block';
+
+    // 2) Warning Programar (solo si F=SI y L vacío)
+    const showSched = bbddOk && !firstProg;
+    if (elSched) elSched.style.display = showSched ? 'block' : 'none';
+
+    // 3) Dots
+    setDotSafe(document.getElementById('li-edit-bbdd'), !bbddOk, '#ffc107');
+    setDotSafe(document.getElementById('menu-toggle'), (!bbddOk || showSched), '#ffc107');
+    setDotSafe(document.getElementById('open-scheduler'), showSched, '#ffc107');
+
+    // 4) Mantener el espejo en GJ_CTX (si existe)
+    try {
+      window.GJ_CTX = window.GJ_CTX || {};
+      window.GJ_CTX.scheduler = window.GJ_CTX.scheduler || {};
+      window.GJ_CTX.scheduler.firstProgrammed = firstProg ? 'SI' : '';
+    } catch(_) {}
+  }
+
+  // ← se dispara cuando llega un bundle fresco del Worker
+  function onBundleUpdated(evt) {
+    const fresh = evt?.detail || {};
+    // guardamos snapshot por si otro módulo lo pide
+    try { GJLocal.saveBundle(fresh); } catch {}
+    repaintWarnings({ bundle: fresh });
+  }
+
+  // ← se dispara cuando aplicás UI optimista (flags en LS) o se reconcilia/rollback
+  function onStateChanged(evt) {
+    const email = evt?.detail?.email || getEmail();
+    const flags = GJLocal.getFlags(email);
+    const bundle = GJLocal.getBundle();
+    repaintWarnings({ bundle, flags });
+  }
+
+  window.addEventListener('gj:bundle-updated', onBundleUpdated);
+  window.addEventListener('gj:state-changed', onStateChanged);
+}
+
 
 
 // === Worker + fallback a WebApp ===
