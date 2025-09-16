@@ -288,18 +288,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     // === ONBOARDING WARNINGS (regla definitiva: F y L) ===
+    // === ONBOARDING WARNINGS (regla definitiva: F y L) ===
     (function applyOnboardingWarnings(){
-      const bbddOk = String(data.confirmacionbbdd || '').toUpperCase() === 'SI';              // F (Central)
-      const firstProg = String(dataRaw?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI'; // L (HUB)
+      const bbddOk = String(data.confirmacionbbdd || '').toUpperCase() === 'SI';   // F (Central)
+    
+      // ⚡ Lee flag optimista desde LS (si existe)
+      const flags = (window.GJLocal?.getFlags && GJLocal.getFlags(email)) || {};
+    
+      // L real que viene en el bundle (HUB)
+      const firstProgBundle = String(dataRaw?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI';
+    
+      // UI = optimista (si existe) o valor real del bundle
+      const firstProgUI = flags.firstprog_ok ? true : firstProgBundle;
     
       const elBBDD  = document.getElementById('bbdd-warning');
       const elSched = document.getElementById('scheduler-warning');
     
       // 1) Warning BBDD
-      if (elBBDD)  elBBDD.style.display  = bbddOk ? 'none' : 'block';
+      if (elBBDD) elBBDD.style.display = bbddOk ? 'none' : 'block';
     
       // 2) Warning Programar (solo si F=SI y L vacío)
-      const showSched = bbddOk && !firstProg;
+      const showSched = bbddOk && !firstProgUI;
       if (elSched) elSched.style.display = showSched ? 'block' : 'none';
     
       // 3) Dots (opcionales, coherentes con los avisos)
@@ -318,14 +327,55 @@ document.addEventListener("DOMContentLoaded", async () => {
           hora:       (dataRaw?.scheduler?.hora != null ? Number(dataRaw.scheduler.hora) : 8),
           timezone:   (dataRaw?.scheduler?.timezone   ?? 'Europe/Madrid'),
           estado:     (dataRaw?.scheduler?.estado     ?? 'ACTIVO'),
-          firstProgrammed: firstProg ? 'SI' : ''   // espejo de L
+          // 👇 reflejamos el estado que ve la UI (optimista si aplica)
+          firstProgrammed: firstProgUI ? 'SI' : ''
         }
       };
     
       // (opcional) expose flags por si querés depurar
-      window.GJ_WARN = { bbddOk, firstProg, showSched };
+      window.GJ_WARN = { bbddOk, firstProgBundle, firstProgUI, showSched };
     })();
 
+    // ——— Reactividad: warnings “vivos” sin F5 ———
+    (function mountWarningReactivity(){
+      const elBBDD  = document.getElementById('bbdd-warning');
+      const elSched = document.getElementById('scheduler-warning');
+    
+      function render(){
+        const flags = (window.GJLocal?.getFlags && GJLocal.getFlags(email)) || {};
+        const bbddOk = String(window.GJ_DATA?.confirmacionbbdd || '').toUpperCase() === 'SI';
+    
+        const firstProgBundle =
+          String(window.GJ_CTX?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI';
+        const firstProgUI = flags.firstprog_ok ? true : firstProgBundle;
+    
+        if (elBBDD)  elBBDD.style.display  = bbddOk ? 'none' : 'block';
+        const showSched = bbddOk && !firstProgUI;
+        if (elSched) elSched.style.display = showSched ? 'block' : 'none';
+    
+        // dots coherentes
+        setDot(document.getElementById('li-edit-bbdd'), !bbddOk, '#ffc107');
+        setDot(document.getElementById('menu-toggle'), (!bbddOk || showSched), '#ffc107');
+        setDot(document.getElementById('open-scheduler'), showSched, '#ffc107');
+      }
+    
+      // LS/optimista cambia → re-render
+      window.addEventListener('gj:state-changed', render);
+    
+      // Backend confirmó → actualizo contexto y re-render
+      window.addEventListener('gj:bundle-updated', (ev) => {
+        const fp = String(ev?.detail?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI';
+        if (window.GJ_CTX?.scheduler) window.GJ_CTX.scheduler.firstProgrammed = fp ? 'SI' : '';
+        render();
+      });
+    
+      // primer render (por si llegamos tarde)
+      render();
+    })();
+
+
+    
+    // (Opcional, ya no es necesario llamarla; se deja por compatibilidad)
     async function markFirstProgrammed(email){
       try {
         await fetch(`${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}&key=${encodeURIComponent(API_KEY)}`, {
@@ -341,6 +391,59 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.warn('markFirstProgrammed failed', e);
       }
     }
+    // (function applyOnboardingWarnings(){
+    //   const bbddOk = String(data.confirmacionbbdd || '').toUpperCase() === 'SI';              // F (Central)
+    //   const firstProg = String(dataRaw?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI'; // L (HUB)
+    
+    //   const elBBDD  = document.getElementById('bbdd-warning');
+    //   const elSched = document.getElementById('scheduler-warning');
+    
+    //   // 1) Warning BBDD
+    //   if (elBBDD)  elBBDD.style.display  = bbddOk ? 'none' : 'block';
+    
+    //   // 2) Warning Programar (solo si F=SI y L vacío)
+    //   const showSched = bbddOk && !firstProg;
+    //   if (elSched) elSched.style.display = showSched ? 'block' : 'none';
+    
+    //   // 3) Dots (opcionales, coherentes con los avisos)
+    //   setDot(document.getElementById('li-edit-bbdd'), !bbddOk, '#ffc107');
+    //   setDot(document.getElementById('menu-toggle'), (!bbddOk || showSched), '#ffc107');
+    //   setDot(document.getElementById('open-scheduler'), showSched, '#ffc107');
+    
+    //   // 4) Contexto limpio por si lo usa el modal
+    //   window.GJ_CTX = {
+    //     ...(window.GJ_CTX || {}),
+    //     linkPublico: (data.daily_form_url || ''),
+    //     scheduler: {
+    //       canal:      (dataRaw?.scheduler?.canal      ?? 'email'),
+    //       frecuencia: (dataRaw?.scheduler?.frecuencia ?? 'DAILY'),
+    //       dias:       (dataRaw?.scheduler?.dias       ?? ''),
+    //       hora:       (dataRaw?.scheduler?.hora != null ? Number(dataRaw.scheduler.hora) : 8),
+    //       timezone:   (dataRaw?.scheduler?.timezone   ?? 'Europe/Madrid'),
+    //       estado:     (dataRaw?.scheduler?.estado     ?? 'ACTIVO'),
+    //       firstProgrammed: firstProg ? 'SI' : ''   // espejo de L
+    //     }
+    //   };
+    
+    //   // (opcional) expose flags por si querés depurar
+    //   window.GJ_WARN = { bbddOk, firstProg, showSched };
+    // })();
+
+    // async function markFirstProgrammed(email){
+    //   try {
+    //     await fetch(`${OLD_WEBAPP_URL}?action=mark_first_programmed&email=${encodeURIComponent(email)}&key=${encodeURIComponent(API_KEY)}`, {
+    //       method: 'POST',
+    //       cache: 'no-store'
+    //     });
+    //     const elSched = document.getElementById('scheduler-warning');
+    //     if (elSched) elSched.style.display = 'none';
+    //     setDot(document.getElementById('open-scheduler'), false);
+    //     setDot(document.getElementById('menu-toggle'), false);
+    //     if (window.GJ_CTX?.scheduler) window.GJ_CTX.scheduler.firstProgrammed = 'SI';
+    //   } catch(e) {
+    //     console.warn('markFirstProgrammed failed', e);
+    //   }
+    // }
     
 
     //    d) Resto de enlaces como ya tenías
