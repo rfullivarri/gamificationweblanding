@@ -210,3 +210,29 @@
   .emotion-row{grid-auto-columns:10px;gap:3px}
   .emotion-cell{width:10px;height:10px;border-radius:3px}
 }
+
+/* Layout uniforme de avisos */
+.alert-card { padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,0.04); }
+.alert-row { display: flex; align-items: center; gap: 12px; }
+.alert-dot { width: 10px; height: 10px; border-radius: 50%; background: #ffc107; flex: 0 0 10px; }
+.alert-text { display: flex; flex-direction: column; gap: 2px; margin-right: auto; }
+.alert-text strong { font-weight: 700; }
+.alert-text .muted { opacity: .75; font-size: .95rem; }
+
+/* Chip base y variante lila (CTA vistoso) */
+.chip {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 14px; border-radius: 999px; text-decoration: none;
+  font-weight: 600; line-height: 1; border: 1px solid transparent;
+  transition: transform .08s ease, box-shadow .2s ease, filter .2s ease;
+}
+.chip-primary {
+  background: #7b5cf5; /* lila */
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(123,92,245,.30);
+}
+.chip-primary:hover { filter: brightness(1.05); box-shadow: 0 8px 18px rgba(123,92,245,.38); }
+.chip-primary:active { transform: translateY(1px); }
+
+/* Asegura que el CTA quede a la derecha aunque falte margin en .alert-text */
+.alert-card .chip { margin-left: auto; }
