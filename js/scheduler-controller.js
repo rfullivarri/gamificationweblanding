@@ -48,21 +48,45 @@ function buildPayload(ctx, v) {
     linkPublico: v.linkPublico || ctx.linkPublico || ''
   };
 }
+// function wireMenuButton(modal) {
+//   // Enlaza menú, banner y (por compat) el viejo edit-form
+//   const triggers = [
+//     document.getElementById('open-scheduler'),
+//     document.getElementById('btn-programar-dq'),
+//     document.getElementById('edit-form')
+//   ].filter(Boolean);
+
+//   if (!triggers.length) return;
+
+//   triggers.forEach(btn => {
+//     btn.addEventListener('click', (e) => {
+//       e.preventDefault();   // evita navegar a '#'
+//       modal.open();         // abre el popup
+//     });
+//   });
+// }
+
 function wireMenuButton(modal) {
-  // Enlaza menú, banner y (por compat) el viejo edit-form
-  const triggers = [
+  // Engancha cualquiera de estos ids si existen
+  const candidates = [
     document.getElementById('open-scheduler'),
     document.getElementById('btn-programar-dq'),
     document.getElementById('edit-form')
   ].filter(Boolean);
 
-  if (!triggers.length) return;
-
-  triggers.forEach(btn => {
+  candidates.forEach(btn => {
     btn.addEventListener('click', (e) => {
-      e.preventDefault();   // evita navegar a '#'
-      modal.open();         // abre el popup
+      e.preventDefault();
+      modal.open();
     });
+  });
+
+  // Extra: delegación segura por si en el futuro usamos data-open-scheduler
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-open-scheduler]');
+    if (!el) return;
+    e.preventDefault();
+    modal.open();
   });
 }
 
