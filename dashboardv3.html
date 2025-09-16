@@ -73,36 +73,39 @@
   <!-- LAYOUT -->
   <main>
     <div class="dashboard-content">
-      <!-- AVISO: Falta confirmar BBDD 2-->
-          <div id="bbdd-warning" class="alert-card" style="display:none;">
-            <div class="alert-row">
-              <span class="alert-dot" aria-hidden="true"></span>
-              <div class="alert-text">
-                <strong>Confirmá tu base</strong>
-                <span class="muted">Abrí el menú (≡) →</span>
-              </div>
-              <!-- mantiene data-keep-email para autopasar el mail -->
-              <a id="edit-bbdd-warning"
-                 href="gamificationweblanding/index-bbdd.html"
-                 class="chip"
-                 data-keep-email>Editar Base</a>
-            </div>
-           <p class="alert-hint">
-              Revisá y tocá <b>Confirmar edición</b> para generar tu Daily Quest.
-            </p>
+      <!-- AVISO: Falta confirmar BBDD -->
+      <div id="bbdd-warning" class="alert-card" style="display:none;">
+        <div class="alert-row">
+          <span class="alert-dot" aria-hidden="true"></span>
+          <div class="alert-text">
+            <strong>Confirmá tu base</strong>
+            <span class="muted">Abrí el menú (≡) →</span>
           </div>
-         <!-- AVISO: programar Daily Quest -->
-        <div id="scheduler-warning" class="alert-card" style="display:none;">
+          <a id="edit-bbdd-warning"
+             href="gamificationweblanding/index-bbdd.html"
+             class="chip chip-primary"
+             data-keep-email>Editar Base</a>
+        </div>
+        <p class="alert-hint">
+          Revisá y tocá <b>Confirmar edición</b> para generar tu Daily Quest.
+        </p>
+      </div>
+      
+      <!-- AVISO: Programar Daily Quest -->
+      <div id="scheduler-warning" class="alert-card" style="display:none;">
+        <div class="alert-row">
           <span class="alert-dot" aria-hidden="true"></span>
           <div class="alert-text">
             <strong>Tu Daily Quest está listo</strong>
             <span class="muted">Programalo para recibirlo cada día.</span>
           </div>
-          <a id="btn-programar-dq" href="#" class="chip">Programar Daily Quest</a>
+          <!-- IMPORTANTE: este id ya lo usa scheduler-controller para abrir el modal -->
+          <a id="open-scheduler" href="#" class="chip chip-primary" role="button"
+             aria-controls="scheduler-modal">Programar Daily Quest</a>
         </div>
-        
-        <!-- hint opcional para igualar “aire” al de BBDD (podés dejarlo vacío) -->
-        <p id="scheduler-hint" class="alert-hint" style="display:none;"></p>
+        <!-- opcional; lo dejamos vacío pero ocupa el mismo “aire” que el de BBDD -->
+        <p id="scheduler-hint" class="alert-hint"></p>
+      </div>
       <div class="dashboard-columns">
         <!-- IZQUIERDA -->
         <section class="left-column">
