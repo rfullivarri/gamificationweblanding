@@ -49,15 +49,33 @@ function buildPayload(ctx, v) {
   };
 }
 function wireMenuButton(modal) {
-  const btn =
-    document.getElementById('open-scheduler') ||
-    document.getElementById('edit-form');
-  if (!btn) return;
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    modal.open();
+  // Enlaza menú, banner y (por compat) el viejo edit-form
+  const triggers = [
+    document.getElementById('open-scheduler'),
+    document.getElementById('btn-programar-dq'),
+    document.getElementById('edit-form')
+  ].filter(Boolean);
+
+  if (!triggers.length) return;
+
+  triggers.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();   // evita navegar a '#'
+      modal.open();         // abre el popup
+    });
   });
 }
+
+// function wireMenuButton(modal) {
+//   const btn =
+//     document.getElementById('open-scheduler') ||
+//     document.getElementById('edit-form');
+//   if (!btn) return;
+//   btn.addEventListener('click', (e) => {
+//     e.preventDefault();
+//     modal.open();
+//   });
+// }
 
 // —— núcleo ——
 export function attachSchedulerModal() {
