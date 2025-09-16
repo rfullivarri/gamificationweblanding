@@ -209,6 +209,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // 2) FETCH DATOS (usa Worker -> fallback WebApp)
     const dataRaw = await loadDataFromCacheOrWebApp(email);
+    const schedIn  = dataRaw.scheduler || dataRaw.schedule || {};
+    const fpRaw    = schedIn.firstProgrammed ?? schedIn.first_programmed ?? '';
+    const fp       = String(fpRaw).trim().toUpperCase() === 'SI' ? 'SI' : '';
+    dataRaw.scheduler = { ...schedIn, firstProgrammed: fp };
+    window.GJ_BUNDLE = dataRaw;
+    try { GJLocal.saveBundle(dataRaw); } catch {}
+    window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: dataRaw }));
+    
 
     // 2.1) Logs crudos para rachas (CLAVE)
     const logsRaw = Array.isArray(dataRaw?.daily_log_raw) ? dataRaw.daily_log_raw
