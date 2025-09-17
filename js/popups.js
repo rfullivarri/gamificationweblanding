@@ -1,7 +1,7 @@
 // ===== Gamification PopUps (front) =====
 const POPUPS_API = 'https://script.google.com/macros/s/AKfycbzKOhJnvv_UW3WkTDSuHRhkq3O3KxLx_A72q8JZYKpcJCmTj3yQ1nuhCBKPoMlDvJ6U/exec';
 
-/* ------------ util ------------- */
+/* ------------ utils ------------- */
 function gjEmail(){
   const q = new URLSearchParams(location.search).get('email');
   return (q || localStorage.getItem('gj_email') || '').toLowerCase();
@@ -20,7 +20,7 @@ function addSeen(email, id){
   }catch{}
 }
 async function postSeenToServer(email, ids){
-  // Evita preflight CORS: text/plain
+  // text/plain → evita preflight; el WebApp parsea JSON igual
   try{
     await fetch(POPUPS_API, {
       method: 'POST',
@@ -36,9 +36,12 @@ function ensureOverlay(){
   if (ov) return ov;
   ov = document.createElement('div');
   ov.id = 'gj-pop-overlay';
+  ov.setAttribute('role','dialog');
+  ov.setAttribute('aria-modal','true');
   document.body.appendChild(ov);
   return ov;
 }
+
 function confetti(container){
   const colors = ['#ff7ab6','#ffd66b','#7dd3fc','#a78bfa','#34d399','#fca5a5'];
   const layer = document.createElement('div'); layer.className = 'gj-confetti';
@@ -55,19 +58,26 @@ function confetti(container){
   }
   setTimeout(()=>layer.remove(), 1500);
 }
+
 function renderPopup(item, onClose){
   const ov = ensureOverlay();
   ov.innerHTML = ''; // clean
 
+  // soporta hero opcional si alguna vez agregás 'hero_url' / 'image_url' en POPUPS
+  const hero = item.hero_url || item.image_url ? 
+    `<img class="hero-img" src="${item.hero_url || item.image_url}" alt="" />` :
+    `<span class="hero-emoji" aria-hidden="true">✨</span>`;
+
   const card = document.createElement('div');
   card.className = 'gj-pop';
+  card.setAttribute('data-popid', item.id || '');
   card.innerHTML = `
     <button class="close" aria-label="Cerrar">✕</button>
-    <div style="display:flex;align-items:flex-start;gap:10px;">
-      <div class="hero">${item.hero_url ? '' : '✨'}</div>
-      <div style="flex:1 1 auto;">
+    <div class="gj-pop-row">
+      <div class="hero">${hero}</div>
+      <div class="content">
         <h3>${item.title || 'Aviso'}</h3>
-        <div class="lead">${(item.body_md || '').replace(/\n/g,'\n')}</div>
+        <div class="lead">${(item.body_md || '').replace(/\n/g,'<br>')}</div>
         ${item.cta_text ? `<button class="cta" id="gj-pop-cta">${item.cta_text}</button>` : ''}
         ${item.here_url ? `<a class="sub" href="${item.here_url}" target="_blank" rel="noopener">Más info</a>` : ''}
       </div>
@@ -79,11 +89,23 @@ function renderPopup(item, onClose){
   // confetti en hitos
   if ((item.tipo||'').toLowerCase()==='hito') confetti(card);
 
-  // close
-  card.querySelector('.close')?.addEventListener('click', ()=>{
-    ov.classList.remove('show'); ov.innerHTML='';
-    onClose?.('close');
-  });
+  const finish = (how) => {
+    ov.classList.remove('show');
+    ov.innerHTML='';
+    onClose?.(how || 'close');
+  };
+
+  // cerrar con ✕
+  card.querySelector('.close')?.addEventListener('click', ()=> finish('close'));
+
+  // cerrar haciendo click fuera
+  ov.addEventListener('click', (e)=>{
+    if (e.target === ov) finish('backdrop');
+  }, { once:true });
+
+  // cerrar con Esc
+  const onKey = (e)=>{ if (e.key === 'Escape') { finish('esc'); window.removeEventListener('keydown', onKey); } };
+  window.addEventListener('keydown', onKey);
 
   // CTA
   const ctaBtn = card.querySelector('#gj-pop-cta');
@@ -101,8 +123,7 @@ function renderPopup(item, onClose){
           linkPublico: window.GJ_CTX?.linkPublico || ''
         });
       }
-      ov.classList.remove('show'); ov.innerHTML='';
-      onClose?.('cta');
+      finish('cta');
     });
   }
 }
@@ -124,8 +145,7 @@ async function runPopups(){
 
   // 2) filtro instantáneo por localStorage
   const seen = getSeen(email);
-  const queue = serverItems.filter(it => !seen.has(it.id));
-
+  const queue = serverItems.filter(it => it && it.id && !seen.has(it.id));
   if (!queue.length) return;
 
   // 3) mostrar en cola (uno por vez)
@@ -133,12 +153,11 @@ async function runPopups(){
   const next = ()=>{
     const it = queue.shift();
     if (!it) {
-      // sync vistos en background
-      if (seenIds.length) postSeenToServer(email, seenIds);
+      if (seenIds.length) postSeenToServer(email, seenIds); // sync en background
       return;
     }
-    renderPopup(it, (how)=>{
-      // marcar visto instantáneo
+    renderPopup(it, ()=>{
+      // marcar visto instantáneo al cerrar o CTA
       addSeen(email, it.id);
       seenIds.push(it.id);
       next();
@@ -146,6 +165,14 @@ async function runPopups(){
   };
   next();
 }
+
+// API mínima para debug desde consola
+window.GJPopups = {
+  run: runPopups,
+  clearLocal(email = gjEmail()){
+    try{ localStorage.removeItem(seenKey(email)); }catch{}
+  }
+};
 
 // Arranque automático al cargar el dashboard
 document.addEventListener('DOMContentLoaded', runPopups);
