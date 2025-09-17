@@ -1,0 +1,72 @@
+/* ===== POPUPS (dashboard) ===== */
+#gj-pop-overlay{
+  position: fixed; inset: 0; z-index: 1200;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+  background: rgba(5,7,14,.55);
+}
+#gj-pop-overlay.show{ display: flex; }
+
+.gj-pop{
+  width: min(680px, 92vw);
+  background: rgba(18,20,34,.88);
+  border: 1px solid rgba(140,120,255,.25);
+  box-shadow: 0 10px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.04);
+  border-radius: 16px;
+  color: #eef;
+  padding: 22px 22px 18px;
+  position: relative;
+}
+
+.gj-pop .close{
+  position:absolute; top:10px; right:10px;
+  width:36px; height:36px; border-radius:999px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  cursor:pointer;
+}
+
+.gj-pop h3{
+  margin: 4px 0 6px;
+  font-size: 22px; font-weight: 700;
+  letter-spacing:.2px;
+}
+.gj-pop .lead{
+  opacity:.9; line-height:1.5; margin: 8px 0 14px;
+  white-space:pre-wrap;   /* respeta \n del body_md */
+}
+
+/* CTA principal (mismo look que botones morados del dashboard) */
+.gj-pop .cta{
+  margin-top: 6px;
+  display:inline-block;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg,#6d4cff,#a478ff);
+  color: #fff; font-weight: 600;
+  box-shadow: 0 8px 18px rgba(109,76,255,.35);
+  border: none; cursor: pointer;
+}
+
+/* Subtexto/link secundario */
+.gj-pop .sub{
+  display:block; margin-top:8px; font-size:13px; opacity:.7;
+}
+
+/* Ícono grande (opcional) */
+.gj-pop .hero{
+  font-size: 34px; margin-right: 8px;
+}
+
+/* Confetti básico (hitos) */
+.gj-confetti{
+  position:absolute; inset:0; pointer-events:none; overflow:hidden;
+}
+.gj-piece{
+  position:absolute; width:8px; height:8px; border-radius:2px;
+  animation: fall 1200ms ease-in forwards;
+}
+@keyframes fall{
+  to{ transform: translateY(120vh) rotate(360deg); opacity: 0.6; }
+}
