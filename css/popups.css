@@ -70,3 +70,34 @@
 @keyframes fall{
   to{ transform: translateY(120vh) rotate(360deg); opacity: 0.6; }
 }
+#gj-pop-overlay .gj-pop .hero{
+  width:84px; height:84px; border-radius:14px;
+  background: radial-gradient(120% 120% at 0% 0%, rgba(168,85,247,.25), rgba(17,24,39,0));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 8px 28px rgba(124,58,237,.25), inset 0 0 12px rgba(168,85,247,.35);
+  animation: hero-float 3s ease-in-out infinite;
+}
+#gj-pop-overlay .gj-pop .hero-img{
+  width:100%; height:100%; object-fit:cover; border-radius:inherit;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
+}
+#gj-pop-overlay .gj-pop .hero-emoji{ font-size:34px; }
+
+@keyframes hero-float {
+  0%,100%{ transform: translateY(0) }
+  50%{ transform: translateY(-4px) }
+}
+
+/* glow del CTA */
+#gj-pop-overlay .gj-pop .cta{
+  position:relative; overflow:hidden;
+  box-shadow:0 0 0 0 rgba(168,85,247,.55);
+  animation: cta-pulse 2.2s ease-in-out infinite;
+}
+#gj-pop-overlay .gj-pop .cta::after{
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+  transform: translateX(-120%); animation: cta-sheen 2.6s ease-in-out infinite;
+}
+@keyframes cta-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(168,85,247,.45) } 50%{ box-shadow:0 0 24px 6px rgba(168,85,247,.28) } }
+@keyframes cta-sheen { 0%{ transform:translateX(-120%) } 60%{ transform:translateX(120%) } 100%{ transform:translateX(120%) } }
