@@ -59,6 +59,8 @@ function confetti(container){
   setTimeout(()=>layer.remove(), 1500);
 }
 
+
+
 function renderPopup(item, onClose){
   const ov = ensureOverlay();
   ov.innerHTML = ''; // clean
@@ -119,6 +121,8 @@ function renderPopup(item, onClose){
   }
 }
 
+
+
 /* ------------ Controller ------------- */
 async function runPopups(){
   const email = gjEmail();
@@ -156,6 +160,8 @@ async function runPopups(){
   };
   next();
 }
+
+
 
 // API mínima para debug desde consola
 window.GJPopups = {
