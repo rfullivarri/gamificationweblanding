@@ -66,9 +66,10 @@ function renderPopup(item, onClose){
   ov.innerHTML = ''; // clean
 
   // Soporta imagen opcional desde POPUPS: hero_url o image_url
-  const hasImg = !!(item.hero_url || item.image_url);
+  const imgSrc = item.hero_url || item.image_url || '';
+  const hasImg = !!imgSrc;
   const hero = hasImg
-    ? `<img class="hero-img" src="${item.hero_url || item.image_url}" alt="" />`
+    ? `<img class="hero-img" src="${imgSrc}" alt="" />`
     : `<span class="hero-emoji" aria-hidden="true">✨</span>`;
 
   const card = document.createElement('div');
@@ -76,9 +77,9 @@ function renderPopup(item, onClose){
   card.setAttribute('data-popid', item.id || '');
   card.innerHTML = `
     <button class="close" aria-label="Cerrar">✕</button>
-    <div class="pop-row" style="display:flex;align-items:flex-start;gap:12px;">
+    <div class="pop-row">
       <div class="hero">${hero}</div>
-      <div class="content" style="flex:1 1 auto;">
+      <div class="content">
         <h3 class="title">${item.title || 'Aviso'}</h3>
         <div class="lead">${(item.body_md || '').replace(/\n/g,'<br/>')}</div>
         ${item.cta_text ? `<button class="cta" id="gj-pop-cta">${item.cta_text}</button>` : ''}
@@ -89,12 +90,26 @@ function renderPopup(item, onClose){
   ov.appendChild(card);
   ov.classList.add('show');
 
+  // iOS/Android: bloquear scroll del fondo mientras el modal está visible
+  const prevOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+
   // confetti en hitos
   if ((item.tipo||'').toLowerCase()==='hito') confetti(card);
+
+  // fallback si la imagen falla → volver a ✨
+  const img = card.querySelector('.hero-img');
+  if (img) {
+    img.addEventListener('error', () => {
+      const wrap = card.querySelector('.hero');
+      if (wrap) wrap.innerHTML = `<span class="hero-emoji" aria-hidden="true">✨</span>`;
+    }, { once:true });
+  }
 
   const finish = (how)=>{
     ov.classList.remove('show');
     ov.innerHTML = '';
+    document.body.style.overflow = prevOverflow || '';
     onClose?.(how || 'close');
   };
 
@@ -120,7 +135,6 @@ function renderPopup(item, onClose){
     });
   }
 }
-
 
 
 /* ------------ Controller ------------- */
