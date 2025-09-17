@@ -63,21 +63,22 @@ function renderPopup(item, onClose){
   const ov = ensureOverlay();
   ov.innerHTML = ''; // clean
 
-  // soporta hero opcional si alguna vez agregás 'hero_url' / 'image_url' en POPUPS
-  const hero = item.hero_url || item.image_url ? 
-    `<img class="hero-img" src="${item.hero_url || item.image_url}" alt="" />` :
-    `<span class="hero-emoji" aria-hidden="true">✨</span>`;
+  // Soporta imagen opcional desde POPUPS: hero_url o image_url
+  const hasImg = !!(item.hero_url || item.image_url);
+  const hero = hasImg
+    ? `<img class="hero-img" src="${item.hero_url || item.image_url}" alt="" />`
+    : `<span class="hero-emoji" aria-hidden="true">✨</span>`;
 
   const card = document.createElement('div');
   card.className = 'gj-pop';
   card.setAttribute('data-popid', item.id || '');
   card.innerHTML = `
     <button class="close" aria-label="Cerrar">✕</button>
-    <div class="gj-pop-row">
+    <div class="pop-row" style="display:flex;align-items:flex-start;gap:12px;">
       <div class="hero">${hero}</div>
-      <div class="content">
-        <h3>${item.title || 'Aviso'}</h3>
-        <div class="lead">${(item.body_md || '').replace(/\n/g,'<br>')}</div>
+      <div class="content" style="flex:1 1 auto;">
+        <h3 class="title">${item.title || 'Aviso'}</h3>
+        <div class="lead">${(item.body_md || '').replace(/\n/g,'<br/>')}</div>
         ${item.cta_text ? `<button class="cta" id="gj-pop-cta">${item.cta_text}</button>` : ''}
         ${item.here_url ? `<a class="sub" href="${item.here_url}" target="_blank" rel="noopener">Más info</a>` : ''}
       </div>
@@ -89,23 +90,14 @@ function renderPopup(item, onClose){
   // confetti en hitos
   if ((item.tipo||'').toLowerCase()==='hito') confetti(card);
 
-  const finish = (how) => {
+  const finish = (how)=>{
     ov.classList.remove('show');
-    ov.innerHTML='';
+    ov.innerHTML = '';
     onClose?.(how || 'close');
   };
 
   // cerrar con ✕
   card.querySelector('.close')?.addEventListener('click', ()=> finish('close'));
-
-  // cerrar haciendo click fuera
-  ov.addEventListener('click', (e)=>{
-    if (e.target === ov) finish('backdrop');
-  }, { once:true });
-
-  // cerrar con Esc
-  const onKey = (e)=>{ if (e.key === 'Escape') { finish('esc'); window.removeEventListener('keydown', onKey); } };
-  window.addEventListener('keydown', onKey);
 
   // CTA
   const ctaBtn = card.querySelector('#gj-pop-cta');
@@ -115,7 +107,6 @@ function renderPopup(item, onClose){
       if (act === 'open_link' && item.cta_link){
         window.open(item.cta_link, '_blank', 'noopener');
       } else if (act === 'open_scheduler'){
-        // Integra con tu modal (si existe)
         const p = window.GJ_CTX?.scheduler || {};
         window.openSchedulerModal?.({
           canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
