@@ -101,3 +101,51 @@
 }
 @keyframes cta-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(168,85,247,.45) } 50%{ box-shadow:0 0 24px 6px rgba(168,85,247,.28) } }
 @keyframes cta-sheen { 0%{ transform:translateX(-120%) } 60%{ transform:translateX(120%) } 100%{ transform:translateX(120%) } }
+
+/* — add-ons POPUPS (no rompen lo existente) — */
+
+/* iOS blur */
+#gj-pop-overlay{ -webkit-backdrop-filter: blur(6px); }
+
+/* layout de la fila (hero + contenido) */
+.gj-pop .pop-row{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+}
+.gj-pop .content{ flex:1 1 auto; min-width:0; }
+
+/* límite de alto + scroll interno en móviles/chico */
+.gj-pop{
+  max-height: min(80vh, 680px);
+  overflow: auto;
+}
+
+/* imagen del hero (desktop por defecto: usa tu 84x84 existente) */
+#gj-pop-overlay .gj-pop .hero-img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;            /* PNG/JPG/GIF OK (GIF se anima solo) */
+  border-radius:inherit;
+}
+
+/* responsive: en mobile agrandamos la imagen y apilamos */
+@media (max-width: 520px){
+  .gj-pop{ padding:16px; }
+  .gj-pop .pop-row{
+    flex-direction: column;
+    align-items: center;
+    gap:14px;
+  }
+  #gj-pop-overlay .gj-pop .hero{
+    width:auto; height:auto;           /* quitamos 84x84 fijo */
+    border-radius:14px;
+  }
+  #gj-pop-overlay .gj-pop .hero-img{
+    width:72vw; max-width:72vw;
+    height:auto; max-height:40vh;
+    object-fit:contain;                /* que no recorte en mobile */
+  }
+}
+
