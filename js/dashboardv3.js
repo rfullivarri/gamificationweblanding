@@ -1019,6 +1019,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
+
+
 // —— Después de refrescar el bundle/KV, volver a pedir PopUps ——
 async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
   // Si querés forzar re-aparición total en pruebas, usá clearLocal=true
@@ -1032,46 +1034,108 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 }
 
 
-
-// === BOTÓN ACTUALIZAR ===
+// === BOTÓN ACTUALIZAR (bind robusto para mobile) ===
 (function attachRefreshButton () {
-  const btn = document.getElementById('refresh-kv')
-            || document.querySelector('[data-action="refresh-kv"]');
-  if (!btn) return;
+  const SEL = '#refresh-kv, [data-action="refresh-kv"]';
 
-  let cooling = false;
-  btn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    if (cooling) return;
-    cooling = true;
-  
-    const email = (window.GJ_CTX && window.GJ_CTX.email)
-               || new URLSearchParams(location.search).get('email');
-    if (!email) { alert('Falta email'); cooling = false; return; }
-  
-    try {
-      btn.classList.add('is-loading');
-  
-      // 1) refrescá el KV del Worker en modo "soft" (espera a que avance)
-      await refreshBundle(email, {
-        mode: 'soft',
-        retries: [1200, 2500, 4000, 6000], // un backoff un poco más robusto
-      });
-  
-      // 2) una vez fresco el bundle → pedí PopUps otra vez
-      await refreshPopupsAfterBundle(email /* , { clearLocal:true } */);
-  
-      // 3) feedback
-      if (window.toast) toast.success('Actualizado ✨');
-    } catch (err) {
-      console.error(err);
-      alert('No se pudo actualizar ahora.');
-    } finally {
-      btn.classList.remove('is-loading');
-      setTimeout(() => (cooling = false), 1200);
+  function bindOnce(){
+    const btn = document.querySelector(SEL);
+    if (!btn || btn.dataset.gjBound) return false;
+    btn.dataset.gjBound = '1';
+
+    let cooling = false;
+    const handler = async (e) => {
+      e.preventDefault();
+      if (cooling) return;
+      cooling = true;
+
+      const email = (window.GJ_CTX && window.GJ_CTX.email)
+                 || new URLSearchParams(location.search).get('email');
+      if (!email) { cooling = false; return; }
+
+      try {
+        btn.classList.add('is-loading');
+
+        await refreshBundle(email, {
+          mode: 'soft',
+          retries: [1200, 2500, 4000, 6000]
+        });
+
+        await refreshPopupsAfterBundle(email);
+
+        if (window.toast) toast.success('Actualizado ✨');
+      } catch (err) {
+        console.error(err);
+        if (window.toast) toast.error('No se pudo actualizar');
+      } finally {
+        btn.classList.remove('is-loading');
+        setTimeout(() => (cooling = false), 1200);
+      }
+    };
+
+    // iOS: a veces no dispara click → añadimos touchend/pointerup
+    btn.addEventListener('click',     handler, { passive:false });
+    btn.addEventListener('touchend',  handler, { passive:false });
+    btn.addEventListener('pointerup', handler, { passive:false });
+    return true;
+  }
+
+  // 1) si el DOM ya está, probá bind
+  if (!bindOnce()){
+    // 2) sino, espera al DOM…
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
     }
-  });
+    // 3) …y además observá por si el botón se inyecta después (SPA / tardío)
+    const mo = new MutationObserver(() => { bindOnce(); });
+    mo.observe(document.documentElement, { childList:true, subtree:true });
+  }
 })();
+
+
+// // === BOTÓN ACTUALIZAR ===
+// (function attachRefreshButton () {
+//   const btn = document.getElementById('refresh-kv')
+//             || document.querySelector('[data-action="refresh-kv"]');
+//   if (!btn) return;
+
+//   let cooling = false;
+//   btn.addEventListener('click', async (e) => {
+//     e.preventDefault();
+//     if (cooling) return;
+//     cooling = true;
+  
+//     const email = (window.GJ_CTX && window.GJ_CTX.email)
+//                || new URLSearchParams(location.search).get('email');
+//     if (!email) { alert('Falta email'); cooling = false; return; }
+  
+//     try {
+//       btn.classList.add('is-loading');
+  
+//       // 1) refrescá el KV del Worker en modo "soft" (espera a que avance)
+//       await refreshBundle(email, {
+//         mode: 'soft',
+//         retries: [1200, 2500, 4000, 6000], // un backoff un poco más robusto
+//       });
+  
+//       // 2) una vez fresco el bundle → pedí PopUps otra vez
+//       await refreshPopupsAfterBundle(email /* , { clearLocal:true } */);
+  
+//       // 3) feedback
+//       if (window.toast) toast.success('Actualizado ✨');
+//     } catch (err) {
+//       console.error(err);
+//       alert('No se pudo actualizar ahora.');
+//     } finally {
+//       btn.classList.remove('is-loading');
+//       setTimeout(() => (cooling = false), 1200);
+//     }
+//   });
+// })();
+
+
+
+
   // btn.addEventListener('click', async (e) => {
   //   e.preventDefault();
   //   if (cooling) return;
@@ -1104,8 +1168,11 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
   // });
 
 
-// —— Pull-to-Refresh móvil (simple, sin librerías) ——
+
+
+// —— Pull-to-Refresh móvil (iOS/Android, sin libs) ——
 (function attachPullToRefresh () {
+  const SC = document.scrollingElement || document.documentElement;
   let startY = 0, pulling = false, fired = false;
   const TH = 70;
 
@@ -1114,8 +1181,8 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     if (!tip){
       tip = document.createElement('div');
       tip.id = 'gj-ptr-tip';
-      tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px);'+
-        'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;'+
+      tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px);' +
+        'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;' +
         'font-size:12px;z-index:9999;transition:transform .2s,opacity .2s;opacity:0;';
       tip.textContent = 'Soltá para actualizar…';
       document.body.appendChild(tip);
@@ -1125,17 +1192,19 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
   }
   function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
 
-  window.addEventListener('touchstart', (e)=>{
-    if (window.scrollY > 0) return;
+  const atTop = () => (SC.scrollTop || 0) <= 0;
+
+  document.addEventListener('touchstart', (e)=>{
+    if (!atTop()) return;
     startY = e.touches[0].clientY;
     pulling = true; fired = false;
   }, { passive:true });
 
-  window.addEventListener('touchmove', (e)=>{
+  document.addEventListener('touchmove', (e)=>{
     if (!pulling) return;
     const dy = e.touches[0].clientY - startY;
-    if (window.scrollY <= 0 && dy > 10) showTip(Math.min(TH, dy/2));
-    if (window.scrollY <= 0 && dy > TH && !fired){
+    if (atTop() && dy > 10) showTip(Math.min(TH, dy/2));
+    if (atTop() && dy > TH && !fired){
       fired = true; hideTip();
       const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
       if (!email) return;
@@ -1153,10 +1222,66 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     }
   }, { passive:true });
 
-  window.addEventListener('touchend', ()=>{
+  document.addEventListener('touchend', ()=>{
     pulling = false; setTimeout(hideTip, 120);
   }, { passive:true });
 })();
+
+
+
+// —— Pull-to-Refresh móvil (simple, sin librerías) ——
+// (function attachPullToRefresh () {
+//   let startY = 0, pulling = false, fired = false;
+//   const TH = 70;
+
+//   let tip;
+//   function showTip(y){
+//     if (!tip){
+//       tip = document.createElement('div');
+//       tip.id = 'gj-ptr-tip';
+//       tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px);'+
+//         'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;'+
+//         'font-size:12px;z-index:9999;transition:transform .2s,opacity .2s;opacity:0;';
+//       tip.textContent = 'Soltá para actualizar…';
+//       document.body.appendChild(tip);
+//     }
+//     tip.style.opacity = '1';
+//     tip.style.transform = `translate(-50%,${Math.min(0, y-40)}px)`;
+//   }
+//   function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
+
+//   window.addEventListener('touchstart', (e)=>{
+//     if (window.scrollY > 0) return;
+//     startY = e.touches[0].clientY;
+//     pulling = true; fired = false;
+//   }, { passive:true });
+
+//   window.addEventListener('touchmove', (e)=>{
+//     if (!pulling) return;
+//     const dy = e.touches[0].clientY - startY;
+//     if (window.scrollY <= 0 && dy > 10) showTip(Math.min(TH, dy/2));
+//     if (window.scrollY <= 0 && dy > TH && !fired){
+//       fired = true; hideTip();
+//       const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
+//       if (!email) return;
+//       (async ()=>{
+//         try{
+//           if (window.toast) toast.info('Actualizando…');
+//           await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
+//           await refreshPopupsAfterBundle(email);
+//           if (window.toast) toast.success('Actualizado ✨');
+//         }catch(err){
+//           console.warn(err);
+//           if (window.toast) toast.error('No se pudo actualizar');
+//         }
+//       })();
+//     }
+//   }, { passive:true });
+
+//   window.addEventListener('touchend', ()=>{
+//     pulling = false; setTimeout(hideTip, 120);
+//   }, { passive:true });
+// })();
 
 
 // ===== CAMBIAR AVATAR abrir/cerrar + subir a ImgBB + persistir en Sheet =====
