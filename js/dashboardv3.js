@@ -1034,16 +1034,18 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 }
 
 
-// === BOTÓN ACTUALIZAR (bind robusto para mobile) ===
+// === BOTÓN ACTUALIZAR (bind seguro para mobile) ===
 (function attachRefreshButton () {
   const SEL = '#refresh-kv, [data-action="refresh-kv"]';
 
-  function bindOnce(){
+  function bind(){
     const btn = document.querySelector(SEL);
-    if (!btn || btn.dataset.gjBound) return false;
+    if (!btn || btn.dataset.gjBound) return;
     btn.dataset.gjBound = '1';
 
     let cooling = false;
+
+    // === Handler que te funcionaba (refresh + reload) ===
     const handler = async (e) => {
       e.preventDefault();
       if (cooling) return;
@@ -1051,46 +1053,104 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
       const email = (window.GJ_CTX && window.GJ_CTX.email)
                  || new URLSearchParams(location.search).get('email');
-      if (!email) { cooling = false; return; }
+      if (!email) { alert('Falta email'); cooling = false; return; }
 
       try {
         btn.classList.add('is-loading');
 
-        await refreshBundle(email, {
-          mode: 'soft',
-          retries: [1200, 2500, 4000, 6000]
-        });
+        // actualiza el KV en el Worker (usa tu refreshBundle tal cual)
+        await refreshBundle(email);  // (mode por defecto = 'reload' → puede recargar)
 
-        await refreshPopupsAfterBundle(email);
-
+        // feedback
         if (window.toast) toast.success('Actualizado ✨');
+
+        // pequeña pausa y recarga dura para asegurar render inmediato en iOS
+        await new Promise(r => setTimeout(r, 400));
+        const u = new URL(location.href); u.searchParams.set('r', Date.now());
+        location.replace(u.toString());
+        return;
       } catch (err) {
         console.error(err);
-        if (window.toast) toast.error('No se pudo actualizar');
+        alert('No se pudo actualizar ahora.');
       } finally {
         btn.classList.remove('is-loading');
-        setTimeout(() => (cooling = false), 1200);
+        setTimeout(() => (cooling = false), 1500);
       }
     };
 
-    // iOS: a veces no dispara click → añadimos touchend/pointerup
+    // iOS a veces no dispara click → sumo touchend/pointerup
     btn.addEventListener('click',     handler, { passive:false });
     btn.addEventListener('touchend',  handler, { passive:false });
     btn.addEventListener('pointerup', handler, { passive:false });
-    return true;
   }
 
-  // 1) si el DOM ya está, probá bind
-  if (!bindOnce()){
-    // 2) sino, espera al DOM…
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
-    }
-    // 3) …y además observá por si el botón se inyecta después (SPA / tardío)
-    const mo = new MutationObserver(() => { bindOnce(); });
-    mo.observe(document.documentElement, { childList:true, subtree:true });
+  // Si el botón aún no existe, enganchá al cargar el DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bind, { once:true });
+  } else {
+    bind();
   }
 })();
+
+
+
+// // === BOTÓN ACTUALIZAR (bind robusto para mobile) ===
+// (function attachRefreshButton () {
+//   const SEL = '#refresh-kv, [data-action="refresh-kv"]';
+
+//   function bindOnce(){
+//     const btn = document.querySelector(SEL);
+//     if (!btn || btn.dataset.gjBound) return false;
+//     btn.dataset.gjBound = '1';
+
+//     let cooling = false;
+//     const handler = async (e) => {
+//       e.preventDefault();
+//       if (cooling) return;
+//       cooling = true;
+
+//       const email = (window.GJ_CTX && window.GJ_CTX.email)
+//                  || new URLSearchParams(location.search).get('email');
+//       if (!email) { cooling = false; return; }
+
+//       try {
+//         btn.classList.add('is-loading');
+
+//         await refreshBundle(email, {
+//           mode: 'soft',
+//           retries: [1200, 2500, 4000, 6000]
+//         });
+
+//         await refreshPopupsAfterBundle(email);
+
+//         if (window.toast) toast.success('Actualizado ✨');
+//       } catch (err) {
+//         console.error(err);
+//         if (window.toast) toast.error('No se pudo actualizar');
+//       } finally {
+//         btn.classList.remove('is-loading');
+//         setTimeout(() => (cooling = false), 1200);
+//       }
+//     };
+
+//     // iOS: a veces no dispara click → añadimos touchend/pointerup
+//     btn.addEventListener('click',     handler, { passive:false });
+//     btn.addEventListener('touchend',  handler, { passive:false });
+//     btn.addEventListener('pointerup', handler, { passive:false });
+//     return true;
+//   }
+
+//   // 1) si el DOM ya está, probá bind
+//   if (!bindOnce()){
+//     // 2) sino, espera al DOM…
+//     if (document.readyState === 'loading') {
+//       document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
+//     }
+//     // 3) …y además observá por si el botón se inyecta después (SPA / tardío)
+//     const mo = new MutationObserver(() => { bindOnce(); });
+//     mo.observe(document.documentElement, { childList:true, subtree:true });
+//   }
+// })();
 
 
 // // === BOTÓN ACTUALIZAR ===
@@ -1170,7 +1230,7 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
 
 
-// —— Pull-to-Refresh móvil (iOS/Android, sin libs) ——
+// —— Pull-to-Refresh móvil (iOS/Android) — usa el mismo flujo que el botón
 (function attachPullToRefresh () {
   const SC = document.scrollingElement || document.documentElement;
   let startY = 0, pulling = false, fired = false;
@@ -1191,7 +1251,6 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     tip.style.transform = `translate(-50%,${Math.min(0, y-40)}px)`;
   }
   function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
-
   const atTop = () => (SC.scrollTop || 0) <= 0;
 
   document.addEventListener('touchstart', (e)=>{
@@ -1206,14 +1265,18 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     if (atTop() && dy > 10) showTip(Math.min(TH, dy/2));
     if (atTop() && dy > TH && !fired){
       fired = true; hideTip();
-      const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
+
+      const email = (window.GJ_CTX && window.GJ_CTX.email)
+                 || new URLSearchParams(location.search).get('email');
       if (!email) return;
+
       (async ()=>{
         try{
           if (window.toast) toast.info('Actualizando…');
-          await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
-          await refreshPopupsAfterBundle(email);
-          if (window.toast) toast.success('Actualizado ✨');
+          await refreshBundle(email); // mismo flujo que botón (reload por defecto)
+          await new Promise(r => setTimeout(r, 300));
+          const u = new URL(location.href); u.searchParams.set('r', Date.now());
+          location.replace(u.toString());
         }catch(err){
           console.warn(err);
           if (window.toast) toast.error('No se pudo actualizar');
@@ -1226,6 +1289,65 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     pulling = false; setTimeout(hideTip, 120);
   }, { passive:true });
 })();
+
+
+
+// // —— Pull-to-Refresh móvil (iOS/Android, sin libs) ——
+// (function attachPullToRefresh () {
+//   const SC = document.scrollingElement || document.documentElement;
+//   let startY = 0, pulling = false, fired = false;
+//   const TH = 70;
+
+//   let tip;
+//   function showTip(y){
+//     if (!tip){
+//       tip = document.createElement('div');
+//       tip.id = 'gj-ptr-tip';
+//       tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px);' +
+//         'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;' +
+//         'font-size:12px;z-index:9999;transition:transform .2s,opacity .2s;opacity:0;';
+//       tip.textContent = 'Soltá para actualizar…';
+//       document.body.appendChild(tip);
+//     }
+//     tip.style.opacity = '1';
+//     tip.style.transform = `translate(-50%,${Math.min(0, y-40)}px)`;
+//   }
+//   function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
+
+//   const atTop = () => (SC.scrollTop || 0) <= 0;
+
+//   document.addEventListener('touchstart', (e)=>{
+//     if (!atTop()) return;
+//     startY = e.touches[0].clientY;
+//     pulling = true; fired = false;
+//   }, { passive:true });
+
+//   document.addEventListener('touchmove', (e)=>{
+//     if (!pulling) return;
+//     const dy = e.touches[0].clientY - startY;
+//     if (atTop() && dy > 10) showTip(Math.min(TH, dy/2));
+//     if (atTop() && dy > TH && !fired){
+//       fired = true; hideTip();
+//       const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
+//       if (!email) return;
+//       (async ()=>{
+//         try{
+//           if (window.toast) toast.info('Actualizando…');
+//           await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
+//           await refreshPopupsAfterBundle(email);
+//           if (window.toast) toast.success('Actualizado ✨');
+//         }catch(err){
+//           console.warn(err);
+//           if (window.toast) toast.error('No se pudo actualizar');
+//         }
+//       })();
+//     }
+//   }, { passive:true });
+
+//   document.addEventListener('touchend', ()=>{
+//     pulling = false; setTimeout(hideTip, 120);
+//   }, { passive:true });
+// })();
 
 
 
