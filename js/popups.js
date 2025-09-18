@@ -155,16 +155,21 @@ function renderPopup(item, onClose){
     ctaBtn.addEventListener('click', ()=>{
       const act = (item.cta_action||'').toLowerCase();
       if (act === 'open_link' && item.cta_link){
-        window.open(item.cta_link, '_blank', 'noopener');
+        const url = String(item.cta_link);
+        if (url.startsWith('#')){
+          document.querySelector(url)?.scrollIntoView({ behavior:'smooth', block:'start' });
+        } else {
+          location.href = url; // MISMA pestaña
+        }
       } else if (act === 'open_scheduler'){
         const p = window.GJ_CTX?.scheduler || {};
-        window.openSchedulerModal?.({
-          canal: p.canal, frecuencia: p.frecuencia, dias: p.dias,
-          hora: p.hora ?? 8, timezone: p.timezone, estado: p.estado,
-          linkPublico: window.GJ_CTX?.linkPublico || ''
-        });
+        window.openSchedulerModal?.({ canal:p.canal, frecuencia:p.frecuencia, dias:p.dias,
+          hora:p.hora ?? 8, timezone:p.timezone, estado:p.estado,
+          linkPublico: window.GJ_CTX?.linkPublico || '' });
       }
-      finish('cta');
+      // cerramos igual
+      ov.classList.remove('show'); ov.innerHTML=''; document.body.style.overflow='';
+      onClose && onClose({ how:'cta', item });
     });
   }
 }
@@ -193,22 +198,41 @@ async function runPopups(){
   const ackItems = [];
   const next = ()=>{
     const it = queue.shift();
-    if (!it) {
-      if (ackItems.length){
-        // envía todo junto: marca vistos + suma bonus (idempotente en backend)
-        postAckToServer({ email, items: ackItems }).catch(()=>{});
-      }
-      return;
-    }
-    renderPopup(it, ({how})=>{
-      // marcar visto local (para no re-mostrar si refresca)
+    if (!it) return;
+  
+    renderPopup(it, async ({how})=>{
       addSeen(email, it.id);
-
-      // calcular bonus y acumular
+  
+      // 1) calcula bonus
       const bonus = getBonusFromItem(it);
-      if (bonus > 0) ackItems.push({ id: it.id, bonus });
-
-      // continuar con la cola
+  
+      // 2) refresca UI local al toque
+      if (bonus > 0) {
+        try {
+          // número simple
+          const el = document.querySelector('[data-xp-current]');
+          if (el){
+            const cur = Number(el.getAttribute('data-xp-current')) || 0;
+            const nextVal = cur + bonus;
+            el.setAttribute('data-xp-current', String(nextVal));
+            el.textContent = nextVal.toLocaleString();
+          }
+          // barra (opcional) data-xp-progress (0..1)
+          const bar = document.querySelector('[data-xp-progress]');
+          if (bar){
+            const cur = Number(bar.getAttribute('data-xp-progress')) || 0;
+            const step = Number(bar.getAttribute('data-xp-step') || 0) || 100; // si tenés cuánto vale 1 “paso”
+            const next = cur + (bonus/step);
+            bar.setAttribute('data-xp-progress', String(next));
+            bar.style.setProperty('--progress', Math.min(1,next));
+          }
+        } catch(_){}
+      }
+  
+      // 3) manda ACK inmediato (marca + suma en E22, idempotente)
+      try { await postAckToServer({ email, items: [{ id: it.id, bonus }] }); } catch(_){}
+  
+      // 4) siguiente popup
       next();
     });
   };
