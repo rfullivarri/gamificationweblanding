@@ -1106,66 +1106,57 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
 // —— Pull-to-Refresh móvil (simple, sin librerías) ——
 (function attachPullToRefresh () {
-  const SC = document.scrollingElement || document.documentElement;
-  let startY = 0, pulling = false, triggered = false;
-  const THRESHOLD = 70;
+  let startY = 0, pulling = false, fired = false;
+  const TH = 70;
 
-  // mini indicador
-  let tip = document.getElementById('gj-ptr-tip');
-  function ensureTip(){
-    if (tip) return tip;
-    tip = document.createElement('div');
-    tip.id = 'gj-ptr-tip';
-    tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translateX(-50%) translateY(-40px);'+
-                        'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;'+
-                        'font-size:12px;z-index:9999;transition:transform .2s ease, opacity .2s ease;opacity:0;';
-    tip.textContent = 'Soltá para actualizar…';
-    document.body.appendChild(tip);
-    return tip;
+  let tip;
+  function showTip(y){
+    if (!tip){
+      tip = document.createElement('div');
+      tip.id = 'gj-ptr-tip';
+      tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px);'+
+        'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;'+
+        'font-size:12px;z-index:9999;transition:transform .2s,opacity .2s;opacity:0;';
+      tip.textContent = 'Soltá para actualizar…';
+      document.body.appendChild(tip);
+    }
+    tip.style.opacity = '1';
+    tip.style.transform = `translate(-50%,${Math.min(0, y-40)}px)`;
   }
-  function showTip(y){ const el = ensureTip(); el.style.opacity='1'; el.style.transform=`translateX(-50%) translateY(${Math.min(0, y-40)}px)`; }
-  function hideTip(){ if (!tip) return; tip.style.opacity='0'; tip.style.transform='translateX(-50%) translateY(-40px)'; }
+  function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
 
   window.addEventListener('touchstart', (e)=>{
-    if (SC.scrollTop !== 0) return;
+    if (window.scrollY > 0) return;
     startY = e.touches[0].clientY;
-    pulling = true; triggered = false;
+    pulling = true; fired = false;
   }, { passive:true });
 
   window.addEventListener('touchmove', (e)=>{
     if (!pulling) return;
     const dy = e.touches[0].clientY - startY;
-    if (dy > 10 && SC.scrollTop === 0){
-      showTip(Math.min(THRESHOLD, dy/2));
-    }
-    if (dy > THRESHOLD && !triggered && SC.scrollTop === 0){
-      triggered = true;
-      hideTip();
-      // ejecuta el mismo flujo del botón
-      const email = (window.GJ_CTX && window.GJ_CTX.email)
-                 || new URLSearchParams(location.search).get('email');
-      if (email){
-        (async ()=>{
-          try{
-            if (window.toast) toast.info('Actualizando…');
-            await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
-            await refreshPopupsAfterBundle(email);
-            if (window.toast) toast.success('Actualizado ✨');
-          }catch(err){
-            console.warn(err);
-            if (window.toast) toast.error('No se pudo actualizar');
-          }
-        })();
-      }
+    if (window.scrollY <= 0 && dy > 10) showTip(Math.min(TH, dy/2));
+    if (window.scrollY <= 0 && dy > TH && !fired){
+      fired = true; hideTip();
+      const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
+      if (!email) return;
+      (async ()=>{
+        try{
+          if (window.toast) toast.info('Actualizando…');
+          await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
+          await refreshPopupsAfterBundle(email);
+          if (window.toast) toast.success('Actualizado ✨');
+        }catch(err){
+          console.warn(err);
+          if (window.toast) toast.error('No se pudo actualizar');
+        }
+      })();
     }
   }, { passive:true });
 
   window.addEventListener('touchend', ()=>{
-    pulling = false;
-    setTimeout(hideTip, 120);
+    pulling = false; setTimeout(hideTip, 120);
   }, { passive:true });
 })();
-
 
 
 // ===== CAMBIAR AVATAR abrir/cerrar + subir a ImgBB + persistir en Sheet =====
