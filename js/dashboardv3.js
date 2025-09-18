@@ -1,3 +1,6 @@
+// webapp POPUPS + BONUS XP
+window.WEBAPP_POPUPS_URL = 'https://script.google.com/macros/s/AKfycbzKOhJnvv_UW3WkTDSuHRhkq3O3KxLx_A72q8JZYKpcJCmTj3yQ1nuhCBKPoMlDvJ6U/exec';
+
 // ===== Auto-Refresh del bundle (polling suave) =====
 function startAutoRefresh({ email, intervalMs = 15000, soft = true } = {}) {
   if (!email) return { stop(){}, poke(){} };
@@ -1962,3 +1965,16 @@ async function refreshBundle(
 
   document.addEventListener('DOMContentLoaded', initInfoChips);
 })();
+
+//CARGA DE XP_BONUS
+async function ackPopupAndBonus({ email, items }) {
+  // WEBAPP_POPUPS_URL: definilo en tu boot JS global
+  const res = await fetch(window.WEBAPP_POPUPS_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'application/json' },
+    body: JSON.stringify({ email, items }) // <- sin fn, porque el backend ya detecta items[]
+  });
+  const j = await res.json();
+  if (!j.ok) throw new Error(j.err || 'Error ack+bonus');
+  return j;
+}
