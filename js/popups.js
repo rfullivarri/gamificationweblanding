@@ -278,17 +278,25 @@ function renderWeekRecapPopup(item, onClose){
   }
 }
 
-// ==== Router: si es recap, usar renderer especializado ====
-const __renderPopupOriginal = renderPopup;  // guarda tu renderer original
-function renderPopup(item, onClose){
-  const t = String(item && item.trigger || '').toUpperCase();
-  const id = String(item && item.id || '');
-  if (t === 'AUTO_WEEK_RECAP' || id.indexOf('HITO_WEEK_RECAP') === 0){
-    try { return renderWeekRecapPopup(item, onClose); }
-    catch(e){ console.warn('week recap fallback → genérico', e); }
-  }
-  return __renderPopupOriginal(item, onClose);
-}
+// ==== Router seguro: captura el original una sola vez y evita doble wrap ====
+(function attachWeekRecapRouter(){
+  if (window.__GJ_POPUP_ROUTED__) return;         // evita envolver dos veces
+  const ORIG = window.renderPopup.bind(window);   // captura el genérico ORIGINAL
+  window.__GJ_POPUP_ROUTED__ = true;
+
+  window.renderPopup = function(item, onClose){
+    try{
+      const t  = String(item?.trigger||'').toUpperCase();
+      const id = String(item?.id||'');
+      if (t === 'AUTO_WEEK_RECAP' || id.startsWith('HITO_WEEK_RECAP')){
+        return renderWeekRecapPopup(item, onClose);   // usa el renderer nuevo
+      }
+    }catch(e){
+      console.warn('router err', e);
+    }
+    return ORIG(item, onClose);                       // cae al original capturado
+  };
+})();
 
 
 /* ------------ Controller ------------- */
