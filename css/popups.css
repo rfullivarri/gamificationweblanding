@@ -154,6 +154,9 @@
 function ensureWeekRecapCSS(){
   if (document.getElementById('gj-weekrecap-css')) return;
   const css = `
+  /* asegurar que el modal quede por encima */
+  #gj-pop-overlay{ z-index:9999; }
+
   .gj-pop .wk { margin-top: 8px; }
   .wk-pillar { opacity: 0; transform: translateY(6px); transition: opacity .28s ease, transform .28s ease; margin-top: 8px; }
   .wk-pillar.in { opacity: 1; transform: translateY(0); }
@@ -171,6 +174,13 @@ function ensureWeekRecapCSS(){
   .wk-fill { position:absolute; left:0; top:0; bottom:0; width:0%; border-radius:999px; background:linear-gradient(90deg,#a78bfa,#8b5cf6); transition: width .35s ease; }
   .wk-empty { opacity:.7; font-size:12px; padding:8px 0; }
   .gj-pop .hero-emoji.calendar { filter: drop-shadow(0 0 6px rgba(180,160,255,.55)); }
+
+  /* accesibilidad: respeta prefers-reduced-motion */
+  @media (prefers-reduced-motion: reduce){
+    .wk-pillar, .wk-card { transition: none !important; transform: none !important; }
+    .wk-count.pulse { animation: none !important; }
+    .wk-fill { transition: none !important; width: 100% !important; }
+  }
   `;
   const tag = document.createElement('style');
   tag.id = 'gj-weekrecap-css';
