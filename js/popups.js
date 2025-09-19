@@ -208,21 +208,29 @@ function renderPopup(item, onClose){
   }
 }
 
+
+
 // ==== WEEK RECAP (renderer especializado) ====
 function renderWeekRecapPopup(item, onClose){
-  window.ensureWeekRecapCSS();                       // <- inyecta CSS (ahora sí existe)
-  console.debug('[WK] renderer ON', item?.extra?.pillars); // <- verificación en consola
-  const ov = ensureOverlay(); ensureWeekRecapCSS();
+  // CSS y overlay en modo "recap" (sin bloquear scroll del body)
+  window.ensureWeekRecapCSS();
+  const ov = ensureOverlay();
+  ov.classList.add('recap');   // estilos especiales para overlay recap
   ov.innerHTML = '';
 
-  const hero = `<span class="hero-emoji calendar" aria-hidden="true">📅</span>`;
+  // Hero (emoji calendario si no hay imagen)
+  const hero = item.hero_url
+    ? `<img class="hero-img" src="${item.hero_url}" alt="" />`
+    : `<span class="hero-emoji calendar" aria-hidden="true">📅</span>`;
+
+  // Tarjeta base en modo recap (sin max-height/scroll interno)
   const card = document.createElement('div');
-  card.className = 'gj-pop';
+  card.className = 'gj-pop recap';
   card.setAttribute('data-popid', item.id || '');
   card.innerHTML = `
     <button class="close" aria-label="Cerrar">✕</button>
     <div class="pop-row">
-      <div class="hero">${item.hero_url ? `<img class="hero-img" src="${item.hero_url}" alt="" />` : hero}</div>
+      <div class="hero">${hero}</div>
       <div class="content wk">
         <h3 class="title">${item.title || 'Resumen semanal'}</h3>
         <div class="lead">${(item.body_md || '').replace(/\n/g,'<br/>')}</div>
@@ -235,14 +243,13 @@ function renderWeekRecapPopup(item, onClose){
   ov.appendChild(card);
   ov.classList.add('show');
 
-  // lock scroll
-  const prevOverflow = document.body.style.overflow;
-  document.body.style.overflow = 'hidden';
+  // Un poco más de confetti al abrir
+  try { confetti(card); setTimeout(()=>confetti(card), 220); } catch(_){}
 
+  // Cerrar / CTA
   const finish = (how)=>{
     ov.classList.remove('show');
     ov.innerHTML = '';
-    document.body.style.overflow = prevOverflow || '';
     onClose && onClose({ how: (how||'close'), item });
   };
   card.querySelector('.close')?.addEventListener('click', ()=> finish('close'));
@@ -252,7 +259,7 @@ function renderWeekRecapPopup(item, onClose){
   if (ctaBtn){
     ctaBtn.addEventListener('click', ()=>{
       const link = item.cta_link || '#';
-      if (link.startsWith('#')) {
+      if (String(link).startsWith('#')) {
         document.querySelector(link)?.scrollIntoView({ behavior:'smooth', block:'start' });
       } else {
         location.href = link;
@@ -261,58 +268,212 @@ function renderWeekRecapPopup(item, onClose){
     });
   }
 
-  // === build sections por pilar
+  // === Build sections por pilar ===========================================
   const secRoot = card.querySelector('.wk-sections');
   const data = (item.extra && item.extra.pillars) || {};
-  const order = ['body','mind','soul','otros'];
-  const labels = { body:'Body', mind:'Mind', soul:'Soul', otros:'Otros' };
+  const GOAL = Number(item.extra && item.extra.goal) || 3;
 
-  let pillarDelay = 0;
-  order.forEach(p=>{
-    const list = Array.isArray(data[p]) ? data[p] : [];
+  // Orden y títulos + emojis pedidos
+  const PILLARS = [
+    ['body', 'BODY', '🫀'],
+    ['mind', 'MIND', '🧠'],
+    ['soul', 'SOUL', '🏵️'],
+    ['otros','OTROS','•']
+  ];
+
+  // Stagger / ritmo
+  const START_DELAY   = 250;  // ms antes del primer item
+  const PILLAR_STAG   = 320;  // separación entre pilares
+  const CARD_STAG     = 320;  // separación entre tareas dentro del pilar
+  const MAX_PER_PILLAR = 3;   // tope visible por pilar
+
+  let globalIdx = 0; // para escalonar animaciones suavemente
+
+  PILLARS.forEach(([key, label, emoji])=>{
+    const list = Array.isArray(data[key]) ? data[key] : [];
     if (!list.length) return;
 
     const sec = document.createElement('section');
     sec.className = 'wk-pillar';
-    sec.setAttribute('data-pillar', p);
-    sec.innerHTML = `<div class="wk-title">${labels[p]}</div><div class="wk-list"></div>`;
+    sec.setAttribute('data-pillar', key);
+    sec.innerHTML = `
+      <div class="wk-title">
+        <span class="wk-ico">${emoji}</span>
+        <span>${label}</span>
+      </div>
+      <div class="wk-list"></div>
+    `;
     secRoot.appendChild(sec);
 
-    // revelar contenedor del pilar en cascada
-    setTimeout(()=>sec.classList.add('in'), pillarDelay);
-    pillarDelay += 300;
+    // revelar contenedor del pilar
+    const pillarAppearAt = START_DELAY + PILLAR_STAG*globalIdx;
+    setTimeout(()=> sec.classList.add('in'), pillarAppearAt);
 
-    // cards dentro del pilar (cascada)
     const listEl = sec.querySelector('.wk-list');
-    list.forEach((it, idx)=>{
+
+    // Render de tareas (máximo 3 visibles)
+    list.forEach((t, i)=>{
       const cc = document.createElement('div');
-      cc.className = 'wk-card';
-      const countText = `${it.count}/${it.goal}`;
+      const visible = (i < MAX_PER_PILLAR);
+      cc.className = 'wk-card' + (visible ? '' : ' hidden');
+
+      const c = Math.min(Number(t.count)||0, GOAL);
+      const countText = `${c}/${GOAL}`;
       cc.innerHTML = `
         <div class="wk-row">
           <span class="wk-dot"></span>
-          <span class="wk-name">${it.task}</span>
+          <span class="wk-name">${t.task}</span>
           <span class="wk-count">${countText}</span>
         </div>
         <div class="wk-bar"><span class="wk-fill"></span></div>
       `;
       listEl.appendChild(cc);
 
-      const d = pillarDelay + idx*300; // cascada
-      setTimeout(()=>{
-        cc.classList.add('in');
-        const fill = cc.querySelector('.wk-fill');
-        const cnt  = cc.querySelector('.wk-count');
-        requestAnimationFrame(()=>{ fill.style.width = '100%'; });
-        setTimeout(()=> cnt.classList.add('pulse'), 260);
-      }, d);
+      if (visible){
+        const d = pillarAppearAt + CARD_STAG*(i+0.3);
+        setTimeout(()=>{
+          cc.classList.add('in');
+          const fill = cc.querySelector('.wk-fill');
+          const cnt  = cc.querySelector('.wk-count');
+          requestAnimationFrame(()=>{ fill.style.width = '100%'; });
+          setTimeout(()=> cnt.classList.add('pulse'), 300);
+        }, d);
+      }
     });
+
+    // “Mostrar X más” si hay más de 3
+    if (list.length > MAX_PER_PILLAR){
+      const more = document.createElement('div');
+      more.className = 'wk-more';
+      more.textContent = `Mostrar ${list.length - MAX_PER_PILLAR} más`;
+      more.addEventListener('click', ()=>{
+        const hidden = listEl.querySelectorAll('.wk-card.hidden');
+        hidden.forEach((el, j)=>{
+          el.classList.remove('hidden');
+          setTimeout(()=> el.classList.add('in'), 30 + j*140);
+          const fill = el.querySelector('.wk-fill');
+          const cnt  = el.querySelector('.wk-count');
+          setTimeout(()=> { fill.style.width = '100%'; }, 50 + j*140);
+          setTimeout(()=> { cnt.classList.add('pulse'); }, 260 + j*140);
+        });
+        more.remove();
+      });
+      sec.appendChild(more);
+    }
+
+    globalIdx++;
   });
 
   if (!secRoot.children.length){
     secRoot.innerHTML = `<div class="wk-empty">No hay tareas cumplidas esta semana.</div>`;
   }
 }
+
+// // ==== WEEK RECAP (renderer especializado) ====
+// function renderWeekRecapPopup(item, onClose){
+//   window.ensureWeekRecapCSS();                       // <- inyecta CSS (ahora sí existe)
+//   console.debug('[WK] renderer ON', item?.extra?.pillars); // <- verificación en consola
+//   const ov = ensureOverlay(); ensureWeekRecapCSS();
+//   ov.innerHTML = '';
+
+//   const hero = `<span class="hero-emoji calendar" aria-hidden="true">📅</span>`;
+//   const card = document.createElement('div');
+//   card.className = 'gj-pop';
+//   card.setAttribute('data-popid', item.id || '');
+//   card.innerHTML = `
+//     <button class="close" aria-label="Cerrar">✕</button>
+//     <div class="pop-row">
+//       <div class="hero">${item.hero_url ? `<img class="hero-img" src="${item.hero_url}" alt="" />` : hero}</div>
+//       <div class="content wk">
+//         <h3 class="title">${item.title || 'Resumen semanal'}</h3>
+//         <div class="lead">${(item.body_md || '').replace(/\n/g,'<br/>')}</div>
+//         <div class="wk-sections"></div>
+//         ${item.cta_text ? `<button class="cta" id="gj-pop-cta">${item.cta_text}</button>` : ''}
+//         ${item.here_url ? `<a class="sub" href="${item.here_url}" target="_blank" rel="noopener">Más info</a>` : ''}
+//       </div>
+//     </div>
+//   `;
+//   ov.appendChild(card);
+//   ov.classList.add('show');
+
+//   // lock scroll
+//   const prevOverflow = document.body.style.overflow;
+//   document.body.style.overflow = 'hidden';
+
+//   const finish = (how)=>{
+//     ov.classList.remove('show');
+//     ov.innerHTML = '';
+//     document.body.style.overflow = prevOverflow || '';
+//     onClose && onClose({ how: (how||'close'), item });
+//   };
+//   card.querySelector('.close')?.addEventListener('click', ()=> finish('close'));
+
+//   // CTA SIEMPRE MISMA PESTAÑA
+//   const ctaBtn = card.querySelector('#gj-pop-cta');
+//   if (ctaBtn){
+//     ctaBtn.addEventListener('click', ()=>{
+//       const link = item.cta_link || '#';
+//       if (link.startsWith('#')) {
+//         document.querySelector(link)?.scrollIntoView({ behavior:'smooth', block:'start' });
+//       } else {
+//         location.href = link;
+//       }
+//       finish('cta');
+//     });
+//   }
+
+//   // === build sections por pilar
+//   const secRoot = card.querySelector('.wk-sections');
+//   const data = (item.extra && item.extra.pillars) || {};
+//   const order = ['body','mind','soul','otros'];
+//   const labels = { body:'Body', mind:'Mind', soul:'Soul', otros:'Otros' };
+
+//   let pillarDelay = 0;
+//   order.forEach(p=>{
+//     const list = Array.isArray(data[p]) ? data[p] : [];
+//     if (!list.length) return;
+
+//     const sec = document.createElement('section');
+//     sec.className = 'wk-pillar';
+//     sec.setAttribute('data-pillar', p);
+//     sec.innerHTML = `<div class="wk-title">${labels[p]}</div><div class="wk-list"></div>`;
+//     secRoot.appendChild(sec);
+
+//     // revelar contenedor del pilar en cascada
+//     setTimeout(()=>sec.classList.add('in'), pillarDelay);
+//     pillarDelay += 300;
+
+//     // cards dentro del pilar (cascada)
+//     const listEl = sec.querySelector('.wk-list');
+//     list.forEach((it, idx)=>{
+//       const cc = document.createElement('div');
+//       cc.className = 'wk-card';
+//       const countText = `${it.count}/${it.goal}`;
+//       cc.innerHTML = `
+//         <div class="wk-row">
+//           <span class="wk-dot"></span>
+//           <span class="wk-name">${it.task}</span>
+//           <span class="wk-count">${countText}</span>
+//         </div>
+//         <div class="wk-bar"><span class="wk-fill"></span></div>
+//       `;
+//       listEl.appendChild(cc);
+
+//       const d = pillarDelay + idx*300; // cascada
+//       setTimeout(()=>{
+//         cc.classList.add('in');
+//         const fill = cc.querySelector('.wk-fill');
+//         const cnt  = cc.querySelector('.wk-count');
+//         requestAnimationFrame(()=>{ fill.style.width = '100%'; });
+//         setTimeout(()=> cnt.classList.add('pulse'), 260);
+//       }, d);
+//     });
+//   });
+
+//   if (!secRoot.children.length){
+//     secRoot.innerHTML = `<div class="wk-empty">No hay tareas cumplidas esta semana.</div>`;
+//   }
+// }
 
 // ==== Router seguro: una sola envoltura, sin recursión ====
 (function attachWeekRecapRouter(){
