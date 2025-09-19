@@ -176,6 +176,8 @@ function renderPopup(item, onClose){
 
 // ==== WEEK RECAP (renderer especializado) ====
 function renderWeekRecapPopup(item, onClose){
+  window.ensureWeekRecapCSS();                       // <- inyecta CSS (ahora sí existe)
+  console.debug('[WK] renderer ON', item?.extra?.pillars); // <- verificación en consola
   const ov = ensureOverlay(); ensureWeekRecapCSS();
   ov.innerHTML = '';
 
@@ -278,25 +280,41 @@ function renderWeekRecapPopup(item, onClose){
   }
 }
 
-// ==== Router seguro: captura el original una sola vez y evita doble wrap ====
+// ==== Router seguro: una sola envoltura, sin recursión ====
 (function attachWeekRecapRouter(){
-  if (window.__GJ_POPUP_ROUTED__) return;         // evita envolver dos veces
-  const ORIG = window.renderPopup.bind(window);   // captura el genérico ORIGINAL
+  if (window.__GJ_POPUP_ROUTED__) return;
+  const ORIG = window.renderPopup.bind(window);
   window.__GJ_POPUP_ROUTED__ = true;
 
   window.renderPopup = function(item, onClose){
-    try{
-      const t  = String(item?.trigger||'').toUpperCase();
-      const id = String(item?.id||'');
-      if (t === 'AUTO_WEEK_RECAP' || id.startsWith('HITO_WEEK_RECAP')){
-        return renderWeekRecapPopup(item, onClose);   // usa el renderer nuevo
-      }
-    }catch(e){
-      console.warn('router err', e);
+    const t  = String(item?.trigger||'').toUpperCase();
+    const id = String(item?.id||'');
+    if (t === 'AUTO_WEEK_RECAP' || id.startsWith('HITO_WEEK_RECAP')){
+      return renderWeekRecapPopup(item, onClose);
     }
-    return ORIG(item, onClose);                       // cae al original capturado
+    return ORIG(item, onClose);
   };
 })();
+
+// // ==== Router seguro: captura el original una sola vez y evita doble wrap ====
+// (function attachWeekRecapRouter(){
+//   if (window.__GJ_POPUP_ROUTED__) return;         // evita envolver dos veces
+//   const ORIG = window.renderPopup.bind(window);   // captura el genérico ORIGINAL
+//   window.__GJ_POPUP_ROUTED__ = true;
+
+//   window.renderPopup = function(item, onClose){
+//     try{
+//       const t  = String(item?.trigger||'').toUpperCase();
+//       const id = String(item?.id||'');
+//       if (t === 'AUTO_WEEK_RECAP' || id.startsWith('HITO_WEEK_RECAP')){
+//         return renderWeekRecapPopup(item, onClose);   // usa el renderer nuevo
+//       }
+//     }catch(e){
+//       console.warn('router err', e);
+//     }
+//     return ORIG(item, onClose);                       // cae al original capturado
+//   };
+// })();
 
 
 /* ------------ Controller ------------- */
