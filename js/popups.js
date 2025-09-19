@@ -41,38 +41,108 @@ function getBonusFromItem(it){
   return m ? Number(m[1]) : 0;
 }
 
+
+
+
 // ==== WEEK RECAP CSS (global y una sola vez) ====
 window.ensureWeekRecapCSS = function(){
   if (document.getElementById('gj-weekrecap-css')) return;
   const css = `
-  #gj-pop-overlay{ z-index:9999; }
+  /* Overlay y card en modo recap: SIN scroll interno */
+  #gj-pop-overlay.recap{ z-index:9999; align-items:flex-start; overflow-y:auto; padding:24px 12px; }
+  .gj-pop.recap{ max-height:none !important; overflow:visible !important; }
+
   .gj-pop .wk { margin-top: 8px; }
-  .wk-pillar { opacity: 0; transform: translateY(6px); transition: opacity .28s ease, transform .28s ease; margin-top: 8px; }
-  .wk-pillar.in { opacity: 1; transform: translateY(0); }
-  .wk-title { font-size: 13px; letter-spacing:.3px; text-transform:uppercase; opacity:.8; margin: 10px 0 6px; }
-  .wk-list { display:flex; flex-direction:column; gap:8px; }
-  .wk-card { opacity:0; transform: translateY(6px) scale(.98); border-radius:12px; padding:10px 12px; background:rgba(255,255,255,.04); transition: opacity .26s ease, transform .26s ease; }
-  .wk-card.in { opacity:1; transform: translateY(0) scale(1); }
-  .wk-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-  .wk-dot { width:8px; height:8px; border-radius:50%; background:#3ddc84; box-shadow:0 0 8px rgba(61,220,132,.6); flex:0 0 8px; }
-  .wk-name { flex:1; font-weight:600; }
-  .wk-count { font-variant-numeric: tabular-nums; opacity:.9; transform-origin:center; }
-  .wk-count.pulse { animation: wkPulse .35s ease; }
-  @keyframes wkPulse{ 0%{transform:scale(.9);opacity:.6} 60%{transform:scale(1.1);opacity:1} 100%{transform:scale(1)} }
-  .wk-bar { position:relative; height:8px; border-radius:999px; background:rgba(180,160,255,.18); overflow:hidden; }
-  .wk-fill { position:absolute; left:0; top:0; bottom:0; width:0%; border-radius:999px; background:linear-gradient(90deg,#a78bfa,#8b5cf6); transition: width .35s ease; }
-  .wk-empty { opacity:.7; font-size:12px; padding:8px 0; }
-  .gj-pop .hero-emoji.calendar { filter: drop-shadow(0 0 6px rgba(180,160,255,.55)); }
+
+  /* Pilar como CARD (bordes redondeados + fondo) */
+  .wk-pillar{
+    opacity:0; transform:translateY(8px);
+    transition:opacity .36s ease, transform .36s ease;
+    margin-top:12px; padding:12px 12px 10px;
+    border-radius:14px; background:rgba(255,255,255,.055);
+    outline:1px solid rgba(180,160,255,.10);
+    box-shadow:0 6px 20px rgba(0,0,0,.18) inset, 0 2px 10px rgba(0,0,0,.06);
+  }
+  .wk-pillar.in{ opacity:1; transform:translateY(0); }
+
+  /* Título con icono */
+  .wk-title{ display:flex; align-items:center; gap:8px;
+    font-size:13px; letter-spacing:.3px; text-transform:uppercase; opacity:.9; margin:0 0 8px; }
+  .wk-ico{ width:18px; height:18px; display:inline-grid; place-items:center; }
+
+  /* Lista de tareas */
+  .wk-list{ display:flex; flex-direction:column; gap:10px; }
+  .wk-card{
+    opacity:0; transform:translateY(8px) scale(.98);
+    border-radius:12px; padding:10px 12px; background:rgba(255,255,255,.04);
+    transition:opacity .32s ease, transform .32s ease;
+  }
+  .wk-card.in{ opacity:1; transform:translateY(0) scale(1); }
+  .wk-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .wk-dot{ width:8px; height:8px; border-radius:50%; background:#3ddc84; box-shadow:0 0 8px rgba(61,220,132,.6); flex:0 0 8px; }
+  .wk-name{ flex:1; font-weight:600; }
+  .wk-count{ font-variant-numeric:tabular-nums; opacity:.95; transform-origin:center; }
+  .wk-count.pulse{ animation:wkPulse .42s ease 2; } /* 2 pulsos */
+  @keyframes wkPulse{ 0%{transform:scale(.9);opacity:.6} 60%{transform:scale(1.12);opacity:1} 100%{transform:scale(1)} }
+
+  /* Barra más lenta para que se note y sincronice con el pulso */
+  .wk-bar{ position:relative; height:8px; border-radius:999px; background:rgba(180,160,255,.18); overflow:hidden; }
+  .wk-fill{ position:absolute; inset:0 auto 0 0; width:0%; border-radius:999px;
+    background:linear-gradient(90deg,#a78bfa,#8b5cf6);
+    transition:width .7s cubic-bezier(.2,.75,.2,1);
+  }
+
+  .wk-empty{ opacity:.7; font-size:12px; padding:8px 0; }
+
+  /* Mostrar más */
+  .wk-more{ margin-top:8px; font-size:12px; opacity:.9; cursor:pointer; user-select:none; }
+  .wk-card.hidden{ display:none; }
+
+  .gj-pop .hero-emoji.calendar{ filter:drop-shadow(0 0 6px rgba(180,160,255,.55)); }
+
   @media (prefers-reduced-motion: reduce){
-    .wk-pillar, .wk-card { transition: none !important; transform: none !important; }
-    .wk-count.pulse { animation: none !important; }
-    .wk-fill { transition: none !important; width: 100% !important; }
+    .wk-pillar, .wk-card { transition:none!important; transform:none!important; }
+    .wk-count.pulse { animation:none!important; }
+    .wk-fill { transition:none!important; width:100%!important; }
   }`;
   const tag = document.createElement('style');
   tag.id = 'gj-weekrecap-css';
   tag.textContent = css;
   document.head.appendChild(tag);
 };
+
+// // ==== WEEK RECAP CSS (global y una sola vez) ====
+// window.ensureWeekRecapCSS = function(){
+//   if (document.getElementById('gj-weekrecap-css')) return;
+//   const css = `
+//   #gj-pop-overlay{ z-index:9999; }
+//   .gj-pop .wk { margin-top: 8px; }
+//   .wk-pillar { opacity: 0; transform: translateY(6px); transition: opacity .28s ease, transform .28s ease; margin-top: 8px; }
+//   .wk-pillar.in { opacity: 1; transform: translateY(0); }
+//   .wk-title { font-size: 13px; letter-spacing:.3px; text-transform:uppercase; opacity:.8; margin: 10px 0 6px; }
+//   .wk-list { display:flex; flex-direction:column; gap:8px; }
+//   .wk-card { opacity:0; transform: translateY(6px) scale(.98); border-radius:12px; padding:10px 12px; background:rgba(255,255,255,.04); transition: opacity .26s ease, transform .26s ease; }
+//   .wk-card.in { opacity:1; transform: translateY(0) scale(1); }
+//   .wk-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+//   .wk-dot { width:8px; height:8px; border-radius:50%; background:#3ddc84; box-shadow:0 0 8px rgba(61,220,132,.6); flex:0 0 8px; }
+//   .wk-name { flex:1; font-weight:600; }
+//   .wk-count { font-variant-numeric: tabular-nums; opacity:.9; transform-origin:center; }
+//   .wk-count.pulse { animation: wkPulse .35s ease; }
+//   @keyframes wkPulse{ 0%{transform:scale(.9);opacity:.6} 60%{transform:scale(1.1);opacity:1} 100%{transform:scale(1)} }
+//   .wk-bar { position:relative; height:8px; border-radius:999px; background:rgba(180,160,255,.18); overflow:hidden; }
+//   .wk-fill { position:absolute; left:0; top:0; bottom:0; width:0%; border-radius:999px; background:linear-gradient(90deg,#a78bfa,#8b5cf6); transition: width .35s ease; }
+//   .wk-empty { opacity:.7; font-size:12px; padding:8px 0; }
+//   .gj-pop .hero-emoji.calendar { filter: drop-shadow(0 0 6px rgba(180,160,255,.55)); }
+//   @media (prefers-reduced-motion: reduce){
+//     .wk-pillar, .wk-card { transition: none !important; transform: none !important; }
+//     .wk-count.pulse { animation: none !important; }
+//     .wk-fill { transition: none !important; width: 100% !important; }
+//   }`;
+//   const tag = document.createElement('style');
+//   tag.id = 'gj-weekrecap-css';
+//   tag.textContent = css;
+//   document.head.appendChild(tag);
+// };
 
 
 /* ------------ red ------------- */
@@ -212,18 +282,16 @@ function renderPopup(item, onClose){
 
 // ==== WEEK RECAP (renderer especializado) ====
 function renderWeekRecapPopup(item, onClose){
-  // CSS y overlay en modo "recap" (sin bloquear scroll del body)
   window.ensureWeekRecapCSS();
+
   const ov = ensureOverlay();
-  ov.classList.add('recap');   // estilos especiales para overlay recap
+  ov.classList.add('recap');   // usa reglas que quitan scroll interno
   ov.innerHTML = '';
 
-  // Hero (emoji calendario si no hay imagen)
   const hero = item.hero_url
     ? `<img class="hero-img" src="${item.hero_url}" alt="" />`
     : `<span class="hero-emoji calendar" aria-hidden="true">📅</span>`;
 
-  // Tarjeta base en modo recap (sin max-height/scroll interno)
   const card = document.createElement('div');
   card.className = 'gj-pop recap';
   card.setAttribute('data-popid', item.id || '');
@@ -243,10 +311,10 @@ function renderWeekRecapPopup(item, onClose){
   ov.appendChild(card);
   ov.classList.add('show');
 
-  // Un poco más de confetti al abrir
+  // Confetti primero, y recién después arrancan pilares
+  const CONFETTI_MS = 900;
   try { confetti(card); setTimeout(()=>confetti(card), 220); } catch(_){}
 
-  // Cerrar / CTA
   const finish = (how)=>{
     ov.classList.remove('show');
     ov.innerHTML = '';
@@ -254,26 +322,21 @@ function renderWeekRecapPopup(item, onClose){
   };
   card.querySelector('.close')?.addEventListener('click', ()=> finish('close'));
 
-  // CTA SIEMPRE MISMA PESTAÑA
   const ctaBtn = card.querySelector('#gj-pop-cta');
   if (ctaBtn){
     ctaBtn.addEventListener('click', ()=>{
       const link = item.cta_link || '#';
-      if (String(link).startsWith('#')) {
-        document.querySelector(link)?.scrollIntoView({ behavior:'smooth', block:'start' });
-      } else {
-        location.href = link;
-      }
+      if (String(link).startsWith('#')) document.querySelector(link)?.scrollIntoView({ behavior:'smooth', block:'start' });
+      else location.href = link;
       finish('cta');
     });
   }
 
-  // === Build sections por pilar ===========================================
+  // ====== Secciones por pilar ======
   const secRoot = card.querySelector('.wk-sections');
   const data = (item.extra && item.extra.pillars) || {};
   const GOAL = Number(item.extra && item.extra.goal) || 3;
 
-  // Orden y títulos + emojis pedidos
   const PILLARS = [
     ['body', 'BODY', '🫀'],
     ['mind', 'MIND', '🧠'],
@@ -281,13 +344,13 @@ function renderWeekRecapPopup(item, onClose){
     ['otros','OTROS','•']
   ];
 
-  // Stagger / ritmo
-  const START_DELAY   = 250;  // ms antes del primer item
-  const PILLAR_STAG   = 320;  // separación entre pilares
-  const CARD_STAG     = 320;  // separación entre tareas dentro del pilar
-  const MAX_PER_PILLAR = 3;   // tope visible por pilar
+  // Ritmo: esperamos confetti y luego vamos en cascada
+  const START_DELAY    = CONFETTI_MS + 150; // arranca después del confetti
+  const PILLAR_STAG    = 360;
+  const CARD_STAG      = 360;
+  const MAX_PER_PILLAR = 3;
 
-  let globalIdx = 0; // para escalonar animaciones suavemente
+  let pillarIndex = 0;
 
   PILLARS.forEach(([key, label, emoji])=>{
     const list = Array.isArray(data[key]) ? data[key] : [];
@@ -305,13 +368,11 @@ function renderWeekRecapPopup(item, onClose){
     `;
     secRoot.appendChild(sec);
 
-    // revelar contenedor del pilar
-    const pillarAppearAt = START_DELAY + PILLAR_STAG*globalIdx;
+    const pillarAppearAt = START_DELAY + PILLAR_STAG*pillarIndex;
     setTimeout(()=> sec.classList.add('in'), pillarAppearAt);
 
     const listEl = sec.querySelector('.wk-list');
 
-    // Render de tareas (máximo 3 visibles)
     list.forEach((t, i)=>{
       const cc = document.createElement('div');
       const visible = (i < MAX_PER_PILLAR);
@@ -330,18 +391,17 @@ function renderWeekRecapPopup(item, onClose){
       listEl.appendChild(cc);
 
       if (visible){
-        const d = pillarAppearAt + CARD_STAG*(i+0.3);
+        const d = pillarAppearAt + CARD_STAG*(i+0.25);
         setTimeout(()=>{
           cc.classList.add('in');
           const fill = cc.querySelector('.wk-fill');
           const cnt  = cc.querySelector('.wk-count');
           requestAnimationFrame(()=>{ fill.style.width = '100%'; });
-          setTimeout(()=> cnt.classList.add('pulse'), 300);
+          setTimeout(()=> cnt.classList.add('pulse'), 720); // doble pulso tras llenar
         }, d);
       }
     });
 
-    // “Mostrar X más” si hay más de 3
     if (list.length > MAX_PER_PILLAR){
       const more = document.createElement('div');
       more.className = 'wk-more';
@@ -361,13 +421,173 @@ function renderWeekRecapPopup(item, onClose){
       sec.appendChild(more);
     }
 
-    globalIdx++;
+    pillarIndex++;
   });
 
   if (!secRoot.children.length){
     secRoot.innerHTML = `<div class="wk-empty">No hay tareas cumplidas esta semana.</div>`;
   }
 }
+
+
+// // ==== WEEK RECAP (renderer especializado) ====
+// function renderWeekRecapPopup(item, onClose){
+//   // CSS y overlay en modo "recap" (sin bloquear scroll del body)
+//   window.ensureWeekRecapCSS();
+//   const ov = ensureOverlay();
+//   ov.classList.add('recap');   // estilos especiales para overlay recap
+//   ov.innerHTML = '';
+
+//   // Hero (emoji calendario si no hay imagen)
+//   const hero = item.hero_url
+//     ? `<img class="hero-img" src="${item.hero_url}" alt="" />`
+//     : `<span class="hero-emoji calendar" aria-hidden="true">📅</span>`;
+
+//   // Tarjeta base en modo recap (sin max-height/scroll interno)
+//   const card = document.createElement('div');
+//   card.className = 'gj-pop recap';
+//   card.setAttribute('data-popid', item.id || '');
+//   card.innerHTML = `
+//     <button class="close" aria-label="Cerrar">✕</button>
+//     <div class="pop-row">
+//       <div class="hero">${hero}</div>
+//       <div class="content wk">
+//         <h3 class="title">${item.title || 'Resumen semanal'}</h3>
+//         <div class="lead">${(item.body_md || '').replace(/\n/g,'<br/>')}</div>
+//         <div class="wk-sections"></div>
+//         ${item.cta_text ? `<button class="cta" id="gj-pop-cta">${item.cta_text}</button>` : ''}
+//         ${item.here_url ? `<a class="sub" href="${item.here_url}" target="_blank" rel="noopener">Más info</a>` : ''}
+//       </div>
+//     </div>
+//   `;
+//   ov.appendChild(card);
+//   ov.classList.add('show');
+
+//   // Un poco más de confetti al abrir
+//   try { confetti(card); setTimeout(()=>confetti(card), 220); } catch(_){}
+
+//   // Cerrar / CTA
+//   const finish = (how)=>{
+//     ov.classList.remove('show');
+//     ov.innerHTML = '';
+//     onClose && onClose({ how: (how||'close'), item });
+//   };
+//   card.querySelector('.close')?.addEventListener('click', ()=> finish('close'));
+
+//   // CTA SIEMPRE MISMA PESTAÑA
+//   const ctaBtn = card.querySelector('#gj-pop-cta');
+//   if (ctaBtn){
+//     ctaBtn.addEventListener('click', ()=>{
+//       const link = item.cta_link || '#';
+//       if (String(link).startsWith('#')) {
+//         document.querySelector(link)?.scrollIntoView({ behavior:'smooth', block:'start' });
+//       } else {
+//         location.href = link;
+//       }
+//       finish('cta');
+//     });
+//   }
+
+//   // === Build sections por pilar ===========================================
+//   const secRoot = card.querySelector('.wk-sections');
+//   const data = (item.extra && item.extra.pillars) || {};
+//   const GOAL = Number(item.extra && item.extra.goal) || 3;
+
+//   // Orden y títulos + emojis pedidos
+//   const PILLARS = [
+//     ['body', 'BODY', '🫀'],
+//     ['mind', 'MIND', '🧠'],
+//     ['soul', 'SOUL', '🏵️'],
+//     ['otros','OTROS','•']
+//   ];
+
+//   // Stagger / ritmo
+//   const START_DELAY   = 250;  // ms antes del primer item
+//   const PILLAR_STAG   = 320;  // separación entre pilares
+//   const CARD_STAG     = 320;  // separación entre tareas dentro del pilar
+//   const MAX_PER_PILLAR = 3;   // tope visible por pilar
+
+//   let globalIdx = 0; // para escalonar animaciones suavemente
+
+//   PILLARS.forEach(([key, label, emoji])=>{
+//     const list = Array.isArray(data[key]) ? data[key] : [];
+//     if (!list.length) return;
+
+//     const sec = document.createElement('section');
+//     sec.className = 'wk-pillar';
+//     sec.setAttribute('data-pillar', key);
+//     sec.innerHTML = `
+//       <div class="wk-title">
+//         <span class="wk-ico">${emoji}</span>
+//         <span>${label}</span>
+//       </div>
+//       <div class="wk-list"></div>
+//     `;
+//     secRoot.appendChild(sec);
+
+//     // revelar contenedor del pilar
+//     const pillarAppearAt = START_DELAY + PILLAR_STAG*globalIdx;
+//     setTimeout(()=> sec.classList.add('in'), pillarAppearAt);
+
+//     const listEl = sec.querySelector('.wk-list');
+
+//     // Render de tareas (máximo 3 visibles)
+//     list.forEach((t, i)=>{
+//       const cc = document.createElement('div');
+//       const visible = (i < MAX_PER_PILLAR);
+//       cc.className = 'wk-card' + (visible ? '' : ' hidden');
+
+//       const c = Math.min(Number(t.count)||0, GOAL);
+//       const countText = `${c}/${GOAL}`;
+//       cc.innerHTML = `
+//         <div class="wk-row">
+//           <span class="wk-dot"></span>
+//           <span class="wk-name">${t.task}</span>
+//           <span class="wk-count">${countText}</span>
+//         </div>
+//         <div class="wk-bar"><span class="wk-fill"></span></div>
+//       `;
+//       listEl.appendChild(cc);
+
+//       if (visible){
+//         const d = pillarAppearAt + CARD_STAG*(i+0.3);
+//         setTimeout(()=>{
+//           cc.classList.add('in');
+//           const fill = cc.querySelector('.wk-fill');
+//           const cnt  = cc.querySelector('.wk-count');
+//           requestAnimationFrame(()=>{ fill.style.width = '100%'; });
+//           setTimeout(()=> cnt.classList.add('pulse'), 300);
+//         }, d);
+//       }
+//     });
+
+//     // “Mostrar X más” si hay más de 3
+//     if (list.length > MAX_PER_PILLAR){
+//       const more = document.createElement('div');
+//       more.className = 'wk-more';
+//       more.textContent = `Mostrar ${list.length - MAX_PER_PILLAR} más`;
+//       more.addEventListener('click', ()=>{
+//         const hidden = listEl.querySelectorAll('.wk-card.hidden');
+//         hidden.forEach((el, j)=>{
+//           el.classList.remove('hidden');
+//           setTimeout(()=> el.classList.add('in'), 30 + j*140);
+//           const fill = el.querySelector('.wk-fill');
+//           const cnt  = el.querySelector('.wk-count');
+//           setTimeout(()=> { fill.style.width = '100%'; }, 50 + j*140);
+//           setTimeout(()=> { cnt.classList.add('pulse'); }, 260 + j*140);
+//         });
+//         more.remove();
+//       });
+//       sec.appendChild(more);
+//     }
+
+//     globalIdx++;
+//   });
+
+//   if (!secRoot.children.length){
+//     secRoot.innerHTML = `<div class="wk-empty">No hay tareas cumplidas esta semana.</div>`;
+//   }
+// }
 
 // // ==== WEEK RECAP (renderer especializado) ====
 // function renderWeekRecapPopup(item, onClose){
