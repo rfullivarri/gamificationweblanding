@@ -5,6 +5,24 @@
   --glow-1: rgba(160,110,255,.28);
   --glow-2: rgba(90,45,190,.28);
 }
+/* Marca en el nav */
+.nav .brand{
+  display:flex; align-items:center; gap:.6rem;
+  color:#fff; text-decoration:none; font-weight:700;
+}
+.nav { background:#0b0f19; }
+
+/* Isotipo */
+.logo-mark{ height:28px; width:auto; display:block; }
+
+/* Ocultar el texto en mobile si querés ultra limpio */
+@media (max-width:640px){
+  .brand-text{ display:none; }
+}
+
+/* Si usás nav claro en alguna vista, fuerza el logo negro */
+.nav.is-light .brand { color:#0b0f19; }
+.nav.is-light .brand .logo-mark { content: url("assets/logo/innerbloom_black.svg"); }
 
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;}
