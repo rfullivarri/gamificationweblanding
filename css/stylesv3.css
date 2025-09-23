@@ -246,3 +246,16 @@ section h2{font-size:32px;margin:0 0 8px;text-align:center}
 .visually-hidden{
   position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); border:0;
 }
+
+/* Nav oscuro por defecto */
+.nav { background:#0b0f19; }
+.nav .brand{
+  display:flex; align-items:center; gap:.65rem;
+  color:#fff; text-decoration:none; font-weight:800; letter-spacing:.2px;
+}
+.logo-mark{ height:28px; width:auto; display:block; }
+
+/* Si algún día usás un nav claro, podés invertir el PNG blanco a negro sin cambiar links */
+.nav.is-light { background:#ffffff; }
+.nav.is-light .brand{ color:#0b0f19; }
+.nav.is-light .logo-mark{ filter: invert(1); } /* blanco -> negro */
