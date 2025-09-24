@@ -359,6 +359,20 @@
     const POLL_MS = 10000;
     const DASHBOARD = "dashboardv3.html";
 
+    /* === Worker + fallback a WebApp (si ya lo tenés definido, no lo dupliques) === */
+    const WORKER_BASE    = 'https://gamificationworker.rfullivarri22.workers.dev';
+    const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxncfav0V6OJsHDFMcFg7S8qISWXrG5P5l5WTCzBn-iC_4cerC22lsznJHlDsQhneGdpA/exec';
+    
+    /* === Endpoints derivados === */
+    const BUNDLE_ENDPOINT  = `${WORKER_BASE}/bundle`;
+    const REFRESH_ENDPOINT = `${WORKER_BASE}/refresh`;
+    
+    /* === Claves/flags para orquestación del snapshot/refresh === */
+    const BUNDLE_CACHE_KEY   = 'gj_bundle';         // localStorage (foto para render instantáneo en dashboard)
+    const PRIME_FLAG_KEY     = 'gj_prime';          // sessionStorage flag → “hacer soft refresh”
+    const PRIME_DELAY_KEY    = 'gj_soft_delay_ms';  // sessionStorage delay para soft refresh
+    const BUNDLE_SOFT_DELAY_MS = 12000;             // 12s (ajustable)
+
     /* ================== UTILS ================== */
     function qs(n){ const p=new URLSearchParams(location.search); return (p.get(n)||"").trim(); }
     function setStatus(msg, spinning=false){
@@ -389,6 +403,65 @@
     const isIOS = /iPhone|iPad|iPod/i.test(UA);
     const isAndroid = /Android/i.test(UA);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+    /* === Cache helpers para snapshot === */
+    function getCachedBundle(){
+      try { return JSON.parse(localStorage.getItem(BUNDLE_CACHE_KEY) || 'null'); }
+      catch { return null; }
+    }
+    function setCachedBundle(bundle){
+      try { localStorage.setItem(BUNDLE_CACHE_KEY, JSON.stringify(bundle)); } catch {}
+    }
+    
+    /* === Prefetch “foto” del bundle (best-effort, no bloqueante) === */
+    async function primeBundlePrefetch(email){
+      try {
+        // Usa tu helper con fallback a WebApp (lo que compartiste arriba)
+        const data = await loadDataFromCacheOrWebApp(email);
+        if (data) setCachedBundle(data);
+      } catch(_) { /* noop */ }
+    }
+    
+    /* === Disparo de refresh en backend (usa sendBeacon si existe) === */
+    function pokeRefreshWorker(email){
+      try {
+        const payload = JSON.stringify({ email });
+        if (navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: 'application/json' });
+          navigator.sendBeacon(REFRESH_ENDPOINT, blob);
+        } else {
+          fetch(REFRESH_ENDPOINT, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: payload,
+            keepalive: true,
+            cache: 'no-store'
+          }).catch(()=>{});
+        }
+      } catch(_) { /* noop */ }
+    }
+    
+    /* === Marca flags para que el dashboard haga soft refresh pasado X ms === */
+    function markPrimeFlags(delayMs){
+      try {
+        sessionStorage.setItem(PRIME_FLAG_KEY, '1');
+        sessionStorage.setItem(PRIME_DELAY_KEY, String(delayMs ?? BUNDLE_SOFT_DELAY_MS));
+      } catch(_) {}
+    }
+    
+    /* === Tu helper existente (lo dejo acá por si lo pegás junto) === */
+    // Devuelve `data` desde el Worker; si no puede, usa la WebApp
+    async function loadDataFromCacheOrWebApp(email) {
+      try {
+        const r = await fetch(`${WORKER_BASE}/bundle?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+        if (r.status === 200) return await r.json();
+        if (r.status === 204) throw new Error('No bundle yet');
+        throw new Error(`Worker ${r.status}`);
+      } catch (err) {
+        const resp = await fetch(`${OLD_WEBAPP_URL}?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+        return await resp.json();
+      }
+    }
 
     /* ================== CHECKER ================== */
     async function checkStatus(email){
@@ -435,9 +508,20 @@
           return;
         }
 
-        // Listo → entrar
+        // Listo → entrar con snapshot + refresh paralelo + soft refresh programado
         if (isReady(data)){
           setStatus('Listo, entrando…', true);
+        
+          // 1) Prefetch del bundle (guarda “foto” en localStorage) — fire & forget
+          try { primeBundlePrefetch(email); } catch(_) {}
+        
+          // 2) Disparo de refresh en backend (sendBeacon/keepalive) — no bloquea
+          try { pokeRefreshWorker(email); } catch(_) {}
+        
+          // 3) Señal al dashboard: hacer soft refresh pasado X ms
+          try { markPrimeFlags(BUNDLE_SOFT_DELAY_MS); } catch(_) {}
+        
+          // 4) Redirección (igual que antes)
           window.location.href = `${DASHBOARD}?email=${encodeURIComponent(email)}`;
           return;
         }
