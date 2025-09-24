@@ -1020,19 +1020,66 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 
+// —— util común ——
+const __isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const __isStandalone = (() => {
+  try { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone; }
+  catch { return false; }
+})();
+const __isIOSPWA = __isIOS && __isStandalone;
+
+function __bundleStamp(b){
+  return (b && (b.updated_at || b.worker_updated_at || b.version || b.worker_version)) || '';
+}
+
+async function __fetchBundleFresh(email){
+  const base = (typeof WORKER_BASE !== 'undefined' && WORKER_BASE) || '';
+  if (!base) throw new Error('WORKER_BASE no definido');
+  const r = await fetch(`${base}/bundle?email=${encodeURIComponent(email)}&t=${Date.now()}`, { cache:'no-store' });
+  if (!r.ok) throw new Error('bundle fetch failed');
+  const fresh = await r.json();
+  // fuente de verdad + cache local
+  window.GJ_BUNDLE = fresh;
+  try { localStorage.setItem('gj_bundle', JSON.stringify(fresh)); } catch {}
+  // avisar a todos los módulos UI
+  window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: fresh }));
+  return fresh;
+}
+
+async function __refreshAllSoft(email, { clearPopupsLocal = false } = {}){
+  // 1) pedir al backend que regenere KV en Worker
+  await refreshBundle(email);
+
+  // 2) traer bundle fresco y repintar (sin recarga)
+  const before = __bundleStamp(window.GJ_BUNDLE);
+  const fresh  = await __fetchBundleFresh(email);
+  const after  = __bundleStamp(fresh);
+
+  // 3) PopUps (re-fetch WebApp sin caché + render)
+  await refreshPopupsAfterBundle(email, { clearLocal: clearPopupsLocal });
+
+  // 4) Notificaciones (si tenés módulo)
+  await window.refreshNotifications?.(email);
+
+  return { before, after };
+}
+
+function __hardReload(){
+  const u = new URL(location.href);
+  u.searchParams.set('r', Date.now());
+  location.replace(u.toString());
+}
 
 // —— Después de refrescar el bundle/KV, volver a pedir PopUps ——
+// (queda igual, lo usa __refreshAllSoft internamente)
 async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
-  // Si querés forzar re-aparición total en pruebas, usá clearLocal=true
   if (clearLocal && window.GJPopups && typeof window.GJPopups.clearLocal === 'function') {
     try { window.GJPopups.clearLocal(email); } catch(_) {}
   }
-  // Re-ejecuta la lógica de popups (fetch al WebApp con cache:no-store)
   if (window.GJPopups && typeof window.GJPopups.run === 'function') {
     try { await window.GJPopups.run(); } catch(_) {}
   }
 }
-
 
 // === BOTÓN ACTUALIZAR (bind seguro para mobile) ===
 (function attachRefreshButton () {
@@ -1045,7 +1092,6 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
     let cooling = false;
 
-    // === Handler que te funcionaba (refresh + reload) ===
     const handler = async (e) => {
       e.preventDefault();
       if (cooling) return;
@@ -1055,26 +1101,33 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
                  || new URLSearchParams(location.search).get('email');
       if (!email) { alert('Falta email'); cooling = false; return; }
 
+      const clearPopupsLocal = btn.hasAttribute('data-clear-popups');
+
       try {
         btn.classList.add('is-loading');
+        if (window.toast) toast.info('Actualizando…');
 
-        // actualiza el KV en el Worker (usa tu refreshBundle tal cual)
-        await refreshBundle(email);  // (mode por defecto = 'reload' → puede recargar)
+        // —— SOFT refresh primero
+        const { before, after } = await __refreshAllSoft(email, { clearPopupsLocal });
 
-        // feedback
+        // —— fallback duro si el stamp no cambió (típico iOS PWA) 
+        if (before === after || __isIOSPWA) {
+          await new Promise(r => setTimeout(r, 300));
+          __hardReload();
+          return;
+        }
+
+        // listo sin recarga
         if (window.toast) toast.success('Actualizado ✨');
-
-        // pequeña pausa y recarga dura para asegurar render inmediato en iOS
-        await new Promise(r => setTimeout(r, 400));
-        const u = new URL(location.href); u.searchParams.set('r', Date.now());
-        location.replace(u.toString());
-        return;
       } catch (err) {
         console.error(err);
-        alert('No se pudo actualizar ahora.');
+        if (window.toast) toast.error('No se pudo actualizar ahora');
+        // como red de seguridad, intentá recarga dura
+        __hardReload();
+        return;
       } finally {
         btn.classList.remove('is-loading');
-        setTimeout(() => (cooling = false), 1500);
+        setTimeout(() => (cooling = false), 1200);
       }
     };
 
@@ -1084,151 +1137,12 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     btn.addEventListener('pointerup', handler, { passive:false });
   }
 
-  // Si el botón aún no existe, enganchá al cargar el DOM
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', bind, { once:true });
   } else {
     bind();
   }
 })();
-
-
-
-// // === BOTÓN ACTUALIZAR (bind robusto para mobile) ===
-// (function attachRefreshButton () {
-//   const SEL = '#refresh-kv, [data-action="refresh-kv"]';
-
-//   function bindOnce(){
-//     const btn = document.querySelector(SEL);
-//     if (!btn || btn.dataset.gjBound) return false;
-//     btn.dataset.gjBound = '1';
-
-//     let cooling = false;
-//     const handler = async (e) => {
-//       e.preventDefault();
-//       if (cooling) return;
-//       cooling = true;
-
-//       const email = (window.GJ_CTX && window.GJ_CTX.email)
-//                  || new URLSearchParams(location.search).get('email');
-//       if (!email) { cooling = false; return; }
-
-//       try {
-//         btn.classList.add('is-loading');
-
-//         await refreshBundle(email, {
-//           mode: 'soft',
-//           retries: [1200, 2500, 4000, 6000]
-//         });
-
-//         await refreshPopupsAfterBundle(email);
-
-//         if (window.toast) toast.success('Actualizado ✨');
-//       } catch (err) {
-//         console.error(err);
-//         if (window.toast) toast.error('No se pudo actualizar');
-//       } finally {
-//         btn.classList.remove('is-loading');
-//         setTimeout(() => (cooling = false), 1200);
-//       }
-//     };
-
-//     // iOS: a veces no dispara click → añadimos touchend/pointerup
-//     btn.addEventListener('click',     handler, { passive:false });
-//     btn.addEventListener('touchend',  handler, { passive:false });
-//     btn.addEventListener('pointerup', handler, { passive:false });
-//     return true;
-//   }
-
-//   // 1) si el DOM ya está, probá bind
-//   if (!bindOnce()){
-//     // 2) sino, espera al DOM…
-//     if (document.readyState === 'loading') {
-//       document.addEventListener('DOMContentLoaded', bindOnce, { once:true });
-//     }
-//     // 3) …y además observá por si el botón se inyecta después (SPA / tardío)
-//     const mo = new MutationObserver(() => { bindOnce(); });
-//     mo.observe(document.documentElement, { childList:true, subtree:true });
-//   }
-// })();
-
-
-// // === BOTÓN ACTUALIZAR ===
-// (function attachRefreshButton () {
-//   const btn = document.getElementById('refresh-kv')
-//             || document.querySelector('[data-action="refresh-kv"]');
-//   if (!btn) return;
-
-//   let cooling = false;
-//   btn.addEventListener('click', async (e) => {
-//     e.preventDefault();
-//     if (cooling) return;
-//     cooling = true;
-  
-//     const email = (window.GJ_CTX && window.GJ_CTX.email)
-//                || new URLSearchParams(location.search).get('email');
-//     if (!email) { alert('Falta email'); cooling = false; return; }
-  
-//     try {
-//       btn.classList.add('is-loading');
-  
-//       // 1) refrescá el KV del Worker en modo "soft" (espera a que avance)
-//       await refreshBundle(email, {
-//         mode: 'soft',
-//         retries: [1200, 2500, 4000, 6000], // un backoff un poco más robusto
-//       });
-  
-//       // 2) una vez fresco el bundle → pedí PopUps otra vez
-//       await refreshPopupsAfterBundle(email /* , { clearLocal:true } */);
-  
-//       // 3) feedback
-//       if (window.toast) toast.success('Actualizado ✨');
-//     } catch (err) {
-//       console.error(err);
-//       alert('No se pudo actualizar ahora.');
-//     } finally {
-//       btn.classList.remove('is-loading');
-//       setTimeout(() => (cooling = false), 1200);
-//     }
-//   });
-// })();
-
-
-
-
-  // btn.addEventListener('click', async (e) => {
-  //   e.preventDefault();
-  //   if (cooling) return;
-  //   cooling = true;
-
-  //   const email = (window.GJ_CTX && window.GJ_CTX.email)
-  //              || new URLSearchParams(location.search).get('email');
-  //   if (!email) { alert('Falta email'); cooling = false; return; }
-
-  //   try {
-  //     btn.classList.add('is-loading');     // spinner CSS opcional
-  //     await refreshBundle(email);          // ← actualiza el KV en el Worker
-
-  //     // feedback opcional
-  //     if (window.toast) toast.success('Actualizado ✨');
-
-  //     // pequeña pausa para que KV quede persistido y…
-  //     await new Promise(r => setTimeout(r, 400));
-
-  //     // …recargamos la página para re-leer TODO el bundle y pintar lo nuevo
-  //     location.reload();
-  //     return; // por si el reload se demora
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert('No se pudo actualizar ahora.');
-  //   } finally {
-  //     btn.classList.remove('is-loading');
-  //     setTimeout(() => (cooling = false), 1500);
-  //   }
-  // });
-
-
-
 
 // —— Pull-to-Refresh móvil (iOS/Android) — usa el mismo flujo que el botón
 (function attachPullToRefresh () {
@@ -1273,13 +1187,22 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
       (async ()=>{
         try{
           if (window.toast) toast.info('Actualizando…');
-          await refreshBundle(email); // mismo flujo que botón (reload por defecto)
-          await new Promise(r => setTimeout(r, 300));
-          const u = new URL(location.href); u.searchParams.set('r', Date.now());
-          location.replace(u.toString());
+
+          // —— SOFT refresh primero
+          const { before, after } = await __refreshAllSoft(email);
+
+          // —— fallback duro si no cambió o si es iOS PWA
+          if (before === after || __isIOSPWA) {
+            await new Promise(r => setTimeout(r, 250));
+            __hardReload();
+            return;
+          }
+
+          if (window.toast) toast.success('Actualizado ✨');
         }catch(err){
           console.warn(err);
           if (window.toast) toast.error('No se pudo actualizar');
+          __hardReload();
         }
       })();
     }
@@ -1292,7 +1215,81 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
 
 
-// // —— Pull-to-Refresh móvil (iOS/Android, sin libs) ——
+// // —— Después de refrescar el bundle/KV, volver a pedir PopUps ——
+// async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
+//   // Si querés forzar re-aparición total en pruebas, usá clearLocal=true
+//   if (clearLocal && window.GJPopups && typeof window.GJPopups.clearLocal === 'function') {
+//     try { window.GJPopups.clearLocal(email); } catch(_) {}
+//   }
+//   // Re-ejecuta la lógica de popups (fetch al WebApp con cache:no-store)
+//   if (window.GJPopups && typeof window.GJPopups.run === 'function') {
+//     try { await window.GJPopups.run(); } catch(_) {}
+//   }
+// }
+
+
+// // === BOTÓN ACTUALIZAR (bind seguro para mobile) ===
+// (function attachRefreshButton () {
+//   const SEL = '#refresh-kv, [data-action="refresh-kv"]';
+
+//   function bind(){
+//     const btn = document.querySelector(SEL);
+//     if (!btn || btn.dataset.gjBound) return;
+//     btn.dataset.gjBound = '1';
+
+//     let cooling = false;
+
+//     // === Handler que te funcionaba (refresh + reload) ===
+//     const handler = async (e) => {
+//       e.preventDefault();
+//       if (cooling) return;
+//       cooling = true;
+
+//       const email = (window.GJ_CTX && window.GJ_CTX.email)
+//                  || new URLSearchParams(location.search).get('email');
+//       if (!email) { alert('Falta email'); cooling = false; return; }
+
+//       try {
+//         btn.classList.add('is-loading');
+
+//         // actualiza el KV en el Worker (usa tu refreshBundle tal cual)
+//         await refreshBundle(email);  // (mode por defecto = 'reload' → puede recargar)
+
+//         // feedback
+//         if (window.toast) toast.success('Actualizado ✨');
+
+//         // pequeña pausa y recarga dura para asegurar render inmediato en iOS
+//         await new Promise(r => setTimeout(r, 400));
+//         const u = new URL(location.href); u.searchParams.set('r', Date.now());
+//         location.replace(u.toString());
+//         return;
+//       } catch (err) {
+//         console.error(err);
+//         alert('No se pudo actualizar ahora.');
+//       } finally {
+//         btn.classList.remove('is-loading');
+//         setTimeout(() => (cooling = false), 1500);
+//       }
+//     };
+
+//     // iOS a veces no dispara click → sumo touchend/pointerup
+//     btn.addEventListener('click',     handler, { passive:false });
+//     btn.addEventListener('touchend',  handler, { passive:false });
+//     btn.addEventListener('pointerup', handler, { passive:false });
+//   }
+
+//   // Si el botón aún no existe, enganchá al cargar el DOM
+//   if (document.readyState === 'loading') {
+//     document.addEventListener('DOMContentLoaded', bind, { once:true });
+//   } else {
+//     bind();
+//   }
+// })();
+
+
+
+
+// // —— Pull-to-Refresh móvil (iOS/Android) — usa el mismo flujo que el botón
 // (function attachPullToRefresh () {
 //   const SC = document.scrollingElement || document.documentElement;
 //   let startY = 0, pulling = false, fired = false;
@@ -1313,7 +1310,6 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 //     tip.style.transform = `translate(-50%,${Math.min(0, y-40)}px)`;
 //   }
 //   function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
-
 //   const atTop = () => (SC.scrollTop || 0) <= 0;
 
 //   document.addEventListener('touchstart', (e)=>{
@@ -1328,14 +1324,18 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 //     if (atTop() && dy > 10) showTip(Math.min(TH, dy/2));
 //     if (atTop() && dy > TH && !fired){
 //       fired = true; hideTip();
-//       const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
+
+//       const email = (window.GJ_CTX && window.GJ_CTX.email)
+//                  || new URLSearchParams(location.search).get('email');
 //       if (!email) return;
+
 //       (async ()=>{
 //         try{
 //           if (window.toast) toast.info('Actualizando…');
-//           await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
-//           await refreshPopupsAfterBundle(email);
-//           if (window.toast) toast.success('Actualizado ✨');
+//           await refreshBundle(email); // mismo flujo que botón (reload por defecto)
+//           await new Promise(r => setTimeout(r, 300));
+//           const u = new URL(location.href); u.searchParams.set('r', Date.now());
+//           location.replace(u.toString());
 //         }catch(err){
 //           console.warn(err);
 //           if (window.toast) toast.error('No se pudo actualizar');
@@ -1351,59 +1351,7 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
 
 
-// —— Pull-to-Refresh móvil (simple, sin librerías) ——
-// (function attachPullToRefresh () {
-//   let startY = 0, pulling = false, fired = false;
-//   const TH = 70;
 
-//   let tip;
-//   function showTip(y){
-//     if (!tip){
-//       tip = document.createElement('div');
-//       tip.id = 'gj-ptr-tip';
-//       tip.style.cssText = 'position:fixed;top:8px;left:50%;transform:translate(-50%,-40px);'+
-//         'padding:6px 10px;border-radius:12px;background:rgba(0,0,0,.45);color:#fff;'+
-//         'font-size:12px;z-index:9999;transition:transform .2s,opacity .2s;opacity:0;';
-//       tip.textContent = 'Soltá para actualizar…';
-//       document.body.appendChild(tip);
-//     }
-//     tip.style.opacity = '1';
-//     tip.style.transform = `translate(-50%,${Math.min(0, y-40)}px)`;
-//   }
-//   function hideTip(){ if (tip){ tip.style.opacity='0'; tip.style.transform='translate(-50%,-40px)'; } }
-
-//   window.addEventListener('touchstart', (e)=>{
-//     if (window.scrollY > 0) return;
-//     startY = e.touches[0].clientY;
-//     pulling = true; fired = false;
-//   }, { passive:true });
-
-//   window.addEventListener('touchmove', (e)=>{
-//     if (!pulling) return;
-//     const dy = e.touches[0].clientY - startY;
-//     if (window.scrollY <= 0 && dy > 10) showTip(Math.min(TH, dy/2));
-//     if (window.scrollY <= 0 && dy > TH && !fired){
-//       fired = true; hideTip();
-//       const email = (window.GJ_CTX && window.GJ_CTX.email) || new URLSearchParams(location.search).get('email');
-//       if (!email) return;
-//       (async ()=>{
-//         try{
-//           if (window.toast) toast.info('Actualizando…');
-//           await refreshBundle(email, { mode:'soft', retries:[1200,2500,4000,6000] });
-//           await refreshPopupsAfterBundle(email);
-//           if (window.toast) toast.success('Actualizado ✨');
-//         }catch(err){
-//           console.warn(err);
-//           if (window.toast) toast.error('No se pudo actualizar');
-//         }
-//       })();
-//     }
-//   }, { passive:true });
-
-//   window.addEventListener('touchend', ()=>{
-//     pulling = false; setTimeout(hideTip, 120);
-//   }, { passive:true });
-// })();
 
 
 // ===== CAMBIAR AVATAR abrir/cerrar + subir a ImgBB + persistir en Sheet =====
