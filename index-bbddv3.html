@@ -571,56 +571,6 @@
     </div>
   </div>
 
-  <!-- <script>
-    (() => {
-      const panel  = document.querySelector('.bbdd-panel');
-      const appbar = document.querySelector('header.appbar');
-      const main   = document.querySelector('.bbdd-panel main');
-      if(!panel || !appbar || !main) return;
-    
-      function recalcPad(){
-        // deja contenido debajo del appbar cuando está totalmente visible
-        const h = appbar.offsetHeight || 0;
-        appbar.style.setProperty('--appbarShift', '0px');
-        document.documentElement.style.setProperty('--appbar-pad', h + 'px');
-        main.style.setProperty('--appbar-pad', h + 'px');
-        MAX = Math.max(0, h - 6);   // margen para esconder casi todo
-      }
-    
-      let lastY = panel.scrollTop;
-      let acc   = 0;                 // cuánto se ocultó
-      let MAX   = 0;                 // hasta dónde podemos ocultar
-      const K   = 0.10;              // sensibilidad
-      const FRICTION = 0.12;         // fricción al cambiar de sentido
-    
-      recalcPad();
-      new ResizeObserver(recalcPad).observe(appbar);
-    
-      panel.addEventListener('scroll', () => {
-        const y  = panel.scrollTop;
-        const dy = y - lastY;
-    
-        if (dy > 0) {
-          acc += dy * K;                       // bajando: ocultar
-        } else if (dy < 0) {
-          acc += dy * (K * (1 - FRICTION));    // subiendo: mostrar
-        }
-    
-        // límites
-        acc = Math.min(Math.max(acc, 0), MAX);
-    
-        // aplicar
-        appbar.style.setProperty('--appbarShift', `-${acc}px`);
-        lastY = y;
-    
-        // al volver a tope, mostramos completo
-        if (y <= 0 && acc !== 0) {
-          acc = 0;
-          appbar.style.setProperty('--appbarShift', '0px');
-        }
-      }, { passive: true });
-    })();
-  </script> -->
 
   <script>
     (() => {
@@ -635,7 +585,7 @@
       let hide  = 0;                 // píxeles ocultados del header
       let H     = appbar.offsetHeight || 0;    // alto actual del header
       let MAX   = Math.max(0, H - 6);          // cuánto podemos ocultar (deja un pelín)
-      const K         = 0.17;                  // sensibilidad (0.08–0.15 va bien)
+      const K         = 0.3;                  // sensibilidad (0.08–0.15 va bien)
       const FRICTION  = 0.12;                  // fricción al cambiar de sentido
     
       // Setea variables CSS iniciales
@@ -684,80 +634,6 @@
       }, { passive:true });
     })();
   </script>
-
-
-
-  <!-- <script>
-    (() => {
-      const panel  = document.querySelector('.bbdd-panel');     // ahora scrollea el panel
-      const appbar = document.querySelector('header.appbar');
-      if(!panel || !appbar) return;
-    
-      let lastY = panel.scrollTop;
-      let acc   = 0;                        // acumulador de “cuánto subió”
-      const H   = appbar.offsetHeight;      // alto total del appbar
-      const MAX = Math.max(0, H - 8);       // hasta dónde lo escondemos
-      const K   = 0.10;                     // sensibilidad (0.08 – 0.15 va bien)
-      const FRICTION = 0.10;                // fricción al cambiar de sentido
-    
-      panel.addEventListener('scroll', () => {
-        const y  = panel.scrollTop;
-        const dy = y - lastY;
-    
-        // integramos de a poco: si vas bajando, acumula; si subís, restamos con fricción
-        if (dy > 0) {
-          acc += dy * K;
-        } else if (dy < 0) {
-          acc += dy * (K * (1 - FRICTION));
-        }
-    
-        // clamp y aplicamos
-        acc = Math.min(Math.max(acc, 0), MAX);
-        appbar.style.setProperty('--appbarShift', `-${acc}px`);
-        lastY = y;
-      }, {passive:true});
-    })();
-  </script>
-
-  <script>
-    (() => {
-      const panel    = document.querySelector('.bbdd-panel');
-      const scroller = panel?.querySelector('main');
-      const appbar   = panel?.querySelector('header.appbar');
-      if (!panel || !scroller || !appbar) return;
-    
-      let last = scroller.scrollTop;
-      let hidden = 0;                       // píxeles ocultados del header
-      let max = appbar.offsetHeight;        // cuánto puede ocultarse
-      const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-    
-      // Recalcular si cambia el alto del header (por responsive, detalles abiertos, etc.)
-      const ro = new ResizeObserver(() => { 
-        max = appbar.offsetHeight; 
-        hidden = clamp(hidden, 0, max);
-        appbar.style.setProperty('--appbar-hide', hidden + 'px');
-      });
-      ro.observe(appbar);
-    
-      scroller.addEventListener('scroll', () => {
-        const y  = scroller.scrollTop;
-        const dy = y - last;                // delta del scroll (positivo bajando)
-    
-        // Acumulamos: al bajar ocultamos, al subir mostramos.
-        hidden = clamp(hidden + dy, 0, max);
-    
-        appbar.style.setProperty('--appbar-hide', hidden + 'px');
-        last = y;
-    
-        // Si volvés al tope, se muestra completo.
-        if (y <= 0 && hidden !== 0) {
-          hidden = 0;
-          appbar.style.setProperty('--appbar-hide', '0px');
-        }
-      }, { passive: true });
-    })();
-  </script> -->
-
 
 
 
