@@ -405,28 +405,35 @@
       height:100dvh;              /* ocupa todo el alto del viewport */
     }
     
-    /* Header: se oculta con un translate controlado por una variable */
+    /* El panel es EL ÚNICO scroller */
+    .bbdd-panel{
+      height: 100dvh;
+      overflow: auto;
+    }
+    
+    /* main no scrollea */
+    .bbdd-panel main{
+      overflow: visible;            /* <- importantísimo */
+      padding-top: var(--appbar-pad, 0px); /* se ajusta desde JS */
+    }
+    
+    /* Appbar sticky que se oculta suavemente por transform */
     header.appbar{
       position: sticky;
       top: 0;
       z-index: 20;
-      will-change: transform;
-      transform: translateY(calc(-1 * var(--appbar-hide, 0px)));
-      transition: transform .06s linear; /* suave pero reactivo */
+      transform: translateY(var(--appbarShift, 0));
+      transition: transform .16s ease;    /* suavidad */
     }
     
-    /* El área scrolleable real: solo <main> */
-    .bbdd-panel > main{
-      flex: 1;
-      overflow: auto;
-    }
-    
-    /* Footer fijo al fondo del panel (no se mueve) */
-    .bbdd-panel > .bbdd-footer{
+    /* Footer siempre visible dentro del panel */
+    .bbdd-footer{
       position: sticky;
       bottom: 0;
       z-index: 15;
     }
+
+    
 
 
   </style>
@@ -520,6 +527,58 @@
 
   <script>
     (() => {
+      const panel  = document.querySelector('.bbdd-panel');
+      const appbar = document.querySelector('header.appbar');
+      const main   = document.querySelector('.bbdd-panel main');
+      if(!panel || !appbar || !main) return;
+    
+      function recalcPad(){
+        // deja contenido debajo del appbar cuando está totalmente visible
+        const h = appbar.offsetHeight || 0;
+        appbar.style.setProperty('--appbarShift', '0px');
+        document.documentElement.style.setProperty('--appbar-pad', h + 'px');
+        main.style.setProperty('--appbar-pad', h + 'px');
+        MAX = Math.max(0, h - 6);   // margen para esconder casi todo
+      }
+    
+      let lastY = panel.scrollTop;
+      let acc   = 0;                 // cuánto se ocultó
+      let MAX   = 0;                 // hasta dónde podemos ocultar
+      const K   = 0.10;              // sensibilidad
+      const FRICTION = 0.12;         // fricción al cambiar de sentido
+    
+      recalcPad();
+      new ResizeObserver(recalcPad).observe(appbar);
+    
+      panel.addEventListener('scroll', () => {
+        const y  = panel.scrollTop;
+        const dy = y - lastY;
+    
+        if (dy > 0) {
+          acc += dy * K;                       // bajando: ocultar
+        } else if (dy < 0) {
+          acc += dy * (K * (1 - FRICTION));    // subiendo: mostrar
+        }
+    
+        // límites
+        acc = Math.min(Math.max(acc, 0), MAX);
+    
+        // aplicar
+        appbar.style.setProperty('--appbarShift', `-${acc}px`);
+        lastY = y;
+    
+        // al volver a tope, mostramos completo
+        if (y <= 0 && acc !== 0) {
+          acc = 0;
+          appbar.style.setProperty('--appbarShift', '0px');
+        }
+      }, { passive: true });
+    })();
+  </script>
+
+
+  <!-- <script>
+    (() => {
       const panel  = document.querySelector('.bbdd-panel');     // ahora scrollea el panel
       const appbar = document.querySelector('header.appbar');
       if(!panel || !appbar) return;
@@ -587,7 +646,7 @@
         }
       }, { passive: true });
     })();
-  </script>
+  </script> -->
 
 
 
