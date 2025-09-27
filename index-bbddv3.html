@@ -398,7 +398,35 @@
     .item{ margin:6px 0; }
     .slidable{ padding:10px 12px; }
 
-
+    /* El panel es un único scroller con header sticky y footer sticky */
+    .bbdd-panel{
+      display:flex;
+      flex-direction:column;
+      height:100dvh;              /* ocupa todo el alto del viewport */
+    }
+    
+    /* Header: se oculta con un translate controlado por una variable */
+    header.appbar{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      will-change: transform;
+      transform: translateY(calc(-1 * var(--appbar-hide, 0px)));
+      transition: transform .06s linear; /* suave pero reactivo */
+    }
+    
+    /* El área scrolleable real: solo <main> */
+    .bbdd-panel > main{
+      flex: 1;
+      overflow: auto;
+    }
+    
+    /* Footer fijo al fondo del panel (no se mueve) */
+    .bbdd-panel > .bbdd-footer{
+      position: sticky;
+      bottom: 0;
+      z-index: 15;
+    }
 
 
   </style>
@@ -521,6 +549,46 @@
       }, {passive:true});
     })();
   </script>
+
+  <script>
+    (() => {
+      const panel    = document.querySelector('.bbdd-panel');
+      const scroller = panel?.querySelector('main');
+      const appbar   = panel?.querySelector('header.appbar');
+      if (!panel || !scroller || !appbar) return;
+    
+      let last = scroller.scrollTop;
+      let hidden = 0;                       // píxeles ocultados del header
+      let max = appbar.offsetHeight;        // cuánto puede ocultarse
+      const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+    
+      // Recalcular si cambia el alto del header (por responsive, detalles abiertos, etc.)
+      const ro = new ResizeObserver(() => { 
+        max = appbar.offsetHeight; 
+        hidden = clamp(hidden, 0, max);
+        appbar.style.setProperty('--appbar-hide', hidden + 'px');
+      });
+      ro.observe(appbar);
+    
+      scroller.addEventListener('scroll', () => {
+        const y  = scroller.scrollTop;
+        const dy = y - last;                // delta del scroll (positivo bajando)
+    
+        // Acumulamos: al bajar ocultamos, al subir mostramos.
+        hidden = clamp(hidden + dy, 0, max);
+    
+        appbar.style.setProperty('--appbar-hide', hidden + 'px');
+        last = y;
+    
+        // Si volvés al tope, se muestra completo.
+        if (y <= 0 && hidden !== 0) {
+          hidden = 0;
+          appbar.style.setProperty('--appbar-hide', '0px');
+        }
+      }, { passive: true });
+    })();
+  </script>
+
 
 
 
