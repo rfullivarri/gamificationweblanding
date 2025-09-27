@@ -356,6 +356,49 @@
       transition: transform .18s ease;
     }
 
+    /* --- Panel: único contenedor con scroll --- */
+    .bbdd-panel{
+      height: 100dvh;
+      overflow: auto;              /* ahora el panel scrollea */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* main ya no scrollea */
+    .bbdd-panel > main{
+      flex: 1 1 auto;
+      overflow: visible;
+    }
+    
+    /* Appbar sticky dentro del panel + transición suave por transform */
+    header.appbar{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      transform: translateY(var(--appbarShift, 0px));
+      transition: transform .12s linear; /* micro-suavizado cuando se frena */
+    }
+    
+    /* Botón Confirmar SIEMPRE visible (flotante) */
+    #bbdd-confirm{
+      position: fixed;                         /* flota dentro de la ventana */
+      right: clamp(12px, 3vw, 28px);
+      top: calc(12px + env(safe-area-inset-top, 0px));
+      z-index: 60;
+      box-shadow: 0 14px 34px rgba(125,60,255,.35);
+    }
+    
+    /* Un poco de margen arriba del contenido para que no quede tapado
+       por el botón flotante en pantallas chicas */
+    @media (max-width: 520px){
+      .bbdd-panel > main{ padding-top: 56px; }
+    }
+    
+    /* (Opcional) compactito para que entren más tarjetas en pantalla */
+    .item{ margin:6px 0; }
+    .slidable{ padding:10px 12px; }
+
+
 
 
   </style>
@@ -449,51 +492,36 @@
 
   <script>
     (() => {
-      const panel    = document.querySelector('.bbdd-panel');
-      const scroller = panel?.querySelector('main');
-      const appbar   = panel?.querySelector('header.appbar');
-      if (!scroller || !appbar) return;
+      const panel  = document.querySelector('.bbdd-panel');     // ahora scrollea el panel
+      const appbar = document.querySelector('header.appbar');
+      if(!panel || !appbar) return;
     
-      let lastY = scroller.scrollTop;
-      let progress = 0;                   // 0 = totalmente visible, H = totalmente oculto
-      let H = appbar.offsetHeight;        // alto actual del header
-      let raf = null;
-      let snapTO = null;
+      let lastY = panel.scrollTop;
+      let acc   = 0;                        // acumulador de “cuánto subió”
+      const H   = appbar.offsetHeight;      // alto total del appbar
+      const MAX = Math.max(0, H - 8);       // hasta dónde lo escondemos
+      const K   = 0.10;                     // sensibilidad (0.08 – 0.15 va bien)
+      const FRICTION = 0.10;                // fricción al cambiar de sentido
     
-      // por si cambia el alto (responsive, fuentes, etc.)
-      const recalc = () => { H = appbar.offsetHeight; progress = Math.min(progress, H); };
-      window.addEventListener('resize', recalc);
+      panel.addEventListener('scroll', () => {
+        const y  = panel.scrollTop;
+        const dy = y - lastY;
     
-      function apply() {
-        appbar.style.transform = `translateY(${-progress}px)`;
-        raf = null;
-      }
+        // integramos de a poco: si vas bajando, acumula; si subís, restamos con fricción
+        if (dy > 0) {
+          acc += dy * K;
+        } else if (dy < 0) {
+          acc += dy * (K * (1 - FRICTION));
+        }
     
-      function onScroll() {
-        const y  = scroller.scrollTop;
-        const dy = y - lastY;             // >0 bajando, <0 subiendo
+        // clamp y aplicamos
+        acc = Math.min(Math.max(acc, 0), MAX);
+        appbar.style.setProperty('--appbarShift', `-${acc}px`);
         lastY = y;
-    
-        // acumulamos el desplazamiento del header, limitado a [0, H]
-        progress = Math.max(0, Math.min(H, progress + dy));
-        if (!raf) raf = requestAnimationFrame(apply);
-    
-        // cuando se detiene el scroll, hacemos un "snap" suave al estado más cercano
-        clearTimeout(snapTO);
-        snapTO = setTimeout(() => {
-          // agregamos transición SOLO para el snap
-          appbar.classList.add('is-snapping');
-          const target = (progress > H * 0.7) ? H : 0;   // umbral 70%
-          progress = target;
-          apply();
-          // quitamos la transición después para que el movimiento vuelva a ser 1:1 con el scroll
-          setTimeout(() => appbar.classList.remove('is-snapping'), 200);
-        }, 120);
-      }
-    
-      scroller.addEventListener('scroll', onScroll, { passive: true });
+      }, {passive:true});
     })();
   </script>
+
 
 
   <script>
