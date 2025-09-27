@@ -296,10 +296,62 @@
       padding: 8px;                       /* menos aire en el bloque expandible */
       gap: 8px;
     }
-    .slidable{ padding-block: 7px; }
-    .content, .row-main{ gap: 7px; }
-    .task-input{ padding-block: 7px; }
-    .item{ margin-block: 5px; }
+    .slidable{ padding-block: 5px; }
+    .content, .row-main{ gap: 5px; }
+    .task-input{ padding-block: 5px; }
+    .item{ margin-block: 3px; }
+    /* === Tarea en grid: [texto] [chip dificultad] [botón ...] === */
+    .slidable{
+      display: grid;
+      grid-template-columns: 1fr auto auto; /* el texto toma todo lo disponible */
+      align-items: center;
+      column-gap: var(--ctrl-gap, 12px);
+    }
+    
+    /* Contenedor del texto (tu “caja verde”) */
+    .slidable .content{
+      grid-column: 1;
+      min-width: 0;              /* clave para que el input pueda encogerse */
+    }
+    .slidable .row-main{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      width: 100%;
+    }
+    .slidable .task-input{
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
+    }
+    
+    /* Controles a la derecha */
+    .slidable .diff-chip{
+      grid-column: 2;
+      white-space: nowrap;
+      padding: 0 var(--chip-pad-x, 12px); /* horizontal compactable */
+    }
+    .slidable .more{
+      grid-column: 3;
+      width: var(--more-w, 44px);
+      min-width: var(--more-w, 44px);
+    }
+    
+    /* --- Responsivo: en móviles estrechos reducimos separación y paddings --- */
+    @media (max-width: 480px){
+      .slidable{ column-gap: 5px; }
+      .slidable .diff-chip{ padding: 0 5px; }
+      .slidable .more{ width: 40px; min-width: 30px; }
+      .slidable .task-input{ padding: 4px 5px; }  /* opcional: más compacto */
+    }
+    
+    @media (max-width: 380px){
+      .slidable{ column-gap: 8px; }
+      .slidable .diff-chip{ padding: 0 8px; font-size: .92rem; }
+      .slidable .more{ width: 36px; min-width: 36px; }
+    }
+
 
 
   </style>
