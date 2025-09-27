@@ -341,7 +341,7 @@
       .slidable .diff-chip{ padding:0 6px; font-size:.92rem; }
       .slidable .more{ width:36px; min-width:36px; }
     }
-    
+
     header.appbar{
       position: sticky;
       top: 0;
@@ -355,8 +355,6 @@
     .bbdd-panel main{
       transition: padding-top .22s ease;
     }
-
-
 
 
   </style>
@@ -447,6 +445,29 @@
       </footer>
     </div>
   </div>
+
+  <script>
+    (() => {
+      const panel   = document.querySelector('.bbdd-panel');
+      const scroller= panel?.querySelector('main');
+      const appbar  = panel?.querySelector('header.appbar');
+      if(!scroller || !appbar) return;
+    
+      let last = 0, downCount = 0, upCount = 0;
+      scroller.addEventListener('scroll', () => {
+        const y = scroller.scrollTop;
+        const goingDown = y > last;
+        if (goingDown) { downCount++; upCount = 0; }
+        else           { upCount++;   downCount = 0; }
+    
+        // Umbrales para evitar parpadeos
+        if (y > 60 && downCount > 2) appbar.classList.add('hidden');
+        if (upCount > 2)             appbar.classList.remove('hidden');
+    
+        last = y;
+      }, {passive:true});
+    })();
+  </script>
 
   <script>
     (function(){
@@ -890,28 +911,6 @@
           .catch(err => console.error('[SW] registro falló', err));
       });
     }
-  </script>
-  <script>
-  (() => {
-    const panel = document.querySelector('.bbdd-panel');
-    const scroller = panel?.querySelector('main');
-    const appbar   = panel?.querySelector('header.appbar');
-    if(!scroller || !appbar) return;
-  
-    let last = 0, ticking = false;
-    scroller.addEventListener('scroll', () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = scroller.scrollTop;
-        // Si bajás más de 80 px: compacta. Si subís: expande.
-        if (y > 80 && y > last) appbar.classList.add('compact');
-        if (y < last)           appbar.classList.remove('compact');
-        last = y;
-        ticking = false;
-      });
-    }, {passive:true});
-  })();
   </script>
 </body>
 </html>
