@@ -200,7 +200,7 @@
     #table-spinner{
       position:fixed;
       inset:0;
-      display:flex;
+      display:none;
       align-items:center;
       justify-content:center;
       flex-direction:column;
@@ -211,6 +211,7 @@
       z-index:120;
       pointer-events:auto;
     }
+    #table-wrap.table-loading #table-spinner{display:flex;}
     #table-spinner .ring{
       width:36px;height:36px;border-radius:50%;
       border:3px solid rgba(125,60,255,.18);
@@ -727,6 +728,15 @@
         }
       }
     })();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .catch(err => console.error('[SW] registro falló', err));
+      });
+    }
   </script>
 </body>
 </html>
