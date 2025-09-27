@@ -342,19 +342,20 @@
       .slidable .more{ width:36px; min-width:36px; }
     }
 
+    /* Header pegado arriba que se mueve suavemente con el scroll */
     header.appbar{
       position: sticky;
       top: 0;
       z-index: 20;
-      transition: transform .22s ease;
+      will-change: transform;
+      /* sin clase .hidden, la animación la controla JS */
     }
-    header.appbar.hidden{
-      transform: translateY(-100%); /* se va para arriba */
+    
+    /* (opcional) transición cuando soltás el scroll y “encaja” en visible/oculto */
+    header.appbar.is-snapping{
+      transition: transform .18s ease;
     }
-    /* Cuando se oculta, eliminá cualquier padding top extra del main */
-    .bbdd-panel main{
-      transition: padding-top .22s ease;
-    }
+
 
 
   </style>
@@ -448,26 +449,52 @@
 
   <script>
     (() => {
-      const panel   = document.querySelector('.bbdd-panel');
-      const scroller= panel?.querySelector('main');
-      const appbar  = panel?.querySelector('header.appbar');
-      if(!scroller || !appbar) return;
+      const panel    = document.querySelector('.bbdd-panel');
+      const scroller = panel?.querySelector('main');
+      const appbar   = panel?.querySelector('header.appbar');
+      if (!scroller || !appbar) return;
     
-      let last = 0, downCount = 0, upCount = 0;
-      scroller.addEventListener('scroll', () => {
-        const y = scroller.scrollTop;
-        const goingDown = y > last;
-        if (goingDown) { downCount++; upCount = 0; }
-        else           { upCount++;   downCount = 0; }
+      let lastY = scroller.scrollTop;
+      let progress = 0;                   // 0 = totalmente visible, H = totalmente oculto
+      let H = appbar.offsetHeight;        // alto actual del header
+      let raf = null;
+      let snapTO = null;
     
-        // Umbrales para evitar parpadeos
-        if (y > 60 && downCount > 2) appbar.classList.add('hidden');
-        if (upCount > 2)             appbar.classList.remove('hidden');
+      // por si cambia el alto (responsive, fuentes, etc.)
+      const recalc = () => { H = appbar.offsetHeight; progress = Math.min(progress, H); };
+      window.addEventListener('resize', recalc);
     
-        last = y;
-      }, {passive:true});
+      function apply() {
+        appbar.style.transform = `translateY(${-progress}px)`;
+        raf = null;
+      }
+    
+      function onScroll() {
+        const y  = scroller.scrollTop;
+        const dy = y - lastY;             // >0 bajando, <0 subiendo
+        lastY = y;
+    
+        // acumulamos el desplazamiento del header, limitado a [0, H]
+        progress = Math.max(0, Math.min(H, progress + dy));
+        if (!raf) raf = requestAnimationFrame(apply);
+    
+        // cuando se detiene el scroll, hacemos un "snap" suave al estado más cercano
+        clearTimeout(snapTO);
+        snapTO = setTimeout(() => {
+          // agregamos transición SOLO para el snap
+          appbar.classList.add('is-snapping');
+          const target = (progress > H * 0.7) ? H : 0;   // umbral 70%
+          progress = target;
+          apply();
+          // quitamos la transición después para que el movimiento vuelva a ser 1:1 con el scroll
+          setTimeout(() => appbar.classList.remove('is-snapping'), 200);
+        }, 120);
+      }
+    
+      scroller.addEventListener('scroll', onScroll, { passive: true });
     })();
   </script>
+
 
   <script>
     (function(){
