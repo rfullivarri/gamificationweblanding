@@ -263,94 +263,85 @@
     }
 
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
+    /* === Glow verde al enfocar === */
     .slidable:has(.task-input:focus){
-    border-color:#71e6b5;
-    box-shadow:0 0 0 1px rgba(113,230,181,.45), 0 14px 34px rgba(36,126,104,.28);
+      border-color:#71e6b5;
+      box-shadow:0 0 0 1px rgba(113,230,181,.45), 0 14px 34px rgba(36,126,104,.28);
     }
     .task-input:focus{
       outline:0;
       border-color:#71e6b5;
       box-shadow:0 0 0 2px rgba(113,230,181,.30);
     }
-    /* ===== Compactar tarjetas ===== */
-    .item{ margin: 6px 0; }               /* 6px entre tarjetas (o 0 si querés pegadas) */
+    
+    /* === Tarjeta compacta + grid con barrita === */
+    .item{ margin:6px 0; }
+    
     .slidable{
-      padding: 10px 12px;                 /* reduce relleno interno */
-      gap: 8px;                           /* menos espacio entre columnas internas */
-    }
-    .slidable .mark{ width: 4px; }        /* barrita lateral más fina (antes 6px) */
-    .content{ gap: 8px; }                 /* menos espacio vertical dentro del contenido */
-    .row-main{ gap: 8px; align-items:center; }
-    
-    .task-input{
-      padding: 8px 10px;                  /* campo más bajo */
-      border-radius: 10px;                /* opcional, más compacto */
+      display:grid;
+      grid-template-columns: var(--mark-w,6px) 1fr auto auto; /* barrita | texto | chip | ... */
+      align-items:center;
+      column-gap:12px;
+      padding:10px 12px;
     }
     
-    .diff-chip, .more{
-      height: 34px;                       /* chips y menú más bajos (antes 40px) */
-      padding: 0 10px;
+    /* Barrita izquierda */
+    .slidable .mark{
+      grid-column:1;
+      align-self:stretch;
+      width:var(--mark-w,6px);
+      border-radius:999px;
+      background:linear-gradient(180deg,#2a7fff,#7d3cff);
     }
     
-    .meta{
-      padding: 8px;                       /* menos aire en el bloque expandible */
-      gap: 8px;
-    }
-    .slidable{ padding-block: 5px; }
-    .content, .row-main{ gap: 5px; }
-    .task-input{ padding-block: 5px; }
-    .item{ margin-block: 3px; }
-    /* === Tarea en grid: [texto] [chip dificultad] [botón ...] === */
-    .slidable{
-      display: grid;
-      grid-template-columns: 1fr auto auto; /* el texto toma todo lo disponible */
-      align-items: center;
-      column-gap: var(--ctrl-gap, 12px);
-    }
-    
-    /* Contenedor del texto (tu “caja verde”) */
+    /* Contenido de texto (se expande a tope) */
     .slidable .content{
-      grid-column: 1;
-      min-width: 0;              /* clave para que el input pueda encogerse */
+      grid-column:2;
+      min-width:0;
     }
-    .slidable .row-main{
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-width: 0;
-      width: 100%;
+    .row-main{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
     }
-    .slidable .task-input{
-      flex: 1 1 auto;
-      min-width: 0;
-      width: 100%;
+    .task-input{
+      flex:1 1 auto;
+      min-width:0;
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
     }
     
     /* Controles a la derecha */
     .slidable .diff-chip{
-      grid-column: 2;
-      white-space: nowrap;
-      padding: 0 var(--chip-pad-x, 12px); /* horizontal compactable */
+      grid-column:3;
+      white-space:nowrap;
+      padding:0 10px;
     }
     .slidable .more{
-      grid-column: 3;
-      width: var(--more-w, 44px);
-      min-width: var(--more-w, 44px);
+      grid-column:4;
+      width:44px;
+      min-width:44px;
     }
+    .diff-chip, .more{ height:34px; }
     
-    /* --- Responsivo: en móviles estrechos reducimos separación y paddings --- */
-    @media (max-width: 480px){
-      .slidable{ column-gap: 5px; }
-      .slidable .diff-chip{ padding: 0 5px; }
-      .slidable .more{ width: 40px; min-width: 30px; }
-      .slidable .task-input{ padding: 4px 5px; }  /* opcional: más compacto */
-    }
+    /* Meta (bloque expandible) más denso */
+    .meta{ padding:8px; gap:8px; }
     
-    @media (max-width: 380px){
-      .slidable{ column-gap: 8px; }
-      .slidable .diff-chip{ padding: 0 8px; font-size: .92rem; }
-      .slidable .more{ width: 36px; min-width: 36px; }
+    /* === Responsive === */
+    @media (max-width:480px){
+      .slidable{ column-gap:8px; }
+      .slidable .diff-chip{ padding:0 8px; }
+      .slidable .more{ width:40px; min-width:40px; }
+      .task-input{ padding:6px 8px; }
     }
+    @media (max-width:380px){
+      .slidable{ column-gap:6px; }
+      .slidable .diff-chip{ padding:0 6px; font-size:.92rem; }
+      .slidable .more{ width:36px; min-width:36px; }
+    }
+
 
 
 
