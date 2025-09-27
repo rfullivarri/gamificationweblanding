@@ -912,7 +912,6 @@
         diffSelect.classList.add('sr-only');
         
         // ⬇️ MÍNIMO NECESARIO: escribir diff en el estado y marcar dirty
-        const idx = Number(tr.dataset.index);
         function pushDiffToState(){
           if (typeof state === 'undefined' || Number.isNaN(idx)) return;
           if (!state.rows || !state.rows[idx]) return;
