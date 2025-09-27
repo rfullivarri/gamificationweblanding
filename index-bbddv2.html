@@ -767,111 +767,102 @@
         function upOnce(){ window.removeEventListener('mousemove', move); end(); }
       }
 
-
-      function openRow(wrapper, slide, viaMore=false){
+      function openRow(wrapper, slide, viaMore = false){
+        // cerrar otras filas abiertas
         closeOther(wrapper);
+      
         const actions = wrapper.querySelector('.actions');
-        if(viaMore){
+        const actionsWidth =
+          (actions?.getBoundingClientRect().width) ||
+          parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--actionsw')) ||
+          0;
+      
+        if (viaMore) {
+          // modo "Más": expande la fila sin deslizar
           slide.style.transform = 'translateX(0)';
           wrapper.classList.add('expanded');
-        }else{
-          const width = actions?.getBoundingClientRect().width || parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--actionsw')) || 0;
-          slide.style.transform = `translateX(${-width - 12}px)`;
+          wrapper.classList.remove('row-open');
+          if (opened === wrapper) opened = null;
+        } else {
+          // swipe para mostrar acciones
+          slide.style.transform = `translateX(${-(actionsWidth - 12)}px)`;
+          wrapper.classList.add('row-open');
           wrapper.classList.remove('expanded');
+          opened = wrapper;
+          if (wrapper === currentHintEl) dismissHint();
         }
-
-      function openRow(wrapper, slide){
-        closeAll();
-        const actions = wrapper.querySelector('.actions');
-        const width = actions?.getBoundingClientRect().width || parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--actionsw')) || 0;
-        slide.style.transform = `translateX(${-width - 12}px)`;
-
-        wrapper.classList.add('row-open');
-        opened = wrapper;
-        if(wrapper === currentHintEl){
-          dismissHint();
-        }
-
-        const width = wrapper.querySelector('.actions')?.getBoundingClientRect().width || 0;
-        slide.style.transform = `translateX(${-width - 12}px)`;
-        wrapper.classList.add('row-open');
-        opened = wrapper;
       }
-
+      
       function closeRow(wrapper, slide){
         slide.style.transform = 'translateX(0)';
         wrapper.classList.remove('row-open');
-
         wrapper.classList.remove('expanded');
-
-        if(opened === wrapper) opened = null;
+        if (opened === wrapper) opened = null;
       }
-
+      
       function closeAll(){
-        if(!opened) return;
+        if (!opened) return;
         const slide = opened.querySelector('.slidable');
-        if(slide) closeRow(opened, slide);
+        if (slide) closeRow(opened, slide);
       }
-
+      
       function closeOther(wrapper){
-        if(!opened || opened === wrapper) return;
+        if (!opened || opened === wrapper) return;
         const slide = opened.querySelector('.slidable');
-        if(slide) closeRow(opened, slide);
+        if (slide) closeRow(opened, slide);
       }
-
-
+      
+      // cerrar si clicás afuera de la fila abierta
       document.addEventListener('pointerdown', (e)=>{
-        if(!opened) return;
-        if(opened.contains(e.target)) return;
+        if (!opened) return;
+        if (opened.contains(e.target)) return;
         const slide = opened.querySelector('.slidable');
-        if(slide) closeRow(opened, slide);
+        if (slide) closeRow(opened, slide);
       });
-
+      
       function armSwipeHint(){
-        if(currentHintEl && !currentHintEl.isConnected){
-          currentHintEl = null;
-        }
-        if(swipeHintDismissed) return;
+        if (currentHintEl && !currentHintEl.isConnected) currentHintEl = null;
+        if (swipeHintDismissed) return;
         const first = tbody.querySelector('tr:first-child .item');
-        if(!first || first === currentHintEl) return;
-        if(currentHintEl){
-          currentHintEl.classList.remove('swipe-hint');
-        }
+        if (!first || first === currentHintEl) return;
+        if (currentHintEl) currentHintEl.classList.remove('swipe-hint');
+      
         currentHintEl = first;
         first.classList.add('swipe-hint');
+      
         const stop = (ev)=>{
-          if(!currentHintEl) return;
-          if(ev && !currentHintEl.contains(ev.target)) return;
+          if (!currentHintEl) return;
+          if (ev && !currentHintEl.contains(ev.target)) return;
           dismissHint();
         };
-        currentHintEl.addEventListener('touchstart', stop, { once:true, capture:true });
+        currentHintEl.addEventListener('touchstart',  stop, { once:true, capture:true });
         currentHintEl.addEventListener('pointerdown', stop, { once:true, capture:true });
       }
-
+      
       function dismissHint(){
-        if(currentHintEl){
-          currentHintEl.classList.remove('swipe-hint');
-        }
+        if (currentHintEl) currentHintEl.classList.remove('swipe-hint');
         currentHintEl = null;
         swipeHintDismissed = true;
       }
-
+      
       function deleteRow(tr){
-        if(typeof state === 'undefined') return;
+        if (typeof state === 'undefined') return;
         const idx = Number(tr.dataset.index);
-        if(Number.isNaN(idx)) return;
-        state.rows.splice(idx,1);
-
+        if (Number.isNaN(idx)) return;
+      
+        state.rows.splice(idx, 1);
+      
         const next = new Set();
-        for(const i of state.aiUpdated){
-          if(i < idx) next.add(i);
-          else if(i > idx) next.add(i - 1);
+        for (const i of state.aiUpdated) {
+          if (i < idx) next.add(i);
+          else if (i > idx) next.add(i - 1);
         }
         state.aiUpdated = next;
-
+      
         markDirty();
         render();
       }
+
 
       async function runAiForRow(tr, mode){
         if(typeof state === 'undefined') return;
