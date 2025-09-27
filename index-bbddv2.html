@@ -447,110 +447,106 @@
 
       function enhanceRow(tr){
         if(tr.dataset.mobileReady === '1') return;
-        const cells = tr.querySelectorAll('td');
-        if(cells.length < 7) return;
-
-        const pilarSel = cells[0].querySelector('select[data-col="0"]');
-        const rasgoSel = cells[1].querySelector('select[data-col="1"]');
-        const statInput = cells[2].querySelector('input[data-col="2"]');
-        const taskInput = cells[3].querySelector('input[data-col="3"]');
-        const diffSelect = cells[4].querySelector('select[data-col="4"]');
-        const feedbackBox = cells[5].querySelector('.feedback');
-        const handle = cells[6].querySelector('.handle');
-
-
+      
+        // Busca controles por data-col en todo el tr (robusto a cambios de orden/columnas)
+        const pilarSel  = tr.querySelector('select[data-col="0"]');
+        const rasgoSel  = tr.querySelector('select[data-col="1"]');
+        const statInput = tr.querySelector('input[data-col="2"]');
+        const taskInput = tr.querySelector('input[data-col="3"]');
+        const diffSelect= tr.querySelector('select[data-col="4"]');
+        const feedbackBox = tr.querySelector('.feedback');
+        const handle      = tr.querySelector('.handle');
+      
         if(!taskInput || !diffSelect || !pilarSel || !rasgoSel || !statInput) return;
-
+      
+        // Crea 1 solo <td> que ocupe TODAS las columnas reales de esta tabla
         const td = document.createElement('td');
-        td.colSpan = 7;
-
+        // usa el número de celdas originales de la fila como colSpan
+        td.colSpan = tr.children.length || 7;
+      
         const item = document.createElement('div');
         item.className = 'item';
-
+      
         const actions = document.createElement('div');
         actions.className = 'actions';
-
+      
         const btnModify = makeAction('modify','🔁','Modificar', ()=> runAiForRow(tr,'replace'));
-        const btnImprove = makeAction('improve','🪄','Mejorar', ()=> runAiForRow(tr,'improve'));
-        const btnDelete = makeAction('del','🗑️','Eliminar', ()=> deleteRow(tr));
+        const btnImprove= makeAction('improve','🪄','Mejorar',  ()=> runAiForRow(tr,'improve'));
+        const btnDelete = makeAction('del','🗑️','Eliminar',   ()=> deleteRow(tr));
         actions.append(btnModify, btnImprove, btnDelete);
-
+      
         const slidable = document.createElement('div');
         slidable.className = 'slidable shadow';
-
+      
         const mark = document.createElement('div');
         mark.className = 'mark';
-
+      
         const content = document.createElement('div');
         content.className = 'content';
-
+      
         const rowMain = document.createElement('div');
         rowMain.className = 'row-main';
-
+      
+        // deduplicado
         taskInput.classList.add('task-input');
         taskInput.setAttribute('placeholder','Nueva task…');
-
-        rowMain.append(taskInput);
+      
         const drag = document.createElement('span');
         drag.className = 'drag-handle';
-        if(handle){ drag.append(handle); }
-        else { drag.textContent = '⋮⋮'; }
-
-        taskInput.classList.add('task-input');
-        taskInput.setAttribute('placeholder','Nueva task…');
-
+        if (handle){ drag.append(handle); } else { drag.textContent = '⋮⋮'; }
+      
         rowMain.append(drag, taskInput);
-
+      
         const diffChip = document.createElement('button');
         diffChip.type = 'button';
         diffChip.className = 'diff-chip';
         diffChip.title = 'Cambiar dificultad';
         diffChip.innerHTML = '<span class="dot"></span><span class="label"></span>';
-
+      
         const more = document.createElement('button');
         more.type = 'button';
         more.className = 'more';
-        more.title = 'Opciones';
         more.title = 'Mostrar columnas';
-
         more.textContent = '⋯';
-
+      
         const meta = document.createElement('div');
         meta.className = 'meta';
-        meta.append(createMeta('Pilar', pilarSel), createMeta('Rasgo', rasgoSel), createMeta('Stat', statInput));
-
-
-        if(feedbackBox){
+        meta.append(
+          createMeta('Pilar',  pilarSel),
+          createMeta('Rasgo',  rasgoSel),
+          createMeta('Stat',   statInput)
+        );
+        if (feedbackBox){
           feedbackBox.classList.add('meta-feedback');
           meta.append(feedbackBox);
         }
-
+      
         const metaActions = document.createElement('div');
         metaActions.className = 'meta-actions';
         metaActions.append(
-          makeMetaAction('🪄', 'Mejorar', ()=> runAiForRow(tr,'improve')),
-          makeMetaAction('🔁', 'Modificar', ()=> runAiForRow(tr,'replace')),
-          makeMetaAction('🗑️', 'Eliminar', ()=> deleteRow(tr), true)
+          makeMetaAction('🪄','Mejorar',  ()=> runAiForRow(tr,'improve')),
+          makeMetaAction('🔁','Modificar',()=> runAiForRow(tr,'replace')),
+          makeMetaAction('🗑️','Eliminar', ()=> deleteRow(tr), true)
         );
         meta.append(metaActions);
-
+      
         content.append(rowMain, meta);
-
-
-        content.append(rowMain, meta);
-
-        if(feedbackBox){
+      
+        // si había un feedback suelto, lo ocultamos en vista compacta
+        if (feedbackBox){
           feedbackBox.classList.add('hidden-feedback');
-          content.append(feedbackBox);
         }
-
+      
         slidable.append(mark, content, diffChip, more);
         item.append(actions, slidable);
         td.append(item);
+      
+        // reemplaza el contenido de la fila por la tarjeta
         tr.innerHTML = '';
         tr.append(td);
         tr.dataset.mobileReady = '1';
-
+      
+        // marca IA
         const idx = Number(tr.dataset.index);
         if(!Number.isNaN(idx) && typeof state !== 'undefined'){
           if(state.aiUpdated && state.aiUpdated.has(idx)){
@@ -559,42 +555,30 @@
           }
         }
         updateDiff(diffChip, diffSelect.value);
-
+      
+        // wiring de dificultad
         diffSelect.classList.add('sr-only');
         diffChip.addEventListener('click', ()=>{
           cycleDiff(diffSelect);
           updateDiff(diffChip, diffSelect.value);
-          const ev = new Event('input', { bubbles:true });
-          diffSelect.dispatchEvent(ev);
-          const ev2 = new Event('change', { bubbles:true });
-          diffSelect.dispatchEvent(ev2);
+          diffSelect.dispatchEvent(new Event('input', { bubbles:true }));
+          diffSelect.dispatchEvent(new Event('change', { bubbles:true }));
         });
         diffSelect.addEventListener('change', ()=> updateDiff(diffChip, diffSelect.value));
-        diffSelect.addEventListener('input', ()=> updateDiff(diffChip, diffSelect.value));
-
+        diffSelect.addEventListener('input',  ()=> updateDiff(diffChip, diffSelect.value));
+      
+        // botón “más”
         more.addEventListener('click', (e)=>{
-          e.preventDefault();
-          e.stopPropagation();
-
-          if(item.classList.contains('expanded')){
-            closeRow(item, slidable);
-          }else{
-            openRow(item, slidable, true);
-          }
-
+          e.preventDefault(); e.stopPropagation();
           const willExpand = !item.classList.contains('expanded');
           item.classList.toggle('expanded', willExpand);
-          if(willExpand){
-            openRow(item, slidable, true);
-          }else{
-            closeRow(item, slidable);
-          }
-          item.classList.toggle('expanded');
-
+          if(willExpand) openRow(item, slidable, true);
+          else           closeRow(item, slidable);
         });
-
+      
         makeSwipeable(item, slidable);
       }
+
 
       function makeAction(cls, icon, label, onClick){
         const b = document.createElement('button');
