@@ -907,16 +907,52 @@
         }
       
         // Sincroniza dificultad (oculta el select)
+        // ——— Sincroniza dificultad (oculta el select) ———
         updateDiff(diffChip, diffSelect.value);
         diffSelect.classList.add('sr-only');
+        
+        // ⬇️ MÍNIMO NECESARIO: escribir diff en el estado y marcar dirty
+        const idx = Number(tr.dataset.index);
+        function pushDiffToState(){
+          if (typeof state === 'undefined' || Number.isNaN(idx)) return;
+          if (!state.rows || !state.rows[idx]) return;
+          const v = (typeof normDiff === 'function') ? normDiff(diffSelect.value) : diffSelect.value;
+          if (state.rows[idx][4] !== v) {
+            state.rows[idx][4] = v;                 // guarda la dificultad en el estado
+            if (typeof markDirty === 'function') markDirty();  // enciende el “hay cambios”
+          }
+        }
+        
+        // Ciclar con el chip
         diffChip.addEventListener('click', ()=>{
           cycleDiff(diffSelect);
           updateDiff(diffChip, diffSelect.value);
+          pushDiffToState();                         // 👈 importante
+          // mantené tus eventos por compatibilidad
           diffSelect.dispatchEvent(new Event('input',  { bubbles:true }));
           diffSelect.dispatchEvent(new Event('change', { bubbles:true }));
         });
-        diffSelect.addEventListener('change', ()=> updateDiff(diffChip, diffSelect.value));
-        diffSelect.addEventListener('input',  ()=> updateDiff(diffChip, diffSelect.value));
+        
+        // Cambios hechos desde el <select> oculto (o por código)
+        diffSelect.addEventListener('change', ()=>{
+          updateDiff(diffChip, diffSelect.value);
+          pushDiffToState();
+        });
+        diffSelect.addEventListener('input', ()=>{
+          updateDiff(diffChip, diffSelect.value);
+          pushDiffToState();
+        });
+
+        // updateDiff(diffChip, diffSelect.value);
+        // diffSelect.classList.add('sr-only');
+        // diffChip.addEventListener('click', ()=>{
+        //   cycleDiff(diffSelect);
+        //   updateDiff(diffChip, diffSelect.value);
+        //   diffSelect.dispatchEvent(new Event('input',  { bubbles:true }));
+        //   diffSelect.dispatchEvent(new Event('change', { bubbles:true }));
+        // });
+        // diffSelect.addEventListener('change', ()=> updateDiff(diffChip, diffSelect.value));
+        // diffSelect.addEventListener('input',  ()=> updateDiff(diffChip, diffSelect.value));
       
         // Toggle meta con “más”
         more.addEventListener('click', (e)=>{
