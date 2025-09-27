@@ -13,6 +13,7 @@
       --bg:#0b0f19; --ink:#e9eef7; --muted:#9aa3b2; --accent:#7d3cff; --accent2:#9a74ff;
       --card:#101726; --chip:#17203a; --border:#1d2743; --shadow:0 12px 28px rgba(0,0,0,.35);
       --tap:44px; --r:14px; --actionsw:180px;
+      --tap:44px; --r:14px; --actionsw:264px;
     }
     *,*::before,*::after{box-sizing:border-box}
     html,body{height:100%;}
@@ -41,11 +42,13 @@
       justify-content:center;
       padding:clamp(10px,2vh,20px);
       overflow-y:auto;
+      main
     }
     .bbdd-panel{
       width:min(960px,100%);
       height:min(100dvh,960px);
       max-height:100dvh;
+      main
       background:rgba(16,23,38,.86);
       border:1px solid rgba(125,60,255,.25);
       border-radius:18px;
@@ -116,6 +119,7 @@
       flex:1;
       overflow:auto;
       padding:0 clamp(12px,4vw,28px) clamp(96px,12vh,150px);
+      padding:0 clamp(12px,4vw,28px) clamp(110px,12vh,180px);
       position:relative;
       scroll-behavior:smooth;
     }
@@ -141,6 +145,19 @@
     .slidable .mark{width:6px;border-radius:999px;background:linear-gradient(180deg,#2a7fff,#7d3cff);align-self:stretch;}
     .slidable .content{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;}
     .row-main{display:flex;align-items:center;gap:10px;}
+    .item{position:relative;margin:10px 0;height:auto;border-radius:16px;overflow:hidden;touch-action:pan-y;}
+    .item .actions{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:8px;background:linear-gradient(90deg,transparent 40%,rgba(10,14,28,.88) 100%);}
+    .item .act{min-width:96px;height:38px;border-radius:11px;border:1px solid rgba(125,60,255,.35);background:rgba(32,38,66,.85);color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.35);}
+    .item .act.modify{border-color:#2b8fdb;background:rgba(26,48,78,.85);}
+    .item .act.improve{border-color:#8c5cff;background:rgba(39,28,78,.85);}
+    .item .act.del{border-color:#e74c3c;background:rgba(64,20,28,.9);}
+
+    .slidable{position:relative;display:flex;align-items:flex-start;gap:12px;background:var(--card);border:1px solid rgba(125,60,255,.22);border-radius:16px;padding:14px;transition:transform .18s ease;will-change:transform;box-shadow:var(--shadow);}    
+    .slidable .mark{width:6px;border-radius:999px;background:linear-gradient(180deg,#2a7fff,#7d3cff);align-self:stretch;}
+    .slidable .content{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;}
+    .row-main{display:flex;align-items:center;gap:10px;}
+    .drag-handle{width:28px;height:36px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(125,60,255,.18);display:flex;align-items:center;justify-content:center;color:#8b95b5;font-weight:700;font-size:1.1rem;user-select:none;cursor:grab;}
+    .drag-handle .handle{pointer-events:none;}
     .task-input{flex:1;min-width:0;background:rgba(255,255,255,.02);border:1px solid rgba(125,60,255,.24);border-radius:12px;padding:10px 12px;color:var(--ink);}
     .task-input.ai-updated{border-color:#71e6b5;box-shadow:0 0 0 1px rgba(113,230,181,.35);}
     .task-input::placeholder{color:rgba(233,238,247,.35);}
@@ -201,6 +218,9 @@
       position:fixed;
       inset:0;
       display:none;
+      position:absolute;
+      inset:0;
+      display:flex;
       align-items:center;
       justify-content:center;
       flex-direction:column;
@@ -212,6 +232,12 @@
       pointer-events:auto;
     }
     #table-wrap.table-loading #table-spinner{display:flex;}
+      background:rgba(8,12,24,.85);
+      border-radius:18px;
+      color:var(--ink);
+      font-weight:600;
+      z-index:10;
+    }
     #table-spinner .ring{
       width:36px;height:36px;border-radius:50%;
       border:3px solid rgba(125,60,255,.18);
@@ -219,6 +245,7 @@
       animation:spin .9s linear infinite;
     }
     #ai-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,12,26,.82);color:#cfd7ff;font-weight:600;z-index:130;gap:10px;}
+    #ai-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,12,26,.82);color:#cfd7ff;font-weight:600;z-index:12;gap:10px;}
     #ai-overlay .spark{font-size:1.4rem;animation:twinkle 1.6s ease-in-out infinite;}
     .ai-loading #ai-overlay{display:flex;}
     @keyframes twinkle{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:1;transform:scale(1.2);}}
@@ -429,6 +456,9 @@
       let opened = null;
       let swipeHintDismissed = false;
       let currentHintEl = null;
+      });
+
+      let opened = null;
 
       function enhanceRow(tr){
         if(tr.dataset.mobileReady === '1') return;
@@ -441,6 +471,7 @@
         const taskInput = cells[3].querySelector('input[data-col="3"]');
         const diffSelect = cells[4].querySelector('select[data-col="4"]');
         const feedbackBox = cells[5].querySelector('.feedback');
+        const handle = cells[6].querySelector('.handle');
 
         if(!taskInput || !diffSelect || !pilarSel || !rasgoSel || !statInput) return;
 
@@ -474,6 +505,15 @@
         taskInput.setAttribute('placeholder','Nueva task…');
 
         rowMain.append(taskInput);
+        const drag = document.createElement('span');
+        drag.className = 'drag-handle';
+        if(handle){ drag.append(handle); }
+        else { drag.textContent = '⋮⋮'; }
+
+        taskInput.classList.add('task-input');
+        taskInput.setAttribute('placeholder','Nueva task…');
+
+        rowMain.append(drag, taskInput);
 
         const diffChip = document.createElement('button');
         diffChip.type = 'button';
@@ -485,6 +525,7 @@
         more.type = 'button';
         more.className = 'more';
         more.title = 'Opciones';
+        more.title = 'Mostrar columnas';
         more.textContent = '⋯';
 
         const meta = document.createElement('div');
@@ -512,7 +553,6 @@
             item.classList.add(mode === 'replace' ? 'ai-modified' : 'ai-improved');
           }
         }
-
         updateDiff(diffChip, diffSelect.value);
 
         diffSelect.classList.add('sr-only');
@@ -537,6 +577,7 @@
           }else{
             closeRow(item, slidable);
           }
+          item.classList.toggle('expanded');
         });
 
         makeSwipeable(item, slidable);
@@ -548,6 +589,7 @@
         b.className = `act ${cls}`;
         b.setAttribute('aria-label', label);
         b.innerHTML = `<span aria-hidden="true">${icon}</span><span class="sr-only">${label}</span>`;
+        b.innerHTML = `<span>${icon}</span><span>${label}</span>`;
         b.addEventListener('click', (e)=>{
           e.preventDefault();
           e.stopPropagation();
@@ -637,6 +679,10 @@
         if(wrapper === currentHintEl){
           dismissHint();
         }
+        const width = wrapper.querySelector('.actions')?.getBoundingClientRect().width || 0;
+        slide.style.transform = `translateX(${-width - 12}px)`;
+        wrapper.classList.add('row-open');
+        opened = wrapper;
       }
 
       function closeRow(wrapper, slide){
@@ -657,7 +703,6 @@
         const slide = opened.querySelector('.slidable');
         if(slide) closeRow(opened, slide);
       });
-
       function armSwipeHint(){
         if(currentHintEl && !currentHintEl.isConnected){
           currentHintEl = null;
@@ -714,6 +759,7 @@
         try{
           aiLoading(true);
           row.__aiMode = mode === 'replace' ? 'replace' : 'improve';
+
           const batch = [[normPilar(row[0]||''), cleanRasgo(row[1]||''), (row[2]||''), (row[3]||''), normDiff(row[4]||''), mode]];
           const results = await aiSendBatch(email, batch);
           aiApplyResults([idx], results);
@@ -729,7 +775,6 @@
       }
     })();
   </script>
-
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
