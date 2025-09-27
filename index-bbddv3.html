@@ -433,6 +433,52 @@
       z-index: 15;
     }
 
+    /* === Un solo scroller === */
+    .bbdd-panel{
+      height:100dvh;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+    }
+    
+    /* Header sticky que se oculta con transform */
+    header.appbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      transform: translateY(calc(-1 * var(--appbarHide, 0px)));
+      transition: transform .12s linear; /* suave cuando se frena */
+      will-change: transform;
+    }
+    
+    /* El contenido arranca justo debajo del header visible:
+       padding-top = altoHeader - loOcultado */
+    .bbdd-panel > main{
+      flex:1 1 auto;
+      overflow:visible;
+      padding-top: var(--appbarPad, 0px);
+    }
+    
+    /* Footer pegado abajo siempre visible */
+    .bbdd-footer{
+      position:sticky;
+      bottom:0;
+      z-index:15;
+    }
+    
+    /* Botón Confirmar flotante (si lo querés siempre visible) */
+    #bbdd-confirm{
+      position:fixed;
+      right:clamp(12px,3vw,28px);
+      top:calc(12px + env(safe-area-inset-top,0px));
+      z-index:60;
+    }
+    
+    /* (Opcional) tarjetas un poco más compactas */
+    .item{ margin:6px 0; }
+    .slidable{ padding:10px 12px; }
+
+
     
 
 
@@ -525,7 +571,7 @@
     </div>
   </div>
 
-  <script>
+  <!-- <script>
     (() => {
       const panel  = document.querySelector('.bbdd-panel');
       const appbar = document.querySelector('header.appbar');
@@ -574,7 +620,70 @@
         }
       }, { passive: true });
     })();
+  </script> -->
+
+  <script>
+    (() => {
+      const panel  = document.querySelector('.bbdd-panel');      // único scroller
+      const appbar = document.querySelector('header.appbar');
+      const main   = document.querySelector('.bbdd-panel > main');
+      if(!panel || !appbar || !main) return;
+    
+      const root = document.documentElement;
+    
+      let lastY = panel.scrollTop;
+      let hide  = 0;                 // píxeles ocultados del header
+      let H     = appbar.offsetHeight || 0;    // alto actual del header
+      let MAX   = Math.max(0, H - 6);          // cuánto podemos ocultar (deja un pelín)
+      const K         = 0.10;                  // sensibilidad (0.08–0.15 va bien)
+      const FRICTION  = 0.12;                  // fricción al cambiar de sentido
+    
+      // Setea variables CSS iniciales
+      function applyVars(){
+        appbar.style.setProperty('--appbarHide', hide + 'px');
+        const pad = Math.max(0, H - hide);     // padding = parte visible del header
+        root.style.setProperty('--appbarPad', pad + 'px');
+        main.style.setProperty('--appbarPad', pad + 'px'); // por si usás el valor en main
+      }
+    
+      function recalcHeader(){
+        H   = appbar.offsetHeight || 0;
+        MAX = Math.max(0, H - 6);
+        hide = Math.min(hide, MAX);
+        applyVars();
+      }
+    
+      // Recalcular cuando cambie el alto del header (responsive / details open/close)
+      new ResizeObserver(recalcHeader).observe(appbar);
+      recalcHeader();
+    
+      panel.addEventListener('scroll', () => {
+        const y  = panel.scrollTop;
+        const dy = y - lastY;
+    
+        if (dy > 0) {                // bajando: ocultar un poco
+          hide += dy * K;
+        } else if (dy < 0) {         // subiendo: mostrar con fricción
+          hide += dy * K * (1 - FRICTION);
+        }
+    
+        // límites
+        hide = Math.min(Math.max(hide, 0), MAX);
+    
+        // aplicar a CSS (mueve header y ajusta padding-top del contenido)
+        applyVars();
+    
+        // si llegaste al tope, mostrar completo
+        if (y <= 0 && hide !== 0) {
+          hide = 0;
+          applyVars();
+        }
+    
+        lastY = y;
+      }, { passive:true });
+    })();
   </script>
+
 
 
   <!-- <script>
