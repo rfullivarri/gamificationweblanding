@@ -479,6 +479,80 @@
     .slidable{ padding:10px 12px; }
 
 
+
+    /***************** PARCHE VISUAL – copiar al final *****************/
+
+    /* 1) Ocultar el botón AI (Beta) de la barra de herramientas */
+    #bbdd-ai{ display:none !important; }
+    
+    /* 2) Confirmar: flotante, sin tapar la flecha, alineado y con ancho razonable */
+    header.appbar { position: sticky; top: 0; z-index: 30; }
+    header.appbar .row-actions { position: relative; }
+    
+    /* Botón fijo en la ventana pero con límites de tamaño y separación del notch */
+    #bbdd-confirm{
+      position: fixed;                /* siempre visible */
+      right: clamp(10px, 3vw, 20px);  /* despega del borde */
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;
+      width: clamp(180px, 56vw, 360px); /* nunca ocupa todo el ancho */
+      pointer-events: auto;
+    }
+    
+    /* En pantallas angostas, deja aire a la izquierda para no tapar la flecha */
+    @media (max-width: 520px){
+      #bbdd-confirm{
+        left: unset;                 /* que mande por derecha */
+        right: 12px;
+      }
+    }
+    
+    /* 3) Ganar espacio horizontal en el overlay y en el “editor” */
+    #bbdd-overlay{
+      padding: clamp(4px, 0.8vh, 8px);                /* menos borde exterior */
+    }
+    .bbdd-panel{
+      border-radius: 14px;                             /* un poco menos de radio */
+    }
+    
+    /* Header y main más “pegados” a los bordes */
+    header.appbar{
+      padding: 10px clamp(10px, 3vw, 18px) 8px;       /* menos padding lateral/vertical */
+    }
+    main{
+      /* menos padding lateral; mantené el padding inferior del footer */
+      padding: 0 clamp(8px, 2.4vw, 14px) clamp(90px, 12vh, 150px);
+    }
+    
+    /* Cards más compactas y con menos aire a los lados */
+    .item{ margin: 6px 0; }
+    .slidable{
+      padding: 8px 10px;           /* menos padding interno */
+      column-gap: 6px;             /* controles más cerca */
+      border-radius: 14px;
+    }
+    .slidable .content{ min-width: 0; }
+    .task-input{ padding: 7px 9px; border-radius: 10px; }
+    
+    /* Chips y botón “…” más compactos */
+    .diff-chip, .more{ height: 34px; }
+    .diff-chip{ padding: 0 10px; }
+    
+    /* Barrita izquierda más finita para ganar 2 px de texto */
+    .slidable .mark{ width: 4px; }
+    
+    /* En móviles, todavía más apretado en los costados */
+    @media (max-width: 420px){
+      header.appbar{ padding: 8px 10px; }
+      main{ padding-left: 8px; padding-right: 8px; }
+      .slidable{ padding: 7px 8px; column-gap: 5px; }
+    }
+    
+    /* Opcional: afinar bordes generales del panel para ganar 1–2 px por lado */
+    .bbdd-panel{ border-width: 0.5px; }
+
+
+
     
 
 
