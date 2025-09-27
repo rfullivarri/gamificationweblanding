@@ -42,13 +42,11 @@
       justify-content:center;
       padding:clamp(10px,2vh,20px);
       overflow-y:auto;
-      main
     }
     .bbdd-panel{
       width:min(960px,100%);
       height:min(100dvh,960px);
       max-height:100dvh;
-      main
       background:rgba(16,23,38,.86);
       border:1px solid rgba(125,60,255,.25);
       border-radius:18px;
@@ -67,6 +65,16 @@
       background:linear-gradient(180deg,rgba(14,20,35,.98),rgba(14,20,35,.82));
       border-bottom:1px solid rgba(125,60,255,.22);
     }
+
+    header.appbar .top-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;align-items:center;}
+    header.appbar .top-row .primary{display:flex;align-items:center;gap:12px;flex:1 1 320px;min-width:0;flex-wrap:wrap;}
+    header.appbar .top-row .primary .btn.icon{flex-shrink:0;}
+    header.appbar .title-wrap{flex:1 1 220px;min-width:0;}
+    header.appbar .title{font-weight:800;font-size:1.06rem;line-height:1.25;}
+    header.appbar .sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+    header.appbar .row-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;min-width:0;flex:0 0 auto;}
+    header.appbar .row-actions .btn{white-space:nowrap;flex:0 0 auto;}
+
     header.appbar .top-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;align-items:flex-start;}
     header.appbar .top-row .primary{display:flex;align-items:flex-start;gap:12px;flex:1 1 260px;min-width:0;flex-wrap:wrap;}
     header.appbar .top-row .primary .btn.icon{flex-shrink:0;}
@@ -75,6 +83,7 @@
     header.appbar .sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
     header.appbar .row-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;min-width:0;}
     header.appbar .row-actions .btn{white-space:nowrap;}
+
 
     .btn{
       appearance:none;
@@ -119,7 +128,9 @@
       flex:1;
       overflow:auto;
       padding:0 clamp(12px,4vw,28px) clamp(96px,12vh,150px);
+
       padding:0 clamp(12px,4vw,28px) clamp(110px,12vh,180px);
+
       position:relative;
       scroll-behavior:smooth;
     }
@@ -145,6 +156,7 @@
     .slidable .mark{width:6px;border-radius:999px;background:linear-gradient(180deg,#2a7fff,#7d3cff);align-self:stretch;}
     .slidable .content{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;}
     .row-main{display:flex;align-items:center;gap:10px;}
+
     .item{position:relative;margin:10px 0;height:auto;border-radius:16px;overflow:hidden;touch-action:pan-y;}
     .item .actions{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-right:8px;background:linear-gradient(90deg,transparent 40%,rgba(10,14,28,.88) 100%);}
     .item .act{min-width:96px;height:38px;border-radius:11px;border:1px solid rgba(125,60,255,.35);background:rgba(32,38,66,.85);color:#fff;font-size:.82rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.35);}
@@ -158,15 +170,30 @@
     .row-main{display:flex;align-items:center;gap:10px;}
     .drag-handle{width:28px;height:36px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(125,60,255,.18);display:flex;align-items:center;justify-content:center;color:#8b95b5;font-weight:700;font-size:1.1rem;user-select:none;cursor:grab;}
     .drag-handle .handle{pointer-events:none;}
+
     .task-input{flex:1;min-width:0;background:rgba(255,255,255,.02);border:1px solid rgba(125,60,255,.24);border-radius:12px;padding:10px 12px;color:var(--ink);}
     .task-input.ai-updated{border-color:#71e6b5;box-shadow:0 0 0 1px rgba(113,230,181,.35);}
     .task-input::placeholder{color:rgba(233,238,247,.35);}
+
+
+    .meta{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));background:rgba(255,255,255,.02);border:1px solid rgba(125,60,255,.18);border-radius:12px;padding:10px;opacity:0;max-height:0;overflow:hidden;transition:opacity .18s ease,max-height .18s ease;}
+    .item.expanded .meta{opacity:1;max-height:460px;}
+    .meta label{display:flex;flex-direction:column;font-size:.74rem;color:var(--muted);gap:6px;}
+    .meta select,.meta input{width:100%;background:rgba(14,24,40,.9);border:1px solid rgba(125,60,255,.22);border-radius:10px;min-height:36px;padding:6px 10px;color:var(--ink);}
+    .meta input::placeholder{color:rgba(233,238,247,.3);}
+    .meta .feedback{display:flex;gap:8px;align-items:center;justify-content:flex-start;grid-column:1 / -1;}
+    .meta .feedback button{width:40px;height:40px;border-radius:10px;border:1px solid rgba(125,60,255,.28);background:rgba(24,32,52,.9);color:var(--ink);font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
+    .item:not(.expanded) .meta .feedback{display:none;}
+    .meta-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;grid-column:1 / -1;}
+    .meta-actions .meta-btn{flex:1 1 120px;min-height:36px;border-radius:10px;border:1px solid rgba(125,60,255,.22);background:rgba(18,28,48,.88);color:var(--ink);font-weight:600;font-size:.82rem;padding:6px 10px;display:flex;align-items:center;gap:8px;justify-content:center;}
+    .meta-actions .meta-btn.danger{border-color:#e74c3c;color:#ffb1b8;background:rgba(56,20,32,.92);}
 
     .meta{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));background:rgba(255,255,255,.02);border:1px solid rgba(125,60,255,.18);border-radius:12px;padding:10px;opacity:0;max-height:0;overflow:hidden;transition:opacity .18s ease,max-height .18s ease;}
     .item.expanded .meta{opacity:1;max-height:320px;}
     .meta label{display:flex;flex-direction:column;font-size:.74rem;color:var(--muted);gap:6px;}
     .meta select,.meta input{width:100%;background:rgba(14,24,40,.9);border:1px solid rgba(125,60,255,.22);border-radius:10px;min-height:36px;padding:6px 10px;color:var(--ink);}
     .meta input::placeholder{color:rgba(233,238,247,.3);}
+
 
     .diff-chip,.more{
       height:40px;
@@ -186,7 +213,9 @@
     .diff-chip[data-v="Media"] .dot{background:#f1c40f;}
     .diff-chip[data-v="Difícil"] .dot{background:#e74c3c;}
 
+
     .hidden-feedback{display:none!important;}
+
 
     .more{font-size:20px;}
     .item.expanded .more{background:rgba(125,60,255,.2);border-color:rgba(125,60,255,.5);}
@@ -218,9 +247,11 @@
       position:fixed;
       inset:0;
       display:none;
+
       position:absolute;
       inset:0;
       display:flex;
+
       align-items:center;
       justify-content:center;
       flex-direction:column;
@@ -232,12 +263,14 @@
       pointer-events:auto;
     }
     #table-wrap.table-loading #table-spinner{display:flex;}
+
       background:rgba(8,12,24,.85);
       border-radius:18px;
       color:var(--ink);
       font-weight:600;
       z-index:10;
     }
+
     #table-spinner .ring{
       width:36px;height:36px;border-radius:50%;
       border:3px solid rgba(125,60,255,.18);
@@ -245,7 +278,9 @@
       animation:spin .9s linear infinite;
     }
     #ai-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,12,26,.82);color:#cfd7ff;font-weight:600;z-index:130;gap:10px;}
+
     #ai-overlay{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,12,26,.82);color:#cfd7ff;font-weight:600;z-index:12;gap:10px;}
+
     #ai-overlay .spark{font-size:1.4rem;animation:twinkle 1.6s ease-in-out infinite;}
     .ai-loading #ai-overlay{display:flex;}
     @keyframes twinkle{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:1;transform:scale(1.2);}}
@@ -264,23 +299,39 @@
     }
 
     @media (max-width:720px){
+
+      header.appbar .top-row{align-items:flex-start;}
+      header.appbar .top-row .primary{width:100%;align-items:flex-start;}
+      header.appbar .top-row .primary .title-wrap{flex-basis:100%;}
+      header.appbar .top-row .row-actions{width:100%;margin-left:0;justify-content:flex-end;}
+      header.appbar .top-row .row-actions .btn{flex:1;min-width:0;}
+
       header.appbar .top-row .primary .title-wrap{flex-basis:100%;}
       header.appbar .top-row .row-actions{width:100%;margin-left:0;justify-content:flex-end;}
       header.appbar .top-row .row-actions .btn{flex:1;min-width:0;}
       header.appbar .top-row .primary{width:100%;}
+
       .tools{flex-direction:column;align-items:stretch;gap:8px;}
       .left-tools{width:100%;justify-content:flex-start;}
       .field{width:100%;}
       #bbdd-ai{width:100%;}
       #add-row{display:none;}
       #add-row-dup{display:inline-flex;}
+
+      .meta{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
+
     }
 
     @media (max-width:520px){
       .slidable{padding:12px 12px 14px;}
       .task-input{font-size:.94rem;}
+
+      .btn.primary{min-width:160px;}
+      .meta-actions .meta-btn{flex:1 1 100%;}
+
       .meta{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
       .btn.primary{min-width:160px;}
+
     }
 
     .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
@@ -456,9 +507,11 @@
       let opened = null;
       let swipeHintDismissed = false;
       let currentHintEl = null;
+
       });
 
       let opened = null;
+
 
       function enhanceRow(tr){
         if(tr.dataset.mobileReady === '1') return;
@@ -472,6 +525,7 @@
         const diffSelect = cells[4].querySelector('select[data-col="4"]');
         const feedbackBox = cells[5].querySelector('.feedback');
         const handle = cells[6].querySelector('.handle');
+
 
         if(!taskInput || !diffSelect || !pilarSel || !rasgoSel || !statInput) return;
 
@@ -526,11 +580,30 @@
         more.className = 'more';
         more.title = 'Opciones';
         more.title = 'Mostrar columnas';
+
         more.textContent = '⋯';
 
         const meta = document.createElement('div');
         meta.className = 'meta';
         meta.append(createMeta('Pilar', pilarSel), createMeta('Rasgo', rasgoSel), createMeta('Stat', statInput));
+
+
+        if(feedbackBox){
+          feedbackBox.classList.add('meta-feedback');
+          meta.append(feedbackBox);
+        }
+
+        const metaActions = document.createElement('div');
+        metaActions.className = 'meta-actions';
+        metaActions.append(
+          makeMetaAction('🪄', 'Mejorar', ()=> runAiForRow(tr,'improve')),
+          makeMetaAction('🔁', 'Modificar', ()=> runAiForRow(tr,'replace')),
+          makeMetaAction('🗑️', 'Eliminar', ()=> deleteRow(tr), true)
+        );
+        meta.append(metaActions);
+
+        content.append(rowMain, meta);
+
 
         content.append(rowMain, meta);
 
@@ -570,6 +643,13 @@
         more.addEventListener('click', (e)=>{
           e.preventDefault();
           e.stopPropagation();
+
+          if(item.classList.contains('expanded')){
+            closeRow(item, slidable);
+          }else{
+            openRow(item, slidable, true);
+          }
+
           const willExpand = !item.classList.contains('expanded');
           item.classList.toggle('expanded', willExpand);
           if(willExpand){
@@ -578,6 +658,7 @@
             closeRow(item, slidable);
           }
           item.classList.toggle('expanded');
+
         });
 
         makeSwipeable(item, slidable);
@@ -588,8 +669,10 @@
         b.type = 'button';
         b.className = `act ${cls}`;
         b.setAttribute('aria-label', label);
-        b.innerHTML = `<span aria-hidden="true">${icon}</span><span class="sr-only">${label}</span>`;
+
+
         b.innerHTML = `<span>${icon}</span><span>${label}</span>`;
+
         b.addEventListener('click', (e)=>{
           e.preventDefault();
           e.stopPropagation();
@@ -598,6 +681,21 @@
         });
         return b;
       }
+
+
+      function makeMetaAction(icon, label, onClick, danger=false){
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `meta-btn${danger ? ' danger' : ''}`;
+        btn.innerHTML = `<span aria-hidden="true">${icon}</span><span>${label}</span>`;
+        btn.addEventListener('click', (e)=>{
+          e.preventDefault();
+          e.stopPropagation();
+          onClick();
+        });
+        return btn;
+      }
+
 
       function createMeta(label, control){
         const wrap = document.createElement('label');
@@ -669,16 +767,31 @@
         function upOnce(){ window.removeEventListener('mousemove', move); end(); }
       }
 
+
+      function openRow(wrapper, slide, viaMore=false){
+        closeOther(wrapper);
+        const actions = wrapper.querySelector('.actions');
+        if(viaMore){
+          slide.style.transform = 'translateX(0)';
+          wrapper.classList.add('expanded');
+        }else{
+          const width = actions?.getBoundingClientRect().width || parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--actionsw')) || 0;
+          slide.style.transform = `translateX(${-width - 12}px)`;
+          wrapper.classList.remove('expanded');
+        }
+
       function openRow(wrapper, slide){
         closeAll();
         const actions = wrapper.querySelector('.actions');
         const width = actions?.getBoundingClientRect().width || parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--actionsw')) || 0;
         slide.style.transform = `translateX(${-width - 12}px)`;
+
         wrapper.classList.add('row-open');
         opened = wrapper;
         if(wrapper === currentHintEl){
           dismissHint();
         }
+
         const width = wrapper.querySelector('.actions')?.getBoundingClientRect().width || 0;
         slide.style.transform = `translateX(${-width - 12}px)`;
         wrapper.classList.add('row-open');
@@ -688,6 +801,9 @@
       function closeRow(wrapper, slide){
         slide.style.transform = 'translateX(0)';
         wrapper.classList.remove('row-open');
+
+        wrapper.classList.remove('expanded');
+
         if(opened === wrapper) opened = null;
       }
 
@@ -697,12 +813,20 @@
         if(slide) closeRow(opened, slide);
       }
 
+      function closeOther(wrapper){
+        if(!opened || opened === wrapper) return;
+        const slide = opened.querySelector('.slidable');
+        if(slide) closeRow(opened, slide);
+      }
+
+
       document.addEventListener('pointerdown', (e)=>{
         if(!opened) return;
         if(opened.contains(e.target)) return;
         const slide = opened.querySelector('.slidable');
         if(slide) closeRow(opened, slide);
       });
+
       function armSwipeHint(){
         if(currentHintEl && !currentHintEl.isConnected){
           currentHintEl = null;
