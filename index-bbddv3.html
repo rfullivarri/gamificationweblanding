@@ -272,6 +272,34 @@
       border-color:#71e6b5;
       box-shadow:0 0 0 2px rgba(113,230,181,.30);
     }
+    /* ===== Compactar tarjetas ===== */
+    .item{ margin: 6px 0; }               /* 6px entre tarjetas (o 0 si querés pegadas) */
+    .slidable{
+      padding: 10px 12px;                 /* reduce relleno interno */
+      gap: 8px;                           /* menos espacio entre columnas internas */
+    }
+    .slidable .mark{ width: 4px; }        /* barrita lateral más fina (antes 6px) */
+    .content{ gap: 8px; }                 /* menos espacio vertical dentro del contenido */
+    .row-main{ gap: 8px; align-items:center; }
+    
+    .task-input{
+      padding: 8px 10px;                  /* campo más bajo */
+      border-radius: 10px;                /* opcional, más compacto */
+    }
+    
+    .diff-chip, .more{
+      height: 34px;                       /* chips y menú más bajos (antes 40px) */
+      padding: 0 10px;
+    }
+    
+    .meta{
+      padding: 8px;                       /* menos aire en el bloque expandible */
+      gap: 8px;
+    }
+    
+    /* Si querés tarjetas aún más juntas: */
+    /* .item{ margin: 2px 0; } */
+
 
   </style>
 </head>
