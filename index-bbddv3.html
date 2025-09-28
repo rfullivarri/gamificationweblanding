@@ -1306,100 +1306,71 @@
     (() => {
       const panel = document.querySelector('.bbdd-panel');
       const btn   = document.getElementById('bbdd-confirm');
-      if (!panel || !btn) return;
+      if (!panel || !btn || typeof window.doConfirm !== 'function') return;
     
-      // Evitar enganchar dos veces
-      if (btn.dataset.guardHooked === "1") return;
-      btn.dataset.guardHooked = "1";
+      // Evita enganchar dos veces
+      if (btn.dataset.hooked === '1') return;
+      btn.dataset.hooked = '1';
     
-      // ---------- Escudo para bloquear toda interacción ----------
+      // Escudo para bloquear interacción mientras se guarda
       let shield = document.getElementById('saving-shield');
       if (!shield){
         shield = document.createElement('div');
         shield.id = 'saving-shield';
-        // ocupa todo el panel y bloquea puntero/teclado
         Object.assign(shield.style, {
           position:'absolute', inset:'0', zIndex:'70',
-          display:'none', background:'transparent',
-          pointerEvents:'auto'
+          display:'none', background:'transparent', pointerEvents:'auto'
         });
         panel.appendChild(shield);
       }
     
-      function startSaving(){
-        // spinner + bloqueo
-        btn.classList.add('is-busy');
-        panel.classList.add('saving');
-        panel.setAttribute('aria-busy','true');
-        shield.style.display = 'block';
-        // por las dudas, saca el foco
+      // Deshabilita TODOS los controles dentro del panel
+      function disableAllControls() {
+        panel.querySelectorAll('input, select, textarea, button')
+          .forEach(el => {
+            // dejá sólo el botón de confirmar en modo busy (doConfirm ya lo deshabilita)
+            if (el === btn) return;
+            if (!el.disabled) el.dataset._tmpEn = '1';
+            el.disabled = true;
+          });
+      }
+      // Restaura sólo los que deshabilitamos acá
+      function restoreControls() {
+        panel.querySelectorAll('[data-_tmpEn]').forEach(el => {
+          el.disabled = false;
+          el.removeAttribute('data-_tmpEn');
+        });
+      }
+    
+      async function runConfirm() {
+        if (btn.dataset.busy === '1') return;   // anti doble-click
+        btn.dataset.busy = '1';
         document.activeElement && document.activeElement.blur();
-      }
     
-      function stopSaving(){
-        btn.classList.remove('is-busy');
-        panel.classList.remove('saving');
-        panel.removeAttribute('aria-busy');
-        shield.style.display = 'none';
-      }
+        // Bloqueo visual y de interacción
+        panel.classList.add('saving');
+        panel.setAttribute('aria-busy', 'true');
+        shield.style.display = 'block';
+        disableAllControls();
     
-      // ---------- Localizar la función real de guardado ----------
-      function pickSaveFn(){
-        // candidatos obvios
-        const candidates = [
-          'guardarCambios','confirmarCambios','saveAllChanges',
-          'saveChanges','persistChanges','bbddSave','onConfirm'
-        ];
-        for (const name of candidates){
-          if (typeof window[name] === 'function') {
-            console.log('[save] usando', name);
-            return window[name];
-          }
-        }
-        // última chance: escanear window por algo que suene a guardar
-        const guess = Object.keys(window).find(k =>
-          typeof window[k] === 'function' && /save|guardar|confirm|persist/i.test(k)
-        );
-        if (guess){
-          console.warn('[save] no encontré un nombre exacto; uso heurística:', guess);
-          return window[guess];
-        }
-        return null;
-      }
-    
-      // cacheamos la función detectada
-      let realSave = null;
-    
-      async function doSave(){
-        if (!realSave) realSave = pickSaveFn();
-        if (!realSave){
-          console.error('[save] No se encontró la función de guardado. Decime el nombre o revisemos js/bbdd.js');
-          // no tiramos error para que al menos se desbloquee la UI
-          return;
-        }
-        // si devuelve promesa, esperamos; si no, igual lo ejecutamos
-        const ret = realSave();
-        if (ret && typeof ret.then === 'function') {
-          await ret;
+        try {
+          // Tu guardado REAL definido en bbdd.js
+          await window.doConfirm();
+        } catch (err) {
+          console.error('[confirm] error:', err);
+        } finally {
+          // Quitar bloqueo
+          restoreControls();
+          shield.style.display = 'none';
+          panel.classList.remove('saving');
+          panel.removeAttribute('aria-busy');
+          delete btn.dataset.busy;
         }
       }
     
-      // ---------- Hook al botón ----------
-      btn.addEventListener('click', async () => {
-        if (btn.classList.contains('is-busy')) return; // anti-doble click
-        try{
-          startSaving();
-          await doSave();  // ← llama a tu guardado real
-        }catch(err){
-          console.error('[save] error en guardado:', err);
-          // acá podrías disparar un toast si tenés util de notificaciones
-        }finally{
-          stopSaving();
-        }
-      });
-    
+      btn.addEventListener('click', runConfirm);
     })();
-  </script>
+   </script>
 
 
 
