@@ -641,6 +641,25 @@
       animation:btnspin .8s linear infinite;
     }
     @keyframes btnspin{ to{ transform:rotate(360deg); } }
+    #bbdd-confirm.is-busy{
+      pointer-events:none;
+      opacity:.9;
+    }
+    #bbdd-confirm.is-busy::after{
+      content:"";
+      display:inline-block;
+      width:16px;height:16px;margin-left:8px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.5);
+      border-top-color:#fff;
+      animation:spin .8s linear infinite;
+      vertical-align:-2px;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    
+    /* asegurar que el shield bloquee todo mientras guarda */
+    .bbdd-panel.saving{ position:relative; }
+
 
 
 
@@ -1289,67 +1308,101 @@
       const btn   = document.getElementById('bbdd-confirm');
       if (!panel || !btn) return;
     
-      // Escudo que bloquea TODA interacción durante el guardado
+      // Evitar enganchar dos veces
+      if (btn.dataset.guardHooked === "1") return;
+      btn.dataset.guardHooked = "1";
+    
+      // ---------- Escudo para bloquear toda interacción ----------
       let shield = document.getElementById('saving-shield');
       if (!shield){
         shield = document.createElement('div');
         shield.id = 'saving-shield';
+        // ocupa todo el panel y bloquea puntero/teclado
+        Object.assign(shield.style, {
+          position:'absolute', inset:'0', zIndex:'70',
+          display:'none', background:'transparent',
+          pointerEvents:'auto'
+        });
         panel.appendChild(shield);
       }
     
-      // Bloqueo de teclado (Esc, Enter, Tab, etc.) mientras guarda
-      const blockKeys = (e) => {
-        const k = e.key;
-        if (k === 'Escape' || k === 'Enter' || k === 'Tab' || e.metaKey || e.ctrlKey){
-          e.preventDefault();
-          e.stopPropagation();
-          return false;
-        }
-      };
-    
       function startSaving(){
-        // visual + spinner en el botón (lo maneja CSS con .is-busy)
+        // spinner + bloqueo
         btn.classList.add('is-busy');
-    
-        // bloquea interacción: el escudo captura todos los eventos
         panel.classList.add('saving');
-        panel.setAttribute('aria-busy', 'true');
-    
-        // saca el foco de lo que esté editándose
-        if (document.activeElement) document.activeElement.blur();
-    
-        // bloquea atajos/teclas peligrosas
-        window.addEventListener('keydown', blockKeys, true);
+        panel.setAttribute('aria-busy','true');
+        shield.style.display = 'block';
+        // por las dudas, saca el foco
+        document.activeElement && document.activeElement.blur();
       }
     
       function stopSaving(){
         btn.classList.remove('is-busy');
         panel.classList.remove('saving');
         panel.removeAttribute('aria-busy');
-        window.removeEventListener('keydown', blockKeys, true);
+        shield.style.display = 'none';
       }
     
-      // ⬇️ Reemplazá esta función por tu guardado real si tiene otro nombre
+      // ---------- Localizar la función real de guardado ----------
+      function pickSaveFn(){
+        // candidatos obvios
+        const candidates = [
+          'guardarCambios','confirmarCambios','saveAllChanges',
+          'saveChanges','persistChanges','bbddSave','onConfirm'
+        ];
+        for (const name of candidates){
+          if (typeof window[name] === 'function') {
+            console.log('[save] usando', name);
+            return window[name];
+          }
+        }
+        // última chance: escanear window por algo que suene a guardar
+        const guess = Object.keys(window).find(k =>
+          typeof window[k] === 'function' && /save|guardar|confirm|persist/i.test(k)
+        );
+        if (guess){
+          console.warn('[save] no encontré un nombre exacto; uso heurística:', guess);
+          return window[guess];
+        }
+        return null;
+      }
+    
+      // cacheamos la función detectada
+      let realSave = null;
+    
       async function doSave(){
-        // Ejemplo: si ya tenés implementado el guardado
-        await saveAllChanges();   // ← TU función real
+        if (!realSave) realSave = pickSaveFn();
+        if (!realSave){
+          console.error('[save] No se encontró la función de guardado. Decime el nombre o revisemos js/bbdd.js');
+          // no tiramos error para que al menos se desbloquee la UI
+          return;
+        }
+        // si devuelve promesa, esperamos; si no, igual lo ejecutamos
+        const ret = realSave();
+        if (ret && typeof ret.then === 'function') {
+          await ret;
+        }
       }
     
-      // Click en "Confirmar cambios"
+      // ---------- Hook al botón ----------
       btn.addEventListener('click', async () => {
-        if (btn.classList.contains('is-busy')) return; // anti-doble-clic
+        if (btn.classList.contains('is-busy')) return; // anti-doble click
         try{
           startSaving();
-          await doSave();
+          await doSave();  // ← llama a tu guardado real
         }catch(err){
-          console.error(err);
-          // opcional: mostrar toast de error
+          console.error('[save] error en guardado:', err);
+          // acá podrías disparar un toast si tenés util de notificaciones
         }finally{
           stopSaving();
         }
       });
+    
     })();
   </script>
+
+
+
 
 
   
