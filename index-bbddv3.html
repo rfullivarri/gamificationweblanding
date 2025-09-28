@@ -597,6 +597,51 @@
     
     /* Cursor de ocupado en todo el panel */
     .bbdd-panel[aria-busy="true"]{ cursor: progress; }
+    /* --- escudo de bloqueo global --- */
+    #saving-shield{
+      position: fixed;        /* tapa todo el panel */
+      inset: 0;
+      z-index: 55;            /* por debajo del botón */
+      background: transparent;/* no ensucia la UI */
+      display: none;
+      touch-action: none;
+      pointer-events: none;
+    }
+    .bbdd-panel.saving #saving-shield{
+      display: block;
+      pointer-events: auto;   /* bloquea clics/gestos en todo */
+      /* opcional: bloquear scroll del panel */
+      overscroll-behavior: contain;
+    }
+    
+    /* --- spinner dentro del botón --- */
+    #bbdd-confirm{
+      position: fixed;
+      right: clamp(10px, 3vw, 20px);
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;                         /* por arriba del shield */
+      width: var(--confirm-w, clamp(160px, 40vw, 300px));
+      position: fixed;
+      overflow: visible;                    /* por si el spinner se acerca al borde */
+    }
+    #bbdd-confirm.is-busy{
+      color: transparent;                   /* oculto el texto */
+      pointer-events: none;                 /* evita doble click */
+      opacity: .95;
+    }
+    #bbdd-confirm.is-busy::after{
+      content:"";
+      position:absolute;
+      top:50%; left:50%;
+      width:18px; height:18px;
+      margin:-9px 0 0 -9px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.35);
+      border-top-color:#fff;
+      animation:btnspin .8s linear infinite;
+    }
+    @keyframes btnspin{ to{ transform:rotate(360deg); } }
+
 
 
 
@@ -1242,6 +1287,76 @@
     (() => {
       const panel = document.querySelector('.bbdd-panel');
       const btn   = document.getElementById('bbdd-confirm');
+      if (!panel || !btn) return;
+    
+      // Escudo que bloquea TODA interacción durante el guardado
+      let shield = document.getElementById('saving-shield');
+      if (!shield){
+        shield = document.createElement('div');
+        shield.id = 'saving-shield';
+        panel.appendChild(shield);
+      }
+    
+      // Bloqueo de teclado (Esc, Enter, Tab, etc.) mientras guarda
+      const blockKeys = (e) => {
+        const k = e.key;
+        if (k === 'Escape' || k === 'Enter' || k === 'Tab' || e.metaKey || e.ctrlKey){
+          e.preventDefault();
+          e.stopPropagation();
+          return false;
+        }
+      };
+    
+      function startSaving(){
+        // visual + spinner en el botón (lo maneja CSS con .is-busy)
+        btn.classList.add('is-busy');
+    
+        // bloquea interacción: el escudo captura todos los eventos
+        panel.classList.add('saving');
+        panel.setAttribute('aria-busy', 'true');
+    
+        // saca el foco de lo que esté editándose
+        if (document.activeElement) document.activeElement.blur();
+    
+        // bloquea atajos/teclas peligrosas
+        window.addEventListener('keydown', blockKeys, true);
+      }
+    
+      function stopSaving(){
+        btn.classList.remove('is-busy');
+        panel.classList.remove('saving');
+        panel.removeAttribute('aria-busy');
+        window.removeEventListener('keydown', blockKeys, true);
+      }
+    
+      // ⬇️ Reemplazá esta función por tu guardado real si tiene otro nombre
+      async function doSave(){
+        // Ejemplo: si ya tenés implementado el guardado
+        await saveAllChanges();   // ← TU función real
+      }
+    
+      // Click en "Confirmar cambios"
+      btn.addEventListener('click', async () => {
+        if (btn.classList.contains('is-busy')) return; // anti-doble-clic
+        try{
+          startSaving();
+          await doSave();
+        }catch(err){
+          console.error(err);
+          // opcional: mostrar toast de error
+        }finally{
+          stopSaving();
+        }
+      });
+    })();
+  </script>
+
+
+  
+  <!-- <script>
+    (() => {
+      const panel = document.querySelector('.bbdd-panel');
+      const btn   = document.getElementById('bbdd-confirm');
     
       if (!panel || !btn) return;
     
@@ -1298,10 +1413,7 @@
         }
       });
     })();
-  </script>
+  </script> -->
 
-
-
-  
 </body>
 </html>
