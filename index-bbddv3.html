@@ -694,6 +694,66 @@
       border-color: rgba(255,255,255,.18);
     }
 
+    /* Ocultar acciones cuando la fila está cerrada */
+    .item .actions{
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .12s linear;
+    }
+    
+    /* Al abrir la fila (swipe o botón “…”) recién se muestran */
+    .item.row-open .actions{
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    /* Reservá un poco de espacio a la derecha cuando está abierta
+       para que nunca se superpongan con el chip ni el input  */
+    :root{ --actionsw: 156px; }                 /* ajustá 150–180px si querés */
+    .item.row-open .slidable{ padding-right: calc(var(--actionsw) + 12px); }
+    .item.expanded   .slidable{ padding-right: 12px; } /* si abrís con “…” */
+
+    /* ===== Glass claro con SCRIM que tapa lo de atrás ===== */
+    :root{
+      --overlay-scrim: .42;   /* 0.35–0.50: cuánto oscurece el overlay sobre el fondo */
+      --panel-alpha:   .78;   /* 0.70–0.85: opacidad del panel (más alto = menos se ve atrás) */
+      --card-alpha:    .82;   /* opacidad de las tarjetas/filas (ajustá si aún ves algo) */
+    }
+    
+    /* Overlay: sigue con blur, pero le sumamos una veladura (scrim) encima */
+    #bbdd-overlay{
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      backdrop-filter: blur(22px) saturate(160%) brightness(1.12);
+      -webkit-backdrop-filter: blur(22px) saturate(160%) brightness(1.12);
+    }
+    
+    /* SCRIM que realmente tapa el contenido del dashboard detrás del overlay */
+    #bbdd-overlay::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: rgba(12,16,28,var(--overlay-scrim));  /* <- subí/bajá esta perilla */
+      z-index: 0;
+    }
+    
+    /* Todo lo de adentro (panel) por encima del scrim */
+    #bbdd-overlay > *{ position: relative; z-index: 1; }
+    
+    /* Panel principal con vidrio claro pero más “opaco” (no se ve lo de atrás) */
+    .bbdd-panel{
+      background: rgba(28,34,52,var(--panel-alpha));     /* <- perilla 2 */
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 20px 50px rgba(24,28,50,.35);
+    }
+    
+    /* Tarjetas/filas con un poco más de cuerpo (evita ver los 3 botones a través) */
+    .slidable{
+      background: rgba(18,24,40,var(--card-alpha));      /* <- perilla 3 */
+      border-color: rgba(255,255,255,.14);
+}
+
 
 
 
