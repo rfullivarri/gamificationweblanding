@@ -697,7 +697,7 @@
     /* ===== Glass claro con SCRIM que tapa lo de atrás ===== */
     :root{
       --overlay-scrim: .42;   /* 0.35–0.50: cuánto oscurece el overlay sobre el fondo */
-      --panel-alpha:   .78;   /* 0.70–0.85: opacidad del panel (más alto = menos se ve atrás) */
+      --panel-alpha:   .90;   /* 0.70–0.85: opacidad del panel (más alto = menos se ve atrás) */
       --card-alpha:    .82;   /* opacidad de las tarjetas/filas (ajustá si aún ves algo) */
     }
     
@@ -738,8 +738,6 @@
 
     /* 1) La página completa nunca scrollea en X */
     html, body{
-      width: 100%;
-      max-width: 100%;
       overflow-x: hidden;                 /* <- clave */
     }
     
@@ -759,12 +757,6 @@
     /* 4) Asegurar que nada “asome” fuera de la tarjeta durante el swipe */
     .item{ overflow: hidden; }            /* (ya lo tenías, lo reforzamos) */
     
-    /* 5) Cuando se abre la fila, reservá espacio para las acciones (evita empuje lateral) */
-    :root{ --actionsw: 156px; }           /* ajustá 150–180px si hiciera falta */
-    .item.row-open .slidable{ padding-right: calc(var(--actionsw) + 12px); }
-    
-    /* 6) Si algún elemento trae min-width agresivo, lo capamos al contenedor */
-    .bbdd-panel *{ max-width: 100%; }
 
 
 
