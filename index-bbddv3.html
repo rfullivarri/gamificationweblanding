@@ -1213,12 +1213,19 @@
       function makeSwipeable(wrapper, slide){
         const actions = wrapper.querySelector('.actions');
         const max = () => actions ? actions.getBoundingClientRect().width + 12 : 0;
-        let startX = 0; let currentX = 0; let dragging = false; let pointerId = null;
-
+      
+        let startX = 0;
+        let currentX = 0;
+        let dragging = false;
+        let pointerId = null;
+      
+        const PEEK_THRESHOLD = 8;   // px de arrastre para “asomar” las acciones
+        const OPEN_THRESHOLD = 60;  // tu umbral actual para abrir
+      
         function shouldSkip(target){
           return target.closest('input, select, textarea, button, .meta');
         }
-
+      
         function start(e){
           const touch = e.touches ? e.touches[0] : e;
           if(shouldSkip(e.target)) return;
@@ -1227,63 +1234,90 @@
           startX = touch.clientX;
           currentX = startX;
           slide.style.transition = 'none';
+          // el peek se decide en move(); acá no tocamos clases
           if(wrapper === currentHintEl){
             dismissHint();
           }
         }
+      
         function move(e){
           if(!dragging) return;
           const touchList = e.touches ? [...e.touches] : [e];
           const touch = touchList.find(t => (t.identifier ?? 'mouse') === pointerId);
           if(!touch) return;
+      
           currentX = touch.clientX;
           let dx = Math.min(0, currentX - startX);
           const limit = -max();
           if(dx < limit) dx = limit;
+      
           slide.style.transform = `translateX(${dx}px)`;
+      
+          // 👇 Mostrar acciones al “asomar” apenas (peek)
+          wrapper.classList.toggle('row-peek', dx < -PEEK_THRESHOLD);
         }
+      
         function end(){
           if(!dragging) return;
           dragging = false;
           slide.style.transition = '';
           const dx = currentX - startX;
-          if(dx < -60){ openRow(wrapper, slide); }
-          else { closeRow(wrapper, slide); }
+      
+          if (dx < -OPEN_THRESHOLD){
+            openRow(wrapper, slide);
+          } else {
+            closeRow(wrapper, slide);
+          }
           pointerId = null;
         }
-
+      
         slide.addEventListener('touchstart', start, {passive:true});
-        slide.addEventListener('touchmove', move, {passive:true});
-        slide.addEventListener('touchend', end, {passive:true});
-        slide.addEventListener('mousedown', (e)=>{ start(e); window.addEventListener('mousemove', move); window.addEventListener('mouseup', upOnce, { once:true }); });
-
-        function upOnce(){ window.removeEventListener('mousemove', move); end(); }
+        slide.addEventListener('touchmove',  move,  {passive:true});
+        slide.addEventListener('touchend',   end,   {passive:true});
+      
+        slide.addEventListener('mousedown', (e)=>{
+          start(e);
+          window.addEventListener('mousemove', move);
+          window.addEventListener('mouseup', upOnce, { once:true });
+        });
+      
+        function upOnce(){
+          window.removeEventListener('mousemove', move);
+          end();
+        }
       }
-
+      
       function openRow(wrapper, slide, viaMore=false){
         closeOther(wrapper);
         const actions = wrapper.querySelector('.actions');
+      
         if(viaMore){
           slide.style.transform = 'translateX(0)';
           wrapper.classList.add('expanded');
         }else{
-          const width = actions?.getBoundingClientRect().width || parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--actionsw')) || 0;
+          const width = actions?.getBoundingClientRect().width
+            || parseFloat(getComputedStyle(document.documentElement)
+                 .getPropertyValue('--actionsw')) || 0;
           slide.style.transform = `translateX(${-width - 12}px)`;
           wrapper.classList.remove('expanded');
         }
+      
         wrapper.classList.add('row-open');
+        wrapper.classList.remove('row-peek');   // 👈 ya abierta, no es “peek”
         opened = wrapper;
+      
         if(wrapper === currentHintEl){
           dismissHint();
         }
       }
-
+      
       function closeRow(wrapper, slide){
         slide.style.transform = 'translateX(0)';
-        wrapper.classList.remove('row-open');
+        wrapper.classList.remove('row-open', 'row-peek'); // 👈 limpiar peek y open
         wrapper.classList.remove('expanded');
         if(opened === wrapper) opened = null;
       }
+
 
       function closeAll(){
         if(!opened) return;
