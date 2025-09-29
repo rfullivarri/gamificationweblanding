@@ -561,24 +561,6 @@
       width: var(--confirm-w, clamp(160px, 40vw, 300px));
     }
     
-    /* Estado ocupado */
-    #bbdd-confirm.is-busy{
-      pointer-events: none;
-      opacity: .92;
-    }
-    
-    /* Spinner centrado sobre el botón cuando .is-busy */
-    #bbdd-confirm.is-busy::after{
-      content:"";
-      position:absolute;
-      inset:0;
-      margin:auto;
-      width:18px; height:18px;
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,.35);
-      border-top-color:#fff;
-      animation: btnspin .8s linear infinite;
-    }
     @keyframes btnspin{ to { transform: rotate(360deg); } }
     
     /* Mientras guarda: bloqueá interacciones del panel (excepto el botón) */
@@ -624,41 +606,95 @@
       position: fixed;
       overflow: visible;                    /* por si el spinner se acerca al borde */
     }
-    #bbdd-confirm.is-busy{
-      color: transparent;                   /* oculto el texto */
-      pointer-events: none;                 /* evita doble click */
-      opacity: .95;
-    }
-    #bbdd-confirm.is-busy::after{
-      content:"";
-      position:absolute;
-      top:50%; left:50%;
-      width:18px; height:18px;
-      margin:-9px 0 0 -9px;
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,.35);
-      border-top-color:#fff;
-      animation:btnspin .8s linear infinite;
-    }
-    @keyframes btnspin{ to{ transform:rotate(360deg); } }
-    #bbdd-confirm.is-busy{
-      pointer-events:none;
-      opacity:.9;
-    }
-    #bbdd-confirm.is-busy::after{
-      content:"";
-      display:inline-block;
-      width:16px;height:16px;margin-left:8px;
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,.5);
-      border-top-color:#fff;
-      animation:spin .8s linear infinite;
-      vertical-align:-2px;
-    }
+ 
+    
     @keyframes spin{to{transform:rotate(360deg)}}
     
     /* asegurar que el shield bloquee todo mientras guarda */
     .bbdd-panel.saving{ position:relative; }
+
+    /* ==== ÚNICO spinner del botón confirmar ==== */
+    #bbdd-confirm{
+      position: fixed;
+      right: clamp(10px, 3vw, 20px);
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;
+      width: clamp(170px, 23vw, 270px);
+      overflow: visible; /* por si acaso */
+    }
+    
+    #bbdd-confirm.is-busy{
+      color: transparent;     /* oculto label */
+      pointer-events: none;   /* anti doble click */
+      opacity: .95;
+    }
+    
+    #bbdd-confirm.is-busy::after{
+      content:"";
+      position:absolute;
+      inset:0;                /* centra el pseudo-elemento */
+      margin:auto;
+      width:18px; height:18px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.35);
+      border-top-color:#fff;
+      animation: btnspin .8s linear infinite;
+    }
+    
+    @keyframes btnspin { to { transform: rotate(360deg); } }
+
+    /* ==== GLASS LIGHT PATCH (pegar al final) ==== */
+    :root{
+      --glass-bg: rgba(255,255,255,.08);     /* cuerpo de la tarjeta */
+      --glass-stroke: rgba(255,255,255,.22); /* borde claro */
+      --glass-soft: rgba(255,255,255,.06);   /* secciones internas */
+    }
+    
+    /* Overlay más claro y “blanco” */
+    #bbdd-overlay{
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+      backdrop-filter: blur(22px) saturate(160%) brightness(1.15);
+      -webkit-backdrop-filter: blur(22px) saturate(160%) brightness(1.15);
+    }
+    
+    /* Panel principal en vidrio claro */
+    .bbdd-panel{
+      background: var(--glass-bg);
+      border-color: var(--glass-stroke);
+      box-shadow: 0 20px 50px rgba(24,28,50,.35);
+    }
+    
+    /* Un glow suave en el borde superior del panel (como tus flechas verdes) */
+    .bbdd-panel::before{
+      content:"";
+      position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
+      background:
+        radial-gradient(600px 160px at 15% -10%, rgba(255,255,255,.15), transparent 60%),
+        radial-gradient(600px 160px at 85% -10%, rgba(255,255,255,.12), transparent 60%);
+    }
+    
+    /* Secciones internas con vidrio claro */
+    header.appbar,
+    .slidable,
+    .meta,
+    .field,
+    details.guide{
+      background: var(--glass-soft);
+      border-color: rgba(255,255,255,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), var(--shadow);
+    }
+    
+    /* Inputs más claros (sin perder contraste) */
+    .task-input{
+      background: rgba(255,255,255,.05);
+      border-color: rgba(255,255,255,.22);
+    }
+    .meta select,.meta input{
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.18);
+    }
+
+
 
 
 
