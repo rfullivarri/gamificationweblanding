@@ -694,25 +694,6 @@
       border-color: rgba(255,255,255,.18);
     }
 
-    /* Ocultar acciones cuando la fila está cerrada */
-    .item .actions{
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .12s linear;
-    }
-    
-    /* Al abrir la fila (swipe o botón “…”) recién se muestran */
-    .item.row-open .actions{
-      opacity: 1;
-      pointer-events: auto;
-    }
-    
-    /* Reservá un poco de espacio a la derecha cuando está abierta
-       para que nunca se superpongan con el chip ni el input  */
-    :root{ --actionsw: 156px; }                 /* ajustá 150–180px si querés */
-    .item.row-open .slidable{ padding-right: calc(var(--actionsw) + 12px); }
-    .item.expanded   .slidable{ padding-right: 12px; } /* si abrís con “…” */
-
     /* ===== Glass claro con SCRIM que tapa lo de atrás ===== */
     :root{
       --overlay-scrim: .42;   /* 0.35–0.50: cuánto oscurece el overlay sobre el fondo */
@@ -751,9 +732,39 @@
     /* Tarjetas/filas con un poco más de cuerpo (evita ver los 3 botones a través) */
     .slidable{
       background: rgba(18,24,40,var(--card-alpha));      /* <- perilla 3 */
-      border-color: rgba(255,255,255,.14);
-}
+      border-color: rgba(255,255,255,.14);}
 
+    /* ==== Bloquear scroll horizontal y cualquier desborde ==== */
+
+    /* 1) La página completa nunca scrollea en X */
+    html, body{
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;                 /* <- clave */
+    }
+    
+    /* 2) El overlay/panel/contenido también sin X */
+    #bbdd-overlay,
+    .bbdd-panel,
+    .bbdd-panel > main{
+      overflow-x: hidden;                 /* no permitir desbordes */
+      overscroll-behavior-x: contain;     /* iOS/Android: sin “empuje” lateral */
+    }
+    
+    /* 3) Las tarjetas sólo permiten gesto vertical (el swipe lateral ya lo maneja JS) */
+    .item, .slidable{
+      touch-action: pan-y;                /* ignora “paneos” en X para scroll de página */
+    }
+    
+    /* 4) Asegurar que nada “asome” fuera de la tarjeta durante el swipe */
+    .item{ overflow: hidden; }            /* (ya lo tenías, lo reforzamos) */
+    
+    /* 5) Cuando se abre la fila, reservá espacio para las acciones (evita empuje lateral) */
+    :root{ --actionsw: 156px; }           /* ajustá 150–180px si hiciera falta */
+    .item.row-open .slidable{ padding-right: calc(var(--actionsw) + 12px); }
+    
+    /* 6) Si algún elemento trae min-width agresivo, lo capamos al contenedor */
+    .bbdd-panel *{ max-width: 100%; }
 
 
 
