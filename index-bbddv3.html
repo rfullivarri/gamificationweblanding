@@ -740,6 +740,62 @@
     html, body{
       overflow-x: hidden;                 /* <- clave */
     }
+
+    /* ===== Ocultar acciones cuando la fila está cerrada ===== */
+    .item .actions{
+      /* que NO se vea ni reciba eventos por defecto */
+      opacity: 0;
+      pointer-events: none;
+      background: transparent !important;
+      transition: opacity .18s ease, background .18s ease;
+    }
+    
+    /* Los botones circulares por defecto: invisibles y sin borde */
+    .item .actions .act{
+      opacity: 0;
+      background: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      transition: opacity .18s ease,
+                  background .18s ease,
+                  border-color .18s ease,
+                  transform .18s ease;
+    }
+    
+    /* ===== Peek: apenas se asoman cuando arrastrás unos px ===== */
+    .item.row-peek .actions{
+      /* un velo MUY suave; podés bajar más el .5 si querés menos */
+      background: linear-gradient(90deg, transparent 55%, rgba(10,14,28,.5) 100%) !important;
+      opacity: .6;
+    }
+    .item.row-peek .actions .act{
+      opacity: .35;                                    /* se insinúan */
+      background: rgba(32,38,66,.25) !important;       /* suave */
+      border-color: rgba(125,60,255,.18) !important;   /* borde tenue */
+      box-shadow: none !important;
+    }
+    
+    /* ===== Open: ya abiertas, todo visible y clickeable ===== */
+    .item.row-open .actions{
+      opacity: 1;
+      pointer-events: auto;
+      background: linear-gradient(90deg, transparent 32%, rgba(10,14,28,.88) 100%) !important;
+    }
+    .item.row-open .actions .act{
+      opacity: 1;
+      background: rgba(32,38,66,.88) !important;
+      border-color: rgba(125,60,255,.35) !important;
+      box-shadow: 0 6px 18px rgba(0,0,0,.32) !important;
+    }
+    
+    /* Por si algún estilo previo del tema “oscurece” los botones,
+       forzamos que CERRADA/PEEK no herede sombras ni fills */
+    .item:not(.row-open) .actions .act.modify,
+    .item:not(.row-open) .actions .act.improve,
+    .item:not(.row-open) .actions .act.del{
+      box-shadow: none !important;
+    }
+
     
 
 
