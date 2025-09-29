@@ -697,7 +697,7 @@
     /* ===== Glass claro con SCRIM que tapa lo de atrás ===== */
     :root{
       --overlay-scrim: .42;   /* 0.35–0.50: cuánto oscurece el overlay sobre el fondo */
-      --panel-alpha:   .90;   /* 0.70–0.85: opacidad del panel (más alto = menos se ve atrás) */
+      --panel-alpha:   .85;   /* 0.70–0.85: opacidad del panel (más alto = menos se ve atrás) */
       --card-alpha:    .82;   /* opacidad de las tarjetas/filas (ajustá si aún ves algo) */
     }
     
@@ -740,22 +740,6 @@
     html, body{
       overflow-x: hidden;                 /* <- clave */
     }
-    
-    /* 2) El overlay/panel/contenido también sin X */
-    #bbdd-overlay,
-    .bbdd-panel,
-    .bbdd-panel > main{
-      overflow-x: hidden;                 /* no permitir desbordes */
-      overscroll-behavior-x: contain;     /* iOS/Android: sin “empuje” lateral */
-    }
-    
-    /* 3) Las tarjetas sólo permiten gesto vertical (el swipe lateral ya lo maneja JS) */
-    .item, .slidable{
-      touch-action: pan-y;                /* ignora “paneos” en X para scroll de página */
-    }
-    
-    /* 4) Asegurar que nada “asome” fuera de la tarjeta durante el swipe */
-    .item{ overflow: hidden; }            /* (ya lo tenías, lo reforzamos) */
     
 
 
