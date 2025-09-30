@@ -1300,6 +1300,8 @@ async function init(){
   const mode = ensureMode();
   window.BBDD_MODE = mode;
 
+  setupConfirmShield();
+
   // Modo: modal o página
   if (mode === "modal") {
     openOverlay();
