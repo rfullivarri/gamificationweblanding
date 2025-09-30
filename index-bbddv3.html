@@ -928,8 +928,81 @@
     </div>
   </div>
 
-
   <script>
+    (() => {
+      const panel  = document.querySelector('.bbdd-panel');      // único scroller
+      const appbar = document.querySelector('header.appbar');
+      const main   = document.querySelector('.bbdd-panel > main');
+      if (!panel || !appbar || !main) return;
+    
+      const root = document.documentElement;
+    
+      let lastY = panel.scrollTop;
+      let hide  = 0;                                // píxeles ocultados del header
+      let H     = appbar.offsetHeight || 0;         // alto actual del header
+      let MAX   = Math.max(0, H - 6);               // cuánto podemos ocultar (deja un pelín)
+    
+      // Sensibilidad y amortiguación
+      const K        = 1;
+      const FRICTION = 0.14;                         // 0.12–0.18 va bien
+    
+      // UMBRALES de intención (evitan que el header “salte” con micro-scrolls)
+      const UP_SHOW   = 32;                          // hay que SUBIR al menos esto para mostrar
+      const DOWN_HIDE = 10;                          // hay que BAJAR al menos esto para empezar a ocultar
+    
+      // Setea variables CSS iniciales
+      function applyVars() {
+        appbar.style.setProperty('--appbarHide', hide + 'px');
+        const pad = 0; // o 6 si querés una línea de aire
+        root.style.setProperty('--appbarPad', pad + 'px');
+        main.style.setProperty('--appbarPad', pad + 'px');
+      }
+    
+      function recalcHeader() {
+        H    = appbar.offsetHeight || 0;
+        MAX  = Math.max(0, H - 6);
+        hide = Math.min(hide, MAX);
+        applyVars();
+      }
+    
+      // Recalcular cuando cambie el alto del header (responsive / details open/close)
+      new ResizeObserver(recalcHeader).observe(appbar);
+      recalcHeader();
+    
+      panel.addEventListener('scroll', () => {
+        const y  = panel.scrollTop;
+        const dy = y - lastY;
+        lastY = y;
+    
+        // Intención con umbrales:
+        if (dy > DOWN_HIDE) {
+          // bajando con intención → oculto
+          hide = Math.min(MAX, hide + (dy - DOWN_HIDE) * K);
+        } else if (dy < -UP_SHOW) {
+          // subiendo con intención → muestro
+          hide = Math.max(0, hide + (dy + UP_SHOW) * K);
+        } else {
+          // zona muerta → sólo amortiguo un poco
+          hide = hide * (1 - FRICTION);
+        }
+    
+        // límites
+        hide = Math.min(Math.max(hide, 0), MAX);
+    
+        // aplicar a CSS (mueve header y ajusta padding-top del contenido)
+        applyVars();
+    
+        // snap al tope
+        if (y <= 0 && hide !== 0) {
+          hide = 0;
+          applyVars();
+        }
+      }, { passive: true });
+    })();
+ </script>
+
+
+  <!-- <script>
     (() => {
       const panel  = document.querySelector('.bbdd-panel');      // único scroller
       const appbar = document.querySelector('header.appbar');
@@ -943,7 +1016,7 @@
       let H     = appbar.offsetHeight || 0;    // alto actual del header
       let MAX   = Math.max(0, H - 6);          // cuánto podemos ocultar (deja un pelín)
       const K         = 1;                  // sensibilidad (0.08–0.15 va bien)
-      const FRICTION  = 0.12;                  // fricción al cambiar de sentido
+      const FRICTION  = 0.13;                  // fricción al cambiar de sentido
     
       // Setea variables CSS iniciales
       function applyVars(){
@@ -990,7 +1063,7 @@
         lastY = y;
       }, { passive:true });
     })();
-  </script>
+  </script> -->
 
 
 
