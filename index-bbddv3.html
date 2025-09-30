@@ -796,6 +796,38 @@
       box-shadow: none !important;
     }
 
+
+
+    
+    /* ====== Anti-rebote horizontal (iOS/Android) ====== */
+    /* 1) Nada de scroll X en la página */
+    html, body{
+      max-width: 100%;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;   /* evita el rubber-band lateral */
+      touch-action: pan-y;           /* solo gestos verticales a nivel página */
+    }
+    
+    /* 2) El overlay y el panel tampoco permiten desplazamiento X ni rebote */
+    #bbdd-overlay,
+    .bbdd-panel{
+      overflow-x: hidden;
+      overscroll-behavior: contain;  /* no propaga el overscroll al viewport */
+      touch-action: pan-y;           /* solo vertical aquí */
+    }
+    
+    /* 3) PERO: las tarjetas sí pueden escuchar gesto horizontal para el swipe */
+    .item .slidable{
+      touch-action: pan-x pan-y;     /* habilita el deslizamiento lateral del row */
+    }
+    
+    /* Por si algún contenedor introduce 1px de ancho de más */
+    #table-wrap, #bbdd-table{
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+
     
 
 
