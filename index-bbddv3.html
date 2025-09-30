@@ -827,6 +827,78 @@
       overflow-x: hidden;
     }
 
+    /* ===== Scrollbar sutil dentro del panel ===== */
+    .bbdd-panel{
+      /* Firefox */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(180,190,220,.18) transparent;
+    }
+    /* WebKit (Chrome, Edge, Safari) */
+    .bbdd-panel::-webkit-scrollbar{
+      width: 10px;                 /* grosor total de la barra */
+    }
+    .bbdd-panel::-webkit-scrollbar-track{
+      background: transparent;     /* sin “pista” visible */
+    }
+    .bbdd-panel::-webkit-scrollbar-thumb{
+      /* pulgar casi invisible, con borde transparente para que se “adelgace” */
+      background: linear-gradient(180deg,
+                  rgba(180,190,220,.30),
+                  rgba(125,60,255,.35));
+      border-radius: 999px;
+      border: 3px solid transparent;
+      background-clip: content-box;  /* truco para que se vea finito */
+      opacity: .65;
+      transition: opacity .2s ease, background .2s ease;
+    }
+    /* al pasar el mouse por el panel, aparece un poco más */
+    .bbdd-panel:hover::-webkit-scrollbar-thumb{
+      opacity: .9;
+      background: linear-gradient(180deg,
+                  rgba(200,210,240,.45),
+                  rgba(140,92,255,.55));
+    }
+    /* esquina para macOS con ambos scrollbars */
+    .bbdd-panel::-webkit-scrollbar-corner{ background: transparent; }
+
+    /* ===== Destellos suaves (mismo lenguaje que el dashboard) ===== */
+    :root{
+      --glow-cyan:  rgba(80,180,255,.25);
+      --glow-violet:rgba(160,100,255,.22);
+      --glow-rose:  rgba(255,120,200,.16);
+    }
+    
+    /* halo en el overlay (detrás del panel) */
+    #bbdd-overlay::before{
+      content:"";
+      position:fixed;
+      inset:-20%;
+      pointer-events:none;
+      background:
+        radial-gradient(800px 400px at 20% 0%,   var(--glow-cyan),  transparent 60%),
+        radial-gradient(700px 360px at 85% -5%,  var(--glow-violet),transparent 65%),
+        radial-gradient(600px 320px at 60% 120%, var(--glow-rose),  transparent 65%);
+      filter: blur(6px);
+      z-index: 0; /* por debajo del panel */
+    }
+    
+    /* halo interno del panel (muy suave) */
+    .bbdd-panel{
+      position: relative; /* asegurar stacking */
+    }
+    .bbdd-panel::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: inherit;
+      pointer-events:none;
+      background:
+        radial-gradient(520px 160px at 18% -8%, rgba(255,255,255,.14), transparent 60%),
+        radial-gradient(520px 160px at 82% -8%, rgba(255,255,255,.12), transparent 60%);
+      z-index: 0;
+    }
+
+
 
     
 
