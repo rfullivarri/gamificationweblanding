@@ -1560,74 +1560,98 @@
 
   <script>
     (() => {
-      const panel = document.querySelector('.bbdd-panel');
-      const btn   = document.getElementById('bbdd-confirm');
-      if (!panel || !btn || typeof window.doConfirm !== 'function') return;
-    
-      // Evita enganchar dos veces
-      if (btn.dataset.hooked === '1') return;
-      btn.dataset.hooked = '1';
-    
-      // Escudo para bloquear interacción mientras se guarda
-      let shield = document.getElementById('saving-shield');
-      if (!shield){
-        shield = document.createElement('div');
-        shield.id = 'saving-shield';
-        Object.assign(shield.style, {
-          position:'absolute', inset:'0', zIndex:'70',
-          display:'none', background:'transparent', pointerEvents:'auto'
+      // ====================================================================
+      // === 1) Identificación de los elementos y función original ==========
+      // ====================================================================
+      // Buscamos el panel completo y el botón "Confirmar". Si algo falta o la
+      // función global `window.doConfirm` no existe, abandonamos silenciosamente
+      // para evitar errores en consola en vistas incompletas o tests.
+      const bbddPanel = document.querySelector('.bbdd-panel');
+      const confirmarBtn = document.getElementById('bbdd-confirm');
+      if (!bbddPanel || !confirmarBtn || typeof window.doConfirm !== 'function') {
+        return;
+      }
+
+      // Guardamos la referencia a la implementación original. La vamos a envolver
+      // para sumar la UI de bloqueo, pero queremos respetar tal cual su flujo.
+      const confirmarOriginal = window.doConfirm;
+
+      // ====================================================================
+      // === 2) Creación (o reutilización) del escudo transparente ==========
+      // ====================================================================
+      // Este "escudo" es un div transparente que se posiciona encima del panel
+      // para bloquear cualquier interacción mientras el guardado está corriendo.
+      const escudoDeGuardado = document.getElementById('saving-shield') ?? (() => {
+        const nuevoEscudo = document.createElement('div');
+        nuevoEscudo.id = 'saving-shield';
+        Object.assign(nuevoEscudo.style, {
+          position: 'absolute',
+          inset: '0',
+          zIndex: '70',
+          display: 'none',
+          background: 'transparent',
+          pointerEvents: 'auto',
         });
-        panel.appendChild(shield);
-      }
-    
-      // Deshabilita TODOS los controles dentro del panel
-      function disableAllControls() {
-        panel.querySelectorAll('input, select, textarea, button')
-          .forEach(el => {
-            // dejá sólo el botón de confirmar en modo busy (doConfirm ya lo deshabilita)
-            if (el === btn) return;
-            if (!el.disabled) el.setAttribute('data-was-enabled', '1');  // ← CAMBIO
-            el.disabled = true;
-          });
-      }
-      // Restaura sólo los que deshabilitamos acá
-      function restoreControls() {
-        panel.querySelectorAll('[data-was-enabled]')        // ← CAMBIO
-          .forEach(el => {
-            el.disabled = false;
-            el.removeAttribute('data-was-enabled');
-          });
-      }
-    
-      async function runConfirm() {
-        if (btn.dataset.busy === '1') return;   // anti doble-click
-        btn.dataset.busy = '1';
-        document.activeElement && document.activeElement.blur();
-    
-        // Bloqueo visual y de interacción
-        panel.classList.add('saving');
-        panel.setAttribute('aria-busy', 'true');
-        shield.style.display = 'block';
-        disableAllControls();
-    
+        bbddPanel.appendChild(nuevoEscudo);
+        return nuevoEscudo;
+      })();
+
+      // ====================================================================
+      // === 3) Utilidades para deshabilitar y restaurar controles ==========
+      // ====================================================================
+      // Mientras confirmamos, apagamos todos los inputs/combos/botones del panel
+      // (menos el botón ocupado) y luego sólo reactivamos los que estaban activos
+      // antes. Usamos un data-atributo para recordar quiénes estaban habilitados.
+      const desactivarControlesDelPanel = () => {
+        bbddPanel.querySelectorAll('input, select, textarea, button').forEach(control => {
+          if (control === confirmarBtn) return; // el botón ya lo maneja doConfirm
+          if (!control.disabled) control.dataset.estabaActivo = '1';
+          control.disabled = true;
+        });
+      };
+
+      const restaurarControlesDelPanel = () => {
+        bbddPanel.querySelectorAll('[data-estaba-activo="1"]').forEach(control => {
+          control.disabled = false;
+          delete control.dataset.estabaActivo;
+        });
+      };
+
+      // ====================================================================
+      // === 4) Envolvemos window.doConfirm con la lógica de bloqueo =========
+      // ====================================================================
+      // Reemplazamos la función global por una versión comentada paso a paso
+      // que agrega la protección visual. Desde `js/bbdd.js` se seguirá llamando
+      // a `doConfirm`, pero ahora este wrapper garantizará un solo disparo.
+      window.doConfirm = async function confirmarConEscudo() {
+        // Freno de seguridad por si el usuario hace doble clic real.
+        if (confirmarBtn.dataset.bloqueado === '1') return;
+        confirmarBtn.dataset.bloqueado = '1';
+
+        // Quitamos el focus del botón para evitar que quede resaltado.
+        document.activeElement?.blur?.();
+
+        // Activamos la UI de "estamos guardando": clase CSS, aria-busy y escudo.
+        bbddPanel.classList.add('saving');
+        bbddPanel.setAttribute('aria-busy', 'true');
+        escudoDeGuardado.style.display = 'block';
+        desactivarControlesDelPanel();
+
         try {
-          // Tu guardado REAL definido en bbdd.js
-          await window.doConfirm();
-        } catch (err) {
-          console.error('[confirm] error:', err);
+          // Invocamos la lógica real exactamente una vez. Usamos `call` para
+          // preservar el `this` que podría necesitar el código original.
+          await confirmarOriginal.call(this);
         } finally {
-          // Quitar bloqueo
-          restoreControls();
-          shield.style.display = 'none';
-          panel.classList.remove('saving');
-          panel.removeAttribute('aria-busy');
-          delete btn.dataset.busy;
+          // Restituimos la UI pase lo que pase (éxito o error).
+          restaurarControlesDelPanel();
+          escudoDeGuardado.style.display = 'none';
+          bbddPanel.classList.remove('saving');
+          bbddPanel.removeAttribute('aria-busy');
+          delete confirmarBtn.dataset.bloqueado;
         }
-      }
-    
-      btn.addEventListener('click', runConfirm);
+      };
     })();
-   </script>
+  </script>
 
 
 </body>
