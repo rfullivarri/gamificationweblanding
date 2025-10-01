@@ -1586,16 +1586,17 @@
           .forEach(el => {
             // dejá sólo el botón de confirmar en modo busy (doConfirm ya lo deshabilita)
             if (el === btn) return;
-            if (!el.disabled) el.dataset._tmpEn = '1';
+            if (!el.disabled) el.setAttribute('data-was-enabled', '1');  // ← CAMBIO
             el.disabled = true;
           });
       }
       // Restaura sólo los que deshabilitamos acá
       function restoreControls() {
-        panel.querySelectorAll('[data-_tmpEn]').forEach(el => {
-          el.disabled = false;
-          el.removeAttribute('data-_tmpEn');
-        });
+        panel.querySelectorAll('[data-was-enabled]')        // ← CAMBIO
+          .forEach(el => {
+            el.disabled = false;
+            el.removeAttribute('data-was-enabled');
+          });
       }
     
       async function runConfirm() {
