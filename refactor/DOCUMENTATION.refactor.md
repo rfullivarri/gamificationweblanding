@@ -5,23 +5,26 @@
 ## Mapa final · Vista → módulos → estilos → endpoints
 
 ### `views/indexv2.refactor.html` — Landing principal
-- **JS principal:** `../js/features/landing.js` → usa `utils/dom` para selectores seguros y `utils/a11y` para anuncios accesibles.
+- **JS principal:** `../js/features/landing.js`.
+- **Utilidades compartidas:** `utils/dom` para selectores seguros, `utils/a11y` para anuncios accesibles.
 - **Hojas de estilo:** `../css/base.css`, `../css/stylesv3.css`.
-- **Endpoints / rutas externas:** no invoca APIs; sólo enlaza a `formsintrov3.html`, `signupv2.html`, `loginv2.html` y assets alojados en i.ibb.co.
+- **Endpoints / rutas externas:** no invoca APIs; enlaza a `formsintrov3.html`, `signupv2.html`, `loginv2.html` y a assets alojados en `i.ibb.co`.
 
 ### `views/loginv2.refactor.html` — Portal de acceso
-- **JS principal:** `../js/features/login.js` → depende de `utils/dom`, `utils/a11y` y `utils/constants`.
+- **JS principal:** `../js/features/login.js`.
+- **Utilidades compartidas:** `utils/dom`, `utils/a11y`, `utils/constants`.
 - **Hojas de estilo:** `../css/base.css`, `../css/layout.css`.
 - **Endpoints / rutas:**
   - `CHECK_ENDPOINT` (`utils/constants`) para conocer el estado del bundle.
-  - `WORKER_BASE` (`utils/constants`) con `/bundle` para prefetchear datos.
+  - `WORKER_BASE` (`utils/constants`) con `/bundle` para precargar datos.
   - `OLD_WEBAPP_URL` (`utils/constants`) como fallback legacy.
   - `REFRESH_ENDPOINT` (`utils/constants`) para despertar al worker de refresco.
   - `DASHBOARD_ROUTE` (`utils/constants`) para redirigir cuando todo está listo.
   - Registra `../../sw.js` (scope `../../`) para compatibilidad con la PWA original.
 
 ### `views/signupv2.refactor.html` — Alta de usuarios
-- **JS principal:** `../js/features/signupv2.js` → depende de `utils/dom` y `utils/net`.
+- **JS principal:** `../js/features/signupv2.js`.
+- **Utilidades compartidas:** `utils/dom`, `utils/net`.
 - **Hojas de estilo:** `../css/base.css`, `../css/signupv2.css`.
 - **Endpoints / rutas:** definidos dentro de `CONFIG` del módulo.
   - `formAction`: Google Form que recibe la data cruda.
@@ -31,7 +34,8 @@
   - `loginUrl`: reutiliza `loginv2.html` para volver al flujo principal.
 
 ### `views/formsintrov3.refactor.html` — Wizard gamificado
-- **JS principal:** `../js/features/formsintrov2.js` → usa `utils/dom` (selectores, delegación) y `utils/net` (POST JSON).
+- **JS principal:** `../js/features/formsintrov2.js`.
+- **Utilidades compartidas:** `utils/dom` (selectores, delegación) y `utils/net` (POST JSON, reintentos).
 - **Hojas de estilo:** `../css/base.css`, `../css/formsintrov2.css`.
 - **Endpoints / rutas:**
   - `WORKER_URL`: worker de onboarding que guarda el payload completo.
@@ -45,10 +49,10 @@
 - `js/utils/constants.js` — Endpoints compartidos por el flujo de login.
 
 ## Cómo probar una vista refactorizada
-1. Abrí el archivo `.refactor.html` directo en el navegador (doble clic o `Live Server`).
-2. Verificá que los enlaces sigan apuntando a las rutas originales (`signupv2.html`, `dashboardv3.html`, etc.).
-3. Revisá la consola: no debe haber errores nuevos. Si aparece alguno, anotarlo en TODO.
-4. Compará visualmente con la versión original para asegurar que la UI/UX no cambió.
+1. Abre el archivo `.refactor.html` directo en el navegador (doble clic o `Live Server`).
+2. Verifica que los enlaces sigan apuntando a las rutas originales (`signupv2.html`, `dashboardv3.html`, etc.).
+3. Revisa la consola: no debe haber errores nuevos. Si aparece alguno, anótalo en TODO.
+4. Compara visualmente con la versión original para asegurar que la UI/UX no cambió.
 
 ## Convenciones de código
 - Comentarios con tono sencillo, como si se lo explicáramos a alguien de 5 años.
