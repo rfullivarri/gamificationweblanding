@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <link rel="manifest" href="../../manifest.refactor.json">
+  <meta name="theme-color" content="#7d3cff">
+  <title>Edicion de Base de Datos</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/bbdd.css" />
+
+</head>
+<body>
+  <!-- ===== OVERLAY PRINCIPAL ===== -->
+  <div id="bbdd-overlay" class="bbdd-overlay hidden">
+    <div class="bbdd-panel">
+      <!-- ===== APPBAR + HERRAMIENTAS ===== -->
+      <header class="appbar">
+        <div class="top-row">
+          <div class="primary">
+            <button class="btn icon" id="bbdd-back" title="Volver">⟵</button>
+            <div class="title-wrap">
+              <div class="title">Conf BBDD &amp; Daily Quest</div>
+              <div class="sub">Lista compacta • Swipe a la izquierda para acciones • Tap en dificultad para ciclarla</div>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button id="bbdd-confirm" class="btn primary">Confirmar cambios ✓</button>
+          </div>
+        </div>
+
+        <details class="guide" open>
+          <summary>📌 Cómo escribir buenas Tasks + usar IA</summary>
+          <ul>
+            <li>Completables en un día, claras y medibles.</li>
+            <li>Evitá vaguedades. Mejor: “Preparar comida saludable” / “Meditar 10’”.</li>
+            <li>Deslizá y usá <strong>Mejorar</strong> o <strong>Modificar</strong> con IA para afinar la task.</li>
+          </ul>
+        </details>
+
+        <div class="tools">
+          <div class="left-tools">
+            <button id="add-row" class="btn">＋ Fila</button>
+            <span id="dirty-indicator" class="indicator hidden">● Cambios sin guardar</span>
+          </div>
+          <div class="field" style="flex:1">
+            <span aria-hidden="true">🔎</span>
+            <input id="search" type="search" placeholder="Filtrar tareas…" autocomplete="off" />
+          </div>
+          <button id="bbdd-ai" class="btn" title="Generar con IA">✨ AI (Beta)<span id="ai-sparkle"></span></button>
+        </div>
+
+        <div class="thead">
+          <span class="label">Task</span>
+          <button id="add-row-dup" class="btn add" type="button">＋</button>
+        </div>
+      </header>
+
+      <!-- ===== TABLA DE TAREAS ===== -->
+      <main>
+        <section id="table-wrap">
+          <div id="table-spinner" aria-live="polite" aria-busy="true">
+            <span class="ring" aria-hidden="true"></span>
+            <span class="txt">Cargando tus tareas…</span>
+          </div>
+          <div id="ai-overlay" role="status" aria-live="polite">
+            <span class="spark">✨</span>
+            <span>Generando tareas con IA…</span>
+          </div>
+          <table id="bbdd-table" aria-label="Tabla de tareas">
+            <colgroup>
+              <col class="col-pilar" />
+              <col class="col-rasgo" />
+              <col class="col-stat" />
+              <col class="col-task" />
+              <col class="col-dificultad" />
+              <col class="col-feedback" />
+              <col class="col-eliminar" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Pilar</th>
+                <th>Rasgo</th>
+                <th>Stat</th>
+                <th>Task</th>
+                <th>Dificultad</th>
+                <th>Feedback</th>
+                <th>Eliminar</th>
+              </tr>
+            </thead>
+            <tbody id="bbdd-tbody"></tbody>
+          </table>
+        </section>
+      </main>
+
+      <!-- ===== FOOTER PERSISTENTE ===== -->
+      <footer class="bbdd-footer">
+        <small id="status-msg"></small>
+        <button id="close-modal" class="btn">Cerrar</button>
+      </footer>
+    </div>
+  </div>
+
+
+  <!-- Hook JS: módulo BBDD controla tabla, IA y confirmación -->
+  <script type="module" src="../js/features/bbdd.js"></script>
+
+</body>
+</html>

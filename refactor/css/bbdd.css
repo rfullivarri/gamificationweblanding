@@ -1,0 +1,921 @@
+/* =========================================================================
+   Componente: BBDD
+   Uso: replica la vista de edición compacta de tareas con overlay flotante.
+   Notas: tokens base reutilizados; los bloques siguen el orden original del inline.
+   ========================================================================== */
+
+:root{
+      --bg:var(--color-bg-dark, #0b0f19);
+      --ink:var(--color-text-main, #e9eef7);
+      --muted:var(--color-text-muted, #9aa3b2);
+      --accent:#7d3cff; --accent2:#9a74ff;
+      --card:#101726; --chip:#17203a; --border:#1d2743; --shadow:0 12px 28px rgba(0,0,0,.35);
+      --tap:44px; --r:14px; --actionsw:180px;
+    }
+    *,*::before,*::after{box-sizing:border-box}
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:linear-gradient(180deg,var(--bg) 0%,#0d1324 100%);
+      color:var(--ink);
+      font:15px/1.4 "Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    a{color:inherit}
+    button,input,select{font:inherit}
+    select,button{cursor:pointer}
+
+    .hidden{display:none !important}
+
+    /* Overlay */
+    #bbdd-overlay{
+      position:fixed; inset:0; z-index:80;
+      background:rgba(4,6,12,.6);
+      backdrop-filter:blur(18px) saturate(120%);
+      -webkit-backdrop-filter:blur(18px) saturate(120%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:clamp(5px,1vh,10px);   /* MODIFIQUE */
+      overflow-y:auto;
+    }
+    .bbdd-panel{
+      width:min(960px,100%);
+      height:min(100dvh,960px);
+      max-height:100dvh;
+      background:rgba(16,23,38,.86);
+      border:1px solid rgba(125,60,255,.25);
+      border-radius:18px;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      position:relative;
+      box-shadow:0 18px 44px rgba(0,0,0,.45);
+    }
+
+    header.appbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      padding:14px clamp(14px,4vw,26px) 10px;
+      background:linear-gradient(180deg,rgba(14,20,35,.98),rgba(14,20,35,.82));
+      border-bottom:1px solid rgba(125,60,255,.22);
+    }
+    header.appbar .top-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px;align-items:center;}
+    header.appbar .top-row .primary{display:flex;align-items:center;gap:12px;flex:1 1 320px;min-width:0;flex-wrap:wrap;}
+    header.appbar .top-row .primary .btn.icon{flex-shrink:0;}
+    header.appbar .title-wrap{flex:1 1 220px;min-width:0;}
+    header.appbar .title{font-weight:800;font-size:1.06rem;line-height:1.25;}
+    header.appbar .sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+    header.appbar .row-actions{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;min-width:0;flex:0 0 auto;}
+    header.appbar .row-actions .btn{white-space:nowrap;flex:0 0 auto;}
+
+    .btn{
+      appearance:none;
+      border:1px solid rgba(125,60,255,.25);
+      background:var(--chip);
+      color:var(--ink);
+      min-height:var(--tap);
+      border-radius:12px;
+      padding:10px 14px;
+      font-weight:600;
+      transition:background .2s,border-color .2s,transform .2s;
+    }
+    .btn:hover{border-color:var(--accent2);background:rgba(125,60,255,.16);}
+    .btn.icon{width:var(--tap);display:grid;place-items:center;padding:0;font-size:18px;}
+    .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;box-shadow:0 10px 30px rgba(125,60,255,.35);}
+    .btn.primary[disabled]{opacity:.55;cursor:progress;box-shadow:none;}
+
+    details.guide{
+      margin:12px 0;
+      border:1px solid rgba(157,167,200,.25);
+      border-radius:14px;
+      background:rgba(18,27,46,.88);
+      padding:10px 14px;
+      box-shadow:0 12px 28px rgba(0,0,0,.3);
+    }
+    details.guide summary{cursor:pointer;color:#cfd6f8;font-weight:600;}
+    details.guide ul{margin:10px 0 0 18px;color:var(--muted);padding:0 0 4px 0;}
+
+    .tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0 2px;}
+    .field{flex:1 1 220px;display:flex;align-items:center;gap:8px;background:rgba(18,26,44,.92);border:1px solid rgba(125,60,255,.16);border-radius:12px;padding:0 12px;min-height:42px;min-width:0;}
+    .field input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--ink);font-size:15px;}
+    .left-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .indicator{font-size:.78rem;color:#ffd166;display:flex;align-items:center;gap:6px;}
+    .indicator.hidden{display:none!important;}
+
+    #bbdd-ai{position:relative;}
+    #ai-sparkle{position:absolute;inset:-6px;pointer-events:none;background:radial-gradient(circle at top,var(--accent2),transparent 60%);opacity:0;animation:pulse 1.6s infinite;}
+    .ai-loading #ai-sparkle{opacity:1;}
+    @keyframes pulse{0%,100%{opacity:.1;}50%{opacity:.45;}}
+
+    main{
+      flex:1;
+      overflow:auto;
+      padding:0 clamp(12px,4vw,28px) clamp(96px,12vh,150px);
+      position:relative;
+      scroll-behavior:smooth;
+    }
+
+    .thead{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:.78rem;margin:6px 2px 0;gap:8px;}
+    .thead .label{flex:1 1 auto;min-width:0;}
+    .thead .add{min-height:36px;padding:0 12px;border-radius:10px;background:rgba(125,60,255,.16);border-color:rgba(125,60,255,.4);}
+
+    #table-wrap{position:relative;}
+    #bbdd-table{width:100%;border-collapse:collapse;}
+    #bbdd-table colgroup,#bbdd-table thead{display:none;}
+    #bbdd-table tbody tr{display:table-row;}
+    #bbdd-table td{border:0;padding:0;background:transparent;}
+
+    .item{position:relative;margin:6px 0;height:auto;border-radius:16px;overflow:hidden;touch-action:pan-y;}
+    .item .actions{position:absolute;inset:0;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:10px;min-width:var(--actionsw);background:linear-gradient(90deg,transparent 32%,rgba(10,14,28,.88) 100%);}
+    .item .act{width:46px;height:46px;border-radius:50%;border:1px solid rgba(125,60,255,.35);background:rgba(32,38,66,.88);color:#fff;font-size:1.24rem;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.32);}
+    .item .act.modify{border-color:#2b8fdb;background:rgba(26,48,78,.88);}
+    .item .act.improve{border-color:#8c5cff;background:rgba(39,28,78,.9);}
+    .item .act.del{border-color:#e74c3c;background:rgba(64,20,28,.92);}
+
+    .slidable{position:relative;display:flex;align-items:flex-start;gap:10px;background:var(--card);border:1px solid rgba(125,60,255,.22);border-radius:16px;padding:12px 14px;transition:transform .18s ease;will-change:transform;box-shadow:var(--shadow);}
+    .slidable .mark{width:6px;border-radius:999px;background:linear-gradient(180deg,#2a7fff,#7d3cff);align-self:stretch;}
+    .slidable .content{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;}
+    .row-main{display:flex;align-items:center;gap:10px;}
+    .task-input{flex:1;min-width:0;background:rgba(255,255,255,.02);border:1px solid rgba(125,60,255,.24);border-radius:12px;padding:10px 12px;color:var(--ink);}
+    .task-input.ai-updated{border-color:#71e6b5;box-shadow:0 0 0 1px rgba(113,230,181,.35);}
+    .task-input::placeholder{color:rgba(233,238,247,.35);}
+
+    .meta{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));background:rgba(255,255,255,.02);border:1px solid rgba(125,60,255,.18);border-radius:12px;padding:10px;opacity:0;max-height:0;overflow:hidden;transition:opacity .18s ease,max-height .18s ease;}
+    .item.expanded .meta{opacity:1;max-height:460px;}
+    .meta label{display:flex;flex-direction:column;font-size:.74rem;color:var(--muted);gap:6px;}
+    .meta select,.meta input{width:100%;background:rgba(14,24,40,.9);border:1px solid rgba(125,60,255,.22);border-radius:10px;min-height:36px;padding:6px 10px;color:var(--ink);}
+    .meta input::placeholder{color:rgba(233,238,247,.3);}
+    .meta .feedback{display:flex;gap:8px;align-items:center;justify-content:flex-start;grid-column:1 / -1;}
+    .meta .feedback button{width:40px;height:40px;border-radius:10px;border:1px solid rgba(125,60,255,.28);background:rgba(24,32,52,.9);color:var(--ink);font-size:1.1rem;display:flex;align-items:center;justify-content:center;}
+    .item:not(.expanded) .meta .feedback{display:none;}
+    .meta-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;grid-column:1 / -1;}
+    .meta-actions .meta-btn{flex:1 1 120px;min-height:36px;border-radius:10px;border:1px solid rgba(125,60,255,.22);background:rgba(18,28,48,.88);color:var(--ink);font-weight:600;font-size:.82rem;padding:6px 10px;display:flex;align-items:center;gap:8px;justify-content:center;}
+    .meta-actions .meta-btn.danger{border-color:#e74c3c;color:#ffb1b8;background:rgba(56,20,32,.92);}
+
+    .diff-chip,.more{
+      height:40px;
+      width:42px;
+      border-radius:11px;
+      border:1px solid rgba(125,60,255,.22);
+      background:rgba(22,30,50,.92);
+      color:var(--ink);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0 10px;
+    }
+    .diff-chip{width:auto;gap:8px;padding:0 14px;font-weight:600;font-size:.86rem;}
+    .diff-chip .dot{width:10px;height:10px;border-radius:99px;background:#8a93a7;}
+    .diff-chip[data-v="Fácil"] .dot{background:#2ecc71;}
+    .diff-chip[data-v="Media"] .dot{background:#f1c40f;}
+    .diff-chip[data-v="Difícil"] .dot{background:#e74c3c;}
+
+    .more{font-size:20px;}
+    .item.expanded .more{background:rgba(125,60,255,.2);border-color:rgba(125,60,255,.5);}
+
+    .item.swipe-hint .slidable{animation:swipe-hint 2.6s ease-in-out infinite;}
+
+    @keyframes swipe-hint{
+      0%,60%,100%{transform:translateX(0);}
+      25%{transform:translateX(calc(-1 * var(--actionsw) * .55));}
+      45%{transform:translateX(0);}
+    }
+
+    .item.ai-improved .slidable{border-color:rgba(140,92,255,.65);box-shadow:0 0 0 1px rgba(140,92,255,.35),0 14px 34px rgba(83,57,168,.35);}
+    .item.ai-modified .slidable{border-color:rgba(113,230,181,.8);box-shadow:0 0 0 1px rgba(113,230,181,.35),0 14px 34px rgba(36,126,104,.3);}
+
+    .bbdd-footer{
+      position:absolute;
+      inset:auto 0 0 0;
+      padding:14px clamp(14px,4vw,24px) calc(env(safe-area-inset-bottom)+18px);
+      background:linear-gradient(180deg,rgba(11,16,28,.1) 0%,rgba(11,16,28,.88) 45%,rgba(11,16,28,.98) 100%);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    #status-msg{flex:1;color:#9ff7cc;font-size:.82rem;transition:opacity .2s;}
+    .bbdd-footer .btn{min-height:42px;}
+
+    #table-spinner{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      gap:12px;
+      background:rgba(8,12,24,.82);
+      color:var(--ink);
+      font-weight:600;
+      z-index:120;
+      pointer-events:auto;
+    }
+    #table-wrap.table-loading #table-spinner{display:flex;}
+    #table-spinner .ring{
+      width:36px;height:36px;border-radius:50%;
+      border:3px solid rgba(125,60,255,.18);
+      border-top-color:var(--accent2);
+      animation:spin .9s linear infinite;
+    }
+    #ai-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(7,12,26,.82);color:#cfd7ff;font-weight:600;z-index:130;gap:10px;}
+    #ai-overlay .spark{font-size:1.4rem;animation:twinkle 1.6s ease-in-out infinite;}
+    .ai-loading #ai-overlay{display:flex;}
+    @keyframes twinkle{0%,100%{opacity:.4;transform:scale(1);}50%{opacity:1;transform:scale(1.2);}}
+    @keyframes spin{to{transform:rotate(360deg);}}
+
+    #add-row-dup{display:none;align-items:center;justify-content:center;padding:0 12px;}
+
+    /* Responsive */
+    @media (min-width:780px){
+      body{background:#060912;}
+      header.appbar{padding:18px 40px 14px;}
+      main{padding:10px 40px 180px;}
+      .item{margin:12px 0;}
+      .slidable{gap:16px;padding:18px;}
+      .meta{grid-template-columns:repeat(3,minmax(160px,1fr));}
+    }
+
+    @media (max-width:720px){
+      header.appbar .top-row{align-items:flex-start;}
+      header.appbar .top-row .primary{width:100%;align-items:flex-start;}
+      header.appbar .top-row .primary .title-wrap{flex-basis:100%;}
+      header.appbar .top-row .row-actions{width:100%;margin-left:0;justify-content:flex-end;}
+      header.appbar .top-row .row-actions .btn{flex:1;min-width:0;}
+      .tools{flex-direction:column;align-items:stretch;gap:8px;}
+      .left-tools{width:100%;justify-content:flex-start;}
+      .field{width:100%;}
+      #bbdd-ai{width:100%;}
+      #add-row{display:none;}
+      #add-row-dup{display:inline-flex;}
+      .meta{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
+    }
+
+    @media (max-width:520px){
+      .slidable{padding:12px 12px 14px;}
+      .task-input{font-size:.94rem;}
+      .btn.primary{min-width:160px;}
+      .meta-actions .meta-btn{flex:1 1 100%;}
+    }
+
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}
+    /* === Glow verde al enfocar === */
+    .slidable:has(.task-input:focus){
+      border-color:#71e6b5;
+      box-shadow:0 0 0 1px rgba(113,230,181,.45), 0 14px 34px rgba(36,126,104,.28);
+    }
+    .task-input:focus{
+      outline:0;
+      border-color:#71e6b5;
+      box-shadow:0 0 0 2px rgba(113,230,181,.30);
+    }
+    
+    /* === Tarjeta compacta + grid con barrita === */
+    .item{ margin:6px 0; }
+    
+    .slidable{
+      display:grid;
+      grid-template-columns: var(--mark-w,6px) 1fr auto auto; /* barrita | texto | chip | ... */
+      align-items:center;
+      column-gap:7px;
+      padding:5px 7px;
+    }
+    
+    /* Barrita izquierda */
+    .slidable .mark{
+      grid-column:1;
+      align-self:stretch;
+      width:var(--mark-w,6px);
+      border-radius:999px;
+      background:linear-gradient(180deg,#2a7fff,#7d3cff);
+    }
+    
+    /* Contenido de texto (se expande a tope) */
+    .slidable .content{
+      grid-column:2;
+      min-width:0;
+    }
+    .row-main{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .task-input{
+      flex:1 1 auto;
+      min-width:0;
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
+    }
+    
+    /* Controles a la derecha */
+    .slidable .diff-chip{
+      grid-column:3;
+      white-space:nowrap;
+      padding:0 5px;
+    }
+    .slidable .more{
+      grid-column:4;
+      width:44px;
+      min-width:44px;
+    }
+    .diff-chip, .more{ height:34px; }
+    
+    /* Meta (bloque expandible) más denso */
+    .meta{ padding:8px; gap:8px; }
+    
+    /* === Responsive === */
+    @media (max-width:480px){
+      .slidable{ column-gap:8px; }
+      .slidable .diff-chip{ padding:0 8px; }
+      .slidable .more{ width:40px; min-width:40px; }
+      .task-input{ padding:6px 8px; }
+    }
+    @media (max-width:380px){
+      .slidable{ column-gap:6px; }
+      .slidable .diff-chip{ padding:0 6px; font-size:.92rem; }
+      .slidable .more{ width:36px; min-width:36px; }
+    }
+
+    /* Header pegado arriba que se mueve suavemente con el scroll */
+    header.appbar{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      will-change: transform;
+      /* sin clase .hidden, la animación la controla JS */
+    }
+    
+    /* (opcional) transición cuando soltás el scroll y “encaja” en visible/oculto */
+    header.appbar.is-snapping{
+      transition: transform .18s ease;
+    }
+
+    /* --- Panel: único contenedor con scroll --- */
+    .bbdd-panel{
+      height: 100dvh;
+      overflow: auto;              /* ahora el panel scrollea */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* main ya no scrollea */
+    .bbdd-panel > main{
+      flex: 1 1 auto;
+      overflow: visible;
+    }
+    
+    /* Appbar sticky dentro del panel + transición suave por transform */
+    header.appbar{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      transform: translateY(var(--appbarShift, 0px));
+      transition: transform .12s linear; /* micro-suavizado cuando se frena */
+    }
+    
+    /* Botón Confirmar SIEMPRE visible (flotante) */
+    #bbdd-confirm{
+      position: fixed;                         /* flota dentro de la ventana */
+      right: clamp(12px, 3vw, 28px);
+      top: calc(12px + env(safe-area-inset-top, 0px));
+      z-index: 60;
+      box-shadow: 0 14px 34px rgba(125,60,255,.35);
+    }
+    
+    /* Un poco de margen arriba del contenido para que no quede tapado
+       por el botón flotante en pantallas chicas */
+    @media (max-width: 520px){
+      .bbdd-panel > main{ padding-top: 56px; }
+    }
+    
+    /* (Opcional) compactito para que entren más tarjetas en pantalla */
+    .item{ margin:6px 0; }
+    .slidable{ padding:10px 12px; }
+
+    /* El panel es un único scroller con header sticky y footer sticky */
+    .bbdd-panel{
+      display:flex;
+      flex-direction:column;
+      height:100dvh;              /* ocupa todo el alto del viewport */
+    }
+    
+    /* El panel es EL ÚNICO scroller */
+    .bbdd-panel{
+      height: 100dvh;
+      overflow: auto;
+    }
+    
+    /* main no scrollea */
+    .bbdd-panel main{
+      overflow: visible;            /* <- importantísimo */
+      padding-top: var(--appbar-pad, 0px); /* se ajusta desde JS */
+    }
+    
+    /* Appbar sticky que se oculta suavemente por transform */
+    header.appbar{
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      transform: translateY(var(--appbarShift, 0));
+      transition: transform .16s ease;    /* suavidad */
+    }
+    
+    /* Footer siempre visible dentro del panel */
+    .bbdd-footer{
+      position: sticky;
+      bottom: 0;
+      z-index: 15;
+    }
+
+    /* === Un solo scroller === */
+    .bbdd-panel{
+      height:100dvh;
+      overflow:auto;
+      display:flex;
+      flex-direction:column;
+    }
+    
+    /* Header sticky que se oculta con transform */
+    header.appbar{
+      position:sticky;
+      top:0;
+      z-index:20;
+      transform: translateY(calc(-1 * var(--appbarHide, 0px)));
+      transition: transform .12s linear; /* suave cuando se frena */
+      will-change: transform;
+    }
+    
+    /* El contenido arranca justo debajo del header visible:
+       padding-top = altoHeader - loOcultado */
+    .bbdd-panel > main{
+      flex:1 1 auto;
+      overflow:visible;
+      padding-top: 0 !important; 
+    }
+    
+    /* Footer pegado abajo siempre visible */
+    .bbdd-footer{
+      position:sticky;
+      bottom:0;
+      z-index:15;
+    }
+    
+    /* Botón Confirmar flotante (si lo querés siempre visible) */
+    #bbdd-confirm{
+      position:fixed;
+      right:clamp(12px,3vw,28px);
+      top:calc(12px + env(safe-area-inset-top,0px));
+      z-index:60;
+    }
+    
+    /* (Opcional) tarjetas un poco más compactas */
+    .item{ margin:6px 0; }
+    .slidable{ padding:10px 12px; }
+
+
+
+    /***************** PARCHE VISUAL – copiar al final *****************/
+
+    /* 1) Ocultar el botón AI (Beta) de la barra de herramientas */
+    #bbdd-ai{ display:none !important; }
+    
+    /* 2) Confirmar: flotante, sin tapar la flecha, alineado y con ancho razonable */
+    header.appbar { position: sticky; top: 0; z-index: 30; }
+    header.appbar .row-actions { position: relative; }
+    
+    /* Botón fijo en la ventana pero con límites de tamaño y separación del notch */
+    #bbdd-confirm{
+      position: fixed;                /* siempre visible */
+      right: clamp(10px, 3vw, 20px);  /* despega del borde */
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;
+      width: clamp(170px, 23vw, 270px); /* nunca ocupa todo el ancho */
+      pointer-events: auto;
+    }
+    
+    /* En pantallas angostas, deja aire a la izquierda para no tapar la flecha */
+    @media (max-width: 520px){
+      #bbdd-confirm{
+        left: unset;                 /* que mande por derecha */
+        right: 12px;
+      }
+    }
+    
+    /* 3) Ganar espacio horizontal en el overlay y en el “editor” */
+    #bbdd-overlay{
+      padding: clamp(4px, 0.8vh, 8px);                /* menos borde exterior */
+    }
+    .bbdd-panel{
+      border-radius: 14px;                             /* un poco menos de radio */
+    }
+    
+    /* Header y main más “pegados” a los bordes */
+    header.appbar{
+      padding: 10px clamp(10px, 3vw, 18px) 8px;       /* menos padding lateral/vertical */
+    }
+    main{
+      /* menos padding lateral; mantené el padding inferior del footer */
+      padding: 0 clamp(8px, 2.4vw, 14px) clamp(90px, 12vh, 150px);
+    }
+    
+    /* Cards más compactas y con menos aire a los lados */
+    .item{ margin: 6px 0; }
+    .slidable{
+      padding: 8px 10px;           /* menos padding interno */
+      column-gap: 6px;             /* controles más cerca */
+      border-radius: 14px;
+    }
+    .slidable .content{ min-width: 0; }
+    .task-input{ padding: 7px 9px; border-radius: 10px; }
+    
+    /* Chips y botón “…” más compactos */
+    .diff-chip, .more{ height: 34px; }
+    .diff-chip{ padding: 0 10px; }
+    
+    /* Barrita izquierda más finita para ganar 2 px de texto */
+    .slidable .mark{ width: 4px; }
+    
+    /* En móviles, todavía más apretado en los costados */
+    @media (max-width: 420px){
+      header.appbar{ padding: 8px 10px; }
+      main{ padding-left: 8px; padding-right: 8px; }
+      .slidable{ padding: 7px 8px; column-gap: 5px; }
+    }
+    
+    /* Opcional: afinar bordes generales del panel para ganar 1–2 px por lado */
+    .bbdd-panel{ border-width: 0.5px; }
+
+
+    /* ==========================================================Botón con spinner cuando está ocupado */
+    #bbdd-confirm {
+      position: fixed;
+      right: clamp(10px, 3vw, 20px);
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;
+      width: var(--confirm-w, clamp(160px, 40vw, 300px));
+    }
+    
+    @keyframes btnspin{ to { transform: rotate(360deg); } }
+    
+    /* Mientras guarda: bloqueá interacciones del panel (excepto el botón) */
+    .bbdd-panel.saving main,
+    .bbdd-panel.saving header.appbar,
+    .bbdd-panel.saving .bbdd-footer{
+      pointer-events: none;
+      user-select: none;
+      opacity: .92;
+      filter: grayscale(.1);
+    }
+    /* re-habilitá el botón confirm (queda por arriba) */
+    .bbdd-panel.saving #bbdd-confirm{
+      pointer-events: auto;
+    }
+    
+    /* Cursor de ocupado en todo el panel */
+    .bbdd-panel[aria-busy="true"]{ cursor: progress; }
+    /* --- escudo de bloqueo global --- */
+    #saving-shield{
+      position: fixed;        /* tapa todo el panel */
+      inset: 0;
+      z-index: 55;            /* por debajo del botón */
+      background: transparent;/* no ensucia la UI */
+      display: none;
+      touch-action: none;
+      pointer-events: none;
+    }
+    .bbdd-panel.saving #saving-shield{
+      display: block;
+      pointer-events: auto;   /* bloquea clics/gestos en todo */
+      /* opcional: bloquear scroll del panel */
+      overscroll-behavior: contain;
+    }
+    
+    /* --- spinner dentro del botón --- */
+    #bbdd-confirm{
+      position: fixed;
+      right: clamp(10px, 3vw, 20px);
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;                         /* por arriba del shield */
+      width: var(--confirm-w, clamp(160px, 40vw, 300px));
+      position: fixed;
+      overflow: visible;                    /* por si el spinner se acerca al borde */
+    }
+ 
+    
+    @keyframes spin{to{transform:rotate(360deg)}}
+    
+    /* asegurar que el shield bloquee todo mientras guarda */
+    .bbdd-panel.saving{ position:relative; }
+
+    /* ==== ÚNICO spinner del botón confirmar ==== */
+    #bbdd-confirm{
+      position: fixed;
+      right: clamp(10px, 3vw, 20px);
+      top: calc(env(safe-area-inset-top, 0px) + 10px);
+      z-index: 60;
+      width: clamp(170px, 23vw, 270px);
+      overflow: visible; /* por si acaso */
+    }
+    
+    #bbdd-confirm.is-busy{
+      color: transparent;     /* oculto label */
+      pointer-events: none;   /* anti doble click */
+      opacity: .95;
+    }
+    
+    #bbdd-confirm.is-busy::after{
+      content:"";
+      position:absolute;
+      inset:0;                /* centra el pseudo-elemento */
+      margin:auto;
+      width:18px; height:18px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.35);
+      border-top-color:#fff;
+      animation: btnspin .8s linear infinite;
+    }
+    
+    @keyframes btnspin { to { transform: rotate(360deg); } }
+
+    /* ==== GLASS LIGHT PATCH (pegar al final) ==== */
+    :root{
+      --glass-bg: rgba(255,255,255,.08);     /* cuerpo de la tarjeta */
+      --glass-stroke: rgba(255,255,255,.22); /* borde claro */
+      --glass-soft: rgba(255,255,255,.06);   /* secciones internas */
+    }
+    
+    /* Overlay más claro y “blanco” */
+    #bbdd-overlay{
+      background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04));
+      backdrop-filter: blur(22px) saturate(160%) brightness(1.15);
+      -webkit-backdrop-filter: blur(22px) saturate(160%) brightness(1.15);
+    }
+    
+    /* Panel principal en vidrio claro */
+    .bbdd-panel{
+      background: var(--glass-bg);
+      border-color: var(--glass-stroke);
+      box-shadow: 0 20px 50px rgba(24,28,50,.35);
+    }
+    
+    /* Un glow suave en el borde superior del panel (como tus flechas verdes) */
+    .bbdd-panel::before{
+      content:"";
+      position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
+      background:
+        radial-gradient(600px 160px at 15% -10%, rgba(255,255,255,.15), transparent 60%),
+        radial-gradient(600px 160px at 85% -10%, rgba(255,255,255,.12), transparent 60%);
+    }
+    
+    /* Secciones internas con vidrio claro */
+    header.appbar,
+    .slidable,
+    .meta,
+    .field,
+    details.guide{
+      background: var(--glass-soft);
+      border-color: rgba(255,255,255,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), var(--shadow);
+    }
+    
+    /* Inputs más claros (sin perder contraste) */
+    .task-input{
+      background: rgba(255,255,255,.05);
+      border-color: rgba(255,255,255,.22);
+    }
+    .meta select,.meta input{
+      background: rgba(255,255,255,.04);
+      border-color: rgba(255,255,255,.18);
+    }
+
+    /* ===== Glass claro con SCRIM que tapa lo de atrás ===== */
+    :root{
+      --overlay-scrim: .42;   /* 0.35–0.50: cuánto oscurece el overlay sobre el fondo */
+      --panel-alpha:   .73;   /* 0.70–0.85: opacidad del panel (más alto = menos se ve atrás) */
+      --card-alpha:    .79;   /* opacidad de las tarjetas/filas (ajustá si aún ves algo) */
+    }
+    
+    /* Overlay: sigue con blur, pero le sumamos una veladura (scrim) encima */
+    #bbdd-overlay{
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+      backdrop-filter: blur(22px) saturate(160%) brightness(1.12);
+      -webkit-backdrop-filter: blur(22px) saturate(160%) brightness(1.12);
+    }
+    
+    /* SCRIM que realmente tapa el contenido del dashboard detrás del overlay */
+    #bbdd-overlay::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: rgba(12,16,28,var(--overlay-scrim));  /* <- subí/bajá esta perilla */
+      z-index: 0;
+    }
+    
+    /* Todo lo de adentro (panel) por encima del scrim */
+    #bbdd-overlay > *{ position: relative; z-index: 1; }
+    
+    /* Panel principal con vidrio claro pero más “opaco” (no se ve lo de atrás) */
+    .bbdd-panel{
+      background: rgba(28,34,52,var(--panel-alpha));     /* <- perilla 2 */
+      border-color: rgba(255,255,255,.22);
+      box-shadow: 0 20px 50px rgba(24,28,50,.35);
+    }
+    
+    /* Tarjetas/filas con un poco más de cuerpo (evita ver los 3 botones a través) */
+    .slidable{
+      background: rgba(18,24,40,var(--card-alpha));      /* <- perilla 3 */
+      border-color: rgba(255,255,255,.14);}
+
+    /* ==== Bloquear scroll horizontal y cualquier desborde ==== */
+
+    /* 1) La página completa nunca scrollea en X */
+    html, body{
+      overflow-x: hidden;                 /* <- clave */
+    }
+
+    /* ===== Ocultar acciones cuando la fila está cerrada ===== */
+    .item .actions{
+      /* que NO se vea ni reciba eventos por defecto */
+      opacity: 0;
+      pointer-events: none;
+      background: transparent !important;
+      transition: opacity .18s ease, background .18s ease;
+    }
+    
+    /* Los botones circulares por defecto: invisibles y sin borde */
+    .item .actions .act{
+      opacity: 0;
+      background: transparent !important;
+      border-color: transparent !important;
+      box-shadow: none !important;
+      transition: opacity .18s ease,
+                  background .18s ease,
+                  border-color .18s ease,
+                  transform .18s ease;
+    }
+    
+    /* ===== Peek: apenas se asoman cuando arrastrás unos px ===== */
+    .item.row-peek .actions{
+      /* un velo MUY suave; podés bajar más el .5 si querés menos */
+      background: linear-gradient(90deg, transparent 55%, rgba(10,14,28,.5) 100%) !important;
+      opacity: .6;
+    }
+    .item.row-peek .actions .act{
+      opacity: .35;                                    /* se insinúan */
+      background: rgba(32,38,66,.25) !important;       /* suave */
+      border-color: rgba(125,60,255,.18) !important;   /* borde tenue */
+      box-shadow: none !important;
+    }
+    
+    /* ===== Open: ya abiertas, todo visible y clickeable ===== */
+    .item.row-open .actions{
+      opacity: 1;
+      pointer-events: auto;
+      background: linear-gradient(90deg, transparent 32%, rgba(10,14,28,.88) 100%) !important;
+    }
+    .item.row-open .actions .act{
+      opacity: 1;
+      background: rgba(32,38,66,.88) !important;
+      border-color: rgba(125,60,255,.35) !important;
+      box-shadow: 0 6px 18px rgba(0,0,0,.32) !important;
+    }
+    
+    /* Por si algún estilo previo del tema “oscurece” los botones,
+       forzamos que CERRADA/PEEK no herede sombras ni fills */
+    .item:not(.row-open) .actions .act.modify,
+    .item:not(.row-open) .actions .act.improve,
+    .item:not(.row-open) .actions .act.del{
+      box-shadow: none !important;
+    }
+
+
+
+    
+    /* ====== Anti-rebote horizontal (iOS/Android) ====== */
+    /* 1) Nada de scroll X en la página */
+    html, body{
+      max-width: 100%;
+      overflow-x: hidden;
+      overscroll-behavior-x: none;   /* evita el rubber-band lateral */
+      touch-action: pan-y;           /* solo gestos verticales a nivel página */
+    }
+    
+    /* 2) El overlay y el panel tampoco permiten desplazamiento X ni rebote */
+    #bbdd-overlay,
+    .bbdd-panel{
+      overflow-x: hidden;
+      overscroll-behavior: contain;  /* no propaga el overscroll al viewport */
+      touch-action: pan-y;           /* solo vertical aquí */
+    }
+    
+    /* 3) PERO: las tarjetas sí pueden escuchar gesto horizontal para el swipe */
+    .item .slidable{
+      touch-action: pan-x pan-y;     /* habilita el deslizamiento lateral del row */
+    }
+    
+    /* Por si algún contenedor introduce 1px de ancho de más */
+    #table-wrap, #bbdd-table{
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* ===== Scrollbar sutil dentro del panel ===== */
+    .bbdd-panel{
+      /* Firefox */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(180,190,220,.18) transparent;
+    }
+    /* WebKit (Chrome, Edge, Safari) */
+    .bbdd-panel::-webkit-scrollbar{
+      width: 10px;                 /* grosor total de la barra */
+    }
+    .bbdd-panel::-webkit-scrollbar-track{
+      background: transparent;     /* sin “pista” visible */
+    }
+    .bbdd-panel::-webkit-scrollbar-thumb{
+      /* pulgar casi invisible, con borde transparente para que se “adelgace” */
+      background: linear-gradient(180deg,
+                  rgba(180,190,220,.30),
+                  rgba(125,60,255,.35));
+      border-radius: 999px;
+      border: 3px solid transparent;
+      background-clip: content-box;  /* truco para que se vea finito */
+      opacity: .65;
+      transition: opacity .2s ease, background .2s ease;
+    }
+    /* al pasar el mouse por el panel, aparece un poco más */
+    .bbdd-panel:hover::-webkit-scrollbar-thumb{
+      opacity: .9;
+      background: linear-gradient(180deg,
+                  rgba(200,210,240,.45),
+                  rgba(140,92,255,.55));
+    }
+    /* esquina para macOS con ambos scrollbars */
+    .bbdd-panel::-webkit-scrollbar-corner{ background: transparent; }
+
+    /* ===== Destellos suaves (mismo lenguaje que el dashboard) ===== */
+    :root{
+      --glow-cyan:  rgba(80,180,255,.25);
+      --glow-violet:rgba(160,100,255,.22);
+      --glow-rose:  rgba(255,120,200,.16);
+    }
+    
+    /* halo en el overlay (detrás del panel) */
+    #bbdd-overlay::before{
+      content:"";
+      position:fixed;
+      inset:-20%;
+      pointer-events:none;
+      background:
+        radial-gradient(800px 400px at 20% 0%,   var(--glow-cyan),  transparent 60%),
+        radial-gradient(700px 360px at 85% -5%,  var(--glow-violet),transparent 65%),
+        radial-gradient(600px 320px at 60% 120%, var(--glow-rose),  transparent 65%);
+      filter: blur(6px);
+      z-index: 0; /* por debajo del panel */
+    }
+    
+    /* halo interno del panel (muy suave) */
+    .bbdd-panel{
+      position: relative; /* asegurar stacking */
+    }
+    .bbdd-panel::before{
+      content:"";
+      position:absolute;
+      inset:-1px;
+      border-radius: inherit;
+      pointer-events:none;
+      background:
+        radial-gradient(520px 160px at 18% -8%, rgba(255,255,255,.14), transparent 60%),
+        radial-gradient(520px 160px at 82% -8%, rgba(255,255,255,.12), transparent 60%);
+      z-index: 0;
+    }
+
+/* ===== Offline ===== */
+.offline-body{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+.offline-card{
+  max-width:420px;
+  background:rgba(16,23,38,.88);
+  border:1px solid rgba(125,60,255,.25);
+  border-radius:16px;
+  padding:28px;
+  box-shadow:0 20px 44px rgba(0,0,0,.35);
+}
+.offline-card a{
+  color:var(--accent);
+  font-weight:600;
+}
