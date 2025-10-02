@@ -14,6 +14,11 @@ export const DASHBOARD_ROUTE = 'dashboardv3.html';
 
 export const WORKER_BASE = 'https://gamificationworker.rfullivarri22.workers.dev';
 export const OLD_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxncfav0V6OJsHDFMcFg7S8qISWXrG5P5l5WTCzBn-iC_4cerC22lsznJHlDsQhneGdpA/exec';
+export const NOTIFICATIONS_WORKER_BASE = 'https://gamificationnotifications.rfullivarri22.workers.dev';
+
+export const POPUPS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzKOhJnvv_UW3WkTDSuHRhkq3O3KxLx_A72q8JZYKpcJCmTj3yQ1nuhCBKPoMlDvJ6U/exec';
+export const SCHEDULER_WORKER_BASE = 'https://gamificationscheduler.rfullivarri22.workers.dev';
+export const SCHEDULER_FALLBACK_BUNDLE_ENDPOINT = `${WORKER_BASE}/bundle`;
 
 export const BUNDLE_ENDPOINT = `${WORKER_BASE}/bundle`;
 export const REFRESH_ENDPOINT = `${WORKER_BASE}/refresh`;
