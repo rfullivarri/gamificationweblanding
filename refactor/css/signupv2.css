@@ -1,0 +1,282 @@
+/* ==========================================================================
+   Vista: Signup v2 (refactor)
+   Uso: estilos específicos del formulario de creación de cuenta.
+   Notas: replica la apariencia original, listo para seguir modularizando.
+   ========================================================================== */
+
+:root {
+  --bg: #0b0f19;
+  --card: #121829;
+  --ink: #e8ecf1;
+  --muted: #9aa3b2;
+  --accent: #7d3cff;
+  --accent-2: #5c28c2;
+  --line: rgba(255, 255, 255, 0.14);
+}
+
+/* ===== [Signup: estructura base] =====
+   Cuerpo con gradientes y tipografía Rubik para mantener la identidad. */
+body.signupv2 {
+  font-family: 'Rubik', system-ui, -apple-system, 'Segoe UI', Inter, Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(1200px 800px at 20% -10%, #1a2340 0%, rgba(26, 35, 64, 0) 60%),
+    radial-gradient(1000px 700px at 120% 0%, #321a63 0%, rgba(50, 26, 99, 0) 60%),
+    var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== [Signup: navegación superior] ===== */
+.nav {
+  width: 100%;
+  background: rgba(18, 24, 41, 0.6);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.brand {
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* ===== [Signup: botones reutilizables] ===== */
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 800;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: 0.2s background, 0.05s transform;
+}
+
+.btn:hover {
+  background: var(--accent-2);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn.ghost,
+.btn.secondary {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+/* ===== [Signup: layout de la tarjeta] ===== */
+.wrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 760px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 24px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.sub {
+  margin: 0 0 16px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.status {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+  min-height: 20px;
+}
+
+/* ===== [Signup: campos en grilla] ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0f1526;
+  color: var(--ink);
+  outline: none;
+}
+
+.field input::placeholder {
+  color: #7f8aa3;
+}
+
+/* ===== [Signup: bloque de avatar] ===== */
+.avatar-block {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#avatar-preview {
+  width: 200px;
+  height: 300px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.file-label {
+  cursor: pointer;
+}
+
+.tiny {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ===== [Signup: modal de estados] ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+}
+
+.modal.visible {
+  display: grid;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 720px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  color: #cfd6ec;
+  background: transparent;
+}
+
+.close:hover {
+  border-color: #fff;
+  color: #fff;
+}
+
+.modal-title {
+  margin: 0 0 6px;
+  font-weight: 900;
+  font-size: 20px;
+}
+
+.modal-body {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+/* ===== [Signup: spinner reutilizable] ===== */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #fff;
+  animation: spin 0.9s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -10,6 +10,10 @@
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * ===== [NetUtils: timeout amigable] =====
  * Si algo tarda mucho, lo cancelamos para no colgar la UI.
@@ -65,4 +69,25 @@ export async function postJson(url, body, options = {}) {
     ...options,
   };
   return fetchJson(url, opts);
+}
+
+/**
+ * ===== [NetUtils: GET con reintentos] =====
+ * Ideal para polling: intenta varias veces antes de fallar.
+ */
+export async function fetchJsonWithRetry(url, config = {}) {
+  const { retries = 2, retryDelay = 600, fetchOptions = {} } = config;
+  let attempt = 0;
+  let lastError = null;
+  while (attempt <= retries) {
+    try {
+      return await fetchJson(url, fetchOptions);
+    } catch (error) {
+      lastError = error;
+      if (attempt === retries) break;
+      await delay(retryDelay * (attempt + 1));
+    }
+    attempt += 1;
+  }
+  throw lastError || new Error('[NetUtils] fetchJsonWithRetry agotó los intentos');
 }
