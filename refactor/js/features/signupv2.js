@@ -15,7 +15,7 @@ import {
   createElement,
   serializeForm,
 } from '../utils/dom.js';
-import { fetchJsonWithRetry } from '../utils/net.js';
+import { fetchJsonWithRetry, createPoller } from '../utils/net.js';
 
 const CONFIG = {
   formAction: 'https://docs.google.com/forms/u/0/d/e/1FAIpQLSeXmBXfo0dw3srvcLzazcwW67K5Gv-dsvmdRDXVd78MRMjNLA/formResponse',
@@ -29,10 +29,11 @@ const CONFIG = {
 
 const state = {
   lastEmail: '',
-  pollTimer: null,
 };
 
 const elements = {};
+
+let statusPoller = null;
 
 function cacheElements() {
   elements.form = byId('signup-form');
@@ -96,15 +97,34 @@ function rememberEmail(email) {
   state.lastEmail = email;
 }
 
+function ensurePoller() {
+  if (!statusPoller) {
+    statusPoller = createPoller(
+      async () => {
+        if (!state.lastEmail) {
+          return true;
+        }
+        await checkAndRenderStatus();
+        return false;
+      },
+      {
+        interval: CONFIG.pollInterval,
+        onError: (error) => {
+          console.warn('[Signup] Poll falló, se reintentará automáticamente', error);
+        },
+      },
+    );
+  }
+  return statusPoller;
+}
+
 function startPolling() {
-  stopPolling();
-  state.pollTimer = window.setInterval(checkAndRenderStatus, CONFIG.pollInterval);
+  ensurePoller().start();
 }
 
 function stopPolling() {
-  if (state.pollTimer) {
-    window.clearInterval(state.pollTimer);
-    state.pollTimer = null;
+  if (statusPoller) {
+    statusPoller.stop();
   }
 }
 

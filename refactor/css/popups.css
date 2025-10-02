@@ -1,0 +1,152 @@
+/* ===== POPUPS (dashboard) ===== */
+#gj-pop-overlay{
+  position: fixed; inset: 0; z-index: 1200;
+  display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+  background: rgba(5,7,14,.55);
+}
+#gj-pop-overlay.show{ display: flex; }
+
+.gj-pop{
+  width: min(680px, 92vw);
+  background: rgba(18,20,34,.88);
+  border: 1px solid rgba(140,120,255,.25);
+  box-shadow: 0 10px 50px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.04);
+  border-radius: 16px;
+  color: #eef;
+  padding: 22px 22px 18px;
+  position: relative;
+}
+
+.gj-pop .close{
+  position:absolute; top:10px; right:10px;
+  width:36px; height:36px; border-radius:999px;
+  display:grid; place-items:center;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.12);
+  cursor:pointer;
+}
+
+.gj-pop h3{
+  margin: 4px 0 6px;
+  font-size: 22px; font-weight: 700;
+  letter-spacing:.2px;
+}
+.gj-pop .lead{
+  opacity:.9; line-height:1.5; margin: 8px 0 14px;
+  white-space:pre-wrap;   /* respeta \n del body_md */
+}
+
+/* CTA principal (mismo look que botones morados del dashboard) */
+.gj-pop .cta{
+  margin-top: 6px;
+  display:inline-block;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg,#6d4cff,#a478ff);
+  color: #fff; font-weight: 600;
+  box-shadow: 0 8px 18px rgba(109,76,255,.35);
+  border: none; cursor: pointer;
+}
+
+/* Subtexto/link secundario */
+.gj-pop .sub{
+  display:block; margin-top:8px; font-size:13px; opacity:.7;
+}
+
+/* Ícono grande (opcional) */
+.gj-pop .hero{
+  font-size: 34px; margin-right: 8px;
+}
+
+/* Confetti básico (hitos) */
+.gj-confetti{
+  position:absolute; inset:0; pointer-events:none; overflow:hidden;
+}
+.gj-piece{
+  position:absolute; width:8px; height:8px; border-radius:2px;
+  animation: fall 1200ms ease-in forwards;
+}
+@keyframes fall{
+  to{ transform: translateY(120vh) rotate(360deg); opacity: 0.6; }
+}
+#gj-pop-overlay .gj-pop .hero{
+  width:84px; height:84px; border-radius:14px;
+  background: radial-gradient(120% 120% at 0% 0%, rgba(168,85,247,.25), rgba(17,24,39,0));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow: 0 8px 28px rgba(124,58,237,.25), inset 0 0 12px rgba(168,85,247,.35);
+  animation: hero-float 3s ease-in-out infinite;
+}
+#gj-pop-overlay .gj-pop .hero-img{
+  width:100%; height:100%; object-fit:cover; border-radius:inherit;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
+}
+#gj-pop-overlay .gj-pop .hero-emoji{ font-size:34px; }
+
+@keyframes hero-float {
+  0%,100%{ transform: translateY(0) }
+  50%{ transform: translateY(-4px) }
+}
+
+/* glow del CTA */
+#gj-pop-overlay .gj-pop .cta{
+  position:relative; overflow:hidden;
+  box-shadow:0 0 0 0 rgba(168,85,247,.55);
+  animation: cta-pulse 2.2s ease-in-out infinite;
+}
+#gj-pop-overlay .gj-pop .cta::after{
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+  transform: translateX(-120%); animation: cta-sheen 2.6s ease-in-out infinite;
+}
+@keyframes cta-pulse { 0%,100%{ box-shadow:0 0 0 0 rgba(168,85,247,.45) } 50%{ box-shadow:0 0 24px 6px rgba(168,85,247,.28) } }
+@keyframes cta-sheen { 0%{ transform:translateX(-120%) } 60%{ transform:translateX(120%) } 100%{ transform:translateX(120%) } }
+
+/* — add-ons POPUPS (no rompen lo existente) — */
+
+/* iOS blur */
+#gj-pop-overlay{ -webkit-backdrop-filter: blur(6px); }
+
+/* layout de la fila (hero + contenido) */
+.gj-pop .pop-row{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+}
+.gj-pop .content{ flex:1 1 auto; min-width:0; }
+
+/* límite de alto + scroll interno en móviles/chico */
+.gj-pop{
+  max-height: min(80vh, 680px);
+  overflow: auto;
+}
+
+/* imagen del hero (desktop por defecto: usa tu 84x84 existente) */
+#gj-pop-overlay .gj-pop .hero-img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;            /* PNG/JPG/GIF OK (GIF se anima solo) */
+  border-radius:inherit;
+}
+
+/* responsive: en mobile agrandamos la imagen y apilamos */
+@media (max-width: 520px){
+  .gj-pop{ padding:16px; }
+  .gj-pop .pop-row{
+    flex-direction: column;
+    align-items: center;
+    gap:14px;
+  }
+  #gj-pop-overlay .gj-pop .hero{
+    width:auto; height:auto;           /* quitamos 84x84 fijo */
+    border-radius:14px;
+  }
+  #gj-pop-overlay .gj-pop .hero-img{
+    width:72vw; max-width:72vw;
+    height:auto; max-height:40vh;
+    object-fit:contain;                /* que no recorte en mobile */
+  }
+}
+
+
