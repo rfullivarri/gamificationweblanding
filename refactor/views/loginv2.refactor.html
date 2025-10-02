@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login — Gamification Journey</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="../../manifest.json">
+  <meta name="theme-color" content="#7d3cff">
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/layout.css" />
+
+</head>
+<body class="login-body">
+  <!-- Fondo con destellos (no interactúa) -->
+  <div class="bg" aria-hidden="true">
+    <div class="orb a"></div>
+    <div class="orb b"></div>
+    <div class="orb c"></div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <a class="brand" href="indexv2.html" aria-label="Innerbloom — inicio">
+      <span class="brand-text">Innerbloom</span>
+      <img src="https://i.ibb.co/RpyF590p/innerbloom-white.png" alt="" class="logo-mark" width="32" height="32"> 
+    </a>
+  </div>
+
+  <!-- CONTENIDO (LOGIN) -->
+  <!-- Hook JS: #loginWrap se oculta cuando mostramos el modal de espera -->
+  <div class="wrap" id="loginWrap">
+    <div class="card">
+      <h1>Entrar al Dashboard</h1>
+      <p class="sub">
+        Ingresá tu correo. Si tu base ya está lista te llevo directo al
+        <strong>Dashboard</strong>. Si no, te muestro los pasos y espero con vos 👀.
+      </p>
+
+      <!-- Hook JS: #loginForm dispara login.js/features/login.js -->
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="email">Correo</label>
+          <input id="email" name="email" type="email" placeholder="tu@email.com" required />
+        </div>
+
+        <div class="actions">
+          <button id="goBtn" class="btn" type="submit">Continuar</button>
+          <a class="btn secondary" href="indexv2.html">Volver al inicio</a>
+        </div>
+
+        <!-- Hook JS: #status muestra mensajes amigables al usuario -->
+        <div id="status" class="status"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AWAIT (solo con ?await=1 o cuando el status está “en proceso”) -->
+  <!-- Hook JS: #awaitModal muestra el estado "armando tu mundo" -->
+  <section id="awaitModal" class="wait-shell" role="dialog" aria-labelledby="awaitTitle" aria-hidden="true">
+    <div class="wait-card" role="document">
+      <button id="closeModal" class="close" title="Volver al login" aria-label="Volver al login">✕</button>
+
+      <h2 id="awaitTitle" class="wait-title">Preparando tu mundo…</h2>
+      <p class="wait-sub">
+        Estamos creando tu espacio. En unos minutos te llegará un
+        <strong>pergamino digital</strong> (un mail) para confirmar tu usuario.
+      </p>
+
+      <!-- TIP -->
+      <div class="wait-tip">
+        Tip: revisá también <strong>Spam/Promociones</strong> si el mail no aparece enseguida.
+      </div>
+
+      <!-- Próximos pasos (vertical, NO botones) -->
+      <div class="wait-section-title">Próximos pasos</div>
+      <ol class="next-steps" aria-label="Próximos pasos">
+        <li class="step-row"><span class="num">1</span><span class="step-text">Login</span></li>
+        <li class="step-row"><span class="num">2</span><span class="step-text">Confirmar BBDD</span></li>
+        <li class="step-row"><span class="num">3</span><span class="step-text">Programar Daily&nbsp;Quest</span></li>
+      </ol>
+
+      <!-- Mientras tanto (sí accionan) -->
+      <div class="wait-section-title">Mientras tanto</div>
+      <div class="wait-minor">
+        <button id="installBtn"   class="ghost" type="button">Instalar app</button>
+        <button id="copyLinkBtn"  class="ghost" type="button">Copiar link</button>
+        <a id="signupBtn" class="ghost" href="signupv2.html">Crear cuenta</a>
+        <a class="ghost" href="indexv2.html">Volver al inicio</a>
+      </div>
+
+      <!-- Ayuda iOS (plegable) -->
+      <details id="installHelp" class="wait-tip" style="margin-top:14px;">
+        <summary><strong>iPhone (Safari)</strong> — ¿Cómo instalar?</summary>
+        <ol style="margin:10px 0 0 18px;">
+          <li>Tocá <em>Compartir</em> (icono ↑).</li>
+          <li>Elegí <em>Agregar a inicio</em>.</li>
+          <li>Confirmá el nombre y guardá.</li>
+        </ol>
+      </details>
+    </div>
+  </section>
+
+  <!-- MODAL NOT-FOUND -->
+  <!-- Hook JS: #notFoundModal avisa cuando el correo no existe -->
+  <section id="notFoundModal" class="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="nfTitle">
+    <div class="modal-card">
+      <button id="closeNF" class="close" title="Cerrar" aria-label="Cerrar">✕</button>
+      <h2 id="nfTitle" class="modal-title">❌ No encontramos tu cuenta</h2>
+
+      <div class="modal-body">
+        <p>No hay un usuario registrado con ese correo. Creá tu cuenta en un minuto y empezá tu Journey.</p>
+      </div>
+
+      <div class="modal-actions">
+        <a id="signupNF" class="btn" href="signupv2.html">Crear cuenta</a>
+        <button id="backNF" class="btn secondary" type="button">Volver</button>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="../js/features/login.js"></script>
+
+</body>
+</html>
+
