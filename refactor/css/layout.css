@@ -1,0 +1,376 @@
+/* ==========================================================================
+   Componente: Layout General + Login
+   Uso: estilos compartidos para fondos con orbes y tarjetas glassmórficas.
+   Notas: replica el layout original del login sin cambiar la apariencia.
+   ========================================================================== */
+
+/* ===== [Layout: Tokens del login] =====
+   Valores que antes vivían en el <style> del HTML. */
+:root {
+  --bg: #0b0e14;
+  --card: rgba(255, 255, 255, 0.06);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text: #e8eaf2;
+  --text-dim: #b9bed1;
+  --accent: #8e6cff;
+  --accent-2: #4ad1ff;
+  --chip: rgba(255, 255, 255, 0.08);
+}
+
+/* ===== [Layout: Fondo con degradés] =====
+   Dibuja el mismo fondo espacial que ya existía en loginv2. */
+body.login-body {
+  background:
+    radial-gradient(1200px 700px at 20% -10%, #251b52 0%, transparent 65%),
+    radial-gradient(900px 600px at 80% 10%, #0a3b53 0%, transparent 60%),
+    var(--bg, #0b0e14);
+  min-height: 100vh;
+}
+
+/* ===== [Layout: Orbes decorativos] =====
+   Son luces desenfocadas que hacen que el fondo se vea mágico. */
+.bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg .orb {
+  position: absolute;
+  filter: blur(60px);
+  opacity: 0.35;
+  border-radius: 50%;
+}
+
+.bg .orb.a {
+  width: 380px;
+  height: 380px;
+  left: -120px;
+  top: -120px;
+  background: #7c5cff;
+}
+
+.bg .orb.b {
+  width: 420px;
+  height: 420px;
+  right: -140px;
+  top: -60px;
+  background: #25a4ff;
+}
+
+.bg .orb.c {
+  width: 500px;
+  height: 500px;
+  left: 50%;
+  bottom: -220px;
+  transform: translateX(-50%);
+  background: #4f3d91;
+}
+
+/* ===== [Nav: Encabezado pegajoso] =====
+   Mantiene visible la marca y vuelve arriba sin moverse. */
+.nav {
+  position: sticky;
+  top: 0;
+  padding: 18px 24px;
+  text-align: center;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.35), transparent);
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.nav a {
+  color: var(--text, #e8eaf2);
+  text-decoration: none;
+}
+
+/* ===== [Layout: Contenedor central] =====
+   Centra la tarjeta de login en pantalla como antes. */
+.wrap {
+  display: grid;
+  place-items: center;
+  padding: 56px 20px 80px;
+}
+
+.card {
+  width: min(720px, 92vw);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 32px 28px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+}
+
+.card h1 {
+  margin: 0 0 10px;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.card .sub {
+  margin: 0 0 18px;
+  color: var(--text-dim, #b9bed1);
+}
+
+/* ===== [Form: Campos y botones] =====
+   Mismos estilos para inputs y botones brillantes. */
+.field {
+  margin: 14px 0 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-dim, #b9bed1);
+  margin: 0 0 6px;
+}
+
+.field input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text, #e8eaf2);
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: linear-gradient(180deg, #a08bff, #7f60ff);
+  color: #151221;
+  box-shadow: 0 6px 22px rgba(127, 96, 255, 0.35);
+}
+
+.btn.secondary {
+  background: transparent;
+  color: var(--text, #e8eaf2);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.status {
+  margin-top: 10px;
+  min-height: 22px;
+  color: var(--text-dim, #b9bed1);
+  text-align: center;
+}
+
+/* ===== [Spinner: indicador de carga] =====
+   Es el mismo circulito que gira al consultar el backend. */
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-left: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: -3px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== [Modal Await: overlay principal] =====
+   Reproduce el contenedor translucido con pasos y ayuda. */
+.wait-shell {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
+  z-index: 1000;
+}
+
+.wait-shell.visible {
+  display: flex;
+}
+
+.wait-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1200px 800px at 80% 10%, rgba(99, 102, 241, 0.18), transparent 70%),
+    rgba(8, 10, 18, 0.7);
+  backdrop-filter: blur(12px) saturate(115%);
+  -webkit-backdrop-filter: blur(12px) saturate(115%);
+}
+
+.wait-card {
+  position: relative;
+  width: min(900px, 92vw);
+  padding: 28px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(24, 26, 35, 0.9), rgba(24, 26, 35, 0.86));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.55);
+}
+
+.wait-title {
+  margin: 4px 0 8px;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.wait-sub {
+  margin: 0 0 14px;
+  color: var(--text-dim, #b9bed1);
+}
+
+.wait-tip {
+  margin: 10px 0 18px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-dim, #b9bed1);
+}
+
+.wait-section-title {
+  margin: 10px 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--text-dim, #b9bed1);
+  text-transform: uppercase;
+}
+
+/* ===== [Modal Await: pasos verticales] =====
+   Lista numerada que explica al usuario qué sigue. */
+.next-steps {
+  list-style: none;
+  margin: 10px 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  counter-reset: step;
+}
+
+.next-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.next-steps li::before {
+  content: counter(step);
+  counter-increment: step;
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font: 600 13px/1 system-ui, -apple-system, 'Segoe UI', Roboto, Ubuntu;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.wait-minor {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 8px 0 2px;
+}
+
+.wait-minor .ghost {
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  transition: transform 0.08s ease;
+  color: var(--text, #e8eaf2);
+  text-decoration: none;
+}
+
+.wait-minor .ghost:active {
+  transform: scale(0.98);
+}
+
+.wait-card .close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 1;
+}
+
+/* ===== [Modal genérico Not-Found] =====
+   Se basa en el mismo estilo glass para mostrar mensajes de error. */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.35));
+  padding: 32px 16px;
+}
+
+.modal.visible {
+  display: flex;
+}
+
+.modal-card {
+  width: min(650px, 92vw);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.05));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 22px 20px;
+  backdrop-filter: blur(10px);
+}
+
+.modal-title {
+  margin: 4px 0 10px;
+  font-size: 24px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* ===== [Botones fantasmas reutilizables] ===== */
+.ghost {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text, #e8eaf2);
+  cursor: pointer;
+}
+
+.close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: var(--text, #e8eaf2);
+  border-radius: 10px;
+  cursor: pointer;
+}

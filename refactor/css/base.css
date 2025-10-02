@@ -1,0 +1,45 @@
+/* ==========================================================================
+   Componente: Base
+   Uso: reglas globales compartidas (reset suave y tipografía)
+   Notas: mantener liviano; cada vista suma sus estilos específicos.
+   ========================================================================== */
+
+:root {
+  /* Paleta base usada en múltiples vistas. */
+  --color-bg-dark: #0b0f19;
+  --color-text-main: #e8eaf2;
+  --color-text-muted: #b9bed1;
+  --font-family-base: 'Rubik', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* ===== [Base: Reset amigable] =====
+   Le explicamos al navegador que todas las cajas cuentan bordes y padding
+   dentro de su tamaño total para evitar sorpresas de layout. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ===== [Base: Texto legible] =====
+   Esto asegura que cualquier body que no declare tipografía hereda Rubik. */
+body {
+  margin: 0;
+  font-family: var(--font-family-base);
+  color: var(--color-text-main);
+  background-color: var(--color-bg-dark);
+}
+
+/* ===== [Base: Imágenes amigables] =====
+   Las imágenes nunca se desbordan de su contenedor. */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ===== [Base: Vínculos accesibles] =====
+   Hacemos que los enlaces muestren un enfoque claro al navegar con teclado. */
+a:focus-visible {
+  outline: 3px solid var(--color-text-main);
+  outline-offset: 2px;
+}
