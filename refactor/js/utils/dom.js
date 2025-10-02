@@ -83,6 +83,18 @@ export function setHTML(element, html) {
 }
 
 /**
+ * ===== [DOMUtils: setear texto plano] =====
+ * Cambia textContent y evita escapes manuales.
+ */
+export function setText(element, text) {
+  if (!element) {
+    console.error('[DOMUtils] No pude escribir texto porque el elemento es nulo');
+    return;
+  }
+  element.textContent = text;
+}
+
+/**
  * ===== [DOMUtils: mostrar/ocultar con hidden] =====
  * Usa el atributo hidden para no tocar clases ni estilos externos.
  */
@@ -105,4 +117,80 @@ export function focusFirstInteractive(scope) {
   if (focusables.length > 0) {
     focusables[0].focus();
   }
+}
+
+/**
+ * ===== [DOMUtils: crear elemento rápido] =====
+ * Genera nodos con clases, HTML interno y atributos opcionales.
+ */
+export function createElement(tagName, options = {}) {
+  const {
+    className,
+    innerHTML,
+    textContent,
+    attributes,
+    ...rest
+  } = options;
+  const element = document.createElement(tagName);
+  if (className) element.className = className;
+  if (typeof innerHTML === 'string') element.innerHTML = innerHTML;
+  if (typeof textContent === 'string') element.textContent = textContent;
+  if (attributes && typeof attributes === 'object') {
+    Object.entries(attributes).forEach(([key, value]) => {
+      element.setAttribute(key, value);
+    });
+  }
+  Object.entries(rest).forEach(([key, value]) => {
+    if (key.startsWith('data-')) {
+      element.setAttribute(key, value);
+      return;
+    }
+    if (key in element) {
+      element[key] = value;
+    }
+  });
+  return element;
+}
+
+/**
+ * ===== [DOMUtils: serializar formulario] =====
+ * Devuelve un objeto simple usando name o id como clave.
+ */
+export function serializeForm(form) {
+  if (!form) {
+    console.error('[DOMUtils] No pude serializar porque el formulario es nulo');
+    return {};
+  }
+  const result = {};
+  const elements = Array.from(form.elements || []);
+  elements.forEach((field) => {
+    if (!field || field.disabled) return;
+    const tag = (field.tagName || '').toLowerCase();
+    if (!tag) return;
+    const key = field.name || field.id;
+    if (!key) return;
+
+    if ((field.type === 'checkbox' || field.type === 'radio') && !field.checked) {
+      return;
+    }
+
+    let value;
+    if (tag === 'select' && field.multiple) {
+      value = Array.from(field.selectedOptions || []).map((opt) => opt.value);
+    } else if (field.type === 'file') {
+      value = field.files ? Array.from(field.files) : [];
+    } else {
+      value = field.value;
+    }
+
+    if (result[key] !== undefined) {
+      if (!Array.isArray(result[key])) {
+        result[key] = [result[key]];
+      }
+      result[key].push(value);
+    } else {
+      result[key] = value;
+    }
+  });
+  return result;
 }

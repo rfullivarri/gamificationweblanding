@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Crear cuenta — Gamification Journey</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="../../manifest.json">
+  <meta name="theme-color" content="#7d3cff">
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/base.css" />
+  <link rel="stylesheet" href="../css/signupv2.css" />
+</head>
+<body class="signupv2">
+  <!-- Barra superior: marca y acceso al login -->
+  <header class="nav">
+    <a class="brand" href="indexv2.html">Gamification Journey</a>
+    <nav class="nav-actions">
+      <a class="btn ghost" href="loginv2.html">Ya tengo cuenta</a>
+    </nav>
+  </header>
+
+  <!-- Tarjeta central con el formulario de alta -->
+  <main class="wrap">
+    <section class="card">
+      <h1>Crear mi cuenta</h1>
+      <p class="sub">En menos de 3 minutos generamos tu base personalizada con IA.</p>
+
+      <!-- Formulario: mantiene IDs y estructura original -->
+      <form id="signup-form" novalidate>
+        <!-- Campos principales agrupados en grilla -->
+        <div class="grid">
+          <div class="field">
+            <label for="email">Correo</label>
+            <input id="email" type="email" placeholder="heroe@reino.com" required />
+          </div>
+          <div class="field">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" type="text" placeholder="Tu nombre de aventurero" required />
+          </div>
+          <div class="field">
+            <label for="apellido">Apellido</label>
+            <input id="apellido" type="text" placeholder="Tu legado" />
+          </div>
+          <div class="field">
+            <label for="edad">Edad</label>
+            <input id="edad" type="number" placeholder="18" />
+          </div>
+          <div class="field">
+            <label for="sexo">Sexo</label>
+            <select id="sexo">
+              <option value="">Seleccionar</option>
+              <option>Masculino</option>
+              <option>Femenino</option>
+              <option>Prefiero no decirlo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bloque avatar: imagen, carga y vista previa del nombre del archivo -->
+        <div class="avatar-block">
+          <img id="avatar-preview" src="https://i.ibb.co/Mxf30SX5/Whats-App-Image-2025-07-29-at-10-17-40.jpg" alt="Avatar preview" />
+          <label class="btn secondary file-label">
+            Subir avatar
+            <input type="file" id="avatar" accept="image/*" hidden />
+          </label>
+          <div id="filename-preview" class="tiny"></div>
+        </div>
+
+        <!-- Acciones y estado en vivo -->
+        <div class="actions">
+          <button type="submit" class="btn" id="createBtn">Crear cuenta</button>
+          <a class="btn ghost" href="indexv2.html">Volver al inicio</a>
+        </div>
+        <div id="status" class="status"></div>
+      </form>
+    </section>
+  </main>
+
+  <!-- Modal accesible para mostrar progreso y próximos pasos -->
+  <section id="modal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <button id="modalClose" class="close">✕</button>
+      <h2 id="modalTitle" class="modal-title">Procesando…</h2>
+      <div id="modalBody" class="modal-body">
+        <p>Estamos creando tu cuenta <span class="spinner"></span></p>
+      </div>
+      <div id="modalActions" class="modal-actions">
+        <!-- Se completan dinámicamente según el estado -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Script principal refactorizado -->
+  <script type="module" src="../js/features/signupv2.js"></script>
+</body>
+</html>
