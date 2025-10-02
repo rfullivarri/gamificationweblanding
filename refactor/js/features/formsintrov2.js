@@ -14,8 +14,9 @@ import {
   setHTML,
   setText,
   createElement,
+  serializeForm,
 } from '../utils/dom.js';
-import { postJson } from '../utils/net.js';
+import { postJson, retryOperation } from '../utils/net.js';
 
 const WORKER_URL = 'https://gamificationonboarding.rfullivarri22.workers.dev/';
 const REDIRECT_URL = 'https://rfullivarri.github.io/gamificationweblanding/loginv2.html?await=1';
@@ -464,30 +465,68 @@ function setupModeGrid() {
 }
 
 function setupEmailIntro() {
+  const introForm = byId('introForm');
   const emailInput = byId('emailInput');
   const goBtn = byId('goModes');
   if (!emailInput || !goBtn) return;
-  if (String(goBtn.tagName).toUpperCase() === 'BUTTON') goBtn.type = 'button';
+
+  if (String(goBtn.tagName).toUpperCase() === 'BUTTON') goBtn.type = 'submit';
+
   const normalize = (value) => String(value || '').trim().toLowerCase();
   const isEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-  function refresh() {
-    const val = normalize(emailInput.value);
-    const ok = isEmail(val);
+  const readEmail = () => {
+    if (introForm) {
+      const values = serializeForm(introForm);
+      if (values.email !== undefined) {
+        return normalize(values.email);
+      }
+    }
+    return normalize(emailInput.value);
+  };
+
+  const setEnabled = (ok) => {
     goBtn.disabled = !ok;
-    state.answers.email = val;
-    window.GJ_EMAIL = val;
-  }
+    if (ok && goBtn.hasAttribute('disabled')) {
+      goBtn.removeAttribute('disabled');
+    }
+  };
+
+  const saveEmail = (value) => {
+    state.answers.email = value;
+    window.GJ_EMAIL = value;
+  };
+
+  const refresh = () => {
+    const value = readEmail();
+    const ok = isEmail(value);
+    setEnabled(ok);
+    saveEmail(value);
+  };
+
+  const handleStart = (event) => {
+    event.preventDefault();
+    refresh();
+    const value = readEmail();
+    if (!isEmail(value)) {
+      if (typeof toast === 'function') {
+        toast('Poné un correo válido ✉');
+      }
+      setEnabled(false);
+      return;
+    }
+    buildRoutes();
+    goToScreen(state.routeScreens[0] || 'scr-modes');
+  };
 
   ['input', 'change', 'paste', 'blur', 'compositionend'].forEach((evt) => {
     on(emailInput, evt, refresh);
   });
 
-  on(goBtn, 'click', () => {
-    if (goBtn.disabled) return;
-    buildRoutes();
-    goToScreen(state.routeScreens[0] || 'scr-modes');
-  });
+  on(goBtn, 'click', handleStart);
+  if (introForm) {
+    on(introForm, 'submit', handleStart);
+  }
 
   refresh();
 }
@@ -724,7 +763,10 @@ async function sendPayload() {
     if (!payload.email) throw new Error('email_required');
     if (!payload.mode) throw new Error('mode_required');
 
-    const response = await postJson(WORKER_URL, payload);
+    const response = await retryOperation(
+      () => postJson(WORKER_URL, payload),
+      { retries: 2, retryDelay: (attempt) => 800 * (attempt + 1) }
+    );
     if (!response || response.ok === false) {
       throw new Error(response?.error || 'worker_error');
     }

@@ -38,6 +38,12 @@ body {
   padding-top: calc(var(--hudH) + 10px);
 }
 
+/* ===== [Intro: formulario inline para el email] =====
+   Usamos display: contents para no alterar el layout original. */
+.intro-form {
+  display: contents;
+}
+
 /* ===== [HUD: barra superior con progreso] ===== */
 .hud {
   position: fixed;
