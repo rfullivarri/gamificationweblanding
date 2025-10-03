@@ -19,6 +19,18 @@ function addSeen(email, id){
     localStorage.setItem(seenKey(email), Array.from(set).join(','));
   }catch{}
 }
+function removeSeen(email, id){
+  try{
+    const set = getSeen(email);
+    const changed = set.delete(id);
+    if (!changed) return;
+    if (set.size){
+      localStorage.setItem(seenKey(email), Array.from(set).join(','));
+    } else {
+      localStorage.removeItem(seenKey(email));
+    }
+  }catch{}
+}
 
 /** Determina si un item es de racha (para mostrar 🔥 cuando no hay imagen) */
 function isStreakItem(it){
@@ -149,6 +161,88 @@ window.ensureWeekRecapCSS = function(){
 /** Marca vistos + (opcional) suma bonus en Setup!E22 (backend detecta items[]). */
 let _ackBusy = false;
 let _popupsRefreshing = false;
+const ACK_RETRY_KEY = 'gj_popups_pending_ack';
+let _ackRetryTimer = null;
+function getAckPayloadIds(payload){
+  const ids = [];
+  if (Array.isArray(payload?.ids)){
+    for (const id of payload.ids){ if (id) ids.push(String(id)); }
+  }
+  if (Array.isArray(payload?.items)){
+    for (const it of payload.items){ if (it?.id) ids.push(String(it.id)); }
+  }
+  return ids;
+}
+function loadAckRetryQueue(){
+  try{
+    const raw = localStorage.getItem(ACK_RETRY_KEY);
+    const parsed = JSON.parse(raw || '[]');
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(p => p && p.email && getAckPayloadIds(p).length);
+  }catch{}
+  return [];
+}
+function saveAckRetryQueue(queue){
+  try{
+    if (!queue.length) localStorage.removeItem(ACK_RETRY_KEY);
+    else localStorage.setItem(ACK_RETRY_KEY, JSON.stringify(queue));
+  }catch{}
+}
+function scheduleAckRetry(delay = 5000){
+  try{
+    if (_ackRetryTimer) return;
+    _ackRetryTimer = setTimeout(async ()=>{
+      _ackRetryTimer = null;
+      try{ await flushAckRetryQueue(); }
+      catch(err){ console.error('popups ack retry error', err); scheduleAckRetry(Math.min(delay*2, 60000)); }
+    }, Math.max(0, delay));
+  }catch{}
+}
+function clearAckRetryEntries(email, ids){
+  if (!ids?.length) return;
+  try{
+    const queue = loadAckRetryQueue();
+    if (!queue.length) return;
+    const idSet = new Set(ids.map(String));
+    const filtered = queue.filter(entry => {
+      if (!entry || entry.email !== email) return true;
+      const entryIds = getAckPayloadIds(entry);
+      return !entryIds.some(id => idSet.has(id));
+    });
+    if (filtered.length !== queue.length) saveAckRetryQueue(filtered);
+  }catch{}
+}
+function enqueueAckRetry(payload){
+  try{
+    const queue = loadAckRetryQueue();
+    const newIds = new Set(getAckPayloadIds(payload));
+    const filtered = queue.filter(entry => {
+      if (!entry || entry.email !== payload.email) return true;
+      const ids = getAckPayloadIds(entry);
+      return !ids.some(id => newIds.has(id));
+    });
+    filtered.push({ ...payload, ts: Date.now() });
+    saveAckRetryQueue(filtered);
+    scheduleAckRetry();
+  }catch(err){ console.error('popups enqueue retry err', err); }
+}
+async function flushAckRetryQueue(){
+  const queue = loadAckRetryQueue();
+  if (!queue.length) return;
+  const remaining = [];
+  for (const payload of queue){
+    try{
+      await postAckToServer(payload);
+      const ids = getAckPayloadIds(payload);
+      ids.forEach(id => addSeen(payload.email, id));
+    }catch(err){
+      console.error('popups ack retry failed', err);
+      remaining.push(payload);
+    }
+  }
+  saveAckRetryQueue(remaining);
+  if (remaining.length) scheduleAckRetry(15000);
+}
 async function postAckToServer({ email, ids=[], items=[] }){
   if (_ackBusy) return { ok:false, err:'busy' };
   _ackBusy = true;
@@ -795,7 +889,14 @@ async function runPopups(){
             }
 
             // 3) manda ACK inmediato (marca + suma en E22, idempotente)
-            try { await postAckToServer({ email, items: [{ id: it.id, bonus }] }); } catch(_){ }
+            try {
+              await postAckToServer({ email, items: [{ id: it.id, bonus }] });
+              clearAckRetryEntries(email, [it.id]);
+            } catch(err){
+              console.error('popups ack failed', err);
+              removeSeen(email, it.id);
+              enqueueAckRetry({ email, items: [{ id: it.id, bonus }] });
+            }
 
             if (how === 'abort') { finish(); return; }
 
@@ -826,6 +927,9 @@ window.GJPopups = {
     try{ localStorage.removeItem(seenKey(email)); }catch{}
   }
 };
+
+try{ window.addEventListener('online', ()=> scheduleAckRetry(0)); }catch{}
+scheduleAckRetry(0);
 
 // Arranque automático al cargar el dashboard
 document.addEventListener('DOMContentLoaded', runPopups);
