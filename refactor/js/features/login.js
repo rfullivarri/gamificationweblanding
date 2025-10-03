@@ -210,8 +210,26 @@ function isNotFound(data) {
   return /no existe|not found|no encontrado/.test(message);
 }
 
+// ===== [Feature: RutasDashboardPreview] =====
+// Qué hace: asegura que durante la previsualización dentro de /refactor/ naveguemos a dashboardv3.refactor.html.
+// Entradas/Salidas clave: toma la ruta base (contrato público) y, solo si estamos en /refactor/, inserta ".refactor".
+function resolveDashboardRoute() {
+  const pathname = window.location?.pathname || '';
+  if (!pathname.includes('/refactor/')) {
+    return DASHBOARD_ROUTE;
+  }
+  if (DASHBOARD_ROUTE.includes('.refactor')) {
+    return DASHBOARD_ROUTE;
+  }
+  if (DASHBOARD_ROUTE.endsWith('.html')) {
+    return DASHBOARD_ROUTE.replace(/\.html$/, '.refactor.html');
+  }
+  return `${DASHBOARD_ROUTE}.refactor`;
+}
+
 function goToDashboard(email) {
-  window.location.href = `${DASHBOARD_ROUTE}?email=${encodeURIComponent(email)}`;
+  const route = resolveDashboardRoute();
+  window.location.href = `${route}?email=${encodeURIComponent(email)}`;
 }
 
 function startPolling() {
