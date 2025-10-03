@@ -197,3 +197,28 @@ export function serializeForm(form) {
   });
   return result;
 }
+
+// ===== [Feature: AjustarLinksPreview] =====
+// Qué hace: cuando navegamos dentro de /refactor/ reescribe href conocidos para apuntar
+//           a los archivos *.refactor sin romper las rutas finales.
+// Entradas/Salidas clave: recibe un objeto { original: reemplazo } y un scope opcional.
+// Notas: solo actúa en modo preview (cuando la URL contiene /refactor/).
+export function patchPreviewLinks(map, scope = document) {
+  if (typeof window === 'undefined') return;
+  if (!scope || !map) return;
+  const pathname = window.location?.pathname || '';
+  if (!pathname.includes('/refactor/')) return;
+
+  const entries = Object.entries(map).filter(([from, to]) => Boolean(from && to));
+  if (entries.length === 0) return;
+
+  const replacements = new Map(entries);
+  qsa('a[href]', scope).forEach((link) => {
+    const href = link.getAttribute('href') || '';
+    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('http')) {
+      return;
+    }
+    if (!replacements.has(href)) return;
+    link.setAttribute('href', replacements.get(href));
+  });
+}
