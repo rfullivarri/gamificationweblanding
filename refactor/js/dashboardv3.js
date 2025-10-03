@@ -28,6 +28,7 @@ import {
   EVENT_NAMES,
   STORAGE_KEYS,
 } from './utils/constants.js';
+import { patchPreviewLinks } from './utils/dom.js';
 import PanelRachas from './features/panel-rachas.js';
 import { GJPopups } from './features/popups.js';
 import NotiClient from './features/noti-client.js';
@@ -240,6 +241,12 @@ async function loadDataFromCacheOrWebApp(email) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  patchPreviewLinks({
+    'indexv2.html': 'indexv2.refactor.html',
+    'dashboardv3.html': 'dashboardv3.refactor.html',
+    'gamificationweblanding/index-bbdd.html': 'index-bbdd.refactor.html',
+  });
+
   // Spinner
   const overlay = document.getElementById("spinner-overlay");
   const showSpinner = () => overlay && (overlay.style.display = "flex");
