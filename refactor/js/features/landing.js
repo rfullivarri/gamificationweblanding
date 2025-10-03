@@ -8,7 +8,7 @@
  * Notas de accesibilidad: actualiza aria-selected y responde a teclas.
  */
 
-import { byId, qsa, on } from '../utils/dom.js';
+import { byId, qsa, on, patchPreviewLinks } from '../utils/dom.js';
 import { announce } from '../utils/a11y.js';
 
 const AUTOPLAY_INTERVAL_MS = 4000;
@@ -89,6 +89,14 @@ function createCarousel(root) {
 }
 
 export function init(root = document) {
+  patchPreviewLinks({
+    'indexv2.html': 'indexv2.refactor.html',
+    'loginv2.html': 'loginv2.refactor.html',
+    'signupv2.html': 'signupv2.refactor.html',
+    'formsintrov3.html': 'formsintrov3.refactor.html',
+    'dashboardv3.html': 'dashboardv3.refactor.html',
+  }, root);
+
   const slider = createCarousel(byId('testi-slider'));
   return {
     teardown() {

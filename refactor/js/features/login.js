@@ -14,6 +14,7 @@ import {
   setHTML,
   toggleHidden,
   focusFirstInteractive,
+  patchPreviewLinks,
 } from '../utils/dom.js';
 import { announce, trapFocus, releaseFocus } from '../utils/a11y.js';
 import {
@@ -302,7 +303,10 @@ async function handleSubmit(event) {
     startPolling();
   } catch (error) {
     console.error('[Login] Error revisando el estado', error);
-    setStatus('Ups, algo falló. Intentá de nuevo en unos segundos.');
+    setStatus('Está lento. Te muestro los pasos y seguimos chequeando…');
+    hideLogin();
+    showModal(SELECTORS.awaitModal);
+    startPolling();
   } finally {
     if (goBtn) {
       goBtn.disabled = false;
@@ -321,7 +325,7 @@ function wireModalActions() {
     setStatus('Listo para intentar de nuevo.');
   });
 
-  const retry = byId(SELECTORS.retry);
+  const retry = document.getElementById(SELECTORS.retry);
   if (retry) {
     on(retry, 'click', async () => {
       if (!state.lastEmail) return;
@@ -447,6 +451,14 @@ export function init() {
     console.error('[Login] No encontré el formulario de login');
     return { teardown() {} };
   }
+
+  patchPreviewLinks({
+    'indexv2.html': 'indexv2.refactor.html',
+    'loginv2.html': 'loginv2.refactor.html',
+    'signupv2.html': 'signupv2.refactor.html',
+    'dashboardv3.html': 'dashboardv3.refactor.html',
+    'formsintrov3.html': 'formsintrov3.refactor.html',
+  });
 
   form.addEventListener('submit', handleSubmit);
   wireModalActions();
