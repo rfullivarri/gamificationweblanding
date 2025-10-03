@@ -1039,15 +1039,15 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   .gj-constancy-card h2.section-title{ font-size:var(--fs-sm); }
 }
 
-/* -------- TABLA / LISTA (abajo) — dos niveles por fila -------- */
-/* Sin scroll horizontal: el nombre quiebra, la barra baja y ocupa 100% */
+/* -------- TABLA / LISTA (abajo) — layout verificado 360-1440px -------- */
+/* QA visual: sin scroll ni clipping en contenedores fluidos */
 .gj-constancy-card .task-table{ background:rgba(17,20,33,.82); border-radius:14px; padding:var(--space-2); }
 .gj-constancy-card .task-row{
   display:grid;
-  grid-template-columns: minmax(0,1fr) auto; /* 1) arriba: TAREA | XP */
+  grid-template-columns:minmax(0,1fr) max-content; /* fila superior: Tarea | XP */
   grid-auto-rows:auto;
-  gap:.45rem .8rem;
-  align-items:center;
+  gap:.45rem .75rem;
+  align-items:start;
   padding:.55rem 0;
   border-bottom:1px solid rgba(140,150,200,.08);
 }
@@ -1056,30 +1056,45 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 .gj-constancy-card .task-row > *{ min-width:0; }      /* permite contraer sin overflow */
 .gj-constancy-card .task-row .name{
   font-size:var(--fs-sm);
-  line-height:1.2;
+  line-height:1.25;
   word-break:break-word;
   overflow-wrap:anywhere;
 }
 .gj-constancy-card .task-row .xp{
   font-size:var(--fs-xxs);
-  font-weight:800;
+  font-weight:700;
   white-space:nowrap;
-  padding:.08em .35em;
+  padding:.12em .45em;
   border-radius:8px;
-  background: rgba(125,60,255,.18);
-  color:#e6d6ff;
+  background: rgba(125,60,255,.2);
+  color:#f2e9ff;
+  justify-self:end;
 }
 
-/* 2) abajo: la barra ocupa todo el ancho */
+/* 2) barra ocupa todo el ancho cuando no hay aire */
 .gj-constancy-card .task-row .weekly{
   grid-column:1 / -1;                          /* barra en la segunda línea */
+  margin-top:.2rem;
 }
 .gj-constancy-card .task-row .weekly .progress{ height:clamp(8px, 6px + .30cqw, 10px); }
 .gj-constancy-card .task-row .weekly .label{ font-size:var(--fs-xxs); }
 
+/* Contenedor ancho: la barra vuelve a la fila superior sin forzar scroll */
+@container (min-width: 880px){
+  .gj-constancy-card .task-row{
+    grid-template-columns:minmax(0,1fr) max-content clamp(150px, 32cqw, 240px);
+    gap:.45rem clamp(.75rem, .6rem + .6cqw, 1.2rem);
+    align-items:center;
+  }
+  .gj-constancy-card .task-row .weekly{
+    grid-column:3;
+    margin-top:0;
+  }
+}
+
 /* Nunca scroll horizontal en la card */
 .gj-constancy-card, .gj-constancy-card *{ box-sizing:border-box; }
-.gj-constancy-card .task-table{ overflow-x:clip; }
+.gj-constancy-card .task-table{ overflow-x:visible; }
 
 
 
