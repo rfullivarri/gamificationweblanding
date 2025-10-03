@@ -274,4 +274,4 @@ function init() {
 
 on(document, 'DOMContentLoaded', init);
 
-// TODO: mover a constantes compartidas los IDs entry.* si se reutilizan en otro flujo.
+// TODO: ver TODOs.refactor.md (#P1-signup-entries) mover a constantes compartidas los IDs entry.* si se reutilizan en otro flujo.

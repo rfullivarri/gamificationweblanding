@@ -886,4 +886,4 @@ function init() {
 
 on(document, 'DOMContentLoaded', init);
 
-// TODO: dividir el módulo en submódulos (HUD, rutas, envío) para seguir limpiando responsabilidades.
+// TODO: ver TODOs.refactor.md (#P2-formsintrov2-modular) dividir el módulo en submódulos (HUD, rutas, envío) para seguir limpiando responsabilidades.

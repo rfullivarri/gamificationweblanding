@@ -1,12 +1,32 @@
 /**
- * Módulo: dashboardv3 orchestrator
- * Propósito: cargar datos del dashboard, coordinar módulos (rachas, popups, scheduler, notificaciones) y manejar eventos de actualización.
- * Eventos emitidos: gj:data-ready, gj:bundle-updated, gj:state-changed.
- * Eventos escuchados: DOMContentLoaded, gj:bundle-updated, gj:state-changed, gj:data-ready.
+ * Módulo: DashboardOrchestrator
+ * Propósito: coordinar todos los widgets del dashboard (rachas, popups, scheduler, notificaciones) con el bundle remoto.
+ * API pública: init(el, opts), update(data), teardown() // Este orquestador se autoejecuta; los métodos quedan implícitos.
+ * Dependencias: utils/constants (URLs y selectores), features/panel-rachas, features/popups, features/noti-client,
+ *               features/scheduler-controller.
+ * Side-effects: escucha eventos globales, escribe en localStorage, expone módulos en window y realiza fetch periódicos.
+ * Errores esperados: fetch al worker puede fallar (se atrapa y loguea), localStorage puede estar lleno (se ignora con try/catch).
+ * Accesibilidad: mantiene avisos visibles con aria-friendly IDs y respeta estados para lectores.
  */
+
+/*
+[Índice]
+1) Imports y constantes compartidas
+2) Auto-refresh del bundle
+3) Gestor de estado local
+4) Helpers de extracción y comparación
+5) Listeners globales y wiring inicial
+6) Coordinación de módulos visuales
+7) Refrescos manuales y acciones de usuario
+8) Boot principal del dashboard
+*/
+
 import {
   WORKER_BASE as WORKER_BASE_VALUE,
-  OLD_WEBAPP_URL as OLD_WEBAPP_URL_VALUE
+  OLD_WEBAPP_URL as OLD_WEBAPP_URL_VALUE,
+  SELECTOR_IDS,
+  EVENT_NAMES,
+  STORAGE_KEYS,
 } from './utils/constants.js';
 import PanelRachas from './features/panel-rachas.js';
 import { GJPopups } from './features/popups.js';
@@ -22,7 +42,10 @@ if (typeof window !== 'undefined') {
   window.NotiClient = window.NotiClient || NotiClient;
 }
 
-// ===== Auto-Refresh del bundle (polling suave) =====
+// ===== [Feature: AutoRefreshBundle] =====
+// Qué hace: consulta periódicamente el worker para detectar si el bundle cambió.
+// Entradas/Salidas clave: recibe email y opciones, emite EVENT_NAMES.BUNDLE_UPDATED cuando hay novedad.
+// Notas: para probarlo, iniciar sesión y esperar 15s; si falla el fetch se ignora y se reintenta sin romper la UI.
 function startAutoRefresh({ email, intervalMs = 15000, soft = true } = {}) {
   if (!email) return { stop(){}, poke(){} };
 
@@ -30,7 +53,7 @@ function startAutoRefresh({ email, intervalMs = 15000, soft = true } = {}) {
   let last =
     window.GJ_BUNDLE?.updated_at ||
     (()=>{
-      try { return JSON.parse(localStorage.getItem('gj_bundle')||'{}').updated_at; }
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEYS.BUNDLE_CACHE)||'{}').updated_at; }
       catch { return null; }
     })();
 
@@ -48,8 +71,8 @@ function startAutoRefresh({ email, intervalMs = 15000, soft = true } = {}) {
 
         // Actualiza cache local + dispara evento para que el front se repinte
         window.GJ_BUNDLE = fresh;
-        try { localStorage.setItem('gj_bundle', JSON.stringify(fresh)); } catch {}
-        window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: fresh }));
+        try { localStorage.setItem(STORAGE_KEYS.BUNDLE_CACHE, JSON.stringify(fresh)); } catch {}
+        window.dispatchEvent(new CustomEvent(EVENT_NAMES.BUNDLE_UPDATED, { detail: fresh }));
 
         // Si querés forzar recarga completa, poné soft=false al iniciar
         if (!soft) location.reload();
@@ -69,7 +92,10 @@ function startAutoRefresh({ email, intervalMs = 15000, soft = true } = {}) {
 }
 
 
-// ===== Mini State Manager (LS) =====
+// ===== [Feature: MiniStateManagerLS] =====
+// Qué hace: guarda flags y operaciones pendientes por email en localStorage.
+// Entradas/Salidas clave: getFlags, mergeFlags, setPending, saveBundle, etc.
+// Notas: para probar, simular acciones y ver en Application > Local Storage; si se llena, el try/catch evita romper.
 const GJLocal = (() => {
   const keyFlags   = e => `gj_flags:${String(e||'').toLowerCase()}`;
   const keyPending = e => `gj_pending:${String(e||'').toLowerCase()}`;
@@ -98,12 +124,15 @@ const GJLocal = (() => {
     },
 
     // snapshot de bundle (último conocido)
-    saveBundle(bundle){ _set('gj_bundle', bundle); },
-    getBundle(){ return _get('gj_bundle', null); }
+    saveBundle(bundle){ _set(STORAGE_KEYS.BUNDLE_CACHE, bundle); },
+    getBundle(){ return _get(STORAGE_KEYS.BUNDLE_CACHE, null); }
   };
 })();
 
-// ===== Helpers =====
+// ===== [Feature: HelpersDerivados] =====
+// Qué hace: funciones de apoyo para leer paths, comparar bundles y emitir eventos.
+// Entradas/Salidas clave: deepGet(obj, path), bundleStamp(bundle), matchesExpect(bundle, expect).
+// Notas: probar con datos falsos en consola; si el path es incorrecto retorna undefined sin romper la app.
 const GJEvents = { emit:(name, detail)=>window.dispatchEvent(new CustomEvent(name,{detail})) };
 
 function deepGet(obj, path){
@@ -127,7 +156,10 @@ function matchesExpect(bundle, expect){
   });
 }
 
-// ===== Listeners globales (única instancia; evita doble registro) =====
+// ===== [Feature: ListenersGlobales] =====
+// Qué hace: asegura que los avisos y dots se actualicen solo una vez sin duplicar listeners.
+// Entradas/Salidas clave: escucha EVENT_NAMES.BUNDLE_UPDATED y STATE_CHANGED.
+// Notas: probar navegando entre secciones; si window.__GJ_LISTENERS_WIRED__ ya existe se evita registrarlos dos veces.
 if (!window.__GJ_LISTENERS_WIRED__) {
   window.__GJ_LISTENERS_WIRED__ = true;
 
@@ -148,8 +180,8 @@ if (!window.__GJ_LISTENERS_WIRED__) {
     const bbddOk   = String(b.confirmacionbbdd || '').toUpperCase() === 'SI' || !!fl.bbdd_ok;
     const firstProg= String(b?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI' || !!fl.firstprog_ok;
 
-    const elBBDD  = document.getElementById('bbdd-warning');
-    const elSched = document.getElementById('scheduler-warning');
+    const elBBDD  = document.getElementById(SELECTOR_IDS.BBDD_WARNING);
+    const elSched = document.getElementById(SELECTOR_IDS.SCHEDULER_WARNING);
 
     // 1) Warning BBDD
     if (elBBDD) elBBDD.style.display = bbddOk ? 'none' : 'block';
@@ -187,8 +219,8 @@ if (!window.__GJ_LISTENERS_WIRED__) {
     repaintWarnings({ bundle, flags });
   }
 
-  window.addEventListener('gj:bundle-updated', onBundleUpdated);
-  window.addEventListener('gj:state-changed', onStateChanged);
+  window.addEventListener(EVENT_NAMES.BUNDLE_UPDATED, onBundleUpdated);
+  window.addEventListener(EVENT_NAMES.STATE_CHANGED, onStateChanged);
 }
 
 
@@ -236,7 +268,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     dataRaw.scheduler = { ...schedIn, firstProgrammed: fp };
     window.GJ_BUNDLE = dataRaw;
     try { GJLocal.saveBundle(dataRaw); } catch {}
-    window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: dataRaw }));
+    window.dispatchEvent(new CustomEvent(EVENT_NAMES.BUNDLE_UPDATED, { detail: dataRaw }));
     
 
     // 2.1) Logs crudos para rachas (CLAVE)
@@ -301,10 +333,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.GJ_W1   = { ...dataRaw, daily_log_raw: logsRaw, daily_log: logsRaw };
 
     // 4) Notificar que hay datos listos
-    document.dispatchEvent(new CustomEvent('gj:data-ready', { detail: { data } }));
+    document.dispatchEvent(new CustomEvent(EVENT_NAMES.DATA_READY, { detail: { data } }));
 
 
-    // ========== SCHEDULER — Exponer contexto para el modal ==========
+    // ===== [Feature: SchedulerContexto] =====
+    // Qué hace: arma datos listos para que el modal del scheduler entienda horarios y sheet IDs.
+    // Entradas/Salidas clave: funciones pick/_sheetIdFromUrl_/_normalizeHour_/_findSheetIdDeep_.
+    // Notas: probar abrir el modal; si algo viene vacío, se retorna string vacío para no romper binds.
     function pick(...vals){
       for (const v of vals) if (v !== undefined && v !== null && String(v).trim() !== '') return v;
       return '';
@@ -394,8 +429,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       // UI = optimista (si existe) o valor real del bundle
       const firstProgUI = flags.firstprog_ok ? true : firstProgBundle;
     
-      const elBBDD  = document.getElementById('bbdd-warning');
-      const elSched = document.getElementById('scheduler-warning');
+      const elBBDD  = document.getElementById(SELECTOR_IDS.BBDD_WARNING);
+      const elSched = document.getElementById(SELECTOR_IDS.SCHEDULER_WARNING);
     
       // 1) Warning BBDD
       if (elBBDD) elBBDD.style.display = bbddOk ? 'none' : 'block';
@@ -431,8 +466,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // ——— Reactividad: warnings “vivos” sin F5 ———
     (function mountWarningReactivity(){
-      const elBBDD  = document.getElementById('bbdd-warning');
-      const elSched = document.getElementById('scheduler-warning');
+      const elBBDD  = document.getElementById(SELECTOR_IDS.BBDD_WARNING);
+      const elSched = document.getElementById(SELECTOR_IDS.SCHEDULER_WARNING);
     
       function render(){
         const flags = (window.GJLocal?.getFlags && GJLocal.getFlags(email)) || {};
@@ -453,10 +488,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     
       // LS/optimista cambia → re-render
-      window.addEventListener('gj:state-changed', render);
+      window.addEventListener(EVENT_NAMES.STATE_CHANGED, render);
     
       // Backend confirmó → actualizo contexto y re-render
-      window.addEventListener('gj:bundle-updated', (ev) => {
+      window.addEventListener(EVENT_NAMES.BUNDLE_UPDATED, (ev) => {
         const fp = String(ev?.detail?.scheduler?.firstProgrammed || '').toUpperCase() === 'SI';
         if (window.GJ_CTX?.scheduler) window.GJ_CTX.scheduler.firstProgrammed = fp ? 'SI' : '';
         render();
@@ -475,7 +510,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           method: 'POST',
           cache: 'no-store'
         });
-        const elSched = document.getElementById('scheduler-warning');
+        const elSched = document.getElementById(SELECTOR_IDS.SCHEDULER_WARNING);
         if (elSched) elSched.style.display = 'none';
         setDot(document.getElementById('open-scheduler'), false);
         setDot(document.getElementById('menu-toggle'), false);
@@ -527,7 +562,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     
-    // ================= AVATAR =================
+    // ===== [Feature: AvatarDashboard] =====
+    // Qué hace: dibuja el avatar del usuario usando <img> o fondo según exista la etiqueta.
+    // Entradas/Salidas clave: usa data.avatar_url, nombre y el nodo #avatar.
+    // Notas: probar cambiando avatar_url en consola; si viene vacío se limpia el src sin romper layout.
     const avatarURL = (data.avatar_url || "").trim();
     const avatarImg  = document.getElementById("avatar");
     if (avatarImg) {
@@ -560,7 +598,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (el) el.textContent = String(value);
     };
     
-    // ============= ESTADO DIARIO: barras =============
+    // ===== [Feature: EstadoDiarioBarras] =====
+    // Qué hace: convierte métricas (hp, mood, focus) en barras porcentuales visibles.
+    // Entradas/Salidas clave: setProgress(id, value) con ids de barras.
+    // Notas: probar con valores 0–1; si llega fuera de rango se clamp a 0-100 para evitar overflow visual.
     const setProgress = (id, value) => {
       const bar = document.getElementById(id);
       if (!bar) return;
@@ -578,7 +619,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     setProgress("bar-mood",  data.mood);
     setProgress("bar-focus", data.focus);
     
-    // ============= XP Y NIVEL =============
+    // ===== [Feature: XPNivelResumen] =====
+    // Qué hace: actualiza textos y barras del bloque de XP y nivel.
+    // Entradas/Salidas clave: xpActual, nivelActual, xpFaltante, expObjetivo.
+    // Notas: probar con xpFaltante negativo (se muestra 0) y si no hay expObjetivo se mantiene porcentaje seguro.
     const xpActual     = num(data.xp);
     const nivelActual  = num(data.nivel);
     const xpFaltante   = num(data.xp_faltante);
@@ -785,9 +829,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   
 
     
-    // ========================
-    // 💖 EMOTION CHART — iOS/Android/Web safe + auto-init
-    // ========================
+    // ===== [Feature: EmotionChart] =====
+    // Qué hace: dibuja el gráfico de emociones con un parser tolerante de fechas.
+    // Entradas/Salidas clave: renderEmotionChart(dailyEmotion) recibe arreglo de registros diarios.
+    // Notas: probar cambiando dailyEmotion en consola; si faltan datos se usa "Sin registro" para no romper Chart.js.
     (function () {
       // ---------- util de fecha (tolerante y sin UTC) ----------
       function parseAnyDate(str) {
@@ -971,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!drawIfReady()) {
         document.addEventListener("DOMContentLoaded", drawIfReady, { once:true });
         window.addEventListener("load", drawIfReady, { once:true });
-        window.addEventListener("gj:data-ready", drawIfReady);
+        window.addEventListener(EVENT_NAMES.DATA_READY, drawIfReady);
         const retry = setInterval(() => { if (drawIfReady()) clearInterval(retry); }, 200);
         setTimeout(() => clearInterval(retry), 8000);
       }
@@ -1061,9 +1106,9 @@ async function __fetchBundleFresh(email){
   const fresh = await r.json();
   // fuente de verdad + cache local
   window.GJ_BUNDLE = fresh;
-  try { localStorage.setItem('gj_bundle', JSON.stringify(fresh)); } catch {}
+  try { localStorage.setItem(STORAGE_KEYS.BUNDLE_CACHE, JSON.stringify(fresh)); } catch {}
   // avisar a todos los módulos UI
-  window.dispatchEvent(new CustomEvent('gj:bundle-updated', { detail: fresh }));
+  window.dispatchEvent(new CustomEvent(EVENT_NAMES.BUNDLE_UPDATED, { detail: fresh }));
   return fresh;
 }
 
@@ -1375,15 +1420,18 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
 
 
 
-// ===== CAMBIAR AVATAR abrir/cerrar + subir a ImgBB + persistir en Sheet =====
-  // ===== Config del Form que actualiza el avatar =====
+// ===== [Feature: AvatarCambioFlujo] =====
+// Qué hace: permite que la persona actualice su avatar desde el dashboard subiéndolo a ImgBB y guardando la URL en Google Forms.
+// Entradas/Salidas clave: formulario AVATAR_FORM con entries, uploadToImgBB(file), sendAvatarToForm(email, url).
+// Notas: probar subiendo una imagen pequeña; si ImgBB falla se muestra error y no se cierra el modal.
+  // ===== [SubSección: ConfigFormAvatar] =====
   const AVATAR_FORM = {
     ACTION: "https://docs.google.com/forms/u/0/d/e/1FAIpQLScFl3MFsLSos0OEnW9mTI2eZ3DpRBmfq8o29fgKLxEKpXX4Kg/formResponse", // <-- FORM_ACTION
     ENTRY_EMAIL: "entry.158494973",        // <-- ENTRY para email
     ENTRY_AVATAR: "entry.1736118796"        // <-- ENTRY para avatar URL
   };
   
-  // ===== Subida a ImgBB (igual que en tu SignUp) =====
+  // ===== [SubSección: SubidaImgBB] =====
   async function uploadToImgBB(file){
     const IMGBB_KEY = "b78f6fa1f849b2c8fcc41ba4b195864f"; // misma key
     const reader = new FileReader();
@@ -1406,7 +1454,7 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     });
   }
   
-  // ===== Enviar al Google Form (no-cors, como en SignUp) =====
+  // ===== [SubSección: EnvioGoogleForm] =====
   async function sendAvatarToForm(email, avatarUrl){
     const fd = new FormData();
     fd.append(AVATAR_FORM.ENTRY_EMAIL, email);
@@ -1420,8 +1468,9 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
     // no-cors no permite leer respuesta → asumimos éxito como en SignUp
   }
   
-  // ===== Integración con el popup del Dashboard =====
-  // ===== Integración con el popup del Dashboard =====
+  // ===== [SubSección: PopupAvatarDashboard] =====
+  // Qué hace: abre/cierra el popup, valida inputs y coordina upload + persistencia.
+  // Notas: si falta email en la URL se alerta al usuario y no se intenta subir nada.
   (() => {
     const openBtn   = document.getElementById('edit-avatar');
     const modal     = document.getElementById('avatarPopup');
@@ -1478,7 +1527,10 @@ async function refreshPopupsAfterBundle(email, { clearLocal = false } = {}) {
   })();
 
 
-// ====== REFRESH GENÉRICO (Worker pull) — extendido ======
+// ===== [Feature: RefreshGenerico] =====
+// Qué hace: permite forzar pull manual del bundle desde el worker al hacer clic.
+// Entradas/Salidas clave: usa fetch al worker y EVENT_NAMES.BUNDLE_UPDATED.
+// Notas: probar con botón “Actualizar”; si el worker no responde se muestra toast con error y no se rompe la UI.
 async function refreshBundle(
   email,
   {
@@ -1498,7 +1550,7 @@ async function refreshBundle(
     if (optimistic) {
       GJLocal.mergeFlags(email, optimistic);
       GJLocal.setPending(email, { op: (expect && expect.op) || 'generic', expect, ttlMs: ttlPending, optimistic });
-      GJEvents.emit('gj:state-changed', { email, flags: GJLocal.getFlags(email), pending: GJLocal.getPending(email) });
+      GJEvents.emit(EVENT_NAMES.STATE_CHANGED, { email, flags: GJLocal.getFlags(email), pending: GJLocal.getPending(email) });
     }
 
     // 1) Pedir al Worker que refresque desde WebApp → KV
@@ -1538,7 +1590,7 @@ async function refreshBundle(
     // 3) Snapshot + evento
     window.GJ_BUNDLE = fresh;
     GJLocal.saveBundle(fresh);
-    GJEvents.emit('gj:bundle-updated', fresh);
+    GJEvents.emit(EVENT_NAMES.BUNDLE_UPDATED, fresh);
 
     // 4) Reconciliación optimista ↔ backend
     const stillValid = GJLocal.isPendingValid(email);
@@ -1551,7 +1603,7 @@ async function refreshBundle(
       GJLocal.mergeFlags(email, roll);
       GJLocal.clearPending(email);
     }
-    GJEvents.emit('gj:state-changed', { email, flags: GJLocal.getFlags(email), pending: GJLocal.getPending(email) });
+    GJEvents.emit(EVENT_NAMES.STATE_CHANGED, { email, flags: GJLocal.getFlags(email), pending: GJLocal.getPending(email) });
 
     return fresh;
   } finally {
@@ -1704,7 +1756,7 @@ const mapMode = (m) => {
   return 'Flow';
 };
 
-document.addEventListener('gj:data-ready', (ev) => {
+document.addEventListener(EVENT_NAMES.DATA_READY, (ev) => {
   const d = ev.detail?.data || window.GJ_DATA;
   if (!d) return;
   PanelRachas.mount('#panel-rachas', {

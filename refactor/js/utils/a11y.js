@@ -1,11 +1,11 @@
 /**
  * Módulo: A11yUtils
  * Propósito: agrupar helpers para foco y mensajes amigables.
- * API pública: trapFocus(container), releaseFocus(), announce(message, politeness)
- * Dependencias: utils/dom.
- * Side-effects: maneja focus en document.activeElement y aria-live global.
+ * API pública: trapFocus(container), releaseFocus(), announce(message, politeness).
+ * Dependencias: utils/dom (para qsa de elementos focusables).
+ * Side-effects: crea un nodo aria-live en body, intercepta eventos keydown.
  * Errores esperados: contenedores inexistentes → se ignoran avisando por consola.
- * Notas de accesibilidad: refuerza que los modales sean navegables.
+ * Accesibilidad: garantiza que los modales sean navegables solo con teclado y que los mensajes se anuncien a lectores.
  */
 
 import { qsa } from './dom.js';
@@ -14,10 +14,10 @@ let lastFocused = null;
 let currentTrap = null;
 let announcer = null;
 
-/**
- * ===== [A11y: crear announcer] =====
- * Genera un div aria-live para comunicar mensajes cortos.
- */
+// ===== [Feature: CrearAnnouncer] =====
+// Qué hace: asegura que exista un div aria-live oculto para mensajes.
+// Entradas/Salidas clave: retorna el nodo announcer para ser reutilizado.
+// Notas: si no se crea, los lectores no escuchan los mensajes; se llama automáticamente desde announce.
 function ensureAnnouncer() {
   if (announcer) return announcer;
   announcer = document.createElement('div');
@@ -35,20 +35,20 @@ function ensureAnnouncer() {
   return announcer;
 }
 
-/**
- * ===== [A11y: anunciar mensajes] =====
- * Envía texto al aria-live para lectores de pantalla.
- */
+// ===== [Feature: AnunciarMensajes] =====
+// Qué hace: escribe texto en el aria-live con politeness configurable.
+// Entradas/Salidas clave: mensaje y modo (polite/assertive).
+// Notas: probar con lector (NVDA/VoiceOver); si no se escucha, confirmar que ensureAnnouncer corrió.
 export function announce(message, politeness = 'polite') {
   const node = ensureAnnouncer();
   node.setAttribute('aria-live', politeness);
   node.textContent = message;
 }
 
-/**
- * ===== [A11y: atrapar foco en un modal] =====
- * Guarda quién tenía el foco, y cicla dentro del contenedor.
- */
+// ===== [Feature: AtraparFocoModal] =====
+// Qué hace: guarda el último foco y lo mantiene dentro del contenedor modal.
+// Entradas/Salidas clave: container DOM que contiene elementos interactivos.
+// Notas: probar navegando con Tab; si se escapa el foco verificar que el modal tenga inputs focusables.
 export function trapFocus(container) {
   if (!container) {
     console.error('[A11yUtils] No encontré el contenedor para trapFocus');
@@ -80,10 +80,10 @@ export function trapFocus(container) {
   document.addEventListener('keydown', handleKeydown);
 }
 
-/**
- * ===== [A11y: liberar foco] =====
- * Regresa el foco al elemento previo si todavía existe.
- */
+// ===== [Feature: LiberarFocoModal] =====
+// Qué hace: quita el listener y devuelve el foco al elemento previo.
+// Entradas/Salidas clave: ninguna (usa lastFocused almacenado).
+// Notas: probar cerrando el modal con ESC; si falla, el foco queda en body y se considera bug P1.
 export function releaseFocus() {
   if (currentTrap && currentTrap.__trapHandler) {
     document.removeEventListener('keydown', currentTrap.__trapHandler);
