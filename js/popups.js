@@ -148,6 +148,7 @@ window.ensureWeekRecapCSS = function(){
 /* ------------ red ------------- */
 /** Marca vistos + (opcional) suma bonus en Setup!E22 (backend detecta items[]). */
 let _ackBusy = false;
+let _popupsRefreshing = false;
 async function postAckToServer({ email, ids=[], items=[] }){
   if (_ackBusy) return { ok:false, err:'busy' };
   _ackBusy = true;
@@ -734,72 +735,93 @@ function renderWeekRecapPopup(item, onClose){
 
 /* ------------ Controller ------------- */
 async function runPopups(){
-  const email = gjEmail();
-  if (!email) return;
+  if (_popupsRefreshing) return;
+  _popupsRefreshing = true;
 
-  // 1) pedir items al backend
-  let data;
-  try{
-    const r = await fetch(`${POPUPS_API}?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
-    data = await r.json();
-  }catch{ return; }
+  try {
+    const email = gjEmail();
+    if (!email) return;
 
-  const serverItems = Array.isArray(data.items) ? data.items : [];
-  if (!serverItems.length) return;
+    // 1) pedir items al backend
+    let data;
+    try{
+      const r = await fetch(`${POPUPS_API}?email=${encodeURIComponent(email)}`, { cache: 'no-store' });
+      data = await r.json();
+    }catch{ return; }
 
-  // 2) filtro instantáneo por localStorage
-  const seen = getSeen(email);
-  const queue = serverItems.filter(it => it && it.id && !seen.has(it.id));
-  if (!queue.length) return;
+    const serverItems = Array.isArray(data.items) ? data.items : [];
+    if (!serverItems.length) return;
 
-  // 3) mostrar en cola (uno por vez) y acumular ACK con bonus
-  const ackItems = [];
-  const next = ()=>{
-    const it = queue.shift();
-    if (!it) return;
-  
-    renderPopup(it, async ({how})=>{
-      addSeen(email, it.id);
-  
-      // 1) calcula bonus
-      const bonus = getBonusFromItem(it);
-  
-      // 2) refresca UI local al toque
-      if (bonus > 0) {
+    // 2) filtro instantáneo por localStorage
+    const seen = getSeen(email);
+    const queue = serverItems.filter(it => it && it.id && !seen.has(it.id));
+    if (!queue.length) return;
+
+    // 3) mostrar en cola (uno por vez) y acumular ACK con bonus
+    await new Promise((resolve) => {
+      const finish = () => resolve();
+      const next = () => {
+        const it = queue.shift();
+        if (!it) { finish(); return; }
+
         try {
-          // número simple
-          const el = document.querySelector('[data-xp-current]');
-          if (el){
-            const cur = Number(el.getAttribute('data-xp-current')) || 0;
-            const nextVal = cur + bonus;
-            el.setAttribute('data-xp-current', String(nextVal));
-            el.textContent = nextVal.toLocaleString();
-          }
-          // barra (opcional) data-xp-progress (0..1)
-          const bar = document.querySelector('[data-xp-progress]');
-          if (bar){
-            const cur = Number(bar.getAttribute('data-xp-progress')) || 0;
-            const step = Number(bar.getAttribute('data-xp-step') || 0) || 100; // si tenés cuánto vale 1 “paso”
-            const next = cur + (bonus/step);
-            bar.setAttribute('data-xp-progress', String(next));
-            bar.style.setProperty('--progress', Math.min(1,next));
-          }
-        } catch(_){}
-      }
-  
-      // 3) manda ACK inmediato (marca + suma en E22, idempotente)
-      try { await postAckToServer({ email, items: [{ id: it.id, bonus }] }); } catch(_){}
-  
-      // 4) siguiente popup
+          renderPopup(it, async ({how}={})=>{
+            addSeen(email, it.id);
+
+            // 1) calcula bonus
+            const bonus = getBonusFromItem(it);
+
+            // 2) refresca UI local al toque
+            if (bonus > 0) {
+              try {
+                // número simple
+                const el = document.querySelector('[data-xp-current]');
+                if (el){
+                  const cur = Number(el.getAttribute('data-xp-current')) || 0;
+                  const nextVal = cur + bonus;
+                  el.setAttribute('data-xp-current', String(nextVal));
+                  el.textContent = nextVal.toLocaleString();
+                }
+                // barra (opcional) data-xp-progress (0..1)
+                const bar = document.querySelector('[data-xp-progress]');
+                if (bar){
+                  const cur = Number(bar.getAttribute('data-xp-progress')) || 0;
+                  const step = Number(bar.getAttribute('data-xp-step') || 0) || 100; // si tenés cuánto vale 1 “paso”
+                  const nextVal = cur + (bonus/step);
+                  bar.setAttribute('data-xp-progress', String(nextVal));
+                  bar.style.setProperty('--progress', Math.min(1,nextVal));
+                }
+              } catch(_){}
+            }
+
+            // 3) manda ACK inmediato (marca + suma en E22, idempotente)
+            try { await postAckToServer({ email, items: [{ id: it.id, bonus }] }); } catch(_){ }
+
+            if (how === 'abort') { finish(); return; }
+
+            // 4) siguiente popup
+            next();
+          });
+        } catch (err) {
+          console.warn('renderPopup err', err);
+          finish();
+        }
+      };
+
       next();
     });
-  };
-  next();
+  } finally {
+    _popupsRefreshing = false;
+  }
+}
+
+function runPopupsSafely(){
+  return runPopups();
 }
 
 // API mínima para debug desde consola
 window.GJPopups = {
-  run: runPopups,
+  run: runPopupsSafely,
   clearLocal(email = gjEmail()){
     try{ localStorage.removeItem(seenKey(email)); }catch{}
   }

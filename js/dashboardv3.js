@@ -153,6 +153,7 @@ if (!window.__GJ_LISTENERS_WIRED__) {
     // guardamos snapshot por si otro módulo lo pide
     try { GJLocal.saveBundle(fresh); } catch {}
     repaintWarnings({ bundle: fresh });
+    try { window.GJPopups?.run(); } catch {}
   }
 
   // ← se dispara cuando aplicás UI optimista (flags en LS) o se reconcilia/rollback
