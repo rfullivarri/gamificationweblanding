@@ -1,17 +1,20 @@
 /**
  * Módulo: DOMUtils
  * Propósito: reunir helpers pequeñitos para consultar nodos y manejar eventos.
- * API pública: byId(id), qs(selector, scope), qsa(selector, scope), on(el, evt, handler), delegate(root, evt, selector, handler), setHTML(el, html), toggleHidden(el, force)
+ * API pública: byId(id), qs(selector, scope), qsa(selector, scope), on(target, eventName, handler, options),
+ *             delegate(root, eventName, selector, handler), setHTML(element, html), setText(element, text),
+ *             toggleHidden(element, force), focusFirstInteractive(scope), createElement(tagName, options),
+ *             serializeForm(form).
  * Dependencias: ninguna (módulo base).
  * Side-effects: ninguno, solo lee/modifica nodos recibidos.
- * Errores esperados: recibe nodos nulos y sale con mensajes amigables.
- * Notas de accesibilidad: permite manejar focos y atributos sin duplicar código.
+ * Errores esperados: recibe nodos nulos y sale con mensajes amigables escritos en consola.
+ * Accesibilidad: helpers como toggleHidden y focusFirstInteractive respetan aria-hidden y foco seguro.
  */
 
-/**
- * ===== [DOMUtils: seleccionar por ID] =====
- * Devuelve el elemento si existe; si no, avisa en consola y retorna null.
- */
+// ===== [Feature: BuscarPorId] =====
+// Qué hace: obtiene un elemento por ID, devuelve null si no existe.
+// Entradas/Salidas clave: recibe el string del ID y retorna el nodo o null.
+// Notas: si devuelve null, revisar el HTML para confirmar que el ID está escrito igual.
 export function byId(id) {
   const el = document.getElementById(id);
   if (!el) {
@@ -20,10 +23,10 @@ export function byId(id) {
   return el;
 }
 
-/**
- * ===== [DOMUtils: querySelector seguro] =====
- * Busca dentro de scope (o document) y devuelve el primer match.
- */
+// ===== [Feature: BuscarUno] =====
+// Qué hace: envuelve querySelector para evitar reventar si el scope es nulo.
+// Entradas/Salidas clave: selector CSS y scope opcional.
+// Notas: si falla, el console.error nos recuerda pasar el contenedor correcto.
 export function qs(selector, scope = document) {
   if (!scope) {
     console.error('[DOMUtils] No tengo un scope para buscar', selector);
@@ -32,10 +35,10 @@ export function qs(selector, scope = document) {
   return scope.querySelector(selector);
 }
 
-/**
- * ===== [DOMUtils: querySelectorAll sencillo] =====
- * Siempre devuelve un array para que podamos usar forEach sin miedo.
- */
+// ===== [Feature: BuscarMuchos] =====
+// Qué hace: devuelve todos los nodos que coinciden en un array amigable.
+// Entradas/Salidas clave: selector CSS y scope.
+// Notas: si no hay nodos, entrega array vacío así los bucles no fallan.
 export function qsa(selector, scope = document) {
   if (!scope) {
     console.error('[DOMUtils] No tengo un scope para buscar muchos', selector);
@@ -44,10 +47,10 @@ export function qsa(selector, scope = document) {
   return Array.from(scope.querySelectorAll(selector));
 }
 
-/**
- * ===== [DOMUtils: escuchar eventos] =====
- * Adjunta un listener y devuelve una función para removerlo.
- */
+// ===== [Feature: EscucharEventos] =====
+// Qué hace: agrega listeners y devuelve una función para limpiar.
+// Entradas/Salidas clave: target DOM, nombre de evento, handler y opciones.
+// Notas: probar clics y teclas; si falla, revisar que el target exista.
 export function on(target, eventName, handler, options) {
   if (!target) {
     console.error(`[DOMUtils] Intenté escuchar ${eventName} pero no encontré el nodo`);
@@ -57,10 +60,10 @@ export function on(target, eventName, handler, options) {
   return () => target.removeEventListener(eventName, handler, options);
 }
 
-/**
- * ===== [DOMUtils: delegar eventos] =====
- * Escucha un evento en root y lo ejecuta cuando el target coincide con selector.
- */
+// ===== [Feature: DelegarEventos] =====
+// Qué hace: escucha eventos en un contenedor y ejecuta handler para matches.
+// Entradas/Salidas clave: root, nombre de evento, selector, handler.
+// Notas: útil para listas dinámicas; probar agregando elementos después.
 export function delegate(root, eventName, selector, handler) {
   return on(root, eventName, (event) => {
     const potential = event.target.closest(selector);
@@ -70,10 +73,10 @@ export function delegate(root, eventName, selector, handler) {
   });
 }
 
-/**
- * ===== [DOMUtils: setear HTML] =====
- * Reemplaza el contenido de un nodo; si el nodo no existe, lo ignora sin romper.
- */
+// ===== [Feature: EscribirHTML] =====
+// Qué hace: actualiza innerHTML solo si el nodo existe.
+// Entradas/Salidas clave: elemento destino y string de HTML.
+// Notas: si algo no se ve, revisar que el HTML sea seguro y que el nodo llegue.
 export function setHTML(element, html) {
   if (!element) {
     console.error('[DOMUtils] No pude escribir HTML porque el elemento es nulo');
@@ -82,10 +85,10 @@ export function setHTML(element, html) {
   element.innerHTML = html;
 }
 
-/**
- * ===== [DOMUtils: setear texto plano] =====
- * Cambia textContent y evita escapes manuales.
- */
+// ===== [Feature: EscribirTexto] =====
+// Qué hace: setea textContent con seguridad.
+// Entradas/Salidas clave: elemento y texto.
+// Notas: ideal para mensajes visibles; si se ve [object Object], revisar la fuente.
 export function setText(element, text) {
   if (!element) {
     console.error('[DOMUtils] No pude escribir texto porque el elemento es nulo');
@@ -94,10 +97,10 @@ export function setText(element, text) {
   element.textContent = text;
 }
 
-/**
- * ===== [DOMUtils: mostrar/ocultar con hidden] =====
- * Usa el atributo hidden para no tocar clases ni estilos externos.
- */
+// ===== [Feature: AlternarHidden] =====
+// Qué hace: usa el atributo hidden para mostrar u ocultar algo sin borrar clases.
+// Entradas/Salidas clave: elemento y booleano opcional.
+// Notas: cuando algo no se oculta, verificar que force sea booleano o que no esté sobrescrito en CSS.
 export function toggleHidden(element, force) {
   if (!element) {
     console.error('[DOMUtils] No pude alternar hidden porque el elemento es nulo');
@@ -108,10 +111,10 @@ export function toggleHidden(element, force) {
   element.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
 }
 
-/**
- * ===== [DOMUtils: enfocar el primer elemento navegable] =====
- * Busca botones, enlaces o inputs y les da foco.
- */
+// ===== [Feature: EnfocarPrimerInteractivo] =====
+// Qué hace: encuentra el primer elemento navegable y le da foco para ayudar a la navegación con teclado.
+// Entradas/Salidas clave: scope opcional donde buscar.
+// Notas: probar con tabulador; si falla, revisar que existan elementos focusables.
 export function focusFirstInteractive(scope) {
   const focusables = qsa('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])', scope);
   if (focusables.length > 0) {
@@ -119,10 +122,10 @@ export function focusFirstInteractive(scope) {
   }
 }
 
-/**
- * ===== [DOMUtils: crear elemento rápido] =====
- * Genera nodos con clases, HTML interno y atributos opcionales.
- */
+// ===== [Feature: CrearElementoRapido] =====
+// Qué hace: arma nodos nuevos con atributos sin escribir mucho boilerplate.
+// Entradas/Salidas clave: etiqueta y opciones.
+// Notas: si una propiedad no se aplica, revisa si es atributo o propiedad DOM.
 export function createElement(tagName, options = {}) {
   const {
     className,
@@ -152,10 +155,10 @@ export function createElement(tagName, options = {}) {
   return element;
 }
 
-/**
- * ===== [DOMUtils: serializar formulario] =====
- * Devuelve un objeto simple usando name o id como clave.
- */
+// ===== [Feature: SerializarFormulario] =====
+// Qué hace: convierte inputs en un objeto amigable.
+// Entradas/Salidas clave: formulario HTML.
+// Notas: si falta un campo, asegurar que tenga name o id.
 export function serializeForm(form) {
   if (!form) {
     console.error('[DOMUtils] No pude serializar porque el formulario es nulo');

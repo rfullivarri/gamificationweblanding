@@ -2,11 +2,11 @@
  * Módulo: NetUtils
  * Propósito: envolver fetch con defaults seguros y fáciles de leer.
  * API pública: fetchJson(url, options), postJson(url, body, options), withTimeout(promise, ms),
- *             retryOperation(fn, config), createPoller(task, config), fetchJsonWithRetry(url, config)
- * Dependencias: ninguna.
- * Side-effects: solo llamadas a fetch.
+ *             retryOperation(operation, options), createPoller(task, options), fetchJsonWithRetry(url, config).
+ * Dependencias: ninguna (se usa en múltiples módulos sin circularidad).
+ * Side-effects: solo llamadas a fetch y timers.
  * Errores esperados: timeouts o respuestas no JSON → se reportan en consola.
- * Notas de accesibilidad: sin impacto directo, pero mantiene mensajes claros.
+ * Accesibilidad: sin impacto directo; ayuda a que la UI muestre mensajes rápidos cuando algo falla.
  */
 
 const DEFAULT_TIMEOUT_MS = 15000;
@@ -15,10 +15,10 @@ function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * ===== [NetUtils: reintentar operaciones asíncronas] =====
- * Ejecuta la callback varias veces; ideal para peticiones inestables.
- */
+// ===== [Feature: ReintentosAmigables] =====
+// Qué hace: vuelve a ejecutar una operación asincrónica las veces necesarias.
+// Entradas/Salidas clave: operation(attempt) devuelve promesa; options con retries y retryDelay.
+// Notas: probar con una operación que falle la primera vez; si todos los intentos fallan lanza el último error.
 export async function retryOperation(operation, options = {}) {
   const { retries = 2, retryDelay = 600 } = options;
   let attempt = 0;
@@ -37,10 +37,10 @@ export async function retryOperation(operation, options = {}) {
   throw lastError || new Error('[NetUtils] retryOperation agotó los intentos');
 }
 
-/**
- * ===== [NetUtils: timeout amigable] =====
- * Si algo tarda mucho, lo cancelamos para no colgar la UI.
- */
+// ===== [Feature: TimeoutAmigable] =====
+// Qué hace: corta la promesa si excede cierto tiempo para liberar la UI.
+// Entradas/Salidas clave: promesa original y timeoutMs.
+// Notas: probar con fetch que nunca responde; se obtiene error claro `[NetUtils]`.
 export function withTimeout(promise, timeoutMs = DEFAULT_TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
@@ -59,10 +59,10 @@ export function withTimeout(promise, timeoutMs = DEFAULT_TIMEOUT_MS) {
   });
 }
 
-/**
- * ===== [NetUtils: GET que devuelve JSON] =====
- * Usa fetch y convierte la respuesta en objeto.
- */
+// ===== [Feature: GetJsonSeguro] =====
+// Qué hace: realiza fetch y devuelve JSON parseado o null.
+// Entradas/Salidas clave: url y opciones (timeoutMs). Devuelve objeto/array.
+// Notas: si la respuesta no es JSON lanza error; probar con endpoint de prueba para validar mensajes.
 export async function fetchJson(url, options = {}) {
   try {
     const response = await withTimeout(fetch(url, options), options.timeoutMs);
@@ -77,10 +77,10 @@ export async function fetchJson(url, options = {}) {
   }
 }
 
-/**
- * ===== [NetUtils: POST JSON] =====
- * Serializa el body y devuelve la respuesta parseada.
- */
+// ===== [Feature: PostJsonSeguro] =====
+// Qué hace: envía JSON y reusa fetchJson para parsear la respuesta.
+// Entradas/Salidas clave: url, body, headers adicionales.
+// Notas: ideal para formularios; si el backend responde 500 se verá en consola.
 export async function postJson(url, body, options = {}) {
   const payload = typeof body === 'string' ? body : JSON.stringify(body);
   const opts = {
@@ -94,19 +94,19 @@ export async function postJson(url, body, options = {}) {
   return fetchJson(url, opts);
 }
 
-/**
- * ===== [NetUtils: GET con reintentos] =====
- * Ideal para polling: intenta varias veces antes de fallar.
- */
+// ===== [Feature: GetJsonConReintentos] =====
+// Qué hace: combina fetchJson con retryOperation para robustecer el polling.
+// Entradas/Salidas clave: url y config con retries/delay.
+// Notas: probar con red lenta; la promesa reintenta automáticamente antes de rechazar.
 export async function fetchJsonWithRetry(url, config = {}) {
   const { retries = 2, retryDelay = 600, fetchOptions = {} } = config;
   return retryOperation(() => fetchJson(url, fetchOptions), { retries, retryDelay });
 }
 
-/**
- * ===== [NetUtils: creador de pollers] =====
- * Devuelve un pequeño controlador para repetir una tarea cada cierto tiempo.
- */
+// ===== [Feature: CreadorPollers] =====
+// Qué hace: crea un bucle controlado con setInterval para tareas repetidas.
+// Entradas/Salidas clave: task async que puede devolver true para frenar.
+// Notas: probar con immediate=true; si task lanza error se deriva a onError sin romper la app.
 export function createPoller(task, options = {}) {
   const { interval = 1000, immediate = false, onError = () => {} } = options;
   let timer = null;

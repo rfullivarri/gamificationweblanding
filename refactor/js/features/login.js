@@ -434,7 +434,7 @@ function wireServiceWorker() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('../../sw.js', { scope: '../../' })  // TODO: usar sw.refactor.js en Lote 4
+      .register('../../sw.js', { scope: '../../' })  // TODO: ver TODOs.refactor.md (#P0-sw-migrar) usar sw.refactor.js en Lote 4
       .then((registration) => console.log('[SW] registrado', registration.scope))
       .catch((error) => console.error('[SW] error', error));
   });

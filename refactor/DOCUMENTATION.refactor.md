@@ -52,7 +52,7 @@
 - `js/utils/dom.js` — Selectores seguros, delegación de eventos, helpers de foco y serialización de formularios.
 - `js/utils/net.js` — Wrapper de `fetch` con timeout, POST JSON y reintentos.
 - `js/utils/a11y.js` — Helpers para trap focus y anuncios aria-live.
-- `js/utils/constants.js` — Endpoints compartidos por el flujo de login.
+- `js/utils/constants.js` — Endpoints compartidos por el flujo de login, claves de storage, selectores (IDs/clases) y nombres de eventos globales.
 
 ## Cómo probar una vista refactorizada
 1. Abre el archivo `.refactor.html` directo en el navegador (doble clic o `Live Server`).
@@ -73,6 +73,7 @@
 - Archivos CSS con encabezado `/* ==========================================================================`.
 - Módulos JS con encabezado detallando propósito, API pública, dependencias y notas de accesibilidad.
 - Secciones largas en JS separadas por comentarios `// ===== [Bloque] =====` para ubicar rápidamente el código.
+- TODOs y FIXMEs inventariados en `refactor/TODOs.refactor.md`, con referencias cruzadas desde el código (`#ID`).
 
 ## Backlog priorizado
 - **P0 — Service worker dedicado:** el login refactor registra `sw.js`, que sigue precacheando assets viejos (`css/loginv2.css`) y genera 404 en las vistas refactorizadas. Crear `sw.refactor.js` con un manifiesto propio y actualizar `wireServiceWorker()` para usarlo.
