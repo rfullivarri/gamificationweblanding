@@ -287,6 +287,10 @@ function renderPopup(item, onClose){
   }
 }
 
+if (typeof window !== 'undefined') {
+  window.renderPopup = renderPopup;
+}
+
 
 
 // ==== WEEK RECAP (renderer especializado) ====
@@ -706,7 +710,12 @@ function renderWeekRecapPopup(item, onClose){
 
 // ==== Router seguro: una sola envoltura, sin recursión ====
 (function attachWeekRecapRouter(){
+  if (typeof window === 'undefined') return;
   if (window.__GJ_POPUP_ROUTED__) return;
+  if (typeof window.renderPopup !== 'function'){
+    console.warn('[popups] window.renderPopup no está disponible para router Week Recap');
+    return;
+  }
   const ORIG = window.renderPopup.bind(window);
   window.__GJ_POPUP_ROUTED__ = true;
 
