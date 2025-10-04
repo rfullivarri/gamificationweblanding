@@ -1,12 +1,13 @@
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
+import { spawn } from "child_process";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 const cacheDir = path.join(projectRoot, "node_modules", ".cache");
-const MAX_RETRIES = 10;
-const RETRY_DELAY_MS = 200;
+const MAX_RETRIES = 20;
+const RETRY_DELAY_MS = 250;
 
 async function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,6 +38,25 @@ async function tryRemove(targetPath) {
   return false;
 }
 
+function fallbackRemove(targetPath) {
+  return new Promise((resolve) => {
+    const rm = spawn("rm", ["-rf", targetPath]);
+    rm.on("close", (code) => {
+      if (code === 0) {
+        console.warn(
+          `preinstall: eliminación forzada vía rm -rf de ${path.relative(projectRoot, targetPath)}.`,
+        );
+        resolve(true);
+        return;
+      }
+      console.warn(
+        `preinstall: rm -rf no pudo eliminar ${path.relative(projectRoot, targetPath)} (código ${code}).`,
+      );
+      resolve(false);
+    });
+  });
+}
+
 async function removeCacheDir() {
   try {
     await fs.access(cacheDir);
@@ -57,10 +77,16 @@ async function removeCacheDir() {
     return;
   }
 
+  await sleep(RETRY_DELAY_MS);
+
   if (await tryRemove(tempDir)) {
     console.warn(
       "preinstall: node_modules/.cache se liberó tras renombrarlo temporalmente.",
     );
+    return;
+  }
+
+  if (await fallbackRemove(tempDir)) {
     return;
   }
 
