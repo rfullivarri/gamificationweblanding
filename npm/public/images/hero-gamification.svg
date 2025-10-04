@@ -1,0 +1,57 @@
+<svg width="1200" height="1200" viewBox="0 0 1200 1200" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Joven extendiendo la mano hacia una esfera luminosa</title>
+  <desc id="desc">Ilustración onírica con un niño observando una esfera de energía violeta sobre un cielo estrellado.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#140736" />
+      <stop offset="50%" stop-color="#271a67" />
+      <stop offset="100%" stop-color="#040619" />
+    </linearGradient>
+    <radialGradient id="orb" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffef8f" />
+      <stop offset="30%" stop-color="#ff6bc6" />
+      <stop offset="65%" stop-color="#6c4bff" />
+      <stop offset="100%" stop-color="rgba(40,10,100,0)" />
+    </radialGradient>
+    <radialGradient id="aurora" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6d4aff" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#20114b" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="highlight" cx="0" cy="0" r="1">
+      <stop offset="0" stop-color="#94b4ff" stop-opacity="0.8" />
+      <stop offset="1" stop-color="#03030e" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="plant" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#2a6b81" />
+      <stop offset="1" stop-color="#0a2c3d" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)" />
+  <g opacity="0.45">
+    <path d="M0 360C180 320 260 260 450 310C640 360 740 260 900 300C1060 340 1200 260 1200 260V420H0Z" fill="url(#aurora)" />
+    <path d="M0 520C200 500 280 420 460 460C640 500 720 420 900 460C1080 500 1200 420 1200 420V620H0Z" fill="url(#aurora)" />
+  </g>
+  <g transform="translate(540 220)">
+    <circle cx="220" cy="200" r="220" fill="url(#orb)" />
+    <g opacity="0.55" fill="none" stroke="#f8b0ff" stroke-width="18">
+      <path d="M40 120C180 60 340 80 400 200" stroke-linecap="round" />
+      <path d="M30 220C120 320 280 360 380 260" stroke-linecap="round" />
+      <path d="M60 310C170 400 300 420 420 330" stroke-linecap="round" />
+    </g>
+  </g>
+  <g transform="translate(220 400)">
+    <path d="M140 560C80 520 40 520 0 480C40 680 160 760 280 800C380 820 480 820 540 800C500 760 420 720 380 660" fill="url(#highlight)" opacity="0.35" />
+    <path d="M160 780C140 720 80 700 40 640C20 600 0 540 0 500C70 540 140 620 220 620C300 620 360 600 420 520C460 560 480 600 520 620C520 700 480 760 420 800C320 840 220 840 160 780Z" fill="#1f285a" />
+    <path d="M220 160C280 120 320 140 340 200C360 260 340 320 280 360C220 320 200 260 220 200Z" fill="#27316d" />
+    <path d="M200 180C200 120 240 80 300 80C360 80 400 120 400 180C400 240 360 280 300 280C240 280 200 240 200 180Z" fill="#1f285a" />
+    <path d="M320 420C300 360 320 280 360 240C400 260 440 300 480 340C520 380 540 420 560 460L460 520C420 480 360 440 320 420Z" fill="#1f285a" />
+    <path d="M360 260C340 280 320 320 320 360C320 400 340 420 380 420C420 420 460 380 460 340C460 300 420 240 360 260Z" fill="#303b7b" />
+  </g>
+  <g transform="translate(0 900)" opacity="0.85" fill="url(#plant)">
+    <path d="M40 200C80 140 100 80 120 0C160 80 180 160 180 240Z" />
+    <path d="M220 200C260 140 280 80 300 0C340 80 360 160 360 240Z" />
+    <path d="M440 200C480 140 500 60 520 0C560 60 580 160 580 240Z" />
+    <path d="M680 200C720 140 740 80 760 0C800 80 820 160 820 240Z" />
+    <path d="M900 200C940 140 960 80 980 0C1020 80 1040 160 1040 240Z" />
+  </g>
+</svg>
