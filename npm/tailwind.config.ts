@@ -23,7 +23,8 @@ const config: Config = {
         }
       },
       fontFamily: {
-        sans: ["var(--font-rubik)", ...defaultTheme.fontFamily.sans]
+        sans: ["var(--font-manrope)", ...defaultTheme.fontFamily.sans],
+        display: ["var(--font-sora)", "var(--font-manrope)", ...defaultTheme.fontFamily.sans]
       },
       boxShadow: {
         glow: "0 20px 50px rgba(125, 60, 255, 0.25)",

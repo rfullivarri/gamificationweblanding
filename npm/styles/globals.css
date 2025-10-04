@@ -4,10 +4,22 @@
 
 :root {
   color-scheme: dark;
+  font-family: var(--font-manrope);
 }
 
 body {
   @apply min-h-screen bg-background text-slate-100 antialiased;
+  font-family: var(--font-manrope);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sora);
+  letter-spacing: -0.015em;
 }
 
 a {
