@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "preinstall": "node scripts/preinstall-clean.mjs",
     "test": "node --check refactor/js/features/formsintrov2.js",
     "db:schema": "node scripts/db-runner.mjs schema",
     "db:seeds": "node scripts/db-runner.mjs seeds",
