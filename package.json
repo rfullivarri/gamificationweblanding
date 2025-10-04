@@ -4,6 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --check refactor/js/features/formsintrov2.js"
+    "preinstall": "rm -rf node_modules/.cache || true",
+    "test": "node --check refactor/js/features/formsintrov2.js",
+    "prebuild": "npm ci --prefix npm",
+    "build": "npm run build --prefix npm",
+    "postbuild": "rm -rf npm/node_modules/.cache || true"
   }
 }
