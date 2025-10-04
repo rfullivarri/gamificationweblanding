@@ -11,6 +11,8 @@ import { Steps } from "@/components/Steps";
 import { Testimonials } from "@/components/Testimonials";
 import { BarChart3, Gift, Sparkles } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 export default function MarketingPage() {
   return (
     <div className="flex min-h-screen flex-col">
