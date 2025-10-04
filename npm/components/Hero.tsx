@@ -65,7 +65,7 @@ export function Hero() {
           <div className="absolute -inset-12 -z-10 bg-[radial-gradient(circle_at_top,_rgba(137,122,255,0.35),_transparent_60%)] blur-3xl" />
           <div className="relative mx-auto aspect-square w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-b from-indigo-500/30 via-slate-900 to-slate-950 shadow-[0_20px_120px_rgba(113,81,255,0.35)]">
             <Image
-              src="/images/hero-gamification.svg"
+              src="/images/ninoesfera.jpg"
               alt="Niño mirando una esfera de energía violeta en el cielo nocturno"
               fill
               priority
