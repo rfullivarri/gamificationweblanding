@@ -1,4 +1,6 @@
 :root{
+  --font-heading:"Sora", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-body:"Manrope", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   --bg:#0b0f19; --bg-2:#0A0D18; --card:#121829; --ink:#e8ecf1; --muted:#9aa3b2;
   --accent:#7d3cff; --accent-2:#5c28c2; --line:rgba(255,255,255,.14);
   --low:#b63a3a; --chill:#2f9d66; --flow:#2f6bb6; --evolve:#7d3cff;
@@ -7,6 +9,7 @@
 }
 /* Marca en el nav */
 .nav .brand{
+  font-family:var(--font-heading);
   display:flex; align-items:center; gap:.6rem;
   color:#fff; text-decoration:none; font-weight:700;
 }
@@ -27,10 +30,19 @@
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;}
 body{
-  font-family:'Rubik',system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
+  font-family:var(--font-body);
   background:var(--bg);
   color:var(--ink);
   min-height:100vh; overflow-x:hidden; position:relative;
+}
+
+h1,h2,h3,h4,h5,h6{
+  font-family:var(--font-heading);
+  letter-spacing:-0.015em;
+}
+
+strong,b{
+  font-family:inherit;
 }
 
 /* ==== DESTELLOS / GLOWS FIJOS (iOS-safe) ==== */
@@ -72,11 +84,12 @@ body > *{ position:relative; z-index:1; }
 }
 .brand{color:#fff; font-weight:900; text-decoration:none; white-space:nowrap}
 .nav-links{display:flex; gap:14px; flex-wrap:wrap}
-.nav-links a{color:#cfd6ec; text-decoration:none; font-size:14px; opacity:.9}
+.nav-links a{color:#cfd6ec; text-decoration:none; font-size:14px; opacity:.9; font-family:var(--font-body); font-weight:600; letter-spacing:.01em}
 .nav-links a:hover{opacity:1}
 .nav-actions{display:flex; gap:10px}
 .btn{
   appearance:none; border:0; border-radius:12px; padding:12px 16px; font-weight:800;
+  font-family:var(--font-heading);
   background:var(--accent); color:#fff; cursor:pointer; text-decoration:none;
   transition:.2s background,.05s transform;
 }
@@ -127,12 +140,12 @@ section h2{font-size:32px;margin:0 0 8px;text-align:center}
   backdrop-filter: blur(8px);
   box-shadow:0 16px 48px rgba(0,0,0,.28);
 }
-.card h3{margin:6px 0 8px}
+.card h3{margin:6px 0 8px; font-family:var(--font-heading); letter-spacing:-0.01em}
 .card p{margin:0; color:#d8def5}
 .card-emoji{font-size:24px}
 
 /* ==== MODOS ==== */
-.mode-title{font-weight:900;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mode-title{font-weight:900;display:flex;align-items:center;gap:8px;margin-bottom:6px;font-family:var(--font-heading);letter-spacing:-0.01em}
 .mode .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
 .mode.low{border-left:3px solid var(--low)}
 .mode.low .dot{background:var(--low)}

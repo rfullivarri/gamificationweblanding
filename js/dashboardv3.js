@@ -659,7 +659,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             suggestedMax: Math.max(10, ...(radarData.values || [])),
             pointLabels: {
               color: "#ffffff",
-              font: { family: "'Rubik', sans-serif", size: 13 }
+              font: { family: "'Sora', 'Manrope', sans-serif", size: 13 }
             },
             grid: { color: "#444" },
             angleLines: { color: "#555" },
