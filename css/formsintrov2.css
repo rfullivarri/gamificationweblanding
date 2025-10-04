@@ -1,4 +1,6 @@
  :root{
+    --font-heading:"Sora", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    --font-body:"Manrope", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
     --bg:#0b0e19; --panel:#141a2c; --card:#171b31; --ring:rgba(255,255,255,.08);
     --text:#eaf0ff; --muted:#a9b2d0; --accent:#7a66ff; --accent2:#a78bfa; --ok:#38d39f;
     --shadow:0 24px 80px rgba(0,0,0,.40);
@@ -7,13 +9,18 @@
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    margin:0; font-family:var(--font-body);
     color:var(--text);
     background:
       radial-gradient(1100px 700px at 50% -15%, rgba(122,102,255,.18), transparent 60%),
       linear-gradient(180deg, #0b0e19, #0b0e19 30%, #0f1325 100%);
     overflow:auto;
     padding-top: calc(var(--hudH) + 10px); /* evita que el HUD tape títulos */
+  }
+
+  h1,h2,h3,h4,h5,h6{
+    font-family:var(--font-heading);
+    letter-spacing:-0.015em;
   }
 
   /* HUD (mantengo tu diseño) */
@@ -26,12 +33,12 @@
     padding:10px 12px; background:rgba(10,12,24,.86); border-bottom:1px solid var(--ring);
     backdrop-filter: blur(4px);
   }
-  .brand{grid-area:brand; display:flex; align-items:center; gap:10px; font-weight:800}
+  .brand{grid-area:brand; display:flex; align-items:center; gap:10px; font-weight:800; font-family:var(--font-heading); letter-spacing:-0.01em}
   .dot{width:9px; height:9px; border-radius:50%; background:var(--accent); box-shadow:0 0 20px var(--accent)}
   .journey{display:flex; align-items:center; gap:10px}
   .journey .progress{width:190px}
   .mid{grid-area:mid; display:flex; justify-content:center; gap:18px}
-  .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:110px}
+  .pill{display:flex; flex-direction:column; gap:4px; font-size:12px; min-width:110px; font-family:var(--font-body); font-weight:600}
   .pill .row{display:flex; align-items:center; gap:6px}
   .pill .emoji{font-size:14px}
   .pill .label{font-weight:600}

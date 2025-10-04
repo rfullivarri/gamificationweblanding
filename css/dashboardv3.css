@@ -1,11 +1,22 @@
+/* TOKENS DE TIPOGRAFÍA */
+:root{
+  --font-heading:"Sora", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  --font-body:"Manrope", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
 /* RESET & BASE */
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{
-  font-family:"Rubik",system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
+  font-family:var(--font-body);
   background: linear-gradient(180deg,#0A0D18 0%, #0B0F1E 100%);
   color:#fff;
   margin:0;
+}
+
+h1,h2,h3,h4,h5,h6{
+  font-family:var(--font-heading);
+  letter-spacing:-0.015em;
 }
 
 .dashboard-root{
@@ -44,7 +55,7 @@ header{
   display:flex;align-items:center;justify-content:space-between;
   position:sticky;top:0;z-index:40;
 }
-.logo{font-weight:900}
+.logo{font-weight:900;font-family:var(--font-heading);letter-spacing:-0.01em}
 .menu-toggle{font-size:22px;cursor:pointer}
 
 /* MENÚ HAMBURGUESA */
@@ -305,7 +316,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 /* BOTONES CENTRALES */
 .dashboard-links{display:flex;justify-content:center;gap:16px;margin:12px 0 6px}
-.btn{background:#7d3cff;color:#fff;padding:10px 20px;border-radius:20px;text-decoration:none;font-weight:900;transition:background .25s}
+.btn{background:#7d3cff;color:#fff;padding:10px 20px;border-radius:20px;text-decoration:none;font-weight:900;transition:background .25s;font-family:var(--font-heading);letter-spacing:-0.01em}
 .btn:hover{background:#5c28c2}
 
 /* POPUP AVATAR (estructura lista; la lógica la agregamos luego) */
@@ -641,7 +652,10 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   border: 1px solid rgba(122,134,255,.55);
   background: #151a33;
   color: #e8eaff;
-  font: 700 13px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1;
   display: grid; place-items: center;
   cursor: pointer;
   transition: transform .12s ease, background .12s ease, color .12s ease;
@@ -701,7 +715,10 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
   border: 1px solid rgba(122,134,255,.55);
   background: #151a33;
   color: #e8eaff;
-  font: 700 14px/1 "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
   display: grid; place-items: center;
   cursor: pointer;
   transition: transform .12s ease, background .12s ease, color .12s ease;
