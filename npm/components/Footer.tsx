@@ -1,22 +1,23 @@
 import Link from "next/link";
+
 import { Container } from "./Container";
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-slate-950/80 py-12">
-      <Container className="flex flex-col gap-6 text-center text-sm text-white/60 sm:flex-row sm:items-center sm:justify-between">
-        <p>&copy; {new Date().getFullYear()} GamificationOS. Todos los derechos reservados.</p>
-        <div className="flex justify-center gap-4">
-          <Link href="/privacidad" className="hover:text-white">
-            Privacidad
+    <footer className="bg-surface/30 py-10">
+      <Container className="flex flex-col items-center justify-between gap-6 text-sm text-white/60 md:flex-row">
+        <span>©️ {new Date().getFullYear()} Gamification Journey</span>
+        <nav className="flex items-center gap-4">
+          <Link href="/sign-in" className="transition hover:text-white">
+            Login
           </Link>
-          <Link href="/terminos" className="hover:text-white">
-            Términos
+          <Link href="/sign-up" className="transition hover:text-white">
+            Crear cuenta
           </Link>
-          <Link href="mailto:hola@gamificationos.com" className="hover:text-white">
-            Contacto
+          <Link href="#faq" className="transition hover:text-white">
+            FAQ
           </Link>
-        </div>
+        </nav>
       </Container>
     </footer>
   );
