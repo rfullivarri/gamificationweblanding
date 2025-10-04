@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = [
+  "cd npm && rm -rf node_modules/.cache || true",
+  "cd npm && rm -rf node_modules || true",
+  "cd npm && npm ci"
+]
+
+[phases.build]
+cmds = [
+  "cd npm && npm run build"
+]
+
+[start]
+cmd = "cd npm && npm run start"
