@@ -1,48 +1,52 @@
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+
 import { Container } from "./Container";
 
-type NavigationItem = {
-  href: string;
-  label: string;
-  className?: string;
-};
-
-const navigation: NavigationItem[] = [
-  { href: "#beneficios", label: "Beneficios", className: "hidden md:inline-flex" },
-  { href: "#caracteristicas", label: "Características", className: "hidden md:inline-flex" },
-  { href: "#casos", label: "Casos de uso", className: "hidden lg:inline-flex" }
+const navigation = [
+  { href: "#overview", label: "Overview" },
+  { href: "#why", label: "Nuestros pilares" },
+  { href: "#modes", label: "Modos" },
+  { href: "#how", label: "Cómo funciona" },
+  { href: "#features", label: "Features" },
+  { href: "#testimonials", label: "Testimonios" },
+  { href: "#faq", label: "FAQ" }
 ];
 
 export function Navbar() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-white">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand text-base font-bold text-white shadow-lg">
-            G
+    <header className="sticky top-0 z-50 border-b border-white/5 bg-surface/80 backdrop-blur">
+      <Container className="flex h-20 items-center justify-between gap-6">
+        <Link href="#overview" className="group flex items-center gap-3 text-lg font-semibold text-white">
+          <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white/5 shadow-glow transition group-hover:bg-white/10">
+            <span className="text-xl">✨</span>
           </span>
-          <span className="hidden sm:inline-flex">GamificationOS</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm uppercase tracking-[0.35em] text-white/40">Innerbloom</span>
+            <span className="text-base font-semibold text-white">Gamification Journey</span>
+          </div>
         </Link>
-        <nav className="flex items-center gap-4 text-sm font-medium">
+
+        <nav className="hidden items-center gap-6 text-sm font-medium text-white/70 lg:flex">
           {navigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={cn("text-white/80 transition hover:text-white", item.className)}
+              className="transition hover:text-white"
+              scroll
             >
               {item.label}
             </Link>
           ))}
-          <div className="flex items-center gap-3">
-            <Link href="/sign-in" className="rounded-full border border-white/20 px-4 py-2 text-white/90 transition hover:border-white/40">
-              Iniciar sesión
-            </Link>
-            <Link href="/sign-up" className="button-primary hidden sm:inline-flex">
-              Crear cuenta
-            </Link>
-          </div>
         </nav>
+
+        <div className="flex items-center gap-3">
+          <Link href="/sign-up" className="btn-primary hidden md:inline-flex">
+            Crear cuenta
+          </Link>
+          <Link href="/sign-in" className="btn-ghost">
+            Ya tengo cuenta
+          </Link>
+        </div>
       </Container>
     </header>
   );

@@ -7,13 +7,17 @@
 }
 
 body {
-  @apply antialiased bg-slate-950 text-slate-100;
+  @apply min-h-screen bg-background text-slate-100 antialiased;
 }
 
 a {
-  @apply text-brand hover:text-brand-light transition-colors;
+  @apply text-accent-soft transition-colors hover:text-white;
 }
 
-.button-primary {
-  @apply rounded-full bg-brand px-6 py-3 font-semibold text-white shadow-lg hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-light;
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-accent px-6 py-3 font-semibold text-white shadow-glow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-soft hover:bg-accent-soft;
+}
+
+.btn-ghost {
+  @apply inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 font-semibold text-white/80 transition hover:border-white/50 hover:text-white;
 }
