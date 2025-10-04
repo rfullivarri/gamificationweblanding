@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "preinstall": "rm -rf node_modules/.cache || true",
     "test": "node --check refactor/js/features/formsintrov2.js",
-    "prebuild": "npm ci --prefix npm",
-    "build": "npm run build --prefix npm",
-    "postbuild": "rm -rf npm/node_modules/.cache || true"
-  }
+    "db:schema": "node scripts/db-runner.mjs schema",
+    "db:seeds": "node scripts/db-runner.mjs seeds",
+    "db:all": "node scripts/db-runner.mjs all",
+    "build": "node scripts/build-static.mjs"
+  },
+  "dependencies": {}
 }
