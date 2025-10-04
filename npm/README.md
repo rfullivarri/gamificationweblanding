@@ -33,6 +33,9 @@ Para Neon, obtén la cadena de conexión en la consola y pégala en `DATABASE_UR
 - `npm run start`: Sirve la build de producción (ideal para Railway).
 - `npm run lint`: Ejecuta los chequeos de ESLint.
 
+> [!NOTE]
+> Todos los comandos anteriores delegan en `scripts/run-next.mjs`, que fuerza la variable de entorno `NEXT_IGNORE_INCORRECT_LOCKFILE` para evitar que Next.js intente "parchear" el `package-lock.json` cuando se trabaja sin conexión o detrás de proxys restringidos. Esto elimina las advertencias como `Found lockfile missing swc dependencies` y permite desarrollar sin fricciones en entornos offline o con políticas de red estrictas.
+
 ## Despliegue en Railway
 
 1. Crea un nuevo proyecto en Railway y sube este repositorio.

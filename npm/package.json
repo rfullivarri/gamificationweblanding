@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "node ./scripts/run-next.mjs dev --turbo",
+    "build": "node ./scripts/run-next.mjs build",
+    "start": "node ./scripts/run-next.mjs start",
+    "lint": "node ./scripts/run-next.mjs lint"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.4",
