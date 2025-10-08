@@ -27,9 +27,6 @@
       ],
       "@/lib/*": [
         "lib/*"
-      ],
-      "@/routes/*": [
-        "src/routes/*"
       ]
     },
     "esModuleInterop": true,
