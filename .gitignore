@@ -2,4 +2,3 @@ node_modules/
 dist/
 npm/node_modules/
 npm/.next/
-npm/tsconfig.tsbuildinfo
