@@ -374,7 +374,7 @@ canvas{width:100% !important;height:auto !important;border-radius:10px}
 
 .energy-track{
   position: relative;
-  height: 15px;                     /* más finita */
+  height: 30px;                     /* el doble de alta para mayor presencia */
   border-radius: 999px;
   background: #2b2f3f;              /* track oscuro alineado al dashboard */
   border: 1px solid rgba(255,255,255,.10);
